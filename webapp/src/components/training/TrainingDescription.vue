@@ -1,7 +1,9 @@
 <template>
   <div class="space-y-4 md:space-y-8 mx-auto w-full max-w-[700px]">
     <IconCard>
-      <template #title> {{ props.task.displayInformation.title }} </template>
+      <template #title>
+        {{ props.task.displayInformation.title }}
+      </template>
 
       <div v-html="props.task.displayInformation.summary.preview" />
       <div v-html="props.task.displayInformation.summary.overview" />
