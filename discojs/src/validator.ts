@@ -14,13 +14,13 @@ export class Validator<D extends DataType> {
   /** infer every line of the dataset and check that it is as labelled */
   async *test(
     dataset: Dataset<DataFormat.Raw[D]>,
-  ): AsyncGenerator<boolean, void> {
+  ): AsyncGenerator<{ result: boolean; predicted: DataFormat.ModelEncoded[D][1] }, void> {
     const results = (await processing.preprocess(this.task, dataset))
       .batch(this.task.trainingInformation.batchSize)
       .map(async (batch) =>
         (await this.#model.predict(batch.map(([inputs, _]) => inputs)))
           .zip(batch.map(([_, outputs]) => outputs))
-          .map(([inferred, truth]) => inferred === truth),
+          .map(([inferred, truth]) => ({ result: inferred === truth, predicted: inferred })),
       )
       .flatten();
 

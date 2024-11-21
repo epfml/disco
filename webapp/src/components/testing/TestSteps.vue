@@ -142,7 +142,7 @@ const props = defineProps<{
 interface Tested {
   image: List<{
     input: { filename: string; image: ImageData };
-    output: { truth: string; correct: boolean };
+    output: { truth: string; correct: boolean; predicted : number };
   }>;
   tabular: {
     labels: {
@@ -151,7 +151,7 @@ interface Tested {
     };
     results: List<{
       input: List<string>;
-      output: { truth: string; correct: boolean };
+      output: { truth: string; correct: boolean; predicted : number };
     }>;
   };
   // TODO what to show?
@@ -159,7 +159,7 @@ interface Tested {
 }
 
 const dataset = ref<LabeledDataset[D]>();
-const generator = ref<AsyncGenerator<boolean, void>>();
+const generator = ref<AsyncGenerator<{result : boolean, predicted : number}, void>>();
 const tested = ref<Tested[D]>();
 
 const visitedSamples = computed<number>(() => {
@@ -179,7 +179,7 @@ const visitedSamples = computed<number>(() => {
 });
 const currentAccuracy = computed<string>(() => {
   if (tested.value === undefined) return "0";
-
+  console.log(tested.value);
   let hits: number | undefined;
   switch (props.task.trainingInformation.dataType) {
     case "image":
@@ -250,7 +250,7 @@ async function startImageTest(
     generator.value = validator.test(
       dataset.map(({ image, label }) => [image, label] as [Image, string]),
     );
-    for await (const [{ filename, image, label }, correct] of dataset.zip(
+    for await (const [{ filename, image, label }, {result, predicted}] of dataset.zip(
       toRaw(generator.value),
     )) {
       results = results.push({
@@ -264,7 +264,8 @@ async function startImageTest(
         },
         output: {
           truth: label,
-          correct,
+          correct: result,
+          predicted: predicted,
         },
       });
 
@@ -295,7 +296,7 @@ async function startTabularTest(
   let results: Tested["tabular"]["results"] = List();
   try {
     generator.value = validator.test(dataset);
-    for await (const [row, correct] of dataset.zip(toRaw(generator.value))) {
+    for await (const [row, {result, predicted}] of dataset.zip(toRaw(generator.value))) {
       const truth = row[outputColumn];
       if (truth === undefined)
         throw new Error("row doesn't have expected output column");
@@ -308,8 +309,9 @@ async function startTabularTest(
           return ret;
         }),
         output: {
-          truth,
-          correct,
+          truth: truth,
+          correct: result,
+          predicted : predicted,
         },
       });
 
@@ -330,8 +332,8 @@ async function startTextTest(
 
   try {
     generator.value = validator.test(dataset);
-    for await (const correct of toRaw(generator.value)) {
-      results = results.push({ output: { correct } });
+    for await (const {result, predicted} of toRaw(generator.value)) {
+      results = results.push({ output:  {correct : result} });
       tested.value = results as Tested[D];
     }
   } finally {
