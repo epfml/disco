@@ -56,6 +56,34 @@
           <span class="text-sm">&nbsp;samples visited</span>
         </div>
       </div>
+
+      <div v-if="confusionMatrix && confusionMatrix.length > 0" class="p-4 mx-auto lg:w-1/2 h-full bg-white dark:bg-slate-950 rounded-md">
+        <h4 class="p-4 text-lg font-semibold text-slate-500 dark:text-slate-300">
+          Confusion Matrix
+        </h4>
+        <table class="min-w-full divide-y divide-slate-200 text-center">
+          <thead>
+            <tr>
+              <th class="pl-6 py-3 text-xs font-medium text-gray-200 uppercase tracking-wider text-center border-r-gray-200 border-r-2 diagonal-header">                  
+                <span class="">Label \ Prediction</span>
+              </th>              
+              <th v-for="(label, index) in confusionMatrix[0]" :key="'header-' + index" class="px-6 py-3 text-xs font-medium text-gray-200 uppercase tracking-wider">
+                {{ index }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(row, rowIndex) in confusionMatrix" :key="'row-' + rowIndex">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-200 border-r-gray-200 border-r-2">
+                {{ rowIndex }}
+              </td>
+              <td v-for="(value, colIndex) in row" :key="'col-' + colIndex" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ value }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <div v-if="tested !== undefined">
@@ -142,16 +170,16 @@ const props = defineProps<{
 interface Tested {
   image: List<{
     input: { filename: string; image: ImageData };
-    output: { truth: string; correct: boolean; predicted : number };
+    output: { truth: string; correct: boolean; predicted : number, label : number };
   }>;
   tabular: {
     labels: {
       input: List<string>;
-      output: { truth: string; correct: string };
+      output: { truth: string; correct: string, label : string };
     };
     results: List<{
       input: List<string>;
-      output: { truth: string; correct: boolean; predicted : number };
+      output: { truth: string; correct: boolean; predicted : number, label : number };
     }>;
   };
   // TODO what to show?
@@ -159,7 +187,7 @@ interface Tested {
 }
 
 const dataset = ref<LabeledDataset[D]>();
-const generator = ref<AsyncGenerator<{result : boolean, predicted : number}, void>>();
+const generator = ref<AsyncGenerator<{result : boolean, predicted : number; truth : number}, void>>();
 const tested = ref<Tested[D]>();
 
 const visitedSamples = computed<number>(() => {
@@ -177,9 +205,58 @@ const visitedSamples = computed<number>(() => {
     }
   }
 });
+
+const confusionMatrix = computed<number[][] | undefined>(() => {
+  if (tested.value === undefined) return undefined;
+  const labels = new Set<number>();
+  
+  // get all the labels
+  switch (props.task.trainingInformation.dataType) {
+    case "image":
+      (tested.value as Tested["image"]).forEach(({ output }) => {
+        labels.add(output.label);
+        labels.add(output.predicted);
+      });
+      break;
+    case "text":
+      return undefined;
+    case "tabular":
+      (tested.value as Tested["tabular"]).results.forEach(({ output }) => {
+        labels.add(output.label);
+        labels.add(output.predicted);
+      });
+      break;
+    default: {
+      const _: never = props.task.trainingInformation;
+      throw new Error("should never happen");
+    }
+  }
+  const size = Math.max(labels.size, Math.max(...Array.from(labels)));
+  // Initialize the confusion matrix
+  const matrix = Array.from({ length: size }, () => Array(size).fill(0));
+  
+  switch (props.task.trainingInformation.dataType) {
+    case "image":
+        (tested.value as Tested["image"]).map(
+          ( {output} ) => matrix[output.predicted][output.label] = matrix[output.predicted][output.label] + 1,
+        );
+        break;
+    //case "text":
+    //  return undefined;
+    case "tabular":
+      return undefined;
+    default: {
+      const _: never = props.task.trainingInformation;
+      throw new Error("should never happen");
+    }
+  }
+  return matrix;
+})
+
 const currentAccuracy = computed<string>(() => {
+  console.log(confusionMatrix)
+
   if (tested.value === undefined) return "0";
-  console.log(tested.value);
   let hits: number | undefined;
   switch (props.task.trainingInformation.dataType) {
     case "image":
@@ -250,7 +327,7 @@ async function startImageTest(
     generator.value = validator.test(
       dataset.map(({ image, label }) => [image, label] as [Image, string]),
     );
-    for await (const [{ filename, image, label }, {result, predicted}] of dataset.zip(
+    for await (const [{ filename, image, label }, {result, predicted, truth}] of dataset.zip(
       toRaw(generator.value),
     )) {
       results = results.push({
@@ -266,6 +343,7 @@ async function startImageTest(
           truth: label,
           correct: result,
           predicted: predicted,
+          label : truth,
         },
       });
 
@@ -296,9 +374,9 @@ async function startTabularTest(
   let results: Tested["tabular"]["results"] = List();
   try {
     generator.value = validator.test(dataset);
-    for await (const [row, {result, predicted}] of dataset.zip(toRaw(generator.value))) {
-      const truth = row[outputColumn];
-      if (truth === undefined)
+    for await (const [row, {result, predicted, truth}] of dataset.zip(toRaw(generator.value))) {
+      const truth_label = row[outputColumn];
+      if (truth_label === undefined)
         throw new Error("row doesn't have expected output column");
 
       results = results.push({
@@ -309,9 +387,10 @@ async function startTabularTest(
           return ret;
         }),
         output: {
-          truth: truth,
+          truth: truth_label,
           correct: result,
           predicted : predicted,
+          label : truth,
         },
       });
 
