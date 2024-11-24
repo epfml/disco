@@ -56,34 +56,34 @@
           <span class="text-sm">&nbsp;samples visited</span>
         </div>
       </div>
+    </div>
 
-      <div v-if="confusionMatrix && confusionMatrix.length > 0" class="p-4 mx-auto lg:w-1/2 h-full bg-white dark:bg-slate-950 rounded-md">
-        <h4 class="p-4 text-lg font-semibold text-slate-500 dark:text-slate-300">
-          Confusion Matrix
-        </h4>
-        <table class="min-w-full divide-y divide-slate-200 text-center">
-          <thead>
-            <tr>
-              <th class="pl-6 py-3 text-xs font-medium text-gray-200 uppercase tracking-wider text-center border-r-gray-200 border-r-2 diagonal-header">                  
-                <span class="">Label \ Prediction</span>
-              </th>              
-              <th v-for="(label, index) in confusionMatrix[0]" :key="'header-' + index" class="px-6 py-3 text-xs font-medium text-gray-200 uppercase tracking-wider">
-                {{ index }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(row, rowIndex) in confusionMatrix" :key="'row-' + rowIndex">
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-200 border-r-gray-200 border-r-2">
-                {{ rowIndex }}
-              </td>
-              <td v-for="(value, colIndex) in row" :key="'col-' + colIndex" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ value }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+    <div v-if="confusionMatrix && confusionMatrix.matrix.length > 0" class="p-4 mx-auto lg:w-1/2 h-full bg-white dark:bg-slate-950 rounded-md">
+      <h4 class="p-4 text-lg font-semibold text-slate-500 dark:text-slate-300">
+        Confusion Matrix
+      </h4>
+      <table class="min-w-full divide-y divide-slate-600 dark:divide-slate-400 text-center">
+        <thead>
+          <tr>
+            <th class="pl-6 py-3 text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider text-center border-r-gray-600 dark:border-r-gray-400 border-r-2 diagonal-header">                  
+              <span class="">Label \ Prediction</span>
+            </th>              
+            <th v-for="(label, index) in confusionMatrix.matrix[0]" :key="'header-' + index" class="px-6 py-3 text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+              {{ confusionMatrix.labels.get(index) }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(row, rowIndex) in confusionMatrix.matrix" :key="'row-' + rowIndex">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-gray-200 border-r-gray-600 dark:border-r-gray-400 border-r-2">
+              {{ confusionMatrix.labels.get(rowIndex) }}
+            </td>
+            <td v-for="(value, colIndex) in row" :key="'col-' + colIndex" class="px-6 py-4 whitespace-nowrap text-sm dark:text-gray-300 text-gray-700">
+              {{ value }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <div v-if="tested !== undefined">
@@ -206,9 +206,10 @@ const visitedSamples = computed<number>(() => {
   }
 });
 
-const confusionMatrix = computed<number[][] | undefined>(() => {
+const confusionMatrix = computed<{labels : Map<number, string>, matrix : number[][]} | undefined>(() => {
   if (tested.value === undefined) return undefined;
   const labels = new Set<number>();
+  const mapLabels = new Map<number, string>();
   
   // get all the labels
   switch (props.task.trainingInformation.dataType) {
@@ -216,6 +217,7 @@ const confusionMatrix = computed<number[][] | undefined>(() => {
       (tested.value as Tested["image"]).forEach(({ output }) => {
         labels.add(output.label);
         labels.add(output.predicted);
+        mapLabels.set(output.label, output.truth);
       });
       break;
     case "text":
@@ -224,6 +226,7 @@ const confusionMatrix = computed<number[][] | undefined>(() => {
       (tested.value as Tested["tabular"]).results.forEach(({ output }) => {
         labels.add(output.label);
         labels.add(output.predicted);
+        mapLabels.set(output.label, output.truth);
       });
       break;
     default: {
@@ -231,6 +234,7 @@ const confusionMatrix = computed<number[][] | undefined>(() => {
       throw new Error("should never happen");
     }
   }
+  console.log(mapLabels)
   const size = Math.max(labels.size, Math.max(...Array.from(labels)));
   // Initialize the confusion matrix
   const matrix = Array.from({ length: size }, () => Array(size).fill(0));
@@ -250,7 +254,7 @@ const confusionMatrix = computed<number[][] | undefined>(() => {
       throw new Error("should never happen");
     }
   }
-  return matrix;
+  return {labels : mapLabels, matrix : matrix};
 })
 
 const currentAccuracy = computed<string>(() => {
