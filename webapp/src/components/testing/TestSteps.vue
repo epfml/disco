@@ -234,7 +234,6 @@ const confusionMatrix = computed<{labels : Map<number, string>, matrix : number[
       throw new Error("should never happen");
     }
   }
-  console.log(mapLabels)
   const size = Math.max(labels.size, Math.max(...Array.from(labels)));
   // Initialize the confusion matrix
   const matrix = Array.from({ length: size }, () => Array(size).fill(0));
@@ -258,7 +257,6 @@ const confusionMatrix = computed<{labels : Map<number, string>, matrix : number[
 })
 
 const currentAccuracy = computed<string>(() => {
-  console.log(confusionMatrix)
 
   if (tested.value === undefined) return "0";
   let hits: number | undefined;
@@ -415,7 +413,7 @@ async function startTextTest(
 
   try {
     generator.value = validator.test(dataset);
-    for await (const {result, predicted} of toRaw(generator.value)) {
+    for await (const {result} of toRaw(generator.value)) {
       results = results.push({ output:  {correct : result} });
       tested.value = results as Tested[D];
     }
