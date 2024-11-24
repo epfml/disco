@@ -25,6 +25,5 @@ it("shows messages", async () => {
     },
   });
 
-  const listItems = wrapper.findAll("#mapHeader li");
-  expect(listItems.length === 0 || listItems.length === 3).toBe(true);
+  expect(wrapper.findAll("#mapHeader li")).toHaveLength(0);
 });
