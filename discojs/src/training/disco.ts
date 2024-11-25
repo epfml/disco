@@ -205,18 +205,21 @@ export class Disco<D extends DataType> extends EventEmitter<{
   ): Promise<
     [
       Dataset<Batched<DataFormat.ModelEncoded[D]>>,
-      Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+      Dataset<Batched<DataFormat.ModelEncoded[D]>> | undefined,
     ]
   > {
     const { batchSize, validationSplit } = this.#task.trainingInformation;
 
-    const preprocessed = await processing.preprocess(this.#task, dataset);
+    let preprocessed = await processing.preprocess(this.#task, dataset);
 
-    const [training, validation] = (
+    preprocessed = (
       this.#preprocessOnce
         ? new Dataset(await arrayFromAsync(preprocessed))
         : preprocessed
-    ).split(validationSplit);
+    )
+    if (validationSplit === 0) return [preprocessed.batch(batchSize).cached(), undefined];
+    
+    const [training, validation] = preprocessed.split(validationSplit);
 
     return [
       training.batch(batchSize).cached(),
