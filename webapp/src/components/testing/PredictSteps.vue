@@ -73,7 +73,7 @@
           :image="result.input.image"
         >
           <template #title>
-            <span class="font-bold">{{ result.output }}</span>
+            <span class="font-bold text-slate-600">{{ result.output.toUpperCase() }}</span>
           </template>
         </ImageCard>
       </div>

@@ -78,7 +78,7 @@
               class="font-bold"
               :class="result.output.correct ? 'text-green-500' : 'text-red-700'"
             >
-              {{ result.output.truth }}
+              {{ result.output.truth.toUpperCase() }}
             </p>
           </template>
         </ImageCard>
