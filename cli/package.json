@@ -14,9 +14,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "server": "*",
     "@epfml/discojs-node": "*",
+    "csv-parse": "^5.6.0",
     "immutable": "4",
+    "server": "*",
     "tslib": "2"
   },
   "devDependencies": {

@@ -1,14 +1,15 @@
 import path from "node:path";
-
+import fs from 'node:fs/promises'
+import { parse } from 'csv-parse';
+import { Dataset } from "@epfml/discojs";
 import type {
-  Dataset,
   DataFormat,
   DataType,
   Image,
   Task,
 } from "@epfml/discojs";
-import { loadCSV, loadImagesInDir } from "@epfml/discojs-node";
-import { Repeat } from "immutable";
+import { loadCSV, loadImage, loadImagesInDir } from "@epfml/discojs-node";
+import { Repeat, Map } from "immutable";
 
 async function loadSimpleFaceData(): Promise<Dataset<DataFormat.Raw["image"]>> {
   const folder = path.join("..", "datasets", "simple_face");
@@ -35,6 +36,46 @@ async function loadLusCovidData(): Promise<Dataset<DataFormat.Raw["image"]>> {
 
   return positive.chain(negative);
 }
+
+export async function loadTinderDogData(split: number): Promise<Dataset<DataFormat.Raw["image"]>> {
+  const folder = path.join("..", "datasets", "tinder_dog", `${split + 1}`);
+  console.log(`Reading data split ${folder}`)
+  const csvPath = path.join(folder, 'labels.csv')
+
+  const headers = ['filename', 'label'];
+  const fileContent = await fs.readFile(csvPath, { encoding: 'utf-8' });
+  const csvContent = await new Promise<{ filename: string, label: number }[]>((resolve, reject) => {
+    parse(fileContent, {
+      delimiter: ',',
+      columns: headers,
+    }, (error, result: { filename: string, label: number }[]) => {
+      if (error) {
+        console.error(error);
+        reject(error)
+      }
+      resolve(result)
+    });
+  })
+  const imgToLabel = Map(csvContent.map(entry =>
+      [entry.filename, entry.label] as const)
+  );
+  const fileExtensions = [".png", ".jpg", ".jpeg"];
+  const imagesFile = (await fs.readdir(folder)).filter(file => {
+    for (const ext of fileExtensions) if(file.endsWith(ext)) return true;
+    return false;
+  })
+  const labels = imagesFile.map(img => {
+    const label = imgToLabel.get(img.slice(0, -4)) // remove the file extension
+    if (label === undefined) throw Error(`Image ${img} not found in CSV`)
+    return label.toString()
+  })
+  const imgPaths = imagesFile.map(imgName => path.join(folder, imgName))
+  console.log(`Found ${imgPaths.length} in split ${split}`)
+  const images = await Promise.all(imgPaths.map(imgPath => loadImage(imgPath)))
+  
+  return new Dataset(images).zip(labels)
+}
+
 
 export async function getTaskData<D extends DataType>(
   task: Task<D>,

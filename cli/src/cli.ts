@@ -13,9 +13,8 @@ import type {
   TaskProvider,
 } from "@epfml/discojs";
 import { Disco, aggregator as aggregators, client as clients } from '@epfml/discojs'
-import { Server } from 'server'
 
-import { getTaskData } from './data.js'
+import { getTaskData, loadTinderDogData } from './data.js'
 import { args } from './args.js'
 
 // Array.fromAsync not yet widely used (2024)
@@ -49,23 +48,26 @@ async function main<D extends DataType>(
   console.log(`Started ${task.trainingInformation.scheme} training of ${task.id}`)
   console.log({ args })
 
-  const [server, url] = await new Server().serve(undefined, provider)
+  const url = new URL('http://localhost:8080/')
 
-  const data = await getTaskData(task)
-
-  const logs = await Promise.all(
-    Range(0, numberOfUsers).map(async (_) => await runUser(task, url, data)).toArray()
-  )
-
-  if (args.save) {
-    const fileName = `${task.id}_${numberOfUsers}users.csv`;
-    await fs.writeFile(fileName, JSON.stringify(logs, null, 2));
+  if (task.id === 'tinder_dog') {
+    const dataSplits = await Promise.all(
+      Range(0, numberOfUsers).map(async i => loadTinderDogData(i))
+    )
+    const _ = await Promise.all(
+      dataSplits.map(async data => runUser(task, url, data as Dataset<DataFormat.Raw[D]>))
+    )
+  } else {
+    const data = await getTaskData(task)
+  
+    const logs = await Promise.all(
+      Range(0, numberOfUsers).map(async (_) => await runUser(task, url, data)).toArray()
+    )
+    if (args.save) {
+      const fileName = `${task.id}_${numberOfUsers}users.csv`;
+      await fs.writeFile(fileName, JSON.stringify(logs, null, 2));
+    }
   }
-  console.log('Shutting down the server...')
-  await new Promise((resolve, reject) => {
-    server.once('close', resolve)
-    server.close(reject)
-  })
 }
 
 main(args.provider, args.numberOfUsers).catch(console.error)
