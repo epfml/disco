@@ -6,7 +6,6 @@ import { Client, shortenId } from "../client.js";
 import { type, type ClientConnected } from "../messages.js";
 import {
   waitMessage,
-  waitMessageWithTimeout,
   WebSocketServer,
 } from "../event_connection.js";
 import * as messages from "./messages.js";
@@ -75,7 +74,7 @@ export class FederatedClient extends Client {
     const {
       id, waitForMoreParticipants, payload,
       round, nbOfParticipants
-    } = await waitMessageWithTimeout(this.server, type.NewFederatedNodeInfo);
+    } = await waitMessage(this.server, type.NewFederatedNodeInfo);
     
     // This should come right after receiving the message to make sure
     // we don't miss a subsequent message from the server
