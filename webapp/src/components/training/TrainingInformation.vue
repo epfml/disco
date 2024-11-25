@@ -53,9 +53,8 @@
 
     <!-- Training and validation loss charts -->
     <div
-      class="flex flex-col md:grid gap-4 md:gap-8"
-      :class="hasValidationData ? 'md:grid-cols-2' : ''"
-    >
+      class="flex flex-col md:grid gap-4 md:gap-8 md:grid-cols-2"
+      >
       <!-- Training loss users chart -->
       <IconCard>
         <template #title> Training Loss of the Model </template>
@@ -76,32 +75,6 @@
         />
       </IconCard>
 
-      <!-- Validation Loss users chart -->
-      <IconCard v-if="hasValidationData">
-        <template #title> Validation Loss of the Model </template>
-
-        <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
-          {{ (lastEpoch?.validation?.loss ?? 0).toFixed(2) }}
-        </span>
-        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
-          validation loss
-        </span>
-
-        <ApexChart
-          width="100%"
-          height="200"
-          type="area"
-          :options="lossChartsOptions"
-          :series="[{ name: 'Validation loss', data: lossSeries.validation }]"
-        />
-      </IconCard>
-    </div>
-
-    <!-- Training and validation accuracy charts -->
-    <div
-      class="flex flex-col md:grid gap-4 md:gap-8"
-      :class="hasValidationData ? 'md:grid-cols-2' : ''"
-    >
       <!-- Training Accuracy users chart -->
       <IconCard>
         <template #title> Training Accuracy of the Model </template>
@@ -122,10 +95,35 @@
             { name: 'Training accuracy', data: accuracySeries.training },
           ]"
         />
-      </IconCard>
+      </IconCard>      
+    </div>
 
+    <!-- Training and validation accuracy charts -->
+    <div
+      v-if="hasValidationData"
+      class="flex flex-col md:grid gap-4 md:gap-8 md:grid-cols-2"
+    >
+      <!-- Validation Loss users chart -->
+      <IconCard>
+        <template #title> Validation Loss of the Model </template>
+
+        <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
+          {{ (lastEpoch?.validation?.loss ?? 0).toFixed(2) }}
+        </span>
+        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
+          validation loss
+        </span>
+
+        <ApexChart
+          width="100%"
+          height="200"
+          type="area"
+          :options="lossChartsOptions"
+          :series="[{ name: 'Validation loss', data: lossSeries.validation }]"
+        />
+      </IconCard>
       <!-- Validation Accuracy users chart -->
-      <IconCard v-if="hasValidationData">
+      <IconCard>
         <template #title> Validation Accuracy of the Model </template>
 
         <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
