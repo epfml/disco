@@ -32,9 +32,9 @@ export class FederatedController<
    */
   #latestGlobalWeights: serialization.Encoded;
 
-  constructor(task: Task<D>, initialWeights: serialization.Encoded) {
+  constructor(task: Task<D>, private readonly initialWeights: serialization.Encoded) {
     super(task)
-    this.#latestGlobalWeights = initialWeights
+    this.#latestGlobalWeights = this.initialWeights
 
     // Save the latest weight updates to be able to send it to new or outdated clients
     this.#aggregator.on('aggregation', async (weightUpdate) => {
@@ -144,6 +144,13 @@ export class FederatedController<
       this.connections = this.connections.delete(clientId)
       this.#aggregator.removeNode(clientId)
       debug("client [%s] left", shortId)
+
+      // Reset the training session when all participants left
+      if (this.connections.size === 0) {
+        debug("All participants left. Resetting the training session")
+        this.#aggregator = new aggregators.MeanAggregator(undefined, 1, 'relative')
+        this.#latestGlobalWeights = this.initialWeights
+      }
 
       // Check if we dropped below the minimum number of participant required
       // or if we are already waiting for new participants to join
