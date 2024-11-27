@@ -67,7 +67,13 @@ function refreshWatcher() {
         ([label, files]) =>
           files.value?.map((f) => [label, f] as const)?.toArray() ?? [],
       );
-
+      // shuffle the filenames o.w. they are ordered by labels
+      for (let i = 0; i < expanded.length; i++) {
+        const j = Math.floor(Math.random() * i)
+        const swap = expanded[i]
+        expanded[i] = expanded[j]
+        expanded[j] = swap
+      }
       dataset.value = new Dataset(expanded).map(async ([label, file]) => ({
         filename: file.name,
         image: await loadImage(file),
