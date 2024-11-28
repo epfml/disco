@@ -77,6 +77,7 @@ export class GPTModel extends tf.LayersModel {
       return lossTensor
     })
 
+    // TODO: replace accuracy by perplexity
     // @ts-expect-error Variable 'logitsTensor' is used before being assigned
     const accTensor = tf.metrics.categoricalAccuracy(y, logitsTensor)
     const accSize = accTensor.shape.reduce((l, r) => l * r, 1)
