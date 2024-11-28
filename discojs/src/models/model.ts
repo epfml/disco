@@ -6,6 +6,8 @@ import type {
   WeightsContainer,
 } from "../index.js";
 
+import * as tf from "@tensorflow/tfjs";
+
 import type { BatchLogs, EpochLogs } from "./logs.js";
 
 /**
@@ -39,6 +41,26 @@ export abstract class Model<D extends DataType> implements Disposable {
     batch: Batched<DataFormat.ModelEncoded[D][0]>,
   ): Promise<Batched<DataFormat.ModelEncoded[D][1]>>;
 
+  protected getBatchLogs(
+    logs: number | number[],
+  ): BatchLogs {
+    if (!Array.isArray(logs) || logs.length != 2) 
+      throw new Error("training output has unexpected shape")
+    
+    const [loss, accuracy] = logs
+    
+    if (
+      typeof loss !== "number" || isNaN(loss) ||
+      typeof accuracy !== "number" || isNaN(accuracy)
+    )
+      throw new Error("training loss or accuracy is undefined or NaN");
+
+    return {
+      accuracy,
+      loss,
+      memoryUsage: tf.memory().numBytes / 1024 / 1024 / 1024,
+    };
+  }
   /**
    * This method is automatically called to cleanup the memory occupied by the model
    * when leaving the definition scope if the instance has been defined with the `using` keyword.

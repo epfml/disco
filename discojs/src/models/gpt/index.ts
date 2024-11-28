@@ -76,30 +76,10 @@ export class GPT extends Model<"text"> {
   async #runBatch(
     batch: Batched<DataFormat.ModelEncoded["text"]>,
   ): Promise<BatchLogs> {
-    const tfBatch = this.#batchToTF(batch);
-
-    let logs: tf.Logs | undefined;
-    await this.model.fitDataset(tf.data.array([tfBatch]), {
-      epochs: 1,
-      verbose: 0, // don't pollute
-      callbacks: {
-        onEpochEnd: (_, cur) => {
-          logs = cur;
-        },
-      },
-    });
-    tf.dispose(tfBatch);
-    if (logs === undefined) throw new Error("batch didn't gave any logs");
-
-    const { loss, acc: accuracy } = logs;
-    if (loss === undefined || isNaN(loss))
-      throw new Error("training loss is undefined or NaN");
-
-    return {
-      accuracy,
-      loss,
-      memoryUsage: tf.memory().numBytes / 1024 / 1024 / 1024,
-    };
+    const {xs, ys} = this.#batchToTF(batch);
+    const logs = await this.model.trainOnBatch(xs, ys);
+    tf.dispose([xs, ys])
+    return this.getBatchLogs(logs)
   }
 
   async #evaluate(

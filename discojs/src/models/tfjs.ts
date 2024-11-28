@@ -62,30 +62,11 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
 
   async #runBatch(
     batch: Batched<DataFormat.ModelEncoded[D]>,
-  ): Promise<Omit<BatchLogs, "batch">> {
+  ): Promise<BatchLogs> {
     const { xs, ys } = this.#batchToTF(batch);
-
-    const { history } = await this.model.fit(xs, ys, {
-      epochs: 1,
-      verbose: 0, // don't pollute
-    });
-
-    const { loss: losses, acc: accuracies } = history;
-    if (
-      losses === undefined ||
-      accuracies === undefined ||
-      typeof losses[0] !== "number" ||
-      typeof accuracies[0] !== "number" ||
-      isNaN(losses[0]) ||
-      isNaN(accuracies[0])
-    )
-      throw new Error("training loss or accuracy is undefined or NaN");
-
-    return {
-      accuracy: accuracies[0],
-      loss: losses[0],
-      memoryUsage: tf.memory().numBytes / 1024 / 1024 / 1024,
-    };
+    const logs = await this.model.trainOnBatch(xs, ys);
+    tf.dispose([xs, ys])
+    return this.getBatchLogs(logs)
   }
 
   async #evaluate(
