@@ -61,23 +61,7 @@ export class GPTModel extends tf.LayersModel {
     await Promise.all([x.data(), y.data()])
     preprocessingTime = performance.now() - preprocessingTime
 
-    // TODO include as a tensor inside the model
-    const accTensor = tf.tidy(() => {
-      const logits = this.apply(x)
-      if (Array.isArray(logits))
-        throw new Error('model outputs too many tensor')
-      if (logits instanceof tf.SymbolicTensor)
-        throw new Error('model outputs symbolic tensor')
-      return tf.metrics.categoricalAccuracy(y, logits)
-    })
-    const accSize = accTensor.shape.reduce((l, r) => l * r, 1)
-    const accSumTensor = accTensor.sum()
-    const accSum = await accSumTensor.array()
-    tf.dispose(accSumTensor)
-    if (typeof accSum !== 'number')
-      throw new Error('got multiple accuracy sum')
-    tf.dispose([accTensor])
-
+    let logitsTensor: tf.Tensor<tf.Rank>;
     const lossTensor = tf.tidy(() => {
       const { grads, value: lossTensor } = this.optimizer.computeGradients(() => {
         const logits = this.apply(x)
@@ -85,12 +69,23 @@ export class GPTModel extends tf.LayersModel {
           throw new Error('model outputs too many tensor')
         if (logits instanceof tf.SymbolicTensor)
           throw new Error('model outputs symbolic tensor')
+        logitsTensor = tf.keep(logits)
         return tf.losses.softmaxCrossEntropy(y, logits)
       })
       const gradsClipped = clipByGlobalNormObj(grads, 1)
       this.optimizer.applyGradients(gradsClipped)
       return lossTensor
     })
+
+    // @ts-expect-error Variable 'logitsTensor' is used before being assigned
+    const accTensor = tf.metrics.categoricalAccuracy(y, logitsTensor)
+    const accSize = accTensor.shape.reduce((l, r) => l * r, 1)
+    const accSumTensor = accTensor.sum()
+    const accSum = await accSumTensor.array()
+    if (typeof accSum !== 'number')
+      throw new Error('got multiple accuracy sum')
+    // @ts-expect-error Variable 'logitsTensor' is used before being assigned
+    tf.dispose([accTensor, accSumTensor, logitsTensor])
     
     const loss = await lossTensor.array()
     weightUpdateTime = performance.now() - weightUpdateTime
