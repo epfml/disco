@@ -7,8 +7,9 @@ import type {
   DataType,
   Image,
   Task,
+  Text,
 } from "@epfml/discojs";
-import { loadCSV, loadImage, loadImagesInDir } from "@epfml/discojs-node";
+import { loadCSV, loadImage, loadImagesInDir, loadText } from "@epfml/discojs-node";
 import { Repeat, Map } from "immutable";
 
 async function loadSimpleFaceData(): Promise<Dataset<DataFormat.Raw["image"]>> {
@@ -35,6 +36,12 @@ async function loadLusCovidData(): Promise<Dataset<DataFormat.Raw["image"]>> {
   ];
 
   return positive.chain(negative);
+}
+
+async function loadWikitextData(): Promise<Dataset<DataFormat.Raw["text"]>> {
+  const folder = path.join("..", "datasets", "wikitext");
+  const dataset: Dataset<Text> = loadText(path.join(folder, "wiki.train.tokens"))
+  return Promise.resolve(dataset)
 }
 
 export async function loadTinderDogData(split: number): Promise<Dataset<DataFormat.Raw["image"]>> {
@@ -93,6 +100,8 @@ export async function getTaskData<D extends DataType>(
       ).zip(Repeat("cat")) as Dataset<DataFormat.Raw[D]>;
     case "lus_covid":
       return (await loadLusCovidData()) as Dataset<DataFormat.Raw[D]>;
+    case "llm_task":
+      return (await loadWikitextData()) as Dataset<DataFormat.Raw[D]>;
     default:
       throw new Error(`Data loader for ${task.id} not implemented.`);
   }

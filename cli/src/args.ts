@@ -22,7 +22,7 @@ const argExample = 'e.g. npm start -- -u 2 -e 3 # runs 2 users for 3 epochs'
 
 const unsafeArgs = parse<BenchmarkUnsafeArguments>(
   {
-    task: { type: String, alias: 't', description: 'Task: tinder_dog, titanic, simple_face, cifar10 or lus_covid', defaultValue: 'tinder_dog' },
+    task: { type: String, alias: 't', description: 'Task: tinder_dog, titanic, simple_face, cifar10, llm_task or lus_covid', defaultValue: 'tinder_dog' },
     numberOfUsers: { type: Number, alias: 'u', description: 'Number of users', defaultValue: 2 },
     epochs: { type: Number, alias: 'e', description: 'Number of epochs', defaultValue: 10 },
     roundDuration: { type: Number, alias: 'r', description: 'Round duration (in epochs)', defaultValue: 2 },
@@ -37,12 +37,13 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
 )
 
 const supportedTasks = Map(
-  Set.of<TaskProvider<"image"> | TaskProvider<"tabular">>(
+  Set.of<TaskProvider<"image"> | TaskProvider<"tabular"> | TaskProvider<"text">>(
     defaultTasks.cifar10,
     defaultTasks.lusCovid,
     defaultTasks.simpleFace,
     defaultTasks.titanic,
     defaultTasks.tinderDog,
+    defaultTasks.wikitext,
   ).map((t) => [t.getTask().id, t]),
 );
 
