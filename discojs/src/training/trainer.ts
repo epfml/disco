@@ -90,7 +90,8 @@ export class Trainer<D extends DataType> {
     let previousRoundWeights: WeightsContainer | undefined;
     for (let round = 0; round < totalRound; round++) {
       await this.#client.onRoundBeginCommunication();
-
+      
+      this.model.previousRoundWeights = previousRoundWeights
       yield this.#runRound(dataset, validationDataset);
 
       let localWeights = this.model.weights;

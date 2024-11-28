@@ -76,32 +76,61 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
 
   // First iteration: replace trainOnBatch with custom loss computation
   async trainFedProx(
-    xs: tf.Tensor, ys: tf.Tensor): Promise<[number, number]> {
-
-    debug(this.model.loss, this.model.losses, this.model.lossFunctions)
+    xs: tf.Tensor, ys: tf.Tensor,
+  ): Promise<[number, number]> {
+    let logitsTensor: tf.Tensor<tf.Rank>;
     const lossFunction: () => tf.Scalar = () => {
+      // Proximal term
+      let proximalTerm = tf.tensor(0)
+      if (this.prevRoundWeights !== undefined) {
+        // squared norm
+        const norm = new WeightsContainer(this.model.getWeights())
+          .sub(this.prevRoundWeights)
+          .map(t => t.square().sum())
+          .reduce((t, acc) => tf.add(t, acc)).asScalar()
+        const mu = 1 
+        proximalTerm = tf.mul(mu / 2, norm)
+      }
+
       this.model.apply(xs)
       const logits = this.model.apply(xs)
-          if (Array.isArray(logits))
-            throw new Error('model outputs too many tensor')
-          if (logits instanceof tf.SymbolicTensor)
-            throw new Error('model outputs symbolic tensor')
-          
-          // binaryCrossEntropyLoss as implemented by tensorflow.js
-          // https://github.com/tensorflow/tfjs/blob/2644bd0d6cea677f80e44ed4a44bea5e04aabeb3/tfjs-layers/src/losses.ts#L193
-          let y: tf.Tensor;
-          y = tf.clipByValue(logits, 0.00001, 1 - 0.00001);
-          y = tf.log(tf.div(y, tf.sub(1, y)));
-          return tf.losses.sigmoidCrossEntropy(ys, y);
+      if (Array.isArray(logits))
+        throw new Error('model outputs too many tensor')
+      if (logits instanceof tf.SymbolicTensor)
+        throw new Error('model outputs symbolic tensor')
+      logitsTensor = tf.keep(logits)
+      // binaryCrossentropy as implemented by tensorflow.js
+      // https://github.com/tensorflow/tfjs/blob/2644bd0d6cea677f80e44ed4a44bea5e04aabeb3/tfjs-layers/src/losses.ts#L193
+      let y: tf.Tensor;
+      y = tf.clipByValue(logits, 0.00001, 1 - 0.00001);
+      y = tf.log(tf.div(y, tf.sub(1, y)));
+      const loss = tf.losses.sigmoidCrossEntropy(ys, y);
+      console.log(loss.dataSync(), proximalTerm.dataSync())
+      return tf.add(loss, proximalTerm)
     }
     const lossTensor = this.model.optimizer.minimize(lossFunction, true)
     if (lossTensor === null) throw new Error("loss should not be null")
-    
-    const loss = await lossTensor.array()
-    tf.dispose([xs, ys, lossTensor])
+  
+      // @ts-expect-error Variable 'logitsTensor' is used before being assigned
+      const accTensor = tf.metrics.categoricalAccuracy(ys, logitsTensor)
+      const accSize = accTensor.shape.reduce((l, r) => l * r, 1)
+      const accSumTensor = accTensor.sum()
+      const accSum = await accSumTensor.array()
+      if (typeof accSum !== 'number')
+        throw new Error('got multiple accuracy sum')
+      // @ts-expect-error Variable 'logitsTensor' is used before being assigned
+      tf.dispose([accTensor, accSumTensor, logitsTensor])
       
-    // dummy accuracy for now
-    return [loss, 0]
+      const loss = await lossTensor.array()
+      tf.dispose([xs, ys, lossTensor])
+      
+      const memory = tf.memory().numBytes / 1024 / 1024 / 1024
+      debug("training metrics: %O", {
+        loss,
+        memory,
+        allocated: tf.memory().numTensors,
+      });
+      return [loss, accSum / accSize]
   }
 
   async #evaluate(
