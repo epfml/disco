@@ -1,3 +1,4 @@
+import createDebug from "debug";
 import { List, Map, Range } from "immutable";
 import * as tf from '@tensorflow/tfjs'
 
@@ -12,6 +13,8 @@ import {
 import { BatchLogs } from './index.js'
 import { Model } from './index.js'
 import { EpochLogs } from './logs.js'
+
+const debug = createDebug("discojs:models:tfjs");
 
 type Serialized<D extends DataType> = [D, tf.io.ModelArtifacts];
 
@@ -63,9 +66,69 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     batch: Batched<DataFormat.ModelEncoded[D]>,
   ): Promise<BatchLogs> {
     const { xs, ys } = this.#batchToTF(batch);
-    const logs = await this.model.trainOnBatch(xs, ys);
+    const logs = await this.trainFedProx(xs, ys);
+    // const logs = await this.model.trainOnBatch(xs, ys);
     tf.dispose([xs, ys])
     return this.getBatchLogs(logs)
+  }
+
+  async trainFedProx(
+    xs: tf.Tensor, ys: tf.Tensor): Promise<[number, number]> {
+    // let logitsTensor: tf.Tensor<tf.Rank>;
+    debug(this.model.loss, this.model.losses, this.model.lossFunctions)
+    const lossFunction: () => tf.Scalar = () => {
+      this.model.apply(xs)
+      const logits = this.model.apply(xs)
+          if (Array.isArray(logits))
+            throw new Error('model outputs too many tensor')
+          if (logits instanceof tf.SymbolicTensor)
+            throw new Error('model outputs symbolic tensor')
+          // logitsTensor = tf.keep(logits)
+      // return tf.losses.softmaxCrossEntropy(ys, logits)
+          let y: tf.Tensor;
+          y = tf.clipByValue(logits, 0.00001, 1 - 0.00001);
+          y = tf.log(tf.div(y, tf.sub(1, y)));
+          return tf.losses.sigmoidCrossEntropy(ys, y);
+          // return tf.losses.sigmoidCrossEntropy(ys, logits)
+    }
+    const lossTensor = this.model.optimizer.minimize(lossFunction, true)
+    if (lossTensor === null) throw new Error("loss should not be null")
+      // const lossTensor = tf.tidy(() => {
+      //   const { grads, value: lossTensor } = this.model.optimizer.computeGradients(() => {
+      //     const logits = this.model.apply(xs)
+      //     if (Array.isArray(logits))
+      //       throw new Error('model outputs too many tensor')
+      //     if (logits instanceof tf.SymbolicTensor)
+      //       throw new Error('model outputs symbolic tensor')
+      //     logitsTensor = tf.keep(logits)
+      //     // return tf.losses.softmaxCrossEntropy(ys, logits)
+      //     return this.model.calculateLosses(ys, logits)[0]
+      //   })
+      //   this.model.optimizer.applyGradients(grads)
+      //   return lossTensor
+      // })
+  
+      // // @ts-expect-error Variable 'logitsTensor' is used before being assigned
+      // const accTensor = tf.metrics.categoricalAccuracy(ys, logitsTensor)
+      // const accSize = accTensor.shape.reduce((l, r) => l * r, 1)
+      // const accSumTensor = accTensor.sum()
+      // const accSum = await accSumTensor.array()
+      // if (typeof accSum !== 'number')
+      //   throw new Error('got multiple accuracy sum')
+      // // @ts-expect-error Variable 'logitsTensor' is used before being assigned
+      // tf.dispose([accTensor, accSumTensor, logitsTensor])
+      
+      const loss = await lossTensor.array()
+      tf.dispose([xs, ys, lossTensor])
+      
+      // const memory = tf.memory().numBytes / 1024 / 1024 / 1024
+      // debug("training metrics: %O", {
+      //   loss,
+      //   memory,
+      //   allocated: tf.memory().numTensors,
+      // });
+      return [loss, 0]
+      // return [loss, accSum / accSize]
   }
 
   async #evaluate(
@@ -160,7 +223,10 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     return new this(
       datatype,
       await tf.loadLayersModel({
-        load: () => Promise.resolve(artifacts),
+        load: () => {
+          console.log("deserialize called")
+          return Promise.resolve(artifacts)
+        },
       }),
     );
   }
@@ -187,7 +253,7 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     return [this.datatype, await ret]
   }
 
-  [Symbol.dispose](): void{
+  [Symbol.dispose](): void {
     this.model.dispose()
   }
 
