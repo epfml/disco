@@ -17,12 +17,16 @@ import type { BatchLogs, EpochLogs } from "./logs.js";
  **/
 // TODO make it typesafe: same shape of data/input/weights
 export abstract class Model<D extends DataType> implements Disposable {
+  protected prevRoundWeights: WeightsContainer | undefined;
   // TODO don't allow external access but upgrade train to return weights on every epoch
   /** Return training state */
   abstract get weights(): WeightsContainer;
   /** Set training state */
   abstract set weights(ws: WeightsContainer);
 
+  set previousRoundWeights(ws: WeightsContainer | undefined) {
+    this.prevRoundWeights = ws
+  }
   /**
    * Improve predictor
    *
