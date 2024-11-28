@@ -64,25 +64,22 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
   ): Promise<Omit<BatchLogs, "batch">> {
     const { xs, ys } = this.#batchToTF(batch);
 
-    const { history } = await this.model.fit(xs, ys, {
-      epochs: 1,
-      verbose: 0, // don't pollute
-    });
-
-    const { loss: losses, acc: accuracies } = history;
+    const history = await this.model.trainOnBatch(xs, ys);
+    if (!Array.isArray(history) || history.length != 2) 
+      throw new Error("training output has unexpected shape")
+    
+    const loss = history[0]
+    const accuracy = history[1]
+    
     if (
-      losses === undefined ||
-      accuracies === undefined ||
-      typeof losses[0] !== "number" ||
-      typeof accuracies[0] !== "number" ||
-      isNaN(losses[0]) ||
-      isNaN(accuracies[0])
+      typeof loss !== "number" || isNaN(loss) ||
+      typeof accuracy !== "number" || isNaN(accuracy)
     )
       throw new Error("training loss or accuracy is undefined or NaN");
 
     return {
-      accuracy: accuracies[0],
-      loss: losses[0],
+      accuracy,
+      loss,
       memoryUsage: tf.memory().numBytes / 1024 / 1024 / 1024,
     };
   }
