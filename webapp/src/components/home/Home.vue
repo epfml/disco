@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col justify-between h-screen">
+  <div class="flex flex-col lg:justify-between lg:h-screen">
     <div
       class="flex flex-row flex-wrap justify-between gap-x-4 items-center mb-5 py-2 px-4 bg-purple-200 rounded-md"
     >
@@ -28,8 +28,9 @@
     </div>
     <!-- Disco logo -->
     <div class="flex flex-col justify-center items-center space-y-4">
-      <div class="md:max-w-md lg:max-w-lg">
-        <DiscoGIF class="bg-slate-100 rounded-lg pb-8 px-4" />
+      <div class="w-5/12">
+        <!-- <DiscoGIF class="bg-slate-100 rounded-lg pb-8 px-4" /> -->
+        <DiscoLogoBoule class="px-4" />
       </div>
       <span
         class="text-lg md:text-2xl lg:text-3xl text-center text-slate-600 dark:text-slate-300"
@@ -42,7 +43,7 @@
     </div>
     <div class="pb-14">
       <p
-        class="text-lg md:text-2xl lg:text-4xl text-slate-600 dark:text-slate-300"
+        class="text-lg md:text-2xl lg:text-4xl text-slate-600 dark:text-slate-300 font-sans"
       >
         Enables collaborative and privacy-preserving training of machine
         learning models
@@ -169,6 +170,7 @@ import FeedbackIcon from "@/assets/svg/FeedbackIcon.vue";
 import InfoIcon from "@/assets/svg/InfoIcon.vue";
 import FederatedGIF from "@/assets/gif/FederatedGIF.vue";
 import DecentralizedGIF from "@/assets/gif/DecentralizedGIF.vue";
+import DiscoLogoBoule from "@/assets/svg/DiscoLogoBoule.vue";
 
 const started = ref(false);
 </script>
