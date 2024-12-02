@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col lg:justify-between lg:h-screen">
+  <div class="flex flex-col justify-between lg:h-svh">
     <div
       class="flex flex-row flex-wrap justify-between gap-x-4 items-center mb-5 py-2 px-4 bg-purple-200 rounded-md"
     >
@@ -27,13 +27,12 @@
       </a>
     </div>
     <!-- Disco logo -->
-    <div class="flex flex-col justify-center items-center space-y-4">
-      <div class="w-5/12">
-        <!-- <DiscoGIF class="bg-slate-100 rounded-lg pb-8 px-4" /> -->
+    <div class="flex flex-col justify-center items-center space-y-4 m-8">
+      <div class="w-full sm:pb-2 lg:w-5/12">
         <DiscoLogoBoule class="px-4" />
       </div>
       <span
-        class="text-lg md:text-2xl lg:text-3xl text-center text-slate-600 dark:text-slate-300"
+        class="text-lg sm:text-2xl md:text-3xl text-center text-slate-600 dark:text-slate-300"
       >
         <span class="font-disco text-disco-cyan font-semibold">DIS</span
         >tributed
@@ -41,9 +40,9 @@
         >llaborative Learning
       </span>
     </div>
-    <div class="pb-14">
+    <div class="px-4 pt-20 sm:pt-28 text-justify lg:pb-14 lg:pt-0">
       <p
-        class="text-lg md:text-2xl lg:text-4xl text-slate-600 dark:text-slate-300 font-sans"
+        class="text-lg sm:text-2xl lg:text-4xl text-slate-600 dark:text-slate-300"
       >
         Enables collaborative and privacy-preserving training of machine
         learning models
@@ -54,15 +53,15 @@
   <!-- Information -->
 
   <div
-    class="flex flex-col items-stretch m-8 text-justify py-3 sm:text-2xl md:text-2xl lg:text-2xl xlg:text-3xl"
+    class="flex flex-col space-y-10 mt-8 text-justify py-3 sm:text-2xl md:text-2xl lg:text-2xl xlg:text-3xl"
   >
-    <div class="flex my-8 p-6 align-center">
+    <div class="flex flex-col space-y-10 p-6 lg:flex-row">
       <img
-        class="max-h-64 max-w-3xl mx-auto px-5"
+        class="max-h-64 max-w-80 sm:max-h-72 sm:max-w-screen-sm mx-auto"
         src="@/assets/svg/real_time_collaboration.svg"
         alt=""
       />
-      <p class="w-1/2 text-justify text-2xl pr-4">
+      <p class="lg:w-1/2 text-justify text-2xl pr-4">
         Disco is an easy-to-use mobile app and web software that enables
         collaborative and privacy-preserving training of machine learning
         models, running directly in your browser. Leveraging federated and
@@ -71,7 +70,7 @@
       </p>
     </div>
 
-    <div class="grid lg:grid-cols-2 gap-x-9 my-8 mx-2 lg:my-8">
+    <div class="grid px-6 lg:grid-cols-2 gap-x-14 mx-2">
       <div class="flex flex-col md:my-6">
         <h6
           class="font-bold text-justify leading-none text-xl tracking-wider sm:text-2xl md:text-3xl lg:text-3xl xlg:text-4xl"
@@ -92,7 +91,7 @@
         class="bg-slate-100 rounded-lg border-slate-300 border-4 mt-4 lg:mt-0"
       />
     </div>
-    <div class="grid lg:grid-cols-2 gap-x-9 my-8 mx-2 lg:my-8">
+    <div class="grid px-6 lg:grid-cols-2 gap-x-14 mx-2 lg:my-8">
       <DecentralizedGIF
         class="bg-slate-100 rounded-lg border-slate-300 border-4 mt-4 lg:mt-0"
       />
@@ -122,9 +121,11 @@
       >
         Why use Disco?
       </h6>
-      <div class="flex justify-between">
-        <div class="mx-10 w-2/5">
-          <p class="mb-4 font-bold text-xlg text-left">
+      <div
+        class="flex flex-col gap-y-4 justify-between lg:flex-row lg:gap-x-14"
+      >
+        <div class="lg:w-2/5">
+          <p class="my-3 font-bold text-xlg text-left">
             Supports arbitrary deep learning architectures
           </p>
 
@@ -134,8 +135,8 @@
           >
         </div>
 
-        <div class="mx-10 w-2/5">
-          <p class="mb-4 font-bold text-xlg">Data and model privacy</p>
+        <div class="lg:w-2/5">
+          <p class="my-3 font-bold text-xlg">Data and model privacy</p>
           <span class="text-lg">
             Data privacy by design - no data ever leaves any device. Models
             updates can be protected by encryption (secure multiparty
@@ -143,8 +144,8 @@
           </span>
         </div>
 
-        <div class="mx-10 w-2/5">
-          <p class="mb-4 font-bold text-xlg">Runs anywhere</p>
+        <div class="lg:w-2/5">
+          <p class="my-3 font-bold text-xlg">Runs anywhere</p>
           <span class="text-lg">
             Disco runs in the browser, from any device equipped with a modern
             browser. For developers, we also offer a standalone node.js version,
@@ -153,18 +154,20 @@
         </div>
       </div>
     </div>
+    <div class="flex flex-col justify-center">
+      <!-- <Landing v-show="!started" @click="started = true" /> -->
+      <h6
+        class="font-bold mx-auto mb-8 text-justify leading-none text-xl tracking-wider sm:text-2xl md:text-3xl lg:text-3xl xlg:text-4xl"
+      >
+        GET STARTED
+      </h6>
+      <GetStarted />
+    </div>
   </div>
-
-  <!-- <div class="flex flex-col justify-center">
-    <Landing v-show="!started" @click="started = true" />
-    <GetStarted v-show="started" />
-  </div> -->
 </template>
 <script lang="ts" setup>
 import { ref } from "vue";
 
-import DiscoGIF from "@/assets/gif/DiscoGIF.vue";
-import Landing from "@/components/home/Landing.vue";
 import GetStarted from "@/components/home/GetStarted.vue";
 import FeedbackIcon from "@/assets/svg/FeedbackIcon.vue";
 import InfoIcon from "@/assets/svg/InfoIcon.vue";
