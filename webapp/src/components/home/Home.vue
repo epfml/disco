@@ -165,15 +165,12 @@
     </div>
   </div>
 </template>
-<script lang="ts" setup>
-import { ref } from "vue";
 
+<script lang="ts" setup>
 import GetStarted from "@/components/home/GetStarted.vue";
 import FeedbackIcon from "@/assets/svg/FeedbackIcon.vue";
 import InfoIcon from "@/assets/svg/InfoIcon.vue";
 import FederatedGIF from "@/assets/gif/FederatedGIF.vue";
 import DecentralizedGIF from "@/assets/gif/DecentralizedGIF.vue";
 import DiscoLogoBoule from "@/assets/svg/DiscoLogoBoule.vue";
-
-const started = ref(false);
 </script>
