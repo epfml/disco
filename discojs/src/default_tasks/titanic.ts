@@ -30,20 +30,6 @@ export const titanic: TaskProvider<'tabular'> = {
           { columnName: 'Embarked', columnData: 'S' },
           { columnName: 'Pclass', columnData: '3' }
         ],
-        headers: [
-          'PassengerId',
-          'Survived',
-          'Name',
-          'Sex',
-          'Age',
-          'SibSp',
-          'Parch',
-          'Ticket',
-          'Fare',
-          'Cabin',
-          'Embarked',
-          'Pclass'
-        ],
         sampleDatasetLink: "https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/titanic_train.csv",
         sampleDatasetInstructions: 'Opening the link should start downloading a CSV file which you can drag and drop in the field below.'
       },

@@ -10,8 +10,6 @@ export interface DisplayInformation {
   model?: string
   // TODO no need for undefined
   dataExample?: DataExample[]
-  // TODO no need for undefined
-  headers?: string[]
   // Displays the image at this URL in the UI as an example when connecting data
   dataExampleImage?: string
   // URL to download a dataset for the task, is displayed in the UI when asking to connect data
@@ -32,7 +30,6 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     dataFormatInformation,
     sampleDatasetLink,
     sampleDatasetInstructions,
-    headers,
     model,
     summary,
     taskTitle,
@@ -75,13 +72,6 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
   ) {
     return false
   }
-  if (
-    headers !== undefined && !(
-      Array.isArray(headers) &&
-      headers.every((e) => typeof e === 'string'))
-  ) {
-    return false
-  }
 
   const repack = {
     dataExample,
@@ -90,7 +80,6 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     dataFormatInformation,
     sampleDatasetLink,
     sampleDatasetInstructions,
-    headers,
     model,
     summary,
     taskTitle,
