@@ -42,7 +42,7 @@
       </div>
       <!-- Display what has been connected -->
       <div
-        v-if="files === undefined"
+        v-if="files === undefined && private"
         class="flex justify-end items-center mt-1"
       >
         <span
@@ -99,9 +99,11 @@ const props = withDefaults(
   defineProps<{
     type: "image" | "json" | "tabular" | "text";
     multiple?: boolean; // accept one or multiple files
+    private?: boolean; // file stays in browser
   }>(),
   {
     multiple: false,
+    private: false,
   },
 );
 const emit = defineEmits<{
