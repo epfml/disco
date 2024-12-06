@@ -36,6 +36,7 @@
             :accept="acceptFilter"
             class="hidden"
             @change="async () => await submitFiles()"
+            @blur="() => emit('blur')"
           />
         </label>
       </div>
@@ -103,6 +104,9 @@ const props = withDefaults(
     multiple: false,
   },
 );
+const emit = defineEmits<{
+  blur: [];
+}>();
 
 const files = defineModel<Set<File> | undefined>();
 
