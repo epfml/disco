@@ -96,7 +96,7 @@ import CustomButton from "@/components/simple/CustomButton.vue";
 
 const props = withDefaults(
   defineProps<{
-    type: "tabular" | "image" | "text";
+    type: "image" | "json" | "tabular" | "text";
     multiple?: boolean; // accept one or multiple files
   }>(),
   {
@@ -116,6 +116,8 @@ const fileType = computed(() => {
     switch (props.type) {
       case "image":
         return "image";
+      case "json":
+        return "JSON file";
       case "tabular":
         return "CSV";
       case "text":
@@ -129,6 +131,8 @@ const acceptFilter = computed(() => {
   switch (props.type) {
     case "image":
       return "image/*";
+    case "json":
+      return "application/json";
     case "tabular":
       return ".csv";
     case "text":
