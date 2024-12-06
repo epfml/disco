@@ -6,7 +6,7 @@
           Connect the CSV file containing a mapping between images and labels
         </template>
 
-        <FileSelection type="tabular" v-model="csvFiles">
+        <FileSelection type="tabular" private v-model="csvFiles">
           <b>
             The CSV file must contain a header with only two columns (filename,
             label) </b
@@ -39,7 +39,7 @@
       >
         <template #title> Connect the images </template>
 
-        <FileSelection type="image" multiple v-model="images">
+        <FileSelection type="image" multiple private v-model="images">
           Drag and drop or browse for the images referenced in the connected CSV
           file.
           <br />

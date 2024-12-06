@@ -4,7 +4,7 @@
       <IconCard v-for="[label, files] in labelsAndFiles" :key="label">
         <template #title> Group label:&nbsp;&nbsp;{{ label }} </template>
 
-        <FileSelection type="image" multiple v-model="files.value">
+        <FileSelection type="image" multiple private v-model="files.value">
           {{ browsingTip }}
         </FileSelection>
       </IconCard>

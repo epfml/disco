@@ -1,7 +1,7 @@
 <template>
   <div class="grid grid-cols-1">
     <DatasetInput>
-      <FileSelection type="text" v-model="files" />
+      <FileSelection type="text" private v-model="files" />
     </DatasetInput>
   </div>
 </template>
