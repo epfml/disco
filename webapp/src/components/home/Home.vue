@@ -56,11 +56,7 @@
     class="flex flex-col space-y-10 mt-8 text-justify py-3 sm:text-2xl md:text-2xl lg:text-2xl xlg:text-3xl"
   >
     <div class="flex flex-col space-y-10 p-6 lg:flex-row">
-      <img
-        class="max-h-64 max-w-80 sm:max-h-72 sm:max-w-screen-sm mx-auto"
-        src="@/assets/svg/real_time_collaboration.svg"
-        alt=""
-      />
+      <RealTimeCollaboration class="w-full h-full lg:w-1/3 mx-auto" />
       <p class="lg:w-1/2 text-justify text-2xl pr-4">
         Disco is an easy-to-use mobile app and web software that enables
         collaborative and privacy-preserving training of machine learning
@@ -173,4 +169,5 @@ import InfoIcon from "@/assets/svg/InfoIcon.vue";
 import FederatedGIF from "@/assets/gif/FederatedGIF.vue";
 import DecentralizedGIF from "@/assets/gif/DecentralizedGIF.vue";
 import DiscoLogoBoule from "@/assets/svg/DiscoLogoBoule.vue";
+import RealTimeCollaboration from "@/assets/svg/RealTimeCollaboration.vue";
 </script>
