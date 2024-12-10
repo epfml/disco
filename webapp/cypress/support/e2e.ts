@@ -73,7 +73,7 @@ export function basicTask<D extends DataType>(
       ...info,
     },
     displayInformation: {
-      taskTitle: "task",
+      title: "task",
       summary: { preview: "preview", overview: "overview" },
     },
   };

@@ -1,91 +1,156 @@
-import { type Summary, isSummary } from './summary.js'
-import { type DataExample, isDataExample } from './data_example.js'
+import { DataType } from "../types/index.js";
 
-export interface DisplayInformation {
-  taskTitle: string
-  summary: Summary
-  dataFormatInformation?: string
-  // TODO merge dataExample
-  dataExampleText?: string
-  model?: string
-  // TODO no need for undefined
-  dataExample?: DataExample[]
-  // Displays the image at this URL in the UI as an example when connecting data
-  dataExampleImage?: string
-  // URL to download a dataset for the task, is displayed in the UI when asking to connect data
-  sampleDatasetLink?: string
-  // Instructions to download, unzip, and connect the right file of the sample dataset
-  sampleDatasetInstructions?: string
+export interface DisplayInformation<D extends DataType> {
+  title: string;
+  summary: Summary;
+  dataFormatInformation?: string;
+  model?: string;
+  dataExample?: DataExample<D>;
+  sampleDataset?: SampleDataset;
 }
 
-export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
-  if (typeof raw !== 'object' || raw === null) {
-    return false
-  }
+interface Summary {
+  preview: string;
+  overview: string;
+}
+
+type DataExample<D extends DataType> = DataTypeToDataExample[D];
+interface DataTypeToDataExample {
+  // url to an image
+  image: string;
+  tabular: Array<{ name: string; data: string }>;
+  text: string;
+}
+
+interface SampleDataset {
+  // URL to download a dataset for the task, is displayed in the UI when asking to connect data
+  link: string;
+  // Instructions to download, unzip, and connect the right file of the sample dataset
+  instructions: string;
+}
+
+export function isDisplayInformation<D extends DataType>(
+  dataType: D,
+  raw: unknown,
+): raw is DisplayInformation<D> {
+  if (typeof raw !== "object" || raw === null) return false;
 
   const {
     dataExample,
-    dataExampleImage,
-    dataExampleText,
     dataFormatInformation,
-    sampleDatasetLink,
-    sampleDatasetInstructions,
+    sampleDataset,
     model,
     summary,
-    taskTitle,
-  }: Partial<Record<keyof DisplayInformation, unknown>> = raw
+    title,
+  }: Partial<Record<keyof DisplayInformation<DataType>, unknown>> = raw;
 
   if (
-    typeof taskTitle !== 'string' ||
-    (dataExampleText !== undefined && typeof dataExampleText !== 'string') ||
-    (sampleDatasetLink !== undefined && typeof sampleDatasetLink !== 'string') ||
-    (dataFormatInformation !== undefined && typeof dataFormatInformation !== 'string') ||
-    (model !== undefined && typeof model !== 'string') ||
-    (dataExampleImage !== undefined && typeof dataExampleImage !== 'string') ||
-    (sampleDatasetInstructions !== undefined && typeof sampleDatasetInstructions !== 'string')
-  ) {
-    return false
-  }
+    typeof title !== "string" ||
+    (dataFormatInformation !== undefined &&
+      typeof dataFormatInformation !== "string") ||
+    (model !== undefined && typeof model !== "string") ||
+    !isSummary(summary) ||
+    (dataExample !== undefined && !isDataExample(dataType, dataExample)) ||
+    (sampleDataset !== undefined && !isSampleDataset(sampleDataset))
+  )
+    return false;
 
-  if (!isSummary(summary)) {
-    return false
-  }
-  if (sampleDatasetLink !== undefined) {
-    try {
-      new URL(sampleDatasetLink)
-    } catch {
-      return false
-    }
-  }
-  if (dataExampleImage !== undefined) {
-    try {
-      new URL(dataExampleImage)
-    } catch {
-      return false
-    }
-  }
-
-  if (
-    dataExample !== undefined && !(
-      Array.isArray(dataExample) &&
-      dataExample.every(isDataExample))
-  ) {
-    return false
-  }
-
-  const repack = {
+  const _: DisplayInformation<D> = {
     dataExample,
-    dataExampleImage,
-    dataExampleText,
     dataFormatInformation,
-    sampleDatasetLink,
-    sampleDatasetInstructions,
+    sampleDataset,
     model,
     summary,
-    taskTitle,
-  }
-  const _correct: DisplayInformation = repack
-  const _total: Record<keyof DisplayInformation, unknown> = repack
+    title,
+  } satisfies Record<keyof DisplayInformation<D>, unknown>;
 
-  return true
+  return true;
+}
+
+function isSummary(raw: unknown): raw is Summary {
+  if (typeof raw !== "object" || raw === null) return false;
+
+  const { preview, overview }: Partial<Record<keyof Summary, unknown>> = raw;
+
+  if (!(typeof preview === "string" && typeof overview === "string"))
+    return false;
+
+  const _: Summary = {
+    preview,
+    overview,
+  } satisfies Record<keyof Summary, unknown>;
+
+  return true;
+}
+
+function isDataExample<D extends DataType>(
+  dataType: D,
+  raw: unknown,
+): raw is DataExample<D> {
+  switch (dataType) {
+    case "image": {
+      if (typeof raw !== "string") return false;
+      if (raw !== undefined)
+        try {
+          new URL(raw);
+        } catch {
+          return false;
+        }
+
+      const _: DataExample<"image"> = raw;
+
+      return true;
+    }
+    case "tabular": {
+      if (!Array.isArray(raw)) return false;
+      const columns: unknown[] = raw;
+      if (
+        !columns.every((col): col is Record<"name" | "data", string> => {
+          if (typeof col !== "object" || col === null) return false;
+          return (
+            "name" in col &&
+            "data" in col &&
+            typeof col["name"] === "string" &&
+            typeof col["data"] === "string"
+          );
+        })
+      )
+        return false;
+
+      const _: DataExample<"tabular"> = columns;
+
+      return true;
+    }
+    case "text": {
+      if (typeof raw !== "string") return false;
+
+      const _: DataExample<"text"> = raw;
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function isSampleDataset(raw: unknown): raw is SampleDataset {
+  if (typeof raw !== "object" || raw === null) return false;
+
+  const { link, instructions }: Partial<Record<keyof SampleDataset, unknown>> =
+    raw;
+
+  if (!(typeof link === "string" && typeof instructions === "string"))
+    return false;
+  try {
+    new URL(link);
+  } catch {
+    return false;
+  }
+
+  const _: SampleDataset = {
+    link,
+    instructions,
+  } satisfies Record<keyof SampleDataset, unknown>;
+
+  return true;
 }

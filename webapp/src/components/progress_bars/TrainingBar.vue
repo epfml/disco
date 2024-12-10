@@ -1,10 +1,10 @@
 <template>
   <div class="mb-8 space-y-4 md:space-y-8">
     <div
-      v-if="taskTitle !== undefined && displayTitle"
+      v-if="title !== undefined && displayTitle"
       class="flex flex-wrap font-disco text-3xl justify-center"
     >
-      <span class="text-disco-blue dark:text-disco-light-cyan">{{ taskTitle }}</span>
+      <span class="text-disco-blue dark:text-disco-light-cyan">{{ title }}</span>
     </div>
     <div
       v-else
@@ -132,10 +132,10 @@ const toaster = useToaster()
 const tasksStore = useTasksStore()
 const trainingStore = useTrainingStore()
 
-const taskTitle = computed(() => {
+const title = computed(() => {
   if (trainingStore.task === undefined) return undefined
   const task = tasksStore.tasks.get(trainingStore.task)
-  return task?.displayInformation?.taskTitle
+  return task?.displayInformation?.title
 
 })
 

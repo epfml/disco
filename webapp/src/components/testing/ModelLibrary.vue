@@ -73,8 +73,8 @@
         <IconCard title-placement="center">
           <template #title>
             <span><DISCO /> Model Repository — <span class="italic">Download and Test</span></span>
-            
-            
+
+
           </template>
 
           <div
@@ -104,11 +104,11 @@
                   class="shadow-sm border dark:border-gray-700 dark:shadow-gray-700"
                 >
                   <template #title>
-                    {{ task.displayInformation.taskTitle }}
+                    {{ task.displayInformation.title }}
                   </template>
 
                   Download the latest
-                  {{ task.displayInformation.taskTitle }} model available on the
+                  {{ task.displayInformation.title }} model available on the
                   remote server.
                 </ButtonsCard>
               </div>
@@ -286,6 +286,6 @@ function taskTitle(taskID: string): string | undefined {
   if (titled === undefined)
     throw new Error("Task title not found for task id: " + taskID);
 
-  return titled.displayInformation.taskTitle;
+  return titled.displayInformation.title;
 }
 </script>

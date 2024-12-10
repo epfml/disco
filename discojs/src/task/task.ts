@@ -14,7 +14,7 @@ export type TaskID = string;
 export interface Task<D extends DataType> {
   id: TaskID;
   dataType: D;
-  displayInformation: DisplayInformation;
+  displayInformation: DisplayInformation<D>;
   trainingInformation: TrainingInformation<D>;
 }
 
@@ -44,7 +44,7 @@ export function isTask(raw: unknown): raw is Task<DataType> {
   }
   if (
     !isTaskID(id) ||
-    !isDisplayInformation(displayInformation) ||
+    !isDisplayInformation(dataType, displayInformation) ||
     !isTrainingInformation(dataType, trainingInformation)
   ) {
     return false;

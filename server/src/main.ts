@@ -18,7 +18,7 @@ console.table(
     .map((p) => p.getTask())
     .map((task) => ({
       ID: task.id,
-      Title: task.displayInformation.taskTitle,
+      Title: task.displayInformation.title,
       "Data Type": task.dataType,
       Scheme: task.trainingInformation.scheme,
     })),

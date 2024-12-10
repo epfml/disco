@@ -63,7 +63,7 @@ async function onSaveModel(): Promise<void> {
   if (saved.value === undefined) return; // error toast already shown
 
   toaster.success(
-    `The trained ${props.task.displayInformation.taskTitle} model has been saved.`,
+    `The trained ${props.task.displayInformation.title} model has been saved.`,
   );
 }
 
