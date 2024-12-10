@@ -152,22 +152,38 @@
     </div>
     <div class="flex flex-col justify-center">
       <!-- <Landing v-show="!started" @click="started = true" /> -->
-      <h6
-        class="font-bold mx-auto mb-8 text-justify leading-none text-xl tracking-wider sm:text-2xl md:text-3xl lg:text-3xl xlg:text-4xl"
+
+      <ButtonsCard
+        class="lg:w-2/6 mx-auto"
+        title-align="center"
+        :buttons="List.of(['Get started', goToTaskList])"
       >
-        GET STARTED
-      </h6>
-      <GetStarted />
+        <template #title>
+          Train a model and contribute to existing
+          <span title="Click Participate to learn more on DISCOllaboratives">
+            <DISCOllaboratives />
+          </span>
+        </template>
+      </ButtonsCard>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import GetStarted from "@/components/home/GetStarted.vue";
 import FeedbackIcon from "@/assets/svg/FeedbackIcon.vue";
 import InfoIcon from "@/assets/svg/InfoIcon.vue";
 import FederatedGIF from "@/assets/gif/FederatedGIF.vue";
 import DecentralizedGIF from "@/assets/gif/DecentralizedGIF.vue";
 import DiscoLogoBoule from "@/assets/svg/DiscoLogoBoule.vue";
 import RealTimeCollaboration from "@/assets/svg/RealTimeCollaboration.vue";
+import { useRouter } from "vue-router";
+import { List } from "immutable";
+import DISCOllaboratives from "@/components/simple/DISCOllaboratives.vue";
+import ButtonsCard from "@/components/containers/ButtonsCard.vue";
+
+const router = useRouter();
+
+function goToTaskList(): void {
+  router.push({ path: "/list" });
+}
 </script>
