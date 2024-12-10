@@ -111,7 +111,7 @@
 
       <!-- Image gallery -->
       <div
-        v-if="task.trainingInformation.dataType === 'image'"
+        v-if="task.dataType === 'image'"
         class="grid grid-cols-6 gap-6"
       >
         <ImageCard
@@ -131,7 +131,7 @@
       </div>
 
       <div
-        v-else-if="task.trainingInformation.dataType === 'tabular'"
+        v-else-if="task.dataType === 'tabular'"
         class="mx-auto p-4 w-full h-full max-h-128 bg-white dark:bg-slate-950 rounded-md overflow-x-scroll overflow-y-hidden"
       >
         <TableLayout
@@ -148,8 +148,7 @@
         />
       </div>
       <div
-        v-else-if="task.trainingInformation.dataType === 'text'"
-        class="mx-auto lg:w-3/4 h-full bg-white dark:bg-slate-950 rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
+        v-else-if="task.dataType === 'text'"
       >
         <!-- Display nothing for now -->
       </div>
@@ -216,14 +215,14 @@ const tested = ref<Tested[D]>();
 const visitedSamples = computed<number>(() => {
   if (tested.value === undefined) return 0;
 
-  switch (props.task.trainingInformation.dataType) {
+  switch (props.task.dataType) {
     case "image":
     case "text":
       return (tested.value as Tested["image" | "text"]).size;
     case "tabular":
       return (tested.value as Tested["tabular"]).results.size;
     default: {
-      const _: never = props.task.trainingInformation;
+      const _: never = props.task.dataType;
       throw new Error("should never happen");
     }
   }
@@ -233,7 +232,7 @@ const confusionMatrix = computed<{ [key: string]: { [key: string]: number } } | 
   if (tested.value === undefined) return undefined;
 
   let labels: string[] = [];
-  switch (props.task.trainingInformation.dataType) {
+  switch (props.task.dataType) {
     case "image":
       labels = (props.task as Task<"image">).trainingInformation.LABEL_LIST;
       break;
@@ -243,7 +242,7 @@ const confusionMatrix = computed<{ [key: string]: { [key: string]: number } } | 
     case "text":
       return undefined;
     default: {
-      const _: never = props.task.trainingInformation;
+      const _: never = props.task.dataType;
       throw new Error("should never happen");
     }
   }
@@ -259,7 +258,7 @@ const confusionMatrix = computed<{ [key: string]: { [key: string]: number } } | 
     });
   });
 
-  switch (props.task.trainingInformation.dataType) {
+  switch (props.task.dataType) {
     case "image":
         (tested.value as Tested["image"]).map(
           ( {output} ) => matrix[output.label][output.predicted] = matrix[output.label][output.predicted] + 1,
@@ -271,7 +270,7 @@ const confusionMatrix = computed<{ [key: string]: { [key: string]: number } } | 
       );
       break;
     default: {
-      const _: never = props.task.trainingInformation;
+      const _: never = props.task.dataType;
       throw new Error("should never happen");
     }
   }
@@ -283,7 +282,7 @@ const currentAccuracy = computed<string>(() => {
 
   if (tested.value === undefined) return "0";
   let hits: number | undefined;
-  switch (props.task.trainingInformation.dataType) {
+  switch (props.task.dataType) {
     case "image":
     case "text":
       hits = (tested.value as Tested["image" | "text"]).filter(
@@ -295,6 +294,10 @@ const currentAccuracy = computed<string>(() => {
         ({ output }) => output.correct,
       ).size;
       break;
+    default: {
+      const _: never = props.task.dataType;
+      throw new Error("should never happen");
+    }
   }
   const accuracy = hits / visitedSamples.value;
 
@@ -309,7 +312,7 @@ async function startTest(): Promise<void> {
 
   toaster.info("Model testing started");
   try {
-    switch (props.task.trainingInformation.dataType) {
+    switch (props.task.dataType) {
       case "image":
         await startImageTest(
           props.task as Task<"image">,
@@ -481,7 +484,7 @@ function saveCsv(): void {
   downloadLink.click();
 
   function format(tested: Tested[D]): string {
-    switch (props.task.trainingInformation.dataType) {
+    switch (props.task.dataType) {
       case "image":
         return d3.csvFormatRows([
           ["Filename", "Truth", "Correct"],
@@ -509,7 +512,7 @@ function saveCsv(): void {
       case "text":
         throw new Error("TODO implement formatter");
       default: {
-        const _: never = props.task.trainingInformation;
+        const _: never = props.task.dataType;
         throw new Error("should never happen");
       }
     }

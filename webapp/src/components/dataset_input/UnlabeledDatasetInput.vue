@@ -26,7 +26,7 @@ const props = defineProps<{
   task: Task<D>;
 }>();
 
-const type = computed<D>(() => props.task.trainingInformation.dataType as D);
+const type = computed<D>(() => props.task.dataType as D);
 
 const dataset = defineModel<UnlabeledDataset[D]>();
 watch(dataset, (dataset: UnlabeledDataset[D] | undefined) => {

@@ -22,7 +22,7 @@ export async function preprocess<D extends DataType>(
   task: Task<D>,
   dataset: Dataset<DataFormat.Raw[D]>,
 ): Promise<Dataset<DataFormat.ModelEncoded[D]>> {
-  switch (task.trainingInformation.dataType) {
+  switch (task.dataType) {
     case "image": {
       // cast as typescript doesn't reduce generic type
       const d = dataset as Dataset<DataFormat.Raw["image"]>;
@@ -56,9 +56,10 @@ export async function preprocess<D extends DataType>(
       // cast as typescript doesn't reduce generic type
       const d = dataset as Dataset<DataFormat.Raw["text"]>;
       const t = task as Task<"text">;
-      const contextLength = task.trainingInformation.contextLength
 
+      const contextLength = t.trainingInformation.contextLength
       const tokenizer = await models.getTaskTokenizer(t);
+
       return d.map(text => processing.tokenize(tokenizer, text))
         .flatten()
         .batch(contextLength + 1, 1)
@@ -66,13 +67,16 @@ export async function preprocess<D extends DataType>(
           Dataset<DataFormat.ModelEncoded[D]>;
     }
   }
+
+  const _: never = task.dataType;
+  throw new Error("should never happen")
 }
 
 export async function preprocessWithoutLabel<D extends DataType>(
   task: Task<D>,
   dataset: Dataset<DataFormat.RawWithoutLabel[D]>,
 ): Promise<Dataset<DataFormat.ModelEncoded[D][0]>> {
-  switch (task.trainingInformation.dataType) {
+  switch (task.dataType) {
     case "image": {
       // cast as typescript doesn't reduce generic type
       const d = dataset as Dataset<DataFormat.RawWithoutLabel["image"]>;
@@ -97,7 +101,8 @@ export async function preprocessWithoutLabel<D extends DataType>(
       // cast as typescript doesn't reduce generic type
       const d = dataset as Dataset<DataFormat.Raw["text"]>;
       const t = task as Task<"text">;
-      const contextLength = task.trainingInformation.contextLength
+
+      const contextLength = t.trainingInformation.contextLength
       const tokenizer = await models.getTaskTokenizer(t);
 
       return d.map(text => processing.tokenize(tokenizer, text))
@@ -105,13 +110,16 @@ export async function preprocessWithoutLabel<D extends DataType>(
         .batch(contextLength)
     }
   }
+
+  const _: never = task.dataType;
+  throw new Error("should never happen")
 }
 
 export async function postprocess<D extends DataType>(
 	task: Task<D>,
 	encoded: DataFormat.ModelEncoded[D][1],
 ): Promise<DataFormat.Inferred[D]> {
-	switch (task.trainingInformation.dataType) {
+	switch (task.dataType) {
 		case "image": {
 			// cast as typescript doesn't reduce generic type
 			const index = encoded as DataFormat.ModelEncoded["image"][1];
@@ -138,6 +146,9 @@ export async function postprocess<D extends DataType>(
 			return tokenizer.decode([token]) as DataFormat.Inferred[D];
 		}
 	}
+
+  const _: never = task.dataType;
+  throw new Error("should never happen")
 }
 
 function extractToNumbers(columns: Iterable<string>, row: Tabular) {

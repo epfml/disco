@@ -5,6 +5,7 @@ export const wikitext: TaskProvider<'text'> = {
   getTask (): Task<'text'> {
     return {
       id: 'llm_task',
+      dataType: "text",
       displayInformation: {
         taskTitle: 'GPT Language Modeling',
         summary: {
@@ -24,7 +25,6 @@ export const wikitext: TaskProvider<'text'> = {
         sampleDatasetInstructions: 'Opening the link should start downloading a zip file. Unzip it and drag and drop the training set named "wiki.train.tokens" in the field below (or use the "Select File" button). Even though the file extension is ".tokens" it is indeed a text file. You can use "wiki.test.tokens" at the evaluation step after training a language model.'
       },
       trainingInformation: {
-        dataType: 'text',
         scheme: 'federated',
         aggregationStrategy: 'mean',
         minNbOfParticipants: 2,

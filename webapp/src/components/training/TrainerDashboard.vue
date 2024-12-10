@@ -91,10 +91,7 @@
           href="https://github.com/epfml/disco/blob/develop/DEV.md"
           >these steps</a>.
           <!-- Warning about the maximum nb of iteration per epoch for LLMs -->
-          <span
-            v-if="task.trainingInformation.dataType === 'text'"
-            class="text-sm"
-          >
+          <span v-if="task.dataType === 'text'" class="text-sm">
           <!-- Leading space is important -->
           Additionally, when training language models we have limited the number
           of batches per epoch to 10.

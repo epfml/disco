@@ -59,7 +59,7 @@ import { computed } from 'vue'
 
 import type { DataType, Task } from "@epfml/discojs";
 
-import type { FormDependency, FormField, FormSection } from '@/task_creation_form'
+import type { FormField, FormSection } from '@/task_creation_form'
 import { trainingInformation, privacyParameters } from '@/task_creation_form'
 import IconCard from '@/components/containers/IconCard.vue'
 import DropdownCard from '@/components/containers/DropdownCard.vue'
@@ -109,8 +109,7 @@ const displayField = (section: FormSection, field: FormField): boolean => {
     if (deps === undefined) {
       return true
     }
-    const potentialDependencies: Array<keyof FormDependency> = ['dataType', 'scheme']
-    return potentialDependencies.every((key) => props.task.trainingInformation[key] !== deps[key])
+    return props.task.dataType !== deps['dataType'] && props.task.trainingInformation.scheme !== deps['scheme'];
   }
   return false
 }

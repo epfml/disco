@@ -262,11 +262,11 @@ const onSubmit = async (rawTask: any): Promise<void> => {
 
   let model
   try {
-    switch (task.trainingInformation.dataType) {
+    switch (task.dataType) {
       case "image":
       case "tabular":
         model = new models.TFJS(
-          task.trainingInformation.dataType,
+          task.dataType,
           await tf.loadLayersModel(
             tf.io.browserFiles(modelFiles.value.toArray()),
           ),

@@ -40,8 +40,6 @@ export type TrainingInformation<D extends DataType> = {
 
 interface DataTypeToTrainingInformation {
   image: {
-    dataType: "image";
-
     // LABEL_LIST of classes, e.g. if two class of images, one with dogs and one with cats, then we would
     // define ['dogs', 'cats'].
     LABEL_LIST: string[];
@@ -51,16 +49,12 @@ interface DataTypeToTrainingInformation {
     IMAGE_W: number;
   };
   tabular: {
-    dataType: "tabular";
-
     // inputColumns: for tabular data, the columns to be chosen as input data for the model
     inputColumns: string[];
     // outputColumns: for tabular data, the columns to be predicted by the model
     outputColumn: string;
   };
   text: {
-    dataType: "text";
-
     // tokenizer (string | PreTrainedTokenizer). This field should be initialized with the name of a Transformers.js pre-trained tokenizer, e.g., 'Xenova/gpt2'.
     // When the tokenizer is first called, the actual object will be initialized and loaded into this field for the subsequent tokenizations.
     tokenizer: string | PreTrainedTokenizer;
@@ -95,9 +89,10 @@ function isPrivacy(raw: unknown): raw is Privacy {
   return true;
 }
 
-export function isTrainingInformation(
+export function isTrainingInformation<D extends DataType>(
+  dataType: D,
   raw: unknown,
-): raw is TrainingInformation<DataType> {
+): raw is TrainingInformation<D> {
   if (typeof raw !== "object" || raw === null) {
     return false;
   }
@@ -105,7 +100,6 @@ export function isTrainingInformation(
   const {
     aggregationStrategy,
     batchSize,
-    dataType,
     privacy,
     epochs,
     maxShareValue,
@@ -188,7 +182,6 @@ export function isTrainingInformation(
 
       const _: TrainingInformation<"image"> = {
         ...repack,
-        dataType,
         LABEL_LIST,
         IMAGE_W,
         IMAGE_H,
@@ -215,7 +208,6 @@ export function isTrainingInformation(
 
       const _: TrainingInformation<"tabular"> = {
         ...repack,
-        dataType,
         inputColumns,
         outputColumn,
       } satisfies Record<keyof TrainingInformation<"tabular">, unknown>;
@@ -227,8 +219,7 @@ export function isTrainingInformation(
         contextLength,
         tokenizer,
       }: Partial<
-        Omit<TrainingInformation<"text">,
-	keyof TrainingInformation<DataType>>
+        Omit<TrainingInformation<"text">, keyof TrainingInformation<DataType>>
       > = raw;
 
       if (
@@ -240,7 +231,6 @@ export function isTrainingInformation(
 
       const _: TrainingInformation<"text"> = {
         ...repack,
-        dataType,
         contextLength,
         tokenizer,
       } satisfies Record<keyof TrainingInformation<"text">, unknown>;

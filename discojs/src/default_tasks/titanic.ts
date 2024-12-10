@@ -7,6 +7,7 @@ export const titanic: TaskProvider<'tabular'> = {
   getTask (): Task<'tabular'> {
     return {
       id: 'titanic',
+      dataType: "tabular",
       displayInformation: {
         taskTitle: 'Titanic Prediction',
         summary: {
@@ -38,7 +39,6 @@ export const titanic: TaskProvider<'tabular'> = {
         roundDuration: 2,
         validationSplit: 0.2,
         batchSize: 30,
-        dataType: 'tabular',
         inputColumns: [
           'Age',
           'SibSp',

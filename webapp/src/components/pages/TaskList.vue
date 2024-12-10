@@ -70,7 +70,7 @@
                       <div class="px-2 py-1 rounded-md flex items-center" :style="{ backgroundColor: getDataTypeColor(task) }">
                         <div 
                           class="text-xs font-semibold text-slate-900"
-                        >{{ task.trainingInformation.dataType.toUpperCase() }}</div>
+                        >{{ task.dataType.toUpperCase() }}</div>
                       </div>
                     </div>
                   </div>
@@ -124,7 +124,7 @@ function getSchemeColor(task: Task<DataType>): string {
 }
 
 function getDataTypeColor(task: Task<DataType>): string {
-  switch (task.trainingInformation.dataType) {
+  switch (task.dataType) {
     case 'image':
       return '#95F88D'
     case 'tabular':
