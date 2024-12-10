@@ -53,6 +53,7 @@ type BasicKeys =
   | "scheme"
   | "minNbOfParticipants";
 export function basicTask<D extends DataType>(
+  dataType: D,
   info: {
     [K in DataType]: Omit<TrainingInformation<K>, BasicKeys> &
       Partial<Pick<TrainingInformation<K>, BasicKeys>>;
@@ -60,6 +61,7 @@ export function basicTask<D extends DataType>(
 ): Task<D> {
   return {
     id: "task",
+    dataType,
     trainingInformation: {
       epochs: 1,
       batchSize: 1,

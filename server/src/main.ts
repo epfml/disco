@@ -19,7 +19,7 @@ console.table(
     .map((task) => ({
       ID: task.id,
       Title: task.displayInformation.taskTitle,
-      "Data Type": task.trainingInformation.dataType,
+      "Data Type": task.dataType,
       Scheme: task.trainingInformation.scheme,
     })),
 );

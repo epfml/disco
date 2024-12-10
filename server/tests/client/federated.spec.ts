@@ -42,6 +42,7 @@ describe("federated client", () => {
       url,
       {
         id: "nonValidTask",
+        dataType: "tabular",
         displayInformation: {
           taskTitle: 'mock title',
           summary: { overview: '', preview: '' }
@@ -53,7 +54,6 @@ describe("federated client", () => {
           batchSize: 1,
           scheme: "federated",
           minNbOfParticipants: 2,
-          dataType: "tabular",
           tensorBackend: 'tfjs',
           inputColumns: ["in"],
           outputColumn: "out",

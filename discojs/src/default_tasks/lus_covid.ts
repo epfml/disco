@@ -7,6 +7,7 @@ export const lusCovid: TaskProvider<'image'> = {
   getTask (): Task<'image'> {
     return {
       id: 'lus_covid',
+      dataType: "image",
       displayInformation: {
         taskTitle: 'Lung Ultrasound Image Classification',
         summary: {
@@ -28,7 +29,6 @@ export const lusCovid: TaskProvider<'image'> = {
         IMAGE_H: 100,
         IMAGE_W: 100,
         LABEL_LIST: ['COVID-Positive', 'COVID-Negative'],
-        dataType: 'image',
         scheme: 'federated',
         aggregationStrategy: 'mean',
         minNbOfParticipants: 2,

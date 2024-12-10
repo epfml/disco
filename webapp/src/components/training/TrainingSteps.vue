@@ -96,7 +96,7 @@ const unnamedDataset = computed<Dataset<DataFormat.Raw[DataType]> | undefined>(
     if (task.value === undefined || dataset.value === undefined)
       return undefined;
 
-    switch (task.value.trainingInformation.dataType) {
+    switch (task.value.dataType) {
       case "image":
         return (toRaw(dataset.value) as LabeledDataset["image"]).map(
           ({ image, label }) => [image, label],
@@ -105,7 +105,7 @@ const unnamedDataset = computed<Dataset<DataFormat.Raw[DataType]> | undefined>(
       case "text":
         return dataset.value as Dataset<DataFormat.Raw["tabular" | "text"]>;
       default: {
-        const _: never = task.value.trainingInformation;
+        const _: never = task.value.dataType;
         throw new Error("should never happen");
       }
     }

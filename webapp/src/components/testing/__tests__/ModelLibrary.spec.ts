@@ -14,12 +14,12 @@ import ModelLibrary from "../ModelLibrary.vue";
 
 const TASK: Task<"text"> = {
   id: "task",
+  dataType: "text",
   displayInformation: {
     taskTitle: "task title",
     summary: { preview: "", overview: "" },
   },
   trainingInformation: {
-    dataType: "text",
     tokenizer: "Xenova/gpt2",
     tensorBackend: "gpt",
     scheme: "federated",

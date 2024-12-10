@@ -2,18 +2,15 @@
   <slot name="header" />
 
   <LabeledImageDatasetInput
-    v-if="task.trainingInformation.dataType === 'image'"
+    v-if="task.dataType === 'image'"
     v-model="imageDataset"
-    :labels="Set(task.trainingInformation.LABEL_LIST)"
+    :labels="Set((task as Task<'image'>).trainingInformation.LABEL_LIST)"
   />
   <TabularDatasetInput
-    v-if="task.trainingInformation.dataType === 'tabular'"
+    v-if="task.dataType === 'tabular'"
     v-model="tabularDataset"
   />
-  <TextDatasetInput
-    v-if="task.trainingInformation.dataType === 'text'"
-    v-model="textDataset"
-  />
+  <TextDatasetInput v-if="task.dataType === 'text'" v-model="textDataset" />
 </template>
 
 <script setup lang="ts" generic="D extends DataType">
@@ -50,7 +47,7 @@ const imageDataset = ref<LabeledDataset["image"]>();
 const tabularDataset = ref<LabeledDataset["tabular"]>();
 const textDataset = ref<LabeledDataset["text"]>();
 watch([props, imageDataset, tabularDataset, textDataset], async () => {
-  switch (props.task.trainingInformation.dataType) {
+  switch (props.task.dataType) {
     case "image":
       dataset.value = toRaw(imageDataset.value) as LabeledDataset[D];
       break;
@@ -84,7 +81,7 @@ watch([props, imageDataset, tabularDataset, textDataset], async () => {
       dataset.value = textDataset.value as LabeledDataset[D];
       break;
     default: {
-      const _: never = props.task.trainingInformation;
+      const _: never = props.task.dataType;
       throw new Error("should never happen");
     }
   }

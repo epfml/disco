@@ -7,6 +7,7 @@ export const tinderDog: TaskProvider<'image'> = {
   getTask (): Task<'image'> {
     return {
       id: 'tinder_dog',
+      dataType: "image",
       displayInformation: {
         taskTitle: 'GDHF 2024 | TinderDog',
         summary: {
@@ -25,7 +26,6 @@ export const tinderDog: TaskProvider<'image'> = {
         roundDuration: 2,
         validationSplit: 0, // nicer plot for GDHF demo
         batchSize: 10,
-        dataType: 'image',
         IMAGE_H: 64,
         IMAGE_W: 64,
         LABEL_LIST: ['Cute dogs', 'Less cute dogs'],

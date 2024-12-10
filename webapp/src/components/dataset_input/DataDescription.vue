@@ -19,7 +19,7 @@
       <div v-if="task.displayInformation.dataExampleText !== undefined" >
         <span v-html="task.displayInformation.dataExampleText" /><br>
         <div
-          v-if="['tabular', 'text'].includes(task.trainingInformation.dataType)"
+          v-if="['tabular', 'text'].includes(task.dataType)"
           class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
         >
           <span

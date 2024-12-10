@@ -9,6 +9,7 @@ export const cifar10: TaskProvider<'image'> = {
   getTask (): Task<'image'> {
     return {
       id: 'cifar10',
+      dataType: "image",
       displayInformation: {
         taskTitle: 'CIFAR10',
         summary: {
@@ -27,7 +28,6 @@ export const cifar10: TaskProvider<'image'> = {
         roundDuration: 10,
         validationSplit: 0.2,
         batchSize: 10,
-        dataType: 'image',
         IMAGE_H: 224,
         IMAGE_W: 224,
         LABEL_LIST: ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'],

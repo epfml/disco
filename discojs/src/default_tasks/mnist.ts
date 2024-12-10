@@ -7,6 +7,7 @@ export const mnist: TaskProvider<'image'> = {
   getTask (): Task<'image'> {
     return {
       id: 'mnist',
+      dataType: "image",
       displayInformation: {
         taskTitle: 'Handwritten Digit Recognition',
         summary: {
@@ -25,7 +26,6 @@ export const mnist: TaskProvider<'image'> = {
         roundDuration: 2,
         validationSplit: 0.2,
         batchSize: 64,
-        dataType: 'image',
         IMAGE_H: 28,
         IMAGE_W: 28,
         LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],

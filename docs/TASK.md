@@ -160,6 +160,7 @@ export const customTask: TaskProvider = {
   getTask (): Task {
     return {
       id: 'my_new_task',
+      dataType: 'image',
       displayInformation: {
         taskTitle: 'My new task',
         summary: 'Can you detect if the person in a picture is a child or an adult?',
@@ -171,7 +172,6 @@ export const customTask: TaskProvider = {
         validationSplit: 0.2,
         batchSize: 10,
         preprocessingFunctions: [ImagePreprocessing.Normalize],
-        dataType: 'image',
         ...
       }
     }

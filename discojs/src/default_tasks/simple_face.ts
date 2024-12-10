@@ -8,6 +8,7 @@ export const simpleFace: TaskProvider<'image'> = {
   getTask (): Task<'image'> {
     return {
       id: 'simple_face',
+      dataType: "image",
       displayInformation: {
         taskTitle: 'Simple Face',
         summary: {
@@ -25,7 +26,6 @@ export const simpleFace: TaskProvider<'image'> = {
         roundDuration: 1,
         validationSplit: 0.2,
         batchSize: 10,
-        dataType: 'image',
         IMAGE_H: 200,
         IMAGE_W: 200,
         LABEL_LIST: ['child', 'adult'],

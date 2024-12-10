@@ -1,7 +1,7 @@
 <template>
   <!-- Language model prompting is currently unavailable   -->
   <div
-    v-if="task.trainingInformation.dataType === 'text'"
+    v-if="task.dataType === 'text'"
     v-show="validationStore.step !== 0"
   >
     <div class="flex justify-center items-center mb-4">
@@ -66,7 +66,7 @@
 
       <!-- Image gallery -->
       <div
-        v-if="task.trainingInformation.dataType === 'image'"
+        v-if="task.dataType === 'image'"
         class="grid grid-cols-6 gap-6"
       >
         <ImageCard
@@ -83,7 +83,7 @@
       </div>
 
       <div
-        v-else-if="task.trainingInformation.dataType === 'tabular'"
+        v-else-if="task.dataType === 'tabular'"
         class="mx-auto p-4 w-full h-full max-h-128 bg-white dark:bg-slate-950 rounded-md overflow-x-scroll overflow-y-hidden"
       >
         <TableLayout
@@ -151,7 +151,7 @@ const predictions = ref<Results[D]>();
 const visitedSamples = computed<number>(() => {
   if (predictions.value === undefined) return 0;
 
-  switch (props.task.trainingInformation.dataType) {
+  switch (props.task.dataType) {
     case "image":
       return (predictions.value as Results["image"]).size;
     case "tabular":
@@ -159,7 +159,7 @@ const visitedSamples = computed<number>(() => {
     case "text":
       throw new Error("disabled dataset type");
     default: {
-      const _: never = props.task.trainingInformation;
+      const _: never = props.task.dataType;
       throw new Error("should never happen");
     }
   }
@@ -173,7 +173,7 @@ async function startInference(): Promise<void> {
 
   toaster.info("Model inference started");
   try {
-    switch (props.task.trainingInformation.dataType) {
+    switch (props.task.dataType) {
       case "image":
         await startImageInference(
           props.task as Task<"image">,
@@ -286,7 +286,7 @@ function saveCsv() {
   downloadLink.click();
 
   function format(predictions: Results[D]): string {
-    switch (props.task.trainingInformation.dataType) {
+    switch (props.task.dataType) {
       case "image":
         return d3.csvFormatRows([
           ["Filename", "Prediction"],
@@ -306,6 +306,10 @@ function saveCsv() {
       }
       case "text":
         throw new Error("disabled dataset type");
+      default: {
+        const _: never = props.task.dataType;
+        throw new Error("should never happen");
+      }
     }
   }
 }

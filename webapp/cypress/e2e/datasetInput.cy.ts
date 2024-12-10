@@ -13,8 +13,7 @@ function goToDatasetInputStep() {
 describe("image dataset input by group", () => {
   it("shows passed labels", () => {
     setupServerWith(
-      basicTask({
-        dataType: "image",
+      basicTask("image", {
         LABEL_LIST: ["first", "second", "third"],
         IMAGE_H: 100,
         IMAGE_W: 100,
@@ -31,8 +30,7 @@ describe("image dataset input by group", () => {
 
   it("allows to input images", () => {
     setupServerWith(
-      basicTask({
-        dataType: "image",
+      basicTask("image", {
         LABEL_LIST: ["label"],
         IMAGE_H: 100,
         IMAGE_W: 100,
@@ -54,8 +52,7 @@ describe("image dataset input by group", () => {
 describe("image dataset input by csv", () => {
   it("allows to input CSV then images", () => {
     setupServerWith(
-      basicTask({
-        dataType: "image",
+      basicTask("image", {
         LABEL_LIST: ["label"],
         IMAGE_H: 100,
         IMAGE_W: 100,
@@ -87,8 +84,7 @@ describe("image dataset input by csv", () => {
 describe("tabular dataset input", () => {
   it("allows to input CSV", () => {
     setupServerWith(
-      basicTask({
-        dataType: "tabular",
+      basicTask("tabular", {
         inputColumns: ["a", "b"],
         outputColumn: "c",
       }),

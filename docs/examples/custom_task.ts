@@ -9,6 +9,7 @@ const customTask: TaskProvider<"tabular"> = {
   getTask () {
     return {
       id: 'custom-task',
+      dataType: "tabular",
       displayInformation: {
         taskTitle: 'Custom task',
         summary: {
@@ -21,7 +22,6 @@ const customTask: TaskProvider<"tabular"> = {
         roundDuration: 10,
         validationSplit: 0,
         batchSize: 30,
-        dataType: 'tabular',
         inputColumns: [
           'Age'
         ],

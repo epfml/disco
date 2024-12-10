@@ -8,12 +8,12 @@ describe("preprocess", () => {
   it("throws on missing column in tabular", async () => {
     const task: Task<"tabular"> = {
       id: "task",
+      dataType: "tabular",
       displayInformation: {
         taskTitle: "",
         summary: { preview: "", overview: "" },
       },
       trainingInformation: {
-        dataType: "tabular",
         tensorBackend: "tfjs",
         scheme: "local",
         minNbOfParticipants: 1,
