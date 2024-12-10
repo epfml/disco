@@ -48,7 +48,7 @@ export async function setupLusCOVID(scheme: "federated" | "decentralized") {
   lusCovidTask.trainingInformation = {
     ...lusCovidTask.trainingInformation,
     scheme,
-    epochs: 8,
+    epochs: 10,
     roundDuration: 2,
     minNbOfParticipants: 2,
   }
