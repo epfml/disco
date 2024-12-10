@@ -60,7 +60,7 @@
               >
                 <template #title>
                   <div class="flex flex-row justify-between flex-wrap">
-                    <div>{{ task.displayInformation.taskTitle }}</div>
+                    <div>{{ task.displayInformation.title }}</div>
                     <div class="flex flex-row shrink-0 justify-end gap-1">
                       <div class="px-2 py-1 rounded-md flex items-center" :style="{ backgroundColor: getSchemeColor(task) }">
                         <div 
@@ -109,7 +109,7 @@ const taskStore = useTasksStore()
 const { tasks } = storeToRefs(taskStore)
 
 const sortedTasks = computed(() => [...tasks.value.values()].sort(
-  (task1, task2) => task1.displayInformation.taskTitle.localeCompare(task2.displayInformation.taskTitle)
+  (task1, task2) => task1.displayInformation.title.localeCompare(task2.displayInformation.title)
 ))
 
 function getSchemeColor(task: Task<DataType>): string {

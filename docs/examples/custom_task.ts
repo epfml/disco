@@ -11,7 +11,7 @@ const customTask: TaskProvider<"tabular"> = {
       id: 'custom-task',
       dataType: "tabular",
       displayInformation: {
-        taskTitle: 'Custom task',
+        title: 'Custom task',
         summary: {
           preview: 'task preview',
           overview: 'task overview'

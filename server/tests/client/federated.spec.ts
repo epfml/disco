@@ -44,7 +44,7 @@ describe("federated client", () => {
         id: "nonValidTask",
         dataType: "tabular",
         displayInformation: {
-          taskTitle: 'mock title',
+          title: 'mock title',
           summary: { overview: '', preview: '' }
         },
         trainingInformation: {

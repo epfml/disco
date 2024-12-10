@@ -162,7 +162,7 @@ export const customTask: TaskProvider = {
       id: 'my_new_task',
       dataType: 'image',
       displayInformation: {
-        taskTitle: 'My new task',
+        title: 'My new task',
         summary: 'Can you detect if the person in a picture is a child or an adult?',
         ...
       },

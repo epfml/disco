@@ -16,7 +16,7 @@ const TASK: Task<"text"> = {
   id: "task",
   dataType: "text",
   displayInformation: {
-    taskTitle: "task title",
+    title: "task title",
     summary: { preview: "", overview: "" },
   },
   trainingInformation: {

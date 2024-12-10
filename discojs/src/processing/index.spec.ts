@@ -10,7 +10,7 @@ describe("preprocess", () => {
       id: "task",
       dataType: "tabular",
       displayInformation: {
-        taskTitle: "",
+        title: "",
         summary: { preview: "", overview: "" },
       },
       trainingInformation: {

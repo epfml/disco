@@ -9,17 +9,20 @@ export const lusCovid: TaskProvider<'image'> = {
       id: 'lus_covid',
       dataType: "image",
       displayInformation: {
-        taskTitle: 'Lung Ultrasound Image Classification',
+        title: 'Lung Ultrasound Image Classification',
         summary: {
           preview: "Medical images are a typical example of data that exists in huge quantity yet that can't be shared due to confidentiality reasons. Medical applications would immensely benefit from training on data currently locked. More data diversity leads to better generalization and bias mitigation.",
           overview: "Disco allows data owners to collaboratively train machine learning models using their respective data without any privacy breach. This example problem is about diagnosing whether patients are positive or negative to COVID-19 from lung ultrasounds images. <br>Don't have a dataset of your own? You can find a link to a sample dataset at the next step."
         },
         model: "The model is a simple Convolutional Neural Network composed of two convolutional layers with ReLU activations and max pooling layers, followed by a fully connected output layer. The data preprocessing reshapes images into 100x100 pixels and normalizes values between 0 and 1",
         dataFormatInformation: 'This model takes as input an image dataset of lung ultrasounds. The images are resized automatically.',
-        dataExampleText: 'Below you can find an example of an expected lung image.',
-        dataExampleImage: 'https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/2_QAID_1.masked.reshaped.squared.224.png',
-        sampleDatasetLink: 'https://drive.switch.ch/index.php/s/zM5ZrUWK3taaIly',
-        sampleDatasetInstructions: 'Opening the link will take you to a Switch Drive folder. You can click on the Download button in the top right corner. Unzip the file and you will get two subfolders: "COVID-" and "COVID+". You can connect the data by using the Group option and selecting each image group in its respective field.'
+        dataExample:
+          "https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/2_QAID_1.masked.reshaped.squared.224.png",
+        sampleDataset: {
+          link: "https://drive.switch.ch/index.php/s/zM5ZrUWK3taaIly",
+          instructions:
+            'Opening the link will take you to a Switch Drive folder. You can click on the Download button in the top right corner. Unzip the file and you will get two subfolders: "COVID-" and "COVID+". You can connect the data by using the Group option and selecting each image group in its respective field.',
+        },
       },
       trainingInformation: {
         epochs: 50,
