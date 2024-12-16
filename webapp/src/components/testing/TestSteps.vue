@@ -124,7 +124,7 @@
           "
           :rows="
             (tested as Tested['tabular']).results.map(({ input, output }) =>
-              input.concat(output.truth).push(output.correct.toString()),
+              input.concat(output.label).push(output.correct.toString()),
             )
           "
         />
@@ -180,7 +180,7 @@ interface Tested {
     };
     results: List<{
       input: List<string>;
-      output: { truth: string; correct: boolean; predicted : number, label : number };
+      output: { truth: number; correct: boolean; predicted : number, label : string };
     }>;
   };
   // TODO what to show?
@@ -217,7 +217,7 @@ const confusionMatrix = computed<{labels : Map<number, string>, matrix : number[
       labels = (props.task as Task<"image">).trainingInformation.LABEL_LIST;
       break;
     case "tabular" :
-      labels = (props.task as Task<"image">).trainingInformation.LABEL_LIST;
+      labels = ["0", "1"]; // binary classification
       break;
     case "text" :
       return undefined;
@@ -240,7 +240,10 @@ const confusionMatrix = computed<{labels : Map<number, string>, matrix : number[
     //case "text":
     //  return undefined;
     case "tabular":
-        break;
+      (tested.value as Tested["tabular"]).results.map(
+        ({ output }) => matrix[output.predicted][output.truth] = matrix[output.predicted][output.truth] + 1,
+      );
+      break;
     default: {
       const _: never = props.task.trainingInformation;
       throw new Error("should never happen");
@@ -383,10 +386,10 @@ async function startTabularTest(
           return ret;
         }),
         output: {
-          truth: truth_label,
+          truth: truth,
           correct: result,
           predicted : predicted,
-          label : truth,
+          label : truth_label,
         },
       });
 
@@ -458,7 +461,7 @@ function saveCsv(): void {
             .toArray(),
           ...t.results.map((result) =>
             result.input
-              .concat(result.output.truth)
+              .concat(result.output.label)
               .push(result.output.correct.toString())
               .toArray(),
           ),
