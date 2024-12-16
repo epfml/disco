@@ -67,7 +67,7 @@
       <thead>
         <tr>
           <th class="px-0 py-3 text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider text-center border-r-gray-600 dark:border-r-gray-400 border-r-2 diagonal-header">
-            <span class="">Label \ Prediction</span>
+            Label \ Prediction
           </th>
           <th v-for="(label, index) in Object.keys(confusionMatrix.matrix)" :key="'header-' + index" class="text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider">
             {{ label }}
