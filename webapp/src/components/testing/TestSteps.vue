@@ -209,33 +209,25 @@ const visitedSamples = computed<number>(() => {
 
 const confusionMatrix = computed<{labels : Map<number, string>, matrix : number[][]} | undefined>(() => {
   if (tested.value === undefined) return undefined;
-  const labels = Set<number>(); // l'idéal serait de tous les avoir en one try, sinon c'est dégueulasse
-  const mapLabels = Map<number, string>();
-  
-  // get all the labels
+  // const labels = Set<number>(); // l'idéal serait de tous les avoir en one try, sinon c'est dégueulasse
+  // const mapLabels = Map<number, string>();
+  let labels : string[] = [];
   switch (props.task.trainingInformation.dataType) {
-    case "image":
-      (tested.value as Tested["image"]).forEach(({ output }) => {
-        labels.add(output.truth);
-        labels.add(output.predicted);
-        mapLabels.set(output.truth, output.label);
-      });
+    case "image" : 
+      labels = (props.task as Task<"image">).trainingInformation.LABEL_LIST;
       break;
-    case "text":
+    case "tabular" :
+      labels = (props.task as Task<"image">).trainingInformation.LABEL_LIST;
+      break;
+    case "text" :
       return undefined;
-    case "tabular":
-      (tested.value as Tested["tabular"]).results.forEach(({ output }) => {
-        labels.add(output.label);
-        labels.add(output.predicted);
-        mapLabels.set(output.label, output.truth);
-      });
-      break;
     default: {
       const _: never = props.task.trainingInformation;
       throw new Error("should never happen");
     }
   }
-  const size = Math.max(labels.size, ...labels);
+
+  const size = labels.length;
   // Initialize the confusion matrix
   const matrix = Array.from({ length: size }, () => Array(size).fill(0));
   
@@ -248,17 +240,13 @@ const confusionMatrix = computed<{labels : Map<number, string>, matrix : number[
     //case "text":
     //  return undefined;
     case "tabular":
-        (tested.value as Tested["tabular"]).results.forEach( ({output}) => {
-          labels.add(output.label);
-          labels.add(output.predicted);
-          mapLabels.set(output.label, output.truth);
-        });
         break;
     default: {
       const _: never = props.task.trainingInformation;
       throw new Error("should never happen");
     }
   }
+  const mapLabels = Map(labels.map((label, index) => [index, label]));
   return {labels : mapLabels, matrix : matrix};
 })
 
@@ -330,7 +318,7 @@ async function startImageTest(
 ): Promise<void> {
   const validator = new Validator(task, model);
   let results: Tested["image"] = List();
-
+  
   try {
     generator.value = validator.test(
       dataset.map(({ image, label }) => [image, label] as [Image, string]),
