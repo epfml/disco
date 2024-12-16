@@ -171,7 +171,7 @@ const props = defineProps<{
 interface Tested {
   image: List<{
     input: { filename: string; image: ImageData };
-    output: { truth: string; correct: boolean; predicted : number, label : number };
+    output: { truth: number; correct: boolean; predicted : number, label : string };
   }>;
   tabular: {
     labels: {
@@ -209,16 +209,16 @@ const visitedSamples = computed<number>(() => {
 
 const confusionMatrix = computed<{labels : Map<number, string>, matrix : number[][]} | undefined>(() => {
   if (tested.value === undefined) return undefined;
-  const labels = Set<number>();
+  const labels = Set<number>(); // l'idéal serait de tous les avoir en one try, sinon c'est dégueulasse
   const mapLabels = Map<number, string>();
   
   // get all the labels
   switch (props.task.trainingInformation.dataType) {
     case "image":
       (tested.value as Tested["image"]).forEach(({ output }) => {
-        labels.add(output.label);
+        labels.add(output.truth);
         labels.add(output.predicted);
-        mapLabels.set(output.label, output.truth);
+        mapLabels.set(output.truth, output.label);
       });
       break;
     case "text":
@@ -242,7 +242,7 @@ const confusionMatrix = computed<{labels : Map<number, string>, matrix : number[
   switch (props.task.trainingInformation.dataType) {
     case "image":
         (tested.value as Tested["image"]).map(
-          ( {output} ) => matrix[output.predicted][output.label] = matrix[output.predicted][output.label] + 1,
+          ( {output} ) => matrix[output.predicted][output.truth] = matrix[output.predicted][output.truth] + 1,
         );
         break;
     //case "text":
@@ -348,10 +348,10 @@ async function startImageTest(
           ),
         },
         output: {
-          truth: label,
+          label: label,
           correct: result,
           predicted: predicted,
-          label : truth,
+          truth : truth,
         },
       });
 
@@ -457,7 +457,7 @@ function saveCsv(): void {
           ["Filename", "Truth", "Correct"],
           ...(tested as Tested["image"]).map(({ input, output }) => [
             input.filename,
-            output.truth,
+            output.label,
             output.correct.toString(),
           ]),
         ]);
