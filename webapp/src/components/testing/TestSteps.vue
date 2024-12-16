@@ -65,20 +65,20 @@
       <table class="min-w-full divide-y divide-slate-600 dark:divide-slate-400 text-center">
         <thead>
           <tr>
-            <th class="pl-6 py-3 text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider text-center border-r-gray-600 dark:border-r-gray-400 border-r-2 diagonal-header">                  
+            <th class="px-0 py-3 text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider text-center border-r-gray-600 dark:border-r-gray-400 border-r-2 diagonal-header">                  
               <span class="">Label \ Prediction</span>
             </th>              
-            <th v-for="(label, index) in confusionMatrix.matrix[0]" :key="'header-' + index" class="px-6 py-3 text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+            <th v-for="(label, index) in confusionMatrix.matrix[0]" :key="'header-' + index" class="text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider">
               {{ confusionMatrix.labels.get(index) }}
             </th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(row, rowIndex) in confusionMatrix.matrix" :key="'row-' + rowIndex">
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-gray-200 border-r-gray-600 dark:border-r-gray-400 border-r-2">
+            <td class="py-2 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-gray-200 border-r-gray-600 dark:border-r-gray-400 border-r-2">
               {{ confusionMatrix.labels.get(rowIndex) }}
             </td>
-            <td v-for="(value, colIndex) in row" :key="'col-' + colIndex" class="px-6 py-4 whitespace-nowrap text-sm dark:text-gray-300 text-gray-700">
+            <td v-for="(value, colIndex) in row" :key="'col-' + colIndex" class="whitespace-nowrap text-sm dark:text-gray-300 text-gray-700">
               {{ value }}
             </td>
           </tr>
