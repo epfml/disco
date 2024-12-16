@@ -234,14 +234,14 @@ const confusionMatrix = computed<{labels : Map<number, string>, matrix : number[
   switch (props.task.trainingInformation.dataType) {
     case "image":
         (tested.value as Tested["image"]).map(
-          ( {output} ) => matrix[output.predicted][output.truth] = matrix[output.predicted][output.truth] + 1,
+          ( {output} ) => matrix[output.truth][output.predicted] = matrix[output.truth][output.predicted] + 1,
         );
         break;
     //case "text":
     //  return undefined;
     case "tabular":
       (tested.value as Tested["tabular"]).results.map(
-        ({ output }) => matrix[output.predicted][output.truth] = matrix[output.predicted][output.truth] + 1,
+        ({ output }) => matrix[output.truth][output.predicted] = matrix[output.truth][output.predicted] + 1,
       );
       break;
     default: {
