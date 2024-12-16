@@ -235,7 +235,7 @@ const confusionMatrix = computed<{labels : Map<number, string>, matrix : number[
       throw new Error("should never happen");
     }
   }
-  const size = Math.max(labels.size, Math.max(...Array.from(labels)));
+  const size = Math.max(labels.size, ...labels);
   // Initialize the confusion matrix
   const matrix = Array.from({ length: size }, () => Array(size).fill(0));
   
