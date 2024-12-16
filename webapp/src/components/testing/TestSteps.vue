@@ -157,6 +157,7 @@ import ImageCard from "@/components/containers/ImageCard.vue";
 import LabeledDatasetInput from "@/components/dataset_input/LabeledDatasetInput.vue";
 import TableLayout from "@/components/containers/TableLayout.vue";
 import type { LabeledDataset } from "@/components/dataset_input/types.js";
+import { Map, Set } from 'immutable';
 
 const debug = createDebug("webapp:testing:TestSteps");
 const toaster = useToaster();
@@ -208,8 +209,8 @@ const visitedSamples = computed<number>(() => {
 
 const confusionMatrix = computed<{labels : Map<number, string>, matrix : number[][]} | undefined>(() => {
   if (tested.value === undefined) return undefined;
-  const labels = new Set<number>();
-  const mapLabels = new Map<number, string>();
+  const labels = Set<number>();
+  const mapLabels = Map<number, string>();
   
   // get all the labels
   switch (props.task.trainingInformation.dataType) {
@@ -247,7 +248,12 @@ const confusionMatrix = computed<{labels : Map<number, string>, matrix : number[
     //case "text":
     //  return undefined;
     case "tabular":
-      return undefined;
+        (tested.value as Tested["tabular"]).results.forEach( ({output}) => {
+          labels.add(output.label);
+          labels.add(output.predicted);
+          mapLabels.set(output.label, output.truth);
+        });
+        break;
     default: {
       const _: never = props.task.trainingInformation;
       throw new Error("should never happen");
