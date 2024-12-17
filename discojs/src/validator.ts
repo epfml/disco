@@ -15,21 +15,23 @@ export class Validator<D extends DataType> {
   async *test(
     dataset: Dataset<DataFormat.Raw[D]>,
   ): AsyncGenerator<{ result: boolean; predicted: DataFormat.Inferred[D]; truth : number }, void> {
-    const results = (await processing.preprocess(this.task, dataset))
-      .batch(this.task.trainingInformation.batchSize)
+    const preprocessed = await processing.preprocess(this.task, dataset);
+    const batched = preprocessed.batch(this.task.trainingInformation.batchSize);
+
+    const initialResults = batched
       .map(async (batch) =>
         (await this.#model.predict(batch.map(([inputs, _]) => inputs)))
-      .zip(batch.map(([_, outputs]) => outputs))
-      .map(([inferred, truth]) => ({ result: inferred === truth, predicted: inferred, truth : truth })),
-    )
-    .flatten();
+          .zip(batch.map(([_, outputs]) => outputs))
+          .map(([inferred, truth]) => ({ result: inferred === truth, predicted: inferred, truth })),
+      )
+      .flatten();
 
     const predictions = await processing.postprocess(
       this.task,
-      results.map(({ predicted }) => predicted),
+      initialResults.map(({ predicted }) => predicted),
     );
 
-    const finalResults = results.zip(predictions).map(([result, predicted]) => ({
+    const finalResults = initialResults.zip(predictions).map(([result, predicted]) => ({
       ...result,
       predicted,
     }));
