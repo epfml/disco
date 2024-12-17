@@ -227,7 +227,6 @@ const confusionMatrix = computed<{ labels: Map<number, string>; matrix: { [key: 
     }
   }
 
-  const size = labels.length;
   // Initialize the confusion matrix
   const matrix: { [key: string]: { [key: string]: number } } = {};
 
@@ -258,8 +257,6 @@ const confusionMatrix = computed<{ labels: Map<number, string>; matrix: { [key: 
     }
   }
   const mapLabels = Map(labels.map((label, index) => [index, label]));
-  console.log(mapLabels)
-  console.log(matrix)
   return {labels : mapLabels, matrix : matrix};
 })
 
