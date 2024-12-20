@@ -5,7 +5,10 @@
       <IconCard title-placement="center">
         <template #title> Control the Training Flow </template>
           <!-- If we are not currently training -->
-          <div v-if="!isTraining" class="flex flex-col gap-y-4">
+          <div
+            v-if="!isTraining"
+            class="flex flex-col gap-y-4 min-w-full"
+          >
             <!-- Toggle buttons between training collaboratively and locally -->
             <div class="flex justify-center">
               <button
