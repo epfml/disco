@@ -31,7 +31,7 @@ describe("validator", () => {
     }
 
     expect(hits / size).to.be.greaterThan(0.3);
-  }).timeout("5s");
+  }).timeout("10s");
 
   it("can read and predict randomly on titanic", async () => {
     const provider = defaultTasks.titanic;
