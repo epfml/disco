@@ -156,7 +156,7 @@
       <ButtonsCard
         class="lg:w-2/6 mx-auto"
         title-align="center"
-        :buttons="List.of(['Get started', goToTaskList])"
+        :buttons="List.of(['get started', goToTaskList])"
       >
         <template #title>
           Train a model and contribute to existing

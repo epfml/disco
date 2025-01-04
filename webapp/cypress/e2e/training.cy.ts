@@ -10,7 +10,6 @@ describe("training page", () => {
 
     cy.contains("button", "get started").click();
     cy.contains("button", "participate").click();
-    cy.contains("button", "participate").click();
 
     const navigationButtons = 3;
     for (let i = 0; i < navigationButtons; i++) {
@@ -28,7 +27,7 @@ describe("training page", () => {
 
     cy.contains("button", "get started").click();
     cy.contains("button", "participate").click();
-    cy.contains("button", "participate").click();
+    // cy.contains("button", "participate").click();
     cy.contains("button", "next").click();
 
     cy.contains("label", "select CSV").selectFile(
@@ -58,7 +57,7 @@ describe("training page", () => {
 
     cy.contains("button", "get started").click();
     cy.contains("button", "participate").click();
-    cy.contains("button", "participate").click();
+    // cy.contains("button", "participate").click();
     cy.contains("button", "next").click();
 
     cy.task<string[]>("readdir", "../datasets/lus_covid/COVID+/").then(
