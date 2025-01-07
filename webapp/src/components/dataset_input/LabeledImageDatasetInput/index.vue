@@ -1,5 +1,5 @@
 <template>
-  <div class="grid grid-cols-1">
+  <div class="flex flex-col cards-gap">
     <DatasetInput>
       <div class="mb-5 text-left">
         You can connect images by selecting the location of each data category
@@ -34,10 +34,13 @@
       </div>
     </DatasetInput>
 
-    <div class="space-y-4 md:space-y-8 mt-8">
-      <ByGroup v-if="connectImagesByGroup" v-model="dataset" :labels="labels" class="group-data-field"/>
-      <ByCSV v-else v-model="dataset" />
-    </div>
+    <ByGroup
+      v-if="connectImagesByGroup"
+      v-model="dataset"
+      :labels="labels"
+      class="group-data-field"
+    />
+    <ByCSV v-else v-model="dataset" />
   </div>
 </template>
 
