@@ -1,5 +1,5 @@
 <template>
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
+  <div class="grid grid-cols-1 lg:grid-cols-2 cards-gap">
     <div class="contents">
       <IconCard v-for="[label, files] in labelsAndFiles" :key="label">
         <template #title> Group label:&nbsp;&nbsp;{{ label }} </template>

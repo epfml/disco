@@ -2,7 +2,7 @@
   <div class="space-y-4 md:space-y-8">
     <!-- Fancy training statistics -->
     <div
-      class="flex flex-wrap justify-center 2xl:justify-between gap-4 md:gap-8"
+      class="flex flex-wrap justify-center 2xl:justify-between cards-gap"
     >
       <!-- Hide the communication rounds when training alone -->
       <IconCardSmall
@@ -60,7 +60,7 @@
     <!-- Training and validation loss charts -->
     <DropdownCard :initiallyOpen @click="toggleAdvancedInfo">
       <template #title> Advanced information </template>
-      <div class="flex flex-col md:grid gap-4 md:gap-8 md:grid-cols-2">
+      <div class="grid grid-cols-1 md:grid-cols-2 cards-gap">
         <!-- Training loss users chart -->
         <IconCard>
           <template #title> Training Loss of the Model </template>
@@ -107,7 +107,7 @@
       <!-- Training and validation accuracy charts -->
       <div
         v-if="hasValidationData"
-        class="flex flex-col md:grid gap-4 md:gap-8 md:grid-cols-2"
+        class="grid grid-cols-1 md:grid-cols-2 cards-gap"
       >
         <!-- Validation Loss users chart -->
         <IconCard>

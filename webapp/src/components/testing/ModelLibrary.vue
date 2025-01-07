@@ -1,6 +1,6 @@
 <template>
   <div v-show="validationStore.step === 0">
-    <div class="flex flex-col gap-8">
+    <div class="flex flex-col cards-gap">
       <div v-if="!models.infos.isEmpty()">
         <IconCard title-placement="center">
           <template #title>

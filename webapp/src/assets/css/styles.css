@@ -28,3 +28,14 @@
   src: url('../fonts/AmpleSoftMedium.woff2') format('woff2'), 
     url('../fonts/AmpleSoftMedium.woff') format('woff');
 }
+
+.cards-gap {
+  gap: 1rem;
+}
+
+/* tailwind "md" size */
+@media (min-width: 768px) {
+  .cards-gap {
+	  gap: 2rem;
+  }
+}

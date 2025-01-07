@@ -1,5 +1,5 @@
 <template>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10 items-stretch">
+  <div class="grid grid-cols-1 md:grid-cols-2 cards-gap mt-10 items-stretch">
     <!-- Test the model -->
     <ButtonsCard :buttons="List.of(['test model', onTestModel])">
       <template #title> Test the model </template>
