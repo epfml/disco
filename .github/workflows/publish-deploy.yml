@@ -14,9 +14,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: npm
           registry-url: "https://registry.npmjs.org"
           scope: "@epfml"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/Cypress
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm ci
       - run: npm --workspace=discojs{,-node,-web} version prerelease --preid=p`date +%Y%m%d%H%M%S`
         if: github.ref_type == 'branch'
@@ -35,7 +40,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: npm
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/Cypress
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm ci
       - run: npm --workspace={discojs,discojs-web,webapp} run build
       - uses: actions/upload-pages-artifact@v3
