@@ -1,4 +1,3 @@
-import createDebug from "debug";
 import cors from "cors";
 import express from "express";
 import expressWS from "express-ws";
@@ -8,8 +7,6 @@ import type { DataType, TaskProvider } from "@epfml/discojs";
 
 import { TaskRouter, TrainingRouter } from './routes/index.js'
 import { TaskSet } from "./task_set.js";
-
-const debug = createDebug("server");
 
 /**
  * The Disco Server, initializing an Express app
@@ -52,14 +49,6 @@ export class Server {
     const taskRouter = new TaskRouter(this.#taskSet)
     const federatedRouter = new TrainingRouter('federated', wsApplier, this.#taskSet)
     const decentralizedRouter = new TrainingRouter('decentralized', wsApplier, this.#taskSet)
-
-    wsApplier.getWss().on('connection', (ws, req) => {
-      if (!federatedRouter.isValidUrl(req.url) && !decentralizedRouter.isValidUrl(req.url)) {
-        debug("connection refused on %s", req.url);
-        ws.terminate()
-        ws.close()
-      }
-    })
 
     app.get('/', (_, res, next) => {
       res.send('The DISCO Server\n')
