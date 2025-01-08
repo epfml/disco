@@ -2,8 +2,8 @@ import type * as http from 'node:http'
 import { List } from 'immutable'
 import { expect } from 'chai'
 
-import type { RoundStatus } from "@epfml/discojs";
-import { Queue, setupLusCOVID } from '../utils.js'
+import type { DataType, RoundStatus, TaskProvider } from "@epfml/discojs";
+import { datasets, Queue } from '../utils.js'
 
 import {
   aggregator as aggregators,
@@ -22,29 +22,32 @@ async function WSIntoList(ws: WeightsContainer): Promise<List<List<number>>> {
 }
 
 async function expectWSToBeClose(
-  left: WeightsContainer,
-  right: WeightsContainer,
+	left: WeightsContainer,
+	right: WeightsContainer,
 ): Promise<void> {
-  (await WSIntoList(left))
-    .zip(await WSIntoList(right))
-    .forEach((tensors) =>
-      tensors[0]
-        .zip(tensors[1])
-        .forEach(([l, r]) => expect(l).to.be.closeTo(r, 1e-4)),
-    );
+	for (const tensors of (await WSIntoList(left)).zip(await WSIntoList(right)))
+		for (const [l, r] of tensors[0].zip(tensors[1]))
+			expect(l).to.be.closeTo(r, 1e-4);
 }
 
 describe('end-to-end decentralized', function () {
   this.timeout(30_000)
 
-  let server: http.Server
-  let url: URL
+  let handle: http.Server | undefined;
+  async function startServer(task: TaskProvider<DataType>): Promise<URL> {
+    const server = await Server.with(task);
+
+    let url: URL;
+    [handle, url] = await server.serve();
+    return url;
+  }
   afterEach(
     () =>
       new Promise<void>((resolve, reject) =>
-        server?.close((e) => {
+        handle?.close((e) => {
           if (e !== undefined) reject(e);
           else resolve();
+          handle = undefined;
         }),
       ),
   );
@@ -55,6 +58,7 @@ describe('end-to-end decentralized', function () {
    * the client will implement secure aggregation. If it is false, it will be a clear text client.
    */
   async function simulateClient (
+    url: URL,
     aggregatorType: 'mean' | 'secure',
     input: number[],
     rounds: number
@@ -83,6 +87,7 @@ describe('end-to-end decentralized', function () {
    * The clients have model dimension of 4 model updates to share, which can be seen as their input parameter in makeClient.
    */
   async function reachConsensus (
+    url: URL,
     aggregatorType: 'mean' | 'secure',
     rounds = 1
   ): Promise<void> {
@@ -92,7 +97,11 @@ describe('end-to-end decentralized', function () {
       [0.002, 5, 30, 11],
       [0.003, 13, 11, 12]
     )
-    const actual = await Promise.all(contributions.map(async (w) => await simulateClient(aggregatorType, w, rounds)).toArray())
+    const actual = await Promise.all(
+      contributions
+        .map(async (w) => await simulateClient(url, aggregatorType, w, rounds))
+        .toArray(),
+    );
     const consensuses = await Promise.all(actual.map(async ([consensus, client]) => {
       // Disconnect clients once they reached consensus
       await client.disconnect()
@@ -107,47 +116,39 @@ describe('end-to-end decentralized', function () {
     );
   }
 
-  it('single round of cifar 10 with three mean aggregators yields consensus', async () => {
-    [server, url] = await new Server().serve(
-      undefined,
-      defaultTasks.cifar10,
-    );
+  it("single round of cifar 10 with three mean aggregators yields consensus", async () => {
+    const url = await startServer(defaultTasks.cifar10);
+    await reachConsensus(url, "mean");
+  });
 
-    await reachConsensus('mean')
-  })
+  it("several rounds of cifar 10 with three mean aggregators yields consensus", async () => {
+    const url = await startServer(defaultTasks.cifar10);
+    await reachConsensus(url, "mean", 3);
+  });
 
-  it('several rounds of cifar 10 with three mean aggregators yields consensus', async () => {
-    [server, url] = await new Server().serve(
-      undefined,
-      defaultTasks.cifar10,
-    );
+  it("single round of cifar 10 with three secure aggregators yields consensus", async () => {
+    const url = await startServer(defaultTasks.cifar10);
+    await reachConsensus(url, "secure");
+  });
 
-    await reachConsensus('mean', 3)
-  })
-
-  it('single round of cifar 10 with three secure aggregators yields consensus', async () => {
-    [server, url] = await new Server().serve(
-      undefined,
-      defaultTasks.cifar10,
-    );
-
-    await reachConsensus('secure')
-  })
-
-  it('several rounds of cifar 10 with three secure aggregators yields consensus', async () => {
-    [server, url] = await new Server().serve(
-      undefined,
-      defaultTasks.cifar10,
-    );
-
-    await reachConsensus('secure', 3)
-  })
+  it("several rounds of cifar 10 with three secure aggregators yields consensus", async () => {
+    const url = await startServer(defaultTasks.cifar10);
+    await reachConsensus(url, "secure", 3);
+  });
 
   it("peers emit expected events", async () => {
-    const result = await setupLusCOVID("decentralized");
-    const { dataset, lusCovidTask } = result;
-    server = result.server;
-    url = result.url;
+		const task = defaultTasks.lusCovid.getTask();
+		task.trainingInformation = {
+			...task.trainingInformation,
+			scheme: "decentralized",
+			roundDuration: 1,
+			minNbOfParticipants: 2,
+		};
+		const url = await startServer({
+			...defaultTasks.lusCovid,
+			getTask: () => task,
+		});
+		const dataset = await datasets.loadLusCOVID();
 
     /**
      * Then at each round (each call to `disco.trainByRound`) the event cycle is:
@@ -179,7 +180,7 @@ describe('end-to-end decentralized', function () {
 
     /* USER 1 JOINS */
 
-    const discoUser1 = new Disco(lusCovidTask, url, { preprocessOnce: true });
+    const discoUser1 = new Disco(task, url, { preprocessOnce: true });
     const statusUser1 = new Queue<RoundStatus>();
     const nbParticipantsUser1 = new Queue<number>();
     discoUser1.on("status", status => { statusUser1.put(status) })
@@ -194,7 +195,7 @@ describe('end-to-end decentralized', function () {
     expect(await nbParticipantsUser1.next()).equal(1)
 
     if (logUser1Round1.done)
-      throw Error("User 1 finished training at the 1st round")
+      throw new Error("User 1 finished training at the 1st round")
     // participant list not updated yet (updated at step c))
     expect((logUser1Round1.value).participants).equal(1)
 
@@ -206,7 +207,7 @@ describe('end-to-end decentralized', function () {
 
     /* USER 2 JOINS */
 
-    const discoUser2 = new Disco(lusCovidTask, url, { preprocessOnce: true });
+    const discoUser2 = new Disco(task, url, { preprocessOnce: true });
     const statusUser2 = new Queue<RoundStatus>();
     const nbParticipantsUser2 = new Queue<number>();
     discoUser2.on("status", status => { statusUser2.put(status) })
@@ -217,7 +218,7 @@ describe('end-to-end decentralized', function () {
     const logUser2Round1 = await generatorUser2.next()
     expect(logUser2Round1.done).to.be.false
     if (logUser2Round1.done)
-      throw Error("User 2 finished training at the 1st round")
+      throw new Error("User 2 finished training at the 1st round")
     // round payload should contain the number of participants
     expect((logUser2Round1.value).participants).equal(2)
     expect(await nbParticipantsUser2.next()).equal(2)
@@ -237,7 +238,7 @@ describe('end-to-end decentralized', function () {
     expect(logUser1Round2.done).to.be.false
     expect(logUser2Round2.done).to.be.false
     if (logUser1Round2.done || logUser2Round2.done)
-      throw Error("User 1 or 2 finished training at the 2nd round")
+      throw new Error("User 1 or 2 finished training at the 2nd round")
     // nb of participants should now be updated
     expect((logUser1Round2.value).participants).equal(2)
     expect((logUser2Round2.value).participants).equal(2)
@@ -270,7 +271,7 @@ describe('end-to-end decentralized', function () {
     /* USER 3 JOINS */
 
     // Create User 3
-    const discoUser3 = new Disco(lusCovidTask, url, { preprocessOnce: true });
+    const discoUser3 = new Disco(task, url, { preprocessOnce: true });
     const statusUser3 = new Queue<RoundStatus>();
     const nbParticipantsUser3 = new Queue<number>();
     discoUser3.on("status", status => { statusUser3.put(status) })
@@ -281,7 +282,7 @@ describe('end-to-end decentralized', function () {
     const logUser3Round1 = await generatorUser3.next()
     expect(logUser3Round1.done).to.be.false
     if (logUser3Round1.done)
-      throw Error("User 3 finished training at the 1st round")
+      throw new Error("User 3 finished training at the 1st round")
     expect((logUser3Round1.value).participants).equal(2)
     expect(await nbParticipantsUser3.next()).equal(2)
     // User 2 receives the EnoughParticipants message
@@ -300,7 +301,7 @@ describe('end-to-end decentralized', function () {
     const logUser3Round3 = await generatorUser3.next()
     const logUser2Round3 = await logUser2Round3Promise // the promise can resolve now
     if (logUser3Round3.done || logUser2Round3.done)
-      throw Error("User 1 or 2 finished training at the 3rd round")
+      throw new Error("User 1 or 2 finished training at the 3rd round")
     
     expect(logUser2Round3.value.participants).equal(2)
     expect(logUser3Round3.value.participants).equal(2)

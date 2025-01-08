@@ -33,7 +33,11 @@ async function main (): Promise<void> {
   const NAME: string = 'titanic'
 
   // Launch a server instance
-  const [server, url] = await new Server().serve(undefined, defaultTasks.simpleFace, defaultTasks.titanic)
+  const server = await Server.with(
+    defaultTasks.simpleFace,
+    defaultTasks.titanic,
+  );
+  const [handle, url] = await server.serve();
 
   // Get all pre-defined tasks
   const tasks = await fetchTasks(url)
@@ -67,9 +71,9 @@ async function main (): Promise<void> {
 
   // Close server
   await new Promise((resolve, reject) => {
-    server.once('close', resolve)
-    server.close(reject)
-  })
+    handle.once("close", resolve);
+    handle.close(reject);
+  });
 }
 
 async function loadSimpleFaceData(): Promise<Dataset<[Image, string]>> {

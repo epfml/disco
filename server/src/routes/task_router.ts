@@ -3,7 +3,7 @@ import type { Request, Response } from 'express'
 import express from 'express'
 import { Set } from 'immutable'
 
-import type { DataType, Task, TaskID } from '@epfml/discojs'
+import type { TaskID } from "@epfml/discojs";
 import { serialization, isTask } from '@epfml/discojs'
 
 import type { TaskSet } from '../task_set.js'
@@ -54,24 +54,15 @@ export class TaskRouter {
         });
     })
 
-    // delay listener because `this` (object) isn't fully constructed yet
-    process.nextTick(() => {
-      // a 'newTask' event is emitted when a new task is added 
-      this.#taskSet.on('newTask', ({ task }) => this.onNewTask(task))
-    })
+    this.#taskSet.on("newTask", ([task]) => {
+      this.#expressRouter.get(`/${task.id}/:file`, (req, res) =>
+        this.getLatestModel(task.id, req, res)
+      );
+    });
   }
 
   public get router (): express.Router {
     return this.#expressRouter
-  }
-
-  // When a task has been initialized, 
-  // register its GET endpoint
-  onNewTask(task: Task<DataType>): void {
-    this.#expressRouter.get(`/${task.id}/:file`, (req, res, next) => {
-      this.getLatestModel(task.id, req, res)
-      next()
-    })
   }
 
   /**

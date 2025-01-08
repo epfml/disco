@@ -12,15 +12,16 @@ const TASK_PROVIDER = defaultTasks.titanic;
 const TASK = TASK_PROVIDER.getTask();
 
 describe("federated client", () => {
-  let server: http.Server;
+  let handle: http.Server;
   let url: URL;
   beforeEach(async () => {
-    [server, url] = await new Server().serve(undefined, TASK_PROVIDER);
+    const server = await Server.with(TASK_PROVIDER);
+    [handle, url] = await server.serve();
   });
   afterEach(
     () =>
       new Promise<void>((resolve, reject) =>
-        server?.close((e) => {
+        handle?.close((e) => {
           if (e !== undefined) reject(e);
           else resolve();
         }),
