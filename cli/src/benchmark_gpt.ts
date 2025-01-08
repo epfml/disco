@@ -47,7 +47,8 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     contextLength, batchSize, modelPath } = args
 
   // Launch a server instance
-  const [server, url] = await new Server().serve(undefined, defaultTasks.wikitext);
+  const server = await Server.with(defaultTasks.wikitext);
+  const [handle, url] = await server.serve();
 
   // Fetch the wikitext task from the server
   const tasks = await fetchTasks(url)
@@ -128,9 +129,9 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     console.log(`Inference time: ${(inferenceTime/ maxNewTokens / iterations).toFixed(2)} ms/token`)
   }
   await new Promise((resolve, reject) => {
-    server.once('close', resolve)
-    server.close(reject)
-  })
+    handle.once("close", resolve);
+    handle.close(reject);
+  });
 }
 
 // You can run this example with "npm start" from this folder

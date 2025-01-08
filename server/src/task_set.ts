@@ -6,6 +6,7 @@ import type { DataType, Task, TaskProvider } from "@epfml/discojs";
 import { EventEmitter, isTask, Model, serialization } from "@epfml/discojs";
 
 type EncodedModel = serialization.Encoded;
+type TaskAndModel = [Task<DataType>, EncodedModel];
 
 /**
  * The TaskSet essentially handles initializing a Task and 
@@ -30,13 +31,21 @@ type EncodedModel = serialization.Encoded;
  * the 'newTask' event to run callbacks whenever a new Task and EncodedModel are initialized.
  */
 export class TaskSet extends EventEmitter<{
-  "newTask": { task: Task<DataType>, encodedModel: EncodedModel }
-}>{
+  newTask: TaskAndModel;
+}> {
   // Keep track of previously initialized task-model pairs
-  #tasks = Set<[Task<DataType>, EncodedModel]>()
+  #tasks = Set<TaskAndModel>();
 
-  get tasks(): Set<[Task<DataType>, EncodedModel]> {
+  get tasks(): Set<TaskAndModel> {
     return this.#tasks
+  }
+
+  // send known tasks to new listener
+  override on(
+    _: "newTask",
+    listener: (_: TaskAndModel) => void | Promise<void>,
+  ): void {
+    this.#tasks.forEach(listener);
   }
 
   /**
@@ -79,7 +88,7 @@ export class TaskSet extends EventEmitter<{
 
     // Add the task-model pair to the set
     this.#tasks = this.#tasks.add([task, encodedModel])
-    this.emit('newTask', { task, encodedModel })
+    this.emit("newTask", [task, encodedModel]);
   }
 
   /**

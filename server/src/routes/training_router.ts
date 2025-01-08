@@ -27,19 +27,10 @@ export class TrainingRouter {
       res.send(`Disco ${this.trainingScheme} server\n`);
     });
 
-    /* delay listener because `this` (object) isn't fully constructed yet. 
-    * The lambda function inside process.nextTick is executed after the current operation 
-    * on the JS stack runs to completion and before the event loop is allowed to continue.
-    * this.onNewTask is registered as a listener to taskSet, which has 2 consequences:
-    * - this.onNewTask is executed on all the default tasks (which are already loaded in taskSet)
-    * - Every time a new task and model are added to taskSet, this.onNewTask is executed on them.
-    * For every task and model, this.onNewTask creates a path /taskID and routes it to this.handle.
-    */
-    process.nextTick(() => {
-      taskSet.on('newTask',
-        async ({ task, encodedModel }) => { await this.onNewTask(task, encodedModel) }
-      )
-    })
+    taskSet.on(
+      "newTask",
+      async ([task, encodedModel]) => await this.onNewTask(task, encodedModel),
+    );
   }
 
   // The method called to use the TrainingRouter

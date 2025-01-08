@@ -17,15 +17,16 @@ function test (
   Aggregator: new () => aggregators.Aggregator
 ): void {
   describe(`decentralized ${name} client`, function () {
-    let server: http.Server
-    let url: URL
+    let handle: http.Server;
+    let url: URL;
     beforeEach(async () => {
-      [server, url] = await new Server().serve(undefined, TASK);
+      const server = await Server.with(TASK);
+      [handle, url] = await server.serve();
     });
     afterEach(
       () =>
         new Promise<void>((resolve, reject) =>
-          server?.close((e) => {
+          handle?.close((e) => {
             if (e !== undefined) reject(e);
             else resolve();
           }),

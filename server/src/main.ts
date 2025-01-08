@@ -25,5 +25,6 @@ console.table(
 );
 
 // Init the server with default tasks
-const [_, serverURL] = await new Server().serve(PORT, ...providers);
+const server = await Server.with(...providers);
+const [_, serverURL] = await server.serve(PORT);
 console.log(`Disco Server listening on ${serverURL.toString()}`);

@@ -59,30 +59,15 @@ const customTask: TaskProvider<"tabular"> = {
   }
 }
 
-async function runServer (): Promise<void> {
-  // Create server
-  const server = new DiscoServer()
-
-  // You can also provide your own task object containing the URL of the model
-
-  // await disco.addTask({
-  //   ...
-  //   trainingInformation: {
-  //       epochs: 5,
-  //       modelURL: 'https://example.com/path/to/your/model.json',
-  //   }
-  //   ...
-  // })
-
-  // Or provide an URL separately
-
-  // await server.addTask(customTask.getTask(), new URL('https://example.com/path/to/your/model.json'))
+async function runServer(): Promise<void> {
+  // Create a server
+  const server = await DiscoServer.with(
+    defaultTasks.titanic, // with some tasks provided by Disco
+    customTask, // or your own custom task
+  );
 
   // Start the server
-  await server.serve(8080, 
-    defaultTasks.titanic, // with some tasks provided by Disco
-    // or your own custom task
-    customTask,)
+  await server.serve(8080);
 }
 
 runServer().catch(console.error)

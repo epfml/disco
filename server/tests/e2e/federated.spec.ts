@@ -1,15 +1,22 @@
 import { assert, expect } from "chai";
-import { List, Repeat } from "immutable";
+import { List } from "immutable";
 import type * as http from "node:http";
-import path from "node:path";
 
-import type { RoundStatus, WeightsContainer } from "@epfml/discojs";
+import type {
+    DataFormat,
+    Dataset,
+  DataType,
+  EpochLogs,
+  RoundStatus,
+  Task,
+  TaskProvider,
+  WeightsContainer,
+} from "@epfml/discojs";
 import { Disco, defaultTasks } from "@epfml/discojs";
-import { loadCSV, loadImagesInDir, loadText } from "@epfml/discojs-node";
 
 import { Server } from "../../src/index.js";
 
-import { Queue, DATASET_DIR, setupLusCOVID } from "../utils.js";
+import { Queue, datasets } from "../utils.js";
 
 // Array.fromAsync not yet widely used (2024)
 async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
@@ -26,157 +33,154 @@ async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
 }
 
 describe("end-to-end federated", () => {
-  let server: http.Server;
-  let url: URL;
+  let handle: http.Server | undefined;
+  async function startServer(task: TaskProvider<DataType>): Promise<URL> {
+    const server = await Server.with(task);
+
+    let url: URL;
+    [handle, url] = await server.serve();
+    return url;
+  }
   afterEach(
     () =>
       new Promise<void>((resolve, reject) =>
-        server?.close((e) => {
+        handle?.close((e) => {
           if (e !== undefined) reject(e);
           else resolve();
+          handle = undefined;
         }),
       ),
   );
 
-  async function cifar10user(): Promise<WeightsContainer> {
-    // TODO single label means to model can't be wrong
+	async function runUser<D extends DataType>(
+		url: URL,
+		task: Task<D>,
+		dataset: Dataset<DataFormat.Raw[D]>,
+		preprocessOnce = true,
+	): Promise<[WeightsContainer, EpochLogs]> {
+		const disco = new Disco(task, url, { preprocessOnce });
 
-    const dataset = (
-      await loadImagesInDir(path.join(DATASET_DIR, "CIFAR10"))
-    ).zip(Repeat("cat"));
+		const logs = List(await arrayFromAsync(disco.trainByRound(dataset)));
+		await disco.close();
 
-    const disco = new Disco(defaultTasks.cifar10.getTask(), url, {
-      scheme: "federated",
-      preprocessOnce: true,
-    })
-    await disco.trainFully(dataset);
-    await disco.close();
+		expect(logs.first()?.epochs.first()?.training.loss).to.be.above(
+			logs.last()?.epochs.last()?.training.loss as number,
+		);
 
-    return disco.trainer.model.weights;
-  }
+		const lastEpoch = logs.last()?.epochs.last();
+		if (lastEpoch === undefined) throw new Error("no epoch ran");
+		return [disco.trainer.model.weights, lastEpoch];
+	}
 
-  async function titanicUser(): Promise<WeightsContainer> {
-    const task = defaultTasks.titanic.getTask();
-    task.trainingInformation.epochs =
-      task.trainingInformation.roundDuration = 5;
+	it("three cifar10 users reach consensus", async () => {
+		const task = defaultTasks.cifar10.getTask();
+		task.trainingInformation = {
+			...task.trainingInformation,
+			scheme: "federated",
+			minNbOfParticipants: 2,
+		};
+		const url = await startServer({
+			...defaultTasks.cifar10,
+			getTask: () => task,
+		});
+		const dataset = await datasets.loadCifar10();
 
-    const dataset = loadCSV(path.join(DATASET_DIR, "titanic_train.csv"));
+		const [[m1, l1], [m2, l2], [m3, l3]] = await Promise.all([
+			runUser(url, task, dataset),
+			runUser(url, task, dataset),
+			runUser(url, task, dataset),
+		]);
 
-    const titanicTask = defaultTasks.titanic.getTask();
-    titanicTask.trainingInformation.epochs =
-      titanicTask.trainingInformation.roundDuration = 5;
-    const disco = new Disco(titanicTask, url, {
-      scheme: "federated",
-    });
+		for (const lastEpoch of [l1, l2, l3]) {
+			expect(lastEpoch.training.accuracy).to.be.greaterThan(0.5);
+			expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.5);
+		}
+		assert.isTrue(m1.equals(m2) && m2.equals(m3));
+	}).timeout("2m");
 
-    const logs = List(
-      await arrayFromAsync(disco.trainByRound(dataset)),
-    );
-    await disco.close();
+	it("two titanic users reach consensus", async () => {
+		const task = defaultTasks.titanic.getTask();
+		task.trainingInformation = {
+			...task.trainingInformation,
+			minNbOfParticipants: 2,
+		};
+		const url = await startServer({
+			...defaultTasks.titanic,
+			getTask: () => task,
+		});
+		const dataset = datasets.loadTitanic();
 
-    expect(logs.last()?.epochs.last()?.training.accuracy).to.be.greaterThan(
-      0.5,
-    );
-    if (logs.last()?.epochs.last()?.validation === undefined)
-      throw new Error(
-        "No validation logs while validation dataset was specified",
-      );
-    const validationLogs = logs.last()?.epochs.last()?.validation;
-    expect(validationLogs?.accuracy).to.be.greaterThan(0.5);
+		const [[m1, l1], [m2, l2]] = await Promise.all([
+			runUser(url, task, dataset),
+			runUser(url, task, dataset),
+		]);
 
-    return disco.trainer.model.weights;
-  }
+		for (const lastEpoch of [l1, l2]) {
+			expect(lastEpoch.training.accuracy).to.be.greaterThan(0.5);
+			expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.5);
+		}
+		assert.isTrue(m1.equals(m2));
+	}).timeout("30s");
 
-  async function wikitextUser(): Promise<WeightsContainer> {
-    const task = defaultTasks.wikitext.getTask();
-    task.trainingInformation.epochs = 2;
+	it("two lus_covid users reach consensus", async () => {
+		const task = defaultTasks.lusCovid.getTask();
+		task.trainingInformation = {
+			...task.trainingInformation,
+			epochs: 10,
+			roundDuration: 2,
+			minNbOfParticipants: 2,
+		};
+		const url = await startServer({
+			...defaultTasks.lusCovid,
+			getTask: () => task,
+		});
+		const dataset = await datasets.loadLusCOVID();
 
-    const dataset = loadText(
-      path.join(DATASET_DIR, "wikitext", "wiki.train.tokens"),
-    ).chain(loadText(path.join(DATASET_DIR, "wikitext", "wiki.valid.tokens")));
+		const [[m1, l1], [m2, l2]] = await Promise.all([
+			runUser(url, task, dataset),
+			runUser(url, task, dataset),
+		]);
 
-    const disco = new Disco(task, url, { scheme: "federated" });
+		for (const lastEpoch of [l1, l2]) {
+			expect(lastEpoch.training.accuracy).to.be.greaterThan(0.5);
+			expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.5);
+		}
+		assert.isTrue(m1.equals(m2));
+	}).timeout("2m");
 
-    const logs = List(
-      await arrayFromAsync(disco.trainByRound(dataset)),
-    );
-    await disco.close();
+	it("two wikitext reach consensus", async () => {
+		const task = defaultTasks.wikitext.getTask();
+		task.trainingInformation = {
+			...task.trainingInformation,
+			epochs: 2,
+			roundDuration: 2,
+			minNbOfParticipants: 2,
+		};
+		const url = await startServer({
+			...defaultTasks.wikitext,
+			getTask: () => task,
+		});
+		const dataset = datasets.loadWikitext();
 
-    expect(logs.first()?.epochs.first()?.training.loss).to.be.above(
-      logs.last()?.epochs.last()?.training.loss as number,
-    );
-    return disco.trainer.model.weights
-  }
-
-  async function lusCovidUser(): Promise<WeightsContainer> {
-    const { dataset, lusCovidTask } = await setupLusCOVID("federated");
-
-    const disco = new Disco(lusCovidTask, url, {
-      scheme: "federated",
-      preprocessOnce: true,
-    });
-
-    const logs = List(
-      await arrayFromAsync(disco.trainByRound(dataset)),
-    );
-    await disco.close();
-
-    const validationLogs = logs.last()?.epochs.last()?.validation;
-    expect(validationLogs?.accuracy).to.be.greaterThan(0.5);
-
-    return disco.trainer.model.weights;
-  }
-
-  it("three cifar10 users reach consensus", async () => {
-    [server, url] = await new Server().serve(
-      undefined,
-      defaultTasks.cifar10,
-    );
-
-    const [m1, m2, m3] = await Promise.all([
-      cifar10user(),
-      cifar10user(),
-      cifar10user(),
-    ]);
-
-    assert.isTrue(m1.equals(m2) && m2.equals(m3));
-  }).timeout("2m");
-
-  it("two titanic users reach consensus", async () => {
-    [server, url] = await new Server().serve(
-      undefined,
-      defaultTasks.titanic,
-    );
-
-    const [m1, m2] = await Promise.all([titanicUser(), titanicUser()]);
-    assert.isTrue(m1.equals(m2));
-  }).timeout("30s");
-
-  it("two lus_covid users reach consensus", async () => {
-    [server, url] = await new Server().serve(
-      undefined,
-      defaultTasks.lusCovid,
-    );
-
-    const [m1, m2] = await Promise.all([lusCovidUser(), lusCovidUser()]);
-    assert.isTrue(m1.equals(m2));
-  }).timeout("2m");
-  
-  it("two wikitext reach consensus", async () => {
-    [server, url] = await new Server().serve(
-      undefined,
-      defaultTasks.wikitext,
-    );
-    
-    const [m1, m2] = await Promise.all([wikitextUser(), wikitextUser()]);
-    assert.isTrue(m1.equals(m2))
-  }).timeout("5m");
+		const [r1, r2] = await Promise.all([
+			runUser(url, task, dataset, false),
+			runUser(url, task, dataset, false),
+		]);
+		assert.isTrue(r1[0].equals(r2[0]));
+	}).timeout("5m");
 
   it("clients emit expected events", async () => {
-    const result = await setupLusCOVID("federated");
-    const { dataset, lusCovidTask } = result;
-    server = result.server;
-    url = result.url;
+		const task = defaultTasks.lusCovid.getTask();
+		task.trainingInformation = {
+			...task.trainingInformation,
+			roundDuration: 1,
+			minNbOfParticipants: 2,
+		};
+		const url = await startServer({
+			...defaultTasks.lusCovid,
+			getTask: () => task,
+		});
+		const dataset = await datasets.loadLusCOVID();
 
     /**
      * When disco.trainByRound is called for the first time, the client connects to the server
@@ -202,7 +206,7 @@ describe("end-to-end federated", () => {
      */
 
     // Create User 1
-    const discoUser1 = new Disco(lusCovidTask, url, { preprocessOnce: true });
+    const discoUser1 = new Disco(task, url, { preprocessOnce: true });
     const statusUser1 = new Queue<RoundStatus>();
     const nbParticipantsUser1 = new Queue<number>();
     discoUser1.on("status", (status) => statusUser1.put(status))
@@ -220,7 +224,7 @@ describe("end-to-end federated", () => {
     expect(await statusUser1.next()).equal("not enough participants")
 
     // Create User 2
-    const discoUser2 = new Disco(lusCovidTask, url, { preprocessOnce: true });
+    const discoUser2 = new Disco(task, url, { preprocessOnce: true });
     const statusUser2 = new Queue<RoundStatus>();
     const nbParticipantsUser2 = new Queue<number>();
     discoUser2.on("status", (status) => statusUser2.put(status))
@@ -264,7 +268,7 @@ describe("end-to-end federated", () => {
     expect(await nbParticipantsUser2.next()).equal(1)
 
     // Create User 3
-    const discoUser3 = new Disco(lusCovidTask, url, { preprocessOnce: true });
+    const discoUser3 = new Disco(task, url, { preprocessOnce: true });
     const statusUser3 = new Queue<RoundStatus>();
     const nbParticipantsUser3 = new Queue<number>();
     discoUser3.on("status", (status) => statusUser3.put(status))

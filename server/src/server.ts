@@ -15,7 +15,6 @@ const debug = createDebug("server");
  * The Disco Server, initializing an Express app
  * Its main goal is to provide the available tasks (DISCOllaboratives)
  * and tasks' base models to clients. 
- * New tasks can be added via the `addTask` method.
  * 
  * More info on Express apps:
  * https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/Introduction
@@ -23,22 +22,23 @@ const debug = createDebug("server");
 export class Server {
   readonly #taskSet = new TaskSet();
 
-  async addTask(taskProvider: TaskProvider<DataType>): Promise<void> {
-    await this.#taskSet.addTask(taskProvider);
+  /** setup with given initial tasks */
+  static async with(...tasks: TaskProvider<DataType>[]): Promise<Server> {
+    const server = new Server();
+
+    await Promise.all(tasks.map((t) => server.#taskSet.addTask(t)));
+
+    return server;
   }
 
   /**
    * start server
    *
    * @param port where to start, if not given, choose a random one
-   * @param tasks list of initial tasks to serve
    * @returns a tuple with the server instance and the URL
    * 
    **/
-  async serve(
-    port?: number,
-    ...tasks: TaskProvider<DataType>[]
-  ): Promise<[http.Server, URL]> {
+  async serve(port?: number): Promise<[http.Server, URL]> {
     const wsApplier = expressWS(express(), undefined, {
       leaveRouterUntouched: true,
     });
@@ -52,9 +52,6 @@ export class Server {
     const taskRouter = new TaskRouter(this.#taskSet)
     const federatedRouter = new TrainingRouter('federated', wsApplier, this.#taskSet)
     const decentralizedRouter = new TrainingRouter('decentralized', wsApplier, this.#taskSet)
-    // Important to add the tasks AFTER all the routers are initialized
-    // so that the 'newTask' event is emitted after the routers are ready
-    await Promise.all(tasks.map((t) => this.addTask(t)));
 
     wsApplier.getWss().on('connection', (ws, req) => {
       if (!federatedRouter.isValidUrl(req.url) && !decentralizedRouter.isValidUrl(req.url)) {

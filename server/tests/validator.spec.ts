@@ -3,7 +3,8 @@ import { Repeat } from "immutable";
 
 import { Validator, defaultTasks } from "@epfml/discojs";
 import { loadCSV, loadImagesInDir } from "@epfml/discojs-node";
-import { setupLusCOVID } from "./utils.js";
+
+import { datasets } from "./utils.js";
 
 describe("validator", () => {
   it("can read and predict randomly on simple_face", async () => {
@@ -55,13 +56,18 @@ describe("validator", () => {
   }).timeout("10s");
 
   it("can read and predict randomly on lus_covid", async () => {
-    const provider = defaultTasks.lusCovid;
-    const { dataset, lusCovidTask } = await setupLusCOVID("federated");
+		const task = defaultTasks.lusCovid.getTask();
+		task.trainingInformation = {
+			...task.trainingInformation,
+			roundDuration: 2,
+			minNbOfParticipants: 2,
+		};
+		const dataset = await datasets.loadLusCOVID();
 
-    const validator = new Validator(
-      lusCovidTask,
-      await provider.getModel(),
-    );
+		const validator = new Validator(
+			task,
+			await defaultTasks.lusCovid.getModel(),
+		);
 
     let hits = 0;
     let size = 0;
