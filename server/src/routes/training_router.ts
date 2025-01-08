@@ -1,6 +1,5 @@
 import express from 'express'
 import type expressWS from 'express-ws'
-import { Set } from 'immutable'
 import type { Task, DataType } from '@epfml/discojs'
 import { serialization } from '@epfml/discojs'
 
@@ -15,8 +14,6 @@ import { TrainingController, FederatedController, DecentralizedController } from
  */
 export class TrainingRouter {
   readonly #expressRouter: expressWS.Router
-
-  #tasks = Set<string>()
 
   constructor(private readonly trainingScheme: 'federated' | 'decentralized',
     wsApplier: expressWS.Instance, taskSet: TaskSet) {
@@ -44,7 +41,6 @@ export class TrainingRouter {
     task: Task<D>,
     encodedModel: serialization.Encoded,
   ): Promise<void> {
-    this.#tasks = this.#tasks.add(task.id)
     // The controller handles the actual logic of collaborative training
     // in its `handle` method. Each task has a dedicated controller which
     // handles the training logic of this task only
@@ -60,29 +56,6 @@ export class TrainingRouter {
       taskController = new DecentralizedController(task)
     } 
 
-    // Setup a websocket route which calls the controller's `handle` method
-    this.#expressRouter.ws(`/${task.id}`, (ws, req) => {
-      if (this.isValidUrl(req.url)) {
-        taskController.handle(ws)
-      } else {
-        ws.terminate()
-        ws.close()
-      }
-    })
-  }
-
-  /**
-   * We expect the url to follow the format: /task_id/.websocket
-   */
-  public isValidUrl (url: string | undefined): boolean {
-    const splittedUrl = url?.split('/')
-
-    return (
-      splittedUrl !== undefined &&
-      splittedUrl.length === 3 &&
-      splittedUrl[0] === '' && // nothing before the first slash
-      this.#tasks.has((splittedUrl[1])) && // is it a valid task
-      splittedUrl[2] === '.websocket' // is it a websocket url
-    )
+    this.#expressRouter.ws(`/${task.id}`, (ws) => taskController.handle(ws));
   }
 }
