@@ -1,5 +1,5 @@
 import { List, Map, Range, Seq } from 'immutable'
-import wrtc from 'isomorphic-wrtc'
+import wrtc from "@epfml/isomorphic-wrtc";
 import SimplePeer from 'simple-peer'
 
 import type { NodeID } from '../types.js'

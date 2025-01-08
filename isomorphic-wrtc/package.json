@@ -1,7 +1,7 @@
 {
-  "name": "isomorphic-wrtc",
+  "name": "@epfml/isomorphic-wrtc",
   "version": "1.0.0",
-  "description": "",
+  "description": "Isomorphic implementation of WebRTC",
   "type": "module",
   "main": "node.js",
   "browser": "browser.js",
