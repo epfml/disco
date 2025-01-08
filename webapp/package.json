@@ -8,7 +8,7 @@
 		"lint": "ESLINT_USE_FLAT_CONFIG=false eslint .",
 		"test": "npm run test:unit && npm run test:e2e",
 		"test:unit": "vitest --run",
-		"test:e2e": "VITE_SERVER_URL=http://server start-server-and-test start http://localhost:8081 'cypress run --e2e'"
+		"test:e2e": "VITE_SERVER_URL=http://server start-server-and-test start http://localhost:1351 'cypress run --e2e'"
 	},
 	"dependencies": {
 		"@epfml/discojs": "*",

@@ -323,9 +323,7 @@ jobs:
         with:
           working-directory: webapp
           install: false
-          start: npm start
-        env:
-          VITE_SERVER_URL: http://server
+          start: npx vite --mode test --port 1351
 
   test-cli:
     needs: [build-lib, build-lib-node, build-server, download-datasets]
