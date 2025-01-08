@@ -8,13 +8,18 @@ import { defaultTasks, serialization } from "@epfml/discojs";
 import { loadCSV } from "@epfml/discojs-web";
 
 import TrainerDashboard from "../TrainerDashboard.vue";
+import { CONFIG } from "@/config";
+
 import TrainingInformation from "../TrainingInformation.vue";
 
 async function setupForTask() {
   const provider = defaultTasks.titanic;
 
   vi.stubGlobal("fetch", async (url: string | URL) => {
-    if (url.toString() === "http://localhost:8080/tasks/titanic/model.json") {
+    if (
+      url.toString() ===
+      new URL("tasks/titanic/model.json", CONFIG.serverUrl).href
+    ) {
       const model = await provider.getModel();
       const encoded = await serialization.model.encode(model);
       return new Response(encoded);

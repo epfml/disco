@@ -7,6 +7,7 @@ import { createPersistedStatePlugin } from "pinia-plugin-persistedstate-2";
 import type { Task } from "@epfml/discojs";
 import { models as discoModels } from "@epfml/discojs";
 
+import { CONFIG } from "@/config";
 import { useModelsStore } from "@/store";
 import { useTasksStore } from "@/store";
 
@@ -60,7 +61,7 @@ it("shows stored models", async () => {
 
 it("allows to download server's models", async () => {
   vi.stubGlobal("fetch", async (url: string | URL) => {
-    if (url.toString() === "http://localhost:8080/tasks")
+    if (url.toString() === new URL("tasks", CONFIG.serverUrl).href)
       return new Response(JSON.stringify([TASK]));
     throw new Error(`unhandled get: ${url}`);
   });

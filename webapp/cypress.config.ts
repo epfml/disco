@@ -4,7 +4,7 @@ import * as fs from "node:fs/promises";
 
 export default defineConfig({
   e2e: {
-    baseUrl: "http://localhost:8081/",
+    baseUrl: "http://localhost:1351/",
     projectId: "aps8et", // to get recordings on Cypress Cloud
     setupNodeEvents(on) {
       on("task", {
