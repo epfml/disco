@@ -9,16 +9,14 @@ export function encode(task: Task<DataType>): Encoded {
   switch (task.dataType) {
     case "image":
     case "tabular":
-      serialized = task as Task<"image" | "tabular">;
+      serialized = task;
       break;
     case "text": {
-      const t = task as Task<"text">;
-
       serialized = {
-        ...t,
+        ...task,
         trainingInformation: {
-          ...t.trainingInformation,
-          tokenizer: t.trainingInformation.tokenizer.name,
+          ...task.trainingInformation,
+          tokenizer: task.trainingInformation.tokenizer.name,
         },
       };
       break;

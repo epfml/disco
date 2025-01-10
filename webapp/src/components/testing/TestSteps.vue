@@ -222,7 +222,7 @@ const visitedSamples = computed<number>(() => {
     case "tabular":
       return (tested.value as Tested["tabular"]).results.size;
     default: {
-      const _: never = props.task.dataType;
+      const _: never = props.task;
       throw new Error("should never happen");
     }
   }
@@ -242,7 +242,7 @@ const confusionMatrix = computed<{ [key: string]: { [key: string]: number } } | 
     case "text":
       return undefined;
     default: {
-      const _: never = props.task.dataType;
+      const _: never = props.task;
       throw new Error("should never happen");
     }
   }
@@ -270,7 +270,7 @@ const confusionMatrix = computed<{ [key: string]: { [key: string]: number } } | 
       );
       break;
     default: {
-      const _: never = props.task.dataType;
+      const _: never = props.task;
       throw new Error("should never happen");
     }
   }
@@ -294,10 +294,6 @@ const currentAccuracy = computed<string>(() => {
         ({ output }) => output.correct,
       ).size;
       break;
-    default: {
-      const _: never = props.task.dataType;
-      throw new Error("should never happen");
-    }
   }
   const accuracy = hits / visitedSamples.value;
 
@@ -518,10 +514,6 @@ function saveCsv(): void {
       }
       case "text":
         throw new Error("TODO implement formatter");
-      default: {
-        const _: never = props.task.dataType;
-        throw new Error("should never happen");
-      }
     }
   }
 }

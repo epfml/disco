@@ -104,7 +104,7 @@ const unnamedDataset = computed<Dataset<DataFormat.Raw[DataType]> | undefined>(
       case "text":
         return dataset.value as Dataset<DataFormat.Raw["tabular" | "text"]>;
       default: {
-        const _: never = task.value.dataType;
+        const _: never = task.value;
         throw new Error("should never happen");
       }
     }

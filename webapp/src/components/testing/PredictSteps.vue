@@ -159,7 +159,7 @@ const visitedSamples = computed<number>(() => {
     case "text":
       throw new Error("disabled dataset type");
     default: {
-      const _: never = props.task.dataType;
+      const _: never = props.task;
       throw new Error("should never happen");
     }
   }
@@ -306,10 +306,6 @@ function saveCsv() {
       }
       case "text":
         throw new Error("disabled dataset type");
-      default: {
-        const _: never = props.task.dataType;
-        throw new Error("should never happen");
-      }
     }
   }
 }

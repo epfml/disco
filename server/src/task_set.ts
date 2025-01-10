@@ -3,7 +3,7 @@ import fs from 'node:fs/promises'
 import '@tensorflow/tfjs-node'
 
 import type { DataType, Task, TaskProvider } from "@epfml/discojs";
-import { EventEmitter, isTask, Model, serialization } from "@epfml/discojs";
+import { EventEmitter, Model, serialization } from "@epfml/discojs";
 
 type EncodedModel = serialization.Encoded;
 type TaskAndModel = [Task<DataType>, EncodedModel];
@@ -66,9 +66,10 @@ export class TaskSet extends EventEmitter<{
     model?: Model<D> | EncodedModel,
   ): Promise<void> {
     // get the task
-    const task = isTask(taskOrProvider)
-      ? taskOrProvider
-      : await taskOrProvider.getTask();
+    const task =
+      "getTask" in taskOrProvider
+        ? await taskOrProvider.getTask()
+        : taskOrProvider;
 
     // get the model
     let encodedModel: EncodedModel
@@ -103,10 +104,10 @@ export class TaskSet extends EventEmitter<{
   private async loadModelFromTask(
     taskOrProvider: Task<DataType> | TaskProvider<DataType>,
   ): Promise<Model<DataType>> {
-    const task = isTask(taskOrProvider)
-      ? taskOrProvider
-      : await taskOrProvider.getTask();
-    let model: Model<DataType> | undefined
+    const task =
+      "getTask" in taskOrProvider
+        ? await taskOrProvider.getTask()
+        : taskOrProvider;
     
     const modelPath = `./models/${task.id}/`
     try {
@@ -117,13 +118,12 @@ export class TaskSet extends EventEmitter<{
       // unable to read file (potentially doesn't exist), continuing
     }
     
-    if (isTask(taskOrProvider)) {
+    if ("id" in taskOrProvider) {
       // if the model isn't already saved to disk then we need the TaskProvider
       // to get the model architecture definition
       throw new Error('saved model not found and no way to get it')
-    } else {
-      model = await taskOrProvider.getModel()
     }
+    const model = await taskOrProvider.getModel();
 
     // Save the model to disk
     await fs.mkdir(modelPath, { recursive: true })
