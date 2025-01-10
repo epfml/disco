@@ -1,4 +1,49 @@
+import { z } from "zod";
+
 import { DataType, Tokenizer } from "../index.js";
+
+export namespace TrainingInformation {
+  const baseSchema = z.object({
+    epochs: z.number().positive().int(),
+    roundDuration: z.number().positive().int(),
+    validationSplit: z.number().min(0).max(1),
+    batchSize: z.number().positive().int(),
+    scheme: z.enum(["decentralized", "federated", "local"]),
+
+    privacy: z
+      .object({
+        clippingRadius: z.number().optional(),
+        noiseScale: z.number().optional(),
+      })
+      .transform((o) =>
+        o.clippingRadius === undefined && o.noiseScale === undefined
+          ? undefined
+          : o,
+      )
+      .optional(),
+    maxShareValue: z.number().positive().int().optional(),
+    minNbOfParticipants: z.number().positive().int(),
+    aggregationStrategy: z.enum(["mean", "secure"]).optional(),
+    // TODO how to select GPT model?
+    tensorBackend: z.enum(["gpt", "tfjs"]),
+  });
+
+  export const schemas = {
+    image: baseSchema.extend({
+      LABEL_LIST: z.array(z.string()).min(1),
+      IMAGE_W: z.number().positive().int(),
+      IMAGE_H: z.number().positive().int(),
+    }),
+    tabular: baseSchema.extend({
+      inputColumns: z.array(z.string()),
+      outputColumn: z.string(),
+    }),
+    text: baseSchema.extend({
+      tokenizer: z.string(),
+      contextLength: z.number().positive().int(),
+    }),
+  } satisfies Record<DataType, unknown>;
+}
 
 interface Privacy {
   // maximum weights difference between each round

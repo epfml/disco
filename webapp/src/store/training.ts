@@ -2,11 +2,11 @@ import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
 import { Map } from 'immutable'
 
-import type { TaskID } from '@epfml/discojs'
+import type { Task } from "@epfml/discojs";
 
 export const useTrainingStore = defineStore('training', () => {
-  const steps = shallowRef<Map<TaskID, number>>(Map())
-  const task = ref<TaskID>()
+  const steps = shallowRef<Map<Task.ID, number>>(Map())
+  const task = ref<Task.ID>()
 
   const step = computed(() => {
     const id = task?.value
@@ -16,7 +16,7 @@ export const useTrainingStore = defineStore('training', () => {
     return t
   })
 
-  function setTask (id: TaskID): void {
+  function setTask (id: Task.ID): void {
     task.value = id
   }
   function setStep (step: number): void {

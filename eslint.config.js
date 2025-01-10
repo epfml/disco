@@ -31,6 +31,8 @@ export default tseslint.config(
       ],
       // allow biome formatting
       "no-mixed-spaces-and-tabs": "off",
+      // allow for nicer names
+      "@typescript-eslint/no-namespace": "off",
     }
   },
   { ignores: ['**/dist/*'] },

@@ -28,7 +28,8 @@
     "isomorphic-ws": "5",
     "simple-peer": "9",
     "tslib": "2",
-    "ws": "8"
+    "ws": "8",
+    "zod": "3"
   },
   "devDependencies": {
     "@tensorflow/tfjs-node": "4",
