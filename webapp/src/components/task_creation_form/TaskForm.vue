@@ -409,8 +409,7 @@ import * as z from "zod";
 import { isSet } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 
-import type { DataType, Task } from "@epfml/discojs";
-import { isTask, models, pushTask } from "@epfml/discojs";
+import { isTask, models, pushTask, Task } from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster";
 import { CONFIG } from "@/config";
@@ -427,8 +426,7 @@ const toaster = useToaster();
 
 const dataType = ref();
 
-const baseTaskSchema = z.object({
-  id: z.string(),
+const TFJSModelSchema = z.object({
   model: z.object({
     loss: z.string(),
     optimizer: z.string(),
@@ -458,88 +456,50 @@ const baseTaskSchema = z.object({
   }),
 });
 
-const baseDisplayInformationSchema = z.object({
-  title: z.string(),
-  summary: z.object({
-    preview: z.string(),
-    overview: z.string(),
-  }),
-  dataFormatInformation: z.string().optional(),
-  model: z.string().optional(),
+const TFJSBackendSchema = z.object({
+  tensorBackend: z.literal("tfjs").default("tfjs"),
 });
 
-const baseTrainingInformationSchema = z.object({
-  epochs: z.number().positive().int(),
-  roundDuration: z.number().positive().int(),
-  validationSplit: z.number().min(0).max(1),
-  batchSize: z.number().positive().int(),
-  scheme: z.enum(["decentralized", "federated", "local"]),
-
-  privacy: z
-    .object({
-      clippingRadius: z.number().optional(),
-      noiseScale: z.number().optional(),
-    })
-    .transform((o) =>
-      o.clippingRadius === undefined && o.noiseScale === undefined
-        ? undefined
-        : o,
-    )
-    .optional(),
-  maxShareValue: z.number().positive().int().optional(),
-  minNbOfParticipants: z.number().positive().int(),
-  aggregationStrategy: z.enum(["mean", "secure"]).optional(),
-  // TODO how to select GPT model?
-  tensorBackend: z.enum(["gpt", "tfjs"]).default("tfjs"),
-});
-
-const schema: z.ZodType<
-  Task<DataType> & {
-    model: { topology: File; loss: string; optimizer: string };
-  },
-  z.ZodTypeDef,
-  Omit<Task<DataType>, "trainingInformation"> & {
-    trainingInformation: Omit<
-      Task<DataType>["trainingInformation"],
-      "tensorBackend"
-    > &
-      Partial<Pick<Task<DataType>["trainingInformation"], "tensorBackend">>;
-  } & { model: { topology?: unknown; loss: string; optimizer: string } }
-> = z.discriminatedUnion("dataType", [
-  baseTaskSchema.extend({
-    dataType: z.literal("image"),
-    displayInformation: baseDisplayInformationSchema.extend({
-      dataExample: z.string().optional(),
-    }),
-    trainingInformation: baseTrainingInformationSchema.extend({
-      LABEL_LIST: z.array(z.string()).min(1),
-      IMAGE_W: z.number().positive().int(),
-      IMAGE_H: z.number().positive().int(),
-    }),
-  }),
-  baseTaskSchema.extend({
-    dataType: z.literal("tabular"),
-    displayInformation: baseDisplayInformationSchema.extend({
-      dataExample: z
-        .array(z.object({ name: z.string(), data: z.string() }))
-        .optional(),
-    }),
-    trainingInformation: baseTrainingInformationSchema.extend({
-      inputColumns: z.array(z.string()),
-      outputColumn: z.string(),
-    }),
-  }),
-  baseTaskSchema.extend({
-    dataType: z.literal("text"),
-    displayInformation: baseDisplayInformationSchema.extend({
-      dataExample: z.string().optional(),
-    }),
-    trainingInformation: baseTrainingInformationSchema.extend({
-      tokenizer: z.string(),
-      contextLength: z.number().positive().int(),
-    }),
-  }),
-]);
+const schema =
+  // no object methods on discriminated union zod#1768
+  z.discriminatedUnion(
+    Task.schema.discriminator,
+    // options.map doesn't keep size
+    [
+      Task.schema.options[0]
+        .merge(
+          z.object({
+            trainingInformation:
+              Task.schema.options[0].shape.trainingInformation.merge(
+                TFJSBackendSchema,
+              ),
+          }),
+        )
+        .merge(TFJSModelSchema),
+      Task.schema.options[1]
+        .merge(
+          z.object({
+            trainingInformation:
+              Task.schema.options[1].shape.trainingInformation.merge(
+                TFJSBackendSchema,
+              ),
+          }),
+        )
+        .merge(TFJSModelSchema),
+      Task.schema.options[2]
+        .merge(
+          z.object({
+            trainingInformation:
+              Task.schema.options[2].shape.trainingInformation.merge(
+                TFJSBackendSchema,
+              ),
+          }),
+        )
+        .merge(TFJSModelSchema),
+    ],
+  );
+// @ts-expect-error all options are used
+Task.schema.options[3];
 
 async function onSubmit(form: unknown): Promise<void> {
   // TODO double check as @submit isn't generic vee-validate#4845

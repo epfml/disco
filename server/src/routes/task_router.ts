@@ -3,7 +3,7 @@ import type { Request, Response } from 'express'
 import express from 'express'
 import { Set } from 'immutable'
 
-import type { TaskID } from "@epfml/discojs";
+import type { Task } from "@epfml/discojs";
 import { serialization, isTask } from '@epfml/discojs'
 
 import type { TaskSet } from '../task_set.js'
@@ -74,7 +74,7 @@ export class TaskRouter {
    * @param request received from client
    * @param response sent to client
    */
-  private getLatestModel (id: TaskID, request: Request, response: Response): void {
+  private getLatestModel (id: Task.ID, request: Request, response: Response): void {
     const validModelFiles = Set.of('model.json', 'weights.bin')
 
     const file = request.params.file

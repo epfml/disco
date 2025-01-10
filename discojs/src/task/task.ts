@@ -1,24 +1,52 @@
+import { z } from "zod";
+
 import { DataType } from "../index.js";
 
 import {
   isDisplayInformation,
-  type DisplayInformation,
+  DisplayInformation,
 } from "./display_information.js";
 import {
   isTrainingInformation,
-  type TrainingInformation,
+  TrainingInformation,
 } from "./training_information.js";
 
-export type TaskID = string;
+export namespace Task {
+  export type ID = string;
+}
 
 export interface Task<D extends DataType> {
-  id: TaskID;
+  id: Task.ID;
   dataType: D;
   displayInformation: DisplayInformation<D>;
   trainingInformation: TrainingInformation<D>;
 }
 
-export function isTaskID(obj: unknown): obj is TaskID {
+const baseTaskSchema = z.object({
+  id: z.string(),
+});
+
+export namespace Task {
+  export const schema = z.discriminatedUnion("dataType", [
+    baseTaskSchema.extend({
+      dataType: z.literal("image"),
+      displayInformation: DisplayInformation.schemas["image"],
+      trainingInformation: TrainingInformation.schemas["image"],
+    }),
+    baseTaskSchema.extend({
+      dataType: z.literal("tabular"),
+      displayInformation: DisplayInformation.schemas["tabular"],
+      trainingInformation: TrainingInformation.schemas["tabular"],
+    }),
+    baseTaskSchema.extend({
+      dataType: z.literal("text"),
+      displayInformation: DisplayInformation.schemas["text"],
+      trainingInformation: TrainingInformation.schemas["text"],
+    }),
+  ]);
+}
+
+export function isTaskID(obj: unknown): obj is Task.ID {
   return typeof obj === "string";
 }
 

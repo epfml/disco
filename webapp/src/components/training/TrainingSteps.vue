@@ -35,7 +35,6 @@ import type {
   DataType,
   Model,
   Task,
-  TaskID,
 } from "@epfml/discojs";
 
 import type { LabeledDataset } from "@/components/dataset_input/types.js";
@@ -55,7 +54,7 @@ const tasksStore = useTasksStore();
 
 // task ID given by the route
 const props = defineProps<{
-  id: TaskID;
+  id: Task.ID;
 }>();
 
 function setupTrainingStore() {

@@ -4,7 +4,7 @@ import { Map } from "immutable";
 import type { DataType, Model } from "../index.js";
 import { serialization } from "../index.js";
 
-import type { Task, TaskID } from "./task.js";
+import type { Task } from "./task.js";
 import { isTask } from "./task.js";
 
 const debug = createDebug("discojs:task:handlers");
@@ -33,7 +33,7 @@ export async function pushTask<D extends DataType>(
 
 export async function fetchTasks(
   base: URL,
-): Promise<Map<TaskID, Task<DataType>>> {
+): Promise<Map<Task.ID, Task<DataType>>> {
   const response = await fetch(urlToTasks(base));
   if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`);
   const tasks: unknown = await response.json();

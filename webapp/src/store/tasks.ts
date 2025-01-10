@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { shallowRef, ref } from 'vue'
 import { Map } from 'immutable'
 
-import type { TaskID, Task, DataType } from "@epfml/discojs";
+import type { Task, DataType } from "@epfml/discojs";
 import { fetchTasks } from '@epfml/discojs'
 
 import { useToaster } from '@/composables/toaster'
@@ -15,7 +15,7 @@ const debug = createDebug("webapp:store");
 export const useTasksStore = defineStore('tasks', () => {
   const trainingStore = useTrainingStore()
 
-  const tasks = shallowRef<Map<TaskID, Task<DataType>>>(Map())
+  const tasks = shallowRef<Map<Task.ID, Task<DataType>>>(Map())
 
   // 3-state variable used to test whether the tasks have been retrieved successfully,
   // if the retrieving failed, or if they are currently being loaded
