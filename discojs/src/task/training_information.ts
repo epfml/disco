@@ -4,15 +4,23 @@ import { DataType, Tokenizer } from "../index.js";
 
 export namespace TrainingInformation {
   const baseSchema = z.object({
+    // number of epochs to run training for
     epochs: z.number().positive().int(),
+    // number of epochs between each weight sharing round.
+    // e.g.if 3 then weights are shared every 3 epochs (in the distributed setting).
     roundDuration: z.number().positive().int(),
+    // fraction of data to keep for validation, note this only works for image data
     validationSplit: z.number().min(0).max(1),
+    // batch size of training data
     batchSize: z.number().positive().int(),
+    // Distributed training scheme, i.e. Federated and Decentralized
     scheme: z.enum(["decentralized", "federated", "local"]),
-
+    // reduce training accuracy and improve privacy.
     privacy: z
       .object({
+        // maximum weights difference between each round
         clippingRadius: z.number().optional(),
+        // variance of the Gaussian noise added to the shared weights.
         noiseScale: z.number().optional(),
       })
       .transform((o) =>
@@ -21,267 +29,52 @@ export namespace TrainingInformation {
           : o,
       )
       .optional(),
+    // Secure Aggregation: maximum absolute value of a number in a randomly generated share
+    // default is 100, must be a positive number, check the docs/PRIVACY.md file for more information on significance of maxShareValue selection
+    // only relevant if secure aggregation is true (for either federated or decentralized learning)
     maxShareValue: z.number().positive().int().optional(),
+    // minimum number of participants required to train collaboratively
+    // In decentralized Learning the default is 3, in federated learning it is 2
     minNbOfParticipants: z.number().positive().int(),
+    // aggregator to be used by the server for federated learning, or by the peers for decentralized learning
+    // default is 'mean'
     aggregationStrategy: z.enum(["mean", "secure"]).optional(),
-    // TODO how to select GPT model?
+    // Tensor framework used by the model
     tensorBackend: z.enum(["gpt", "tfjs"]),
   });
 
   export const schemas = {
     image: baseSchema.extend({
+      // classes, e.g. if two class of images, one with dogs and one with cats, then we would
+      // define ['dogs', 'cats'].
       LABEL_LIST: z.array(z.string()).min(1),
+      // height of image to resize to
       IMAGE_W: z.number().positive().int(),
+      // width of image to resize to
       IMAGE_H: z.number().positive().int(),
     }),
     tabular: baseSchema.extend({
+      // the columns to be chosen as input data for the model
       inputColumns: z.array(z.string()),
+      // the columns to be predicted by the model
       outputColumn: z.string(),
     }),
     text: baseSchema.extend({
+      // should be set with the name of a Transformers.js pre-trained tokenizer, e.g., 'Xenova/gpt2'.
       tokenizer: z
         .string()
         .transform((name) => Tokenizer.from_pretrained(name)),
+      // the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
+      // truncate strings to a maximum length. The default value is tokenizer.model_max_length
       contextLength: z.number().positive().int(),
     }),
   } satisfies Record<DataType, unknown>;
 }
 
-type Privacy = {
-  // maximum weights difference between each round
-  clippingRadius?: number;
-  // variance of the Gaussian noise added to the shared weights.
-  noiseScale?: number;
-}
-
-export type TrainingInformation<D extends DataType> = {
-  // epochs: number of epochs to run training for
-  epochs: number;
-  // roundDuration: number of epochs between each weight sharing round.
-  // e.g.if 3 then weights are shared every 3 epochs (in the distributed setting).
-  roundDuration: number;
-  // validationSplit: fraction of data to keep for validation, note this only works for image data
-  validationSplit: number;
-  // batchSize: batch size of training data
-  batchSize: number;
-  // scheme: Distributed training scheme, i.e. Federated and Decentralized
-  scheme: "decentralized" | "federated" | "local";
-
-  // use Differential Privacy, reduce training accuracy and improve privacy.
-  privacy?: Privacy;
-  // maxShareValue: Secure Aggregation: maximum absolute value of a number in a randomly generated share
-  // default is 100, must be a positive number, check the docs/PRIVACY.md file for more information on significance of maxShareValue selection
-  // only relevant if secure aggregation is true (for either federated or decentralized learning)
-  maxShareValue?: number;
-  // minNbOfParticipants: minimum number of participants required to train collaboratively
-  // In decentralized Learning the default is 3, in federated learning it is 2
-  minNbOfParticipants: number;
-  // aggregationStrategy:  aggregator to be used by the server for federated learning, or by the peers for decentralized learning
-  // default is 'mean'
-  aggregationStrategy?: "mean" | "secure";
-  // Tensor framework used by the model
-  tensorBackend: "tfjs" | "gpt";
-} & DataTypeToTrainingInformation[D];
-
+export type TrainingInformation<D extends DataType> =
+  DataTypeToTrainingInformation[D];
 interface DataTypeToTrainingInformation {
-  image: {
-    // LABEL_LIST of classes, e.g. if two class of images, one with dogs and one with cats, then we would
-    // define ['dogs', 'cats'].
-    LABEL_LIST: string[];
-    // IMAGE_H height of image (or RESIZED_IMAGE_H if ImagePreprocessing.Resize in preprocessingFunctions)
-    IMAGE_H: number;
-    // IMAGE_W width of image (or RESIZED_IMAGE_W if ImagePreprocessing.Resize in preprocessingFunctions)
-    IMAGE_W: number;
-  };
-  tabular: {
-    // inputColumns: for tabular data, the columns to be chosen as input data for the model
-    inputColumns: string[];
-    // outputColumns: for tabular data, the columns to be predicted by the model
-    outputColumn: string;
-  };
-  text: {
-    // tokenizer (string | PreTrainedTokenizer). This field should be initialized with the name of a Transformers.js pre-trained tokenizer, e.g., 'Xenova/gpt2'.
-    // When the tokenizer is first called, the actual object will be initialized and loaded into this field for the subsequent tokenizations.
-    tokenizer: Tokenizer;
-
-    // contextLength: the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
-    // truncate strings to a maximum length. The default value is tokenizer.model_max_length
-    contextLength: number;
-  };
-}
-
-function isPrivacy(raw: unknown): raw is Privacy {
-  if (typeof raw !== "object" || raw === null) {
-    return false;
-  }
-
-  const {
-    clippingRadius,
-    noiseScale,
-  }: Partial<Record<keyof Privacy, unknown>> = raw;
-
-  if (
-    (clippingRadius !== undefined && typeof clippingRadius !== "number") ||
-    (noiseScale !== undefined && typeof noiseScale !== "number")
-  )
-    return false;
-
-  const _: Privacy = {
-    clippingRadius,
-    noiseScale,
-  } satisfies Record<keyof Privacy, unknown>;
-
-  return true;
-}
-
-export function isTrainingInformation<D extends DataType>(
-  dataType: D,
-  raw: unknown,
-): raw is TrainingInformation<D> {
-  if (typeof raw !== "object" || raw === null) {
-    return false;
-  }
-
-  const {
-    aggregationStrategy,
-    batchSize,
-    privacy,
-    epochs,
-    maxShareValue,
-    minNbOfParticipants,
-    roundDuration,
-    scheme,
-    validationSplit,
-    tensorBackend,
-  }: Partial<Record<keyof TrainingInformation<DataType>, unknown>> = raw;
-
-  if (
-    typeof epochs !== "number" ||
-    typeof batchSize !== "number" ||
-    typeof roundDuration !== "number" ||
-    typeof validationSplit !== "number" ||
-    typeof minNbOfParticipants !== "number" ||
-    (privacy !== undefined && !isPrivacy(privacy)) ||
-    (maxShareValue !== undefined && typeof maxShareValue !== "number")
-  ) {
-    return false;
-  }
-
-  switch (aggregationStrategy) {
-    case undefined:
-    case "mean":
-    case "secure":
-      break;
-    default:
-      return false;
-  }
-
-  switch (tensorBackend) {
-    case "tfjs":
-    case "gpt":
-      break;
-    default:
-      return false;
-  }
-
-  switch (scheme) {
-    case "decentralized":
-    case "federated":
-    case "local":
-      break;
-    default:
-      return false;
-  }
-
-  const repack = {
-    aggregationStrategy,
-    batchSize,
-    epochs,
-    maxShareValue,
-    minNbOfParticipants,
-    privacy,
-    roundDuration,
-    scheme,
-    tensorBackend,
-    validationSplit,
-  };
-
-  switch (dataType) {
-    case "image": {
-      type ImageOnly = Omit<
-        TrainingInformation<"image">,
-        keyof TrainingInformation<DataType>
-      >;
-
-      const { LABEL_LIST, IMAGE_W, IMAGE_H }: Partial<ImageOnly> = raw;
-
-      if (
-        !(
-          Array.isArray(LABEL_LIST) &&
-          LABEL_LIST.every((e) => typeof e === "string")
-        ) ||
-        typeof IMAGE_H !== "number" ||
-        typeof IMAGE_W !== "number"
-      )
-        return false;
-
-      const _: TrainingInformation<"image"> = {
-        ...repack,
-        LABEL_LIST,
-        IMAGE_W,
-        IMAGE_H,
-      } satisfies Record<keyof TrainingInformation<"image">, unknown>;
-
-      return true;
-    }
-    case "tabular": {
-      type TabularOnly = Omit<
-        TrainingInformation<"tabular">,
-        keyof TrainingInformation<DataType>
-      >;
-
-      const { inputColumns, outputColumn }: Partial<TabularOnly> = raw;
-
-      if (
-        !(
-          Array.isArray(inputColumns) &&
-          inputColumns.every((e) => typeof e === "string")
-        ) ||
-        typeof outputColumn !== "string"
-      )
-        return false;
-
-      const _: TrainingInformation<"tabular"> = {
-        ...repack,
-        inputColumns,
-        outputColumn,
-      } satisfies Record<keyof TrainingInformation<"tabular">, unknown>;
-
-      return true;
-    }
-    case "text": {
-      const {
-        contextLength,
-        tokenizer,
-      }: Partial<
-        Omit<TrainingInformation<"text">, keyof TrainingInformation<DataType>>
-      > = raw;
-
-      if (
-        !(tokenizer instanceof Tokenizer) ||
-        (typeof contextLength !== "number")
-      )
-        return false;
-
-      const _: TrainingInformation<"text"> = {
-        ...repack,
-        contextLength,
-        tokenizer,
-      } satisfies Record<keyof TrainingInformation<"text">, unknown>;
-
-      return true;
-    }
-  }
-
-  return false;
+  image: z.infer<typeof TrainingInformation.schemas.image>;
+  tabular: z.infer<typeof TrainingInformation.schemas.tabular>;
+  text: z.infer<typeof TrainingInformation.schemas.text>;
 }

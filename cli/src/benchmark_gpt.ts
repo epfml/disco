@@ -4,7 +4,6 @@ import { parse } from "ts-command-line-args";
 
 import {
   Task,
-  Tokenizer,
   async_iterator,
   defaultTasks,
   fetchTasks,
@@ -60,10 +59,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
   const tasks = await fetchTasks(url)
   const task = tasks.get('llm_task') as Task<'text'> | undefined
   if (task === undefined) { throw new Error('task not found') }  
-
-  const tokenizerName = task.trainingInformation.tokenizer
-  if (typeof tokenizerName !== 'string') throw Error('no tokenizer name specified in the task training information')
-  const tokenizer = await Tokenizer.from_pretrained(tokenizerName)
+  const { tokenizer } = task.trainingInformation;
 
   /**
    * Training benchmark

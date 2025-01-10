@@ -409,7 +409,7 @@ import * as z from "zod";
 import { isSet } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 
-import { isTask, models, pushTask, Task } from "@epfml/discojs";
+import { models, pushTask, Task } from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster";
 import { CONFIG } from "@/config";
@@ -505,9 +505,10 @@ async function onSubmit(form: unknown): Promise<void> {
   // TODO double check as @submit isn't generic vee-validate#4845
   if (typeof form !== "object" || form === null)
     throw new Error("zod validated form isn't one");
-  const { model: rawModel, ...task }: Partial<Record<string, unknown>> = form;
+  const { model: rawModel, ...rawTask }: Partial<Record<string, unknown>> =
+    form;
 
-  if (!isTask(task)) throw new Error("zod validated Task isn't one");
+  const task = await Task.schema.parseAsync(rawTask);
 
   if (typeof rawModel !== "object" || rawModel === null)
     throw new Error("zod validated model info isn't one");

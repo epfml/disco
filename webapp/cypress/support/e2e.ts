@@ -5,7 +5,7 @@ import type {
   TaskProvider,
   TrainingInformation,
 } from "@epfml/discojs";
-import { isTask, serialization } from "@epfml/discojs";
+import { serialization } from "@epfml/discojs";
 
 export function setupServerWith(
   ...providers: (Task<DataType> | TaskProvider<DataType>)[]
@@ -14,7 +14,7 @@ export function setupServerWith(
     .then((providers) =>
       Promise.all(
         providers.map(async (p) => {
-          if (isTask(p)) return [p, undefined] as const;
+          if ("id" in p) return [p, undefined] as const;
           return [await p.getTask(), await p.getModel()] as const;
         }),
       ),
@@ -64,6 +64,7 @@ type BasicKeys =
   | "tensorBackend"
   | "scheme"
   | "minNbOfParticipants";
+
 export function basicTask<D extends DataType>(
   dataType: D,
   info: {
@@ -71,24 +72,28 @@ export function basicTask<D extends DataType>(
       Partial<Pick<TrainingInformation<K>, BasicKeys>>;
   }[D],
 ): Task<D> {
+  const trainingInformation = {
+    epochs: 1,
+    batchSize: 1,
+    roundDuration: 1,
+    validationSplit: 1,
+    tensorBackend: "tfjs",
+    scheme: "local",
+    minNbOfParticipants: 1,
+    ...info,
+    // cast as typescript doesn't work well w/ generics
+  } as TrainingInformation<D>;
+
   return {
     id: "task",
     dataType,
-    trainingInformation: {
-      epochs: 1,
-      batchSize: 1,
-      roundDuration: 1,
-      validationSplit: 1,
-      tensorBackend: "tfjs",
-      scheme: "local",
-      minNbOfParticipants: 1,
-      ...info,
-    },
+    trainingInformation,
     displayInformation: {
       title: "task",
       summary: { preview: "preview", overview: "overview" },
     },
-  };
+    // cast as typescript doesn't work well w/ generics
+  } as Task<D>;
 }
 
 beforeEach(() =>

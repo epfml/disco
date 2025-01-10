@@ -3,8 +3,7 @@ import type { Request, Response } from 'express'
 import express from 'express'
 import { Set } from 'immutable'
 
-import type { Task } from "@epfml/discojs";
-import { serialization, isTask } from '@epfml/discojs'
+import { Task, serialization } from "@epfml/discojs";
 
 import type { TaskSet } from '../task_set.js'
 
@@ -30,7 +29,7 @@ export class TaskRouter {
     })
 
     // POST request to add a new task
-    this.#expressRouter.post('/', (req, res) => {
+    this.#expressRouter.post("/", async (req, res) => {
       const raw: unknown = req.body
       if (typeof raw !== "object" || raw === null) {
         res.status(400);
@@ -38,24 +37,27 @@ export class TaskRouter {
       }
       const { model: encoded, newTask }: Partial<Record<'model' | 'newTask', unknown>> = raw
 
-      if (!(
-        encoded !== undefined &&
-        newTask !== undefined &&
-        isTask(newTask)
-      )) {
-        res.status(400)
-        return
+      if (!serialization.isEncoded(encoded)) {
+        debug("posted model isn't a valid encoding");
+        res.status(400).end();
+        return;
       }
 
-      if (!serialization.isEncoded(encoded))
-        throw new Error("could not recognize model encoding")
+      const parsed = await Task.schema.safeParseAsync(newTask);
+      if (!parsed.success) {
+        debug("posted task failed parsing: %s", parsed.error);
+        res.status(400).end();
+        return;
+      }
 
-      this.#taskSet.addTask(newTask, encoded)
-        .then(() => res.status(200).end("Successful task upload"))
-        .catch((e) => {
-          debug("while adding model: %o", e);
-          res.status(500);
-        });
+      try {
+        await this.#taskSet.addTask(parsed.data, encoded);
+      } catch (e) {
+        debug("add task failed with: %o", e);
+        res.status(500).end();
+      }
+
+      res.status(200).end("Successful task upload");
     })
 
     this.#taskSet.on("newTask", ([task]) => {

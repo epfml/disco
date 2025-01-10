@@ -1,9 +1,9 @@
 import type { TaskProvider } from "../index.js";
-import { models, Tokenizer } from '../index.js'
+import { models, Task } from "../index.js";
 
 export const wikitext: TaskProvider<'text'> = {
   async getTask() {
-    return {
+    return await Task.schemas.text.parseAsync({
       id: 'llm_task',
       dataType: "text",
       displayInformation: {
@@ -38,11 +38,11 @@ export const wikitext: TaskProvider<'text'> = {
         validationSplit: 0.1, 
         roundDuration: 2,
         batchSize: 8, // If set too high firefox raises a WebGL error
-        tokenizer: await Tokenizer.from_pretrained("Xenova/gpt2"),
+        tokenizer: "Xenova/gpt2",
         contextLength: 64,
         tensorBackend: 'gpt'
       }
-    };
+    });
   },
 
   async getModel() {

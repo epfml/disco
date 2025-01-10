@@ -80,10 +80,6 @@ watch([props, imageDataset, tabularDataset, textDataset], async () => {
     case "text":
       dataset.value = textDataset.value as LabeledDataset[D];
       break;
-    default: {
-      const _: never = props.task.dataType;
-      throw new Error("should never happen");
-    }
   }
 });
 </script>

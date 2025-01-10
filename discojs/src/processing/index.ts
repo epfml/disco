@@ -2,15 +2,7 @@
 
 import { List } from "immutable";
 
-import type {
-  Dataset,
-  DataFormat,
-  DataType,
-  Tabular,
-  Task,
-  TrainingInformation,
-} from "../index.js";
-
+import type { Dataset, DataFormat, DataType, Tabular, Task } from "../index.js";
 
 import * as processing from "./index.js";
 
@@ -25,8 +17,7 @@ export function preprocess<D extends DataType>(
     case "image": {
       // cast as typescript doesn't reduce generic type
       const d = dataset as Dataset<DataFormat.Raw["image"]>;
-      const { IMAGE_H, IMAGE_W, LABEL_LIST } =
-        task.trainingInformation as TrainingInformation<"image">;
+      const { IMAGE_H, IMAGE_W, LABEL_LIST } = task.trainingInformation;
 
       return d.map(([image, label]) => [
         processing.normalize(
@@ -38,8 +29,7 @@ export function preprocess<D extends DataType>(
     case "tabular": {
       // cast as typescript doesn't reduce generic type
       const d = dataset as Dataset<DataFormat.Raw["tabular"]>;
-      const { inputColumns, outputColumn } =
-        task.trainingInformation as TrainingInformation<"tabular">;
+      const { inputColumns, outputColumn } = task.trainingInformation;
 
       return d.map((row) => {
         const output = processing.extractColumn(row, outputColumn);
@@ -54,21 +44,18 @@ export function preprocess<D extends DataType>(
     case "text": {
       // cast as typescript doesn't reduce generic type
       const d = dataset as Dataset<DataFormat.Raw["text"]>;
-      const t = task as Task<"text">;
 
-      const { contextLength, tokenizer } = t.trainingInformation;
+      const { contextLength, tokenizer } = task.trainingInformation;
 
       return d
         .map((text) => tokenizer.tokenize(text))
         .flatten()
         .batch(contextLength + 1, 1)
-        .map((tokens) => [tokens.pop(), tokens.last()]) as
-          Dataset<DataFormat.ModelEncoded[D]>;
+        .map((tokens) => [tokens.pop(), tokens.last()]) as Dataset<
+        DataFormat.ModelEncoded[D]
+      >;
     }
   }
-
-  const _: never = task.dataType;
-  throw new Error("should never happen")
 }
 
 export function preprocessWithoutLabel<D extends DataType>(
@@ -79,8 +66,7 @@ export function preprocessWithoutLabel<D extends DataType>(
     case "image": {
       // cast as typescript doesn't reduce generic type
       const d = dataset as Dataset<DataFormat.RawWithoutLabel["image"]>;
-      const { IMAGE_H, IMAGE_W } =
-        task.trainingInformation as TrainingInformation<"image">;
+      const { IMAGE_H, IMAGE_W } = task.trainingInformation;
 
       return d.map((image) =>
         processing.normalize(
@@ -91,17 +77,15 @@ export function preprocessWithoutLabel<D extends DataType>(
     case "tabular": {
       // cast as typescript doesn't reduce generic type
       const d = dataset as Dataset<DataFormat.Raw["tabular"]>;
-      const { inputColumns } =
-        task.trainingInformation as TrainingInformation<"tabular">;
+      const { inputColumns } = task.trainingInformation;
 
       return d.map((row) => extractToNumbers(inputColumns, row));
     }
     case "text": {
       // cast as typescript doesn't reduce generic type
       const d = dataset as Dataset<DataFormat.Raw["text"]>;
-      const t = task as Task<"text">;
 
-      const { contextLength, tokenizer } = t.trainingInformation;
+      const { contextLength, tokenizer } = task.trainingInformation;
 
       return d
         .map((text) => tokenizer.tokenize(text))
@@ -109,9 +93,6 @@ export function preprocessWithoutLabel<D extends DataType>(
         .batch(contextLength);
     }
   }
-
-  const _: never = task.dataType;
-  throw new Error("should never happen")
 }
 
 export function postprocess<D extends DataType>(
@@ -122,9 +103,7 @@ export function postprocess<D extends DataType>(
 		case "image": {
 			// cast as typescript doesn't reduce generic type
 			const index = encoded as DataFormat.ModelEncoded["image"][1];
-			const { LABEL_LIST } =
-				task.trainingInformation as TrainingInformation<"image">;
-			const labels = List(LABEL_LIST);
+      const labels = List(task.trainingInformation.LABEL_LIST);
 
 			const v = labels.get(index);
 			if (v === undefined) throw new Error("index not found in labels");
@@ -139,16 +118,12 @@ export function postprocess<D extends DataType>(
 		case "text": {
 			// cast as typescript doesn't reduce generic type
 			const token = encoded as DataFormat.ModelEncoded["text"][1];
-			const t = task as Task<"text">;
 
-			return t.trainingInformation.tokenizer.decode([
+			return task.trainingInformation.tokenizer.decode([
 				token,
 			]) as DataFormat.Inferred[D];
 		}
 	}
-
-  const _: never = task.dataType;
-  throw new Error("should never happen")
 }
 
 function extractToNumbers(columns: Iterable<string>, row: Tabular) {

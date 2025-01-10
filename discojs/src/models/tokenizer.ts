@@ -44,8 +44,8 @@ export class Tokenizer {
 		env.allowLocalModels = false;
 		const to_wrap = await AutoTokenizer.from_pretrained(name);
 
-		return new Tokenizer(name, to_wrap);
-	}
+    return new Tokenizer(name, to_wrap);
+  }
 
 	tokenize(text: string, config: TokenizeConfig = {}): List<number> {
 		if (config.padding || config.truncation)
