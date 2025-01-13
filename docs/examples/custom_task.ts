@@ -7,7 +7,7 @@ import { Server as DiscoServer } from 'server'
 // Define your own task provider (task definition + model)
 const customTask: TaskProvider<"tabular"> = {
   getTask () {
-    return {
+    return Promise.resolve({
       id: 'custom-task',
       dataType: "tabular",
       displayInformation: {
@@ -32,7 +32,7 @@ const customTask: TaskProvider<"tabular"> = {
         noiseScale: undefined,
         clippingRadius: undefined
       }
-    }
+    });
   },
 
   getModel () {

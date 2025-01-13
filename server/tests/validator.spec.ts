@@ -21,7 +21,7 @@ describe("validator", () => {
     const dataset = adult.chain(child);
 
     const validator = new Validator(
-      provider.getTask(),
+      await provider.getTask(),
       await provider.getModel(),
     );
 
@@ -41,7 +41,7 @@ describe("validator", () => {
     const dataset = loadCSV("../datasets/titanic_train.csv");
 
     const validator = new Validator(
-      provider.getTask(),
+      await provider.getTask(),
       await provider.getModel(),
     );
 
@@ -56,7 +56,7 @@ describe("validator", () => {
   }).timeout("10s");
 
   it("can read and predict randomly on lus_covid", async () => {
-		const task = defaultTasks.lusCovid.getTask();
+		const task = await defaultTasks.lusCovid.getTask();
 		task.trainingInformation = {
 			...task.trainingInformation,
 			roundDuration: 2,

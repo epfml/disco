@@ -1,13 +1,13 @@
 import * as tf from '@tensorflow/tfjs'
 
-import type { Model, Task, TaskProvider } from '../index.js'
+import type { Model, TaskProvider } from "../index.js";
 import { models } from '../index.js'
 
 import baseModel from '../models/mobileNet_v1_025_224.js'
 
 export const cifar10: TaskProvider<'image'> = {
-  getTask (): Task<'image'> {
-    return {
+  getTask() {
+    return Promise.resolve({
       id: 'cifar10',
       dataType: "image",
       displayInformation: {
@@ -41,7 +41,7 @@ export const cifar10: TaskProvider<'image'> = {
         maxShareValue: 100,
         tensorBackend: 'tfjs'
       }
-    }
+    });
   },
 
   async getModel (): Promise<Model<'image'>> {

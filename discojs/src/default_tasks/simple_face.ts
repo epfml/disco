@@ -1,12 +1,12 @@
 import * as tf from '@tensorflow/tfjs'
 
-import type { Model, Task, TaskProvider } from '../index.js'
+import type { Model, TaskProvider } from "../index.js";
 import { models } from '../index.js'
 import baseModel from '../models/mobileNetV2_35_alpha_2_classes.js'
 
 export const simpleFace: TaskProvider<'image'> = {
-  getTask (): Task<'image'> {
-    return {
+  getTask() {
+    return Promise.resolve({
       id: 'simple_face',
       dataType: "image",
       displayInformation: {
@@ -37,7 +37,7 @@ export const simpleFace: TaskProvider<'image'> = {
         minNbOfParticipants: 2,
         tensorBackend: 'tfjs'
       }
-    }
+    });
   },
 
   async getModel (): Promise<Model<'image'>> {

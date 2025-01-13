@@ -1,7 +1,6 @@
-import { Seq } from "immutable";
-
 import type {
   DataType,
+  Model,
   Task,
   TaskProvider,
   TrainingInformation,
@@ -11,36 +10,47 @@ import { isTask, serialization } from "@epfml/discojs";
 export function setupServerWith(
   ...providers: (Task<DataType> | TaskProvider<DataType>)[]
 ): void {
-  const tasksAndModels = Seq(providers).map((p) => {
-    if (isTask(p)) return [p, undefined] as const;
-    return [p.getTask(), p.getModel()] as const;
-  });
+  cy.wrap(providers)
+    .then((providers) =>
+      Promise.all(
+        providers.map(async (p) => {
+          if (isTask(p)) return [p, undefined] as const;
+          return [await p.getTask(), await p.getModel()] as const;
+        }),
+      ),
+    )
+    .as("taskAndModels");
 
-  cy.intercept(
-    { hostname: "server", pathname: "tasks" },
-    tasksAndModels.map(([t]) => t).toArray(),
-  );
-
-  tasksAndModels.forEach(([task, model]) => {
-    if (model === undefined) return;
-
-    // cypress really wants to JSON encode our buffer.
-    // to avoid that, we are replacing it directly in the response
-    cy.intercept(
-      { hostname: "server", pathname: `/tasks/${task.id}/model.json` },
-      { statusCode: 200 },
+  cy.get<Array<[Task<DataType>, unknown]>>("@taskAndModels")
+    .then((taskAndModels) => taskAndModels.map(([t]) => t))
+    .then((tasks) =>
+      cy.intercept({ hostname: "server", pathname: "tasks" }, tasks),
     );
-    cy.wrap<Promise<serialization.Encoded>, serialization.Encoded>(
-      model.then(serialization.model.encode),
-    ).then((encoded) =>
+
+  cy.get<Array<[Task<DataType>, Model<DataType> | undefined]>>(
+    "@taskAndModels",
+  ).then((tasksAndModels) => {
+    tasksAndModels.forEach(([task, model]) => {
+      if (model === undefined) return;
+
+      // cypress really wants to JSON encode our buffer.
+      // to avoid that, we are replacing it directly in the response
       cy.intercept(
         { hostname: "server", pathname: `/tasks/${task.id}/model.json` },
-        (req) =>
-          req.on("response", (res) => {
-            res.body = encoded;
-          }),
-      ),
-    );
+        { statusCode: 200 },
+      );
+      cy.wrap<Promise<serialization.Encoded>, serialization.Encoded>(
+        serialization.model.encode(model),
+      ).then((encoded) =>
+        cy.intercept(
+          { hostname: "server", pathname: `/tasks/${task.id}/model.json` },
+          (req) =>
+            req.on("response", (res) => {
+              res.body = encoded;
+            }),
+        ),
+      );
+    });
   });
 }
 
