@@ -44,7 +44,7 @@ async function main<D extends DataType>(
   provider: TaskProvider<D>,
   numberOfUsers: number,
 ): Promise<void> {
-  const task = provider.getTask()
+  const task = await provider.getTask();
   console.log(`Started ${task.trainingInformation.scheme} training of ${task.id}`)
   console.log({ args })
 

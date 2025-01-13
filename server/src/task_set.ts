@@ -66,7 +66,9 @@ export class TaskSet extends EventEmitter<{
     model?: Model<D> | EncodedModel,
   ): Promise<void> {
     // get the task
-    const task = isTask(taskOrProvider) ? taskOrProvider : taskOrProvider.getTask()
+    const task = isTask(taskOrProvider)
+      ? taskOrProvider
+      : await taskOrProvider.getTask();
 
     // get the model
     let encodedModel: EncodedModel
@@ -101,7 +103,9 @@ export class TaskSet extends EventEmitter<{
   private async loadModelFromTask(
     taskOrProvider: Task<DataType> | TaskProvider<DataType>,
   ): Promise<Model<DataType>> {
-    const task = isTask(taskOrProvider) ? taskOrProvider : taskOrProvider.getTask()
+    const task = isTask(taskOrProvider)
+      ? taskOrProvider
+      : await taskOrProvider.getTask();
     let model: Model<DataType> | undefined
     
     const modelPath = `./models/${task.id}/`

@@ -45,13 +45,21 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
 )
 
 const supportedTasks = Map(
-  Set.of<TaskProvider<"image"> | TaskProvider<"tabular">>(
-    defaultTasks.cifar10,
-    defaultTasks.lusCovid,
-    defaultTasks.simpleFace,
-    defaultTasks.titanic,
-    defaultTasks.tinderDog,
-  ).map((t) => [t.getTask().id, t]),
+  await Promise.all(
+    Set.of<TaskProvider<"image" | "tabular">>(
+      defaultTasks.cifar10,
+      defaultTasks.lusCovid,
+      defaultTasks.simpleFace,
+      defaultTasks.titanic,
+      defaultTasks.tinderDog,
+    ).map(
+      async (t) =>
+        [(await t.getTask()).id, t] as [
+          string,
+          TaskProvider<"image" | "tabular">,
+        ],
+    ),
+  ),
 );
 
 const provider = supportedTasks.get(unsafeArgs.task);
@@ -62,8 +70,8 @@ if (provider === undefined) {
 export const args: BenchmarkArguments = {
   ...unsafeArgs,
   provider: {
-    getTask() {
-      const task = provider.getTask();
+    async getTask() {
+      const task = await provider.getTask();
 
       // Override training information
       task.trainingInformation.batchSize = unsafeArgs.batchSize;

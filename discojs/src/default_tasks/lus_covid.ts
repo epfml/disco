@@ -1,11 +1,11 @@
 import * as tf from '@tensorflow/tfjs'
 
-import type { Model, Task, TaskProvider } from '../index.js'
+import type { Model, TaskProvider } from "../index.js";
 import { models } from '../index.js'
 
 export const lusCovid: TaskProvider<'image'> = {
-  getTask (): Task<'image'> {
-    return {
+  getTask() {
+    return Promise.resolve({
       id: 'lus_covid',
       dataType: "image",
       displayInformation: {
@@ -37,7 +37,7 @@ export const lusCovid: TaskProvider<'image'> = {
         minNbOfParticipants: 2,
         tensorBackend: 'tfjs'
       }
-    }
+    });
   },
 
   // Model architecture from tensorflow.js docs: 

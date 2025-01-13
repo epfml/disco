@@ -1,9 +1,9 @@
-import type { Model, Task, TaskProvider } from '../index.js'
+import type { TaskProvider } from "../index.js";
 import { models } from '../index.js'
 
 export const wikitext: TaskProvider<'text'> = {
-  getTask (): Task<'text'> {
-    return {
+  getTask() {
+    return Promise.resolve({
       id: 'llm_task',
       dataType: "text",
       displayInformation: {
@@ -42,12 +42,14 @@ export const wikitext: TaskProvider<'text'> = {
         contextLength: 64,
         tensorBackend: 'gpt'
       }
-    }
+    });
   },
 
-  getModel(): Promise<Model<'text'>> {
-    return Promise.resolve(new models.GPT({
-      contextLength: this.getTask().trainingInformation.contextLength,
-    }))
-  }
+  async getModel() {
+    const task = await this.getTask();
+
+    return new models.GPT({
+      contextLength: task.trainingInformation.contextLength,
+    });
+  },
 }

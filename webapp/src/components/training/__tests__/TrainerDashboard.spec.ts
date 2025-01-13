@@ -37,7 +37,7 @@ async function setupForTask() {
       plugins: [createTestingPinia({ createSpy: vi.fn })],
     },
     props: {
-      task: provider.getTask(),
+      task: await provider.getTask(),
       dataset: loadCSV(
         new File(
           [await fs.readFile("../datasets/titanic_train.csv")],

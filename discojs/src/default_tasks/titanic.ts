@@ -1,11 +1,11 @@
 import * as tf from '@tensorflow/tfjs'
 
-import type { Model, Task, TaskProvider } from '../index.js'
+import type { Model, TaskProvider } from "../index.js";
 import { models } from '../index.js'
 
 export const titanic: TaskProvider<'tabular'> = {
-  getTask (): Task<'tabular'> {
-    return {
+  getTask() {
+    return Promise.resolve({
       id: 'titanic',
       dataType: "tabular",
       displayInformation: {
@@ -54,7 +54,7 @@ export const titanic: TaskProvider<'tabular'> = {
         minNbOfParticipants: 2,
         tensorBackend: 'tfjs'
       }
-    }
+    });
   },
 
   getModel (): Promise<Model<'tabular'>> {

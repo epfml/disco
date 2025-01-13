@@ -50,7 +50,7 @@ Set.of<
 
       const client = new Client(
         url,
-        defaultTasks.titanic.getTask(),
+        await defaultTasks.titanic.getTask(),
         new aggregators.MeanAggregator(),
       );
 
@@ -63,7 +63,7 @@ Set.of<
 
       const client = new Client(
         url,
-        defaultTasks.titanic.getTask(),
+        await defaultTasks.titanic.getTask(),
         new aggregators.MeanAggregator(),
       );
 

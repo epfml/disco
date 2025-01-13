@@ -63,7 +63,7 @@ describe('end-to-end decentralized', function () {
     input: number[],
     rounds: number
   ): Promise<[WeightsContainer, clients.Client]> {
-    const task = defaultTasks.cifar10.getTask()
+    const task = await defaultTasks.cifar10.getTask()
     const aggregator = aggregatorType == 'mean' ? 
       new aggregators.MeanAggregator(0, 1, 'relative')
       : new aggregators.SecureAggregator()
@@ -137,7 +137,7 @@ describe('end-to-end decentralized', function () {
   });
 
   it("peers emit expected events", async () => {
-		const task = defaultTasks.lusCovid.getTask();
+		const task = await defaultTasks.lusCovid.getTask();
 		task.trainingInformation = {
 			...task.trainingInformation,
 			scheme: "decentralized",
@@ -146,7 +146,7 @@ describe('end-to-end decentralized', function () {
 		};
 		const url = await startServer({
 			...defaultTasks.lusCovid,
-			getTask: () => task,
+			getTask: () => Promise.resolve(task),
 		});
 		const dataset = await datasets.loadLusCOVID();
 

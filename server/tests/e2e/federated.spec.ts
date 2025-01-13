@@ -73,7 +73,7 @@ describe("end-to-end federated", () => {
 	}
 
 	it("three cifar10 users reach consensus", async () => {
-		const task = defaultTasks.cifar10.getTask();
+		const task = await defaultTasks.cifar10.getTask();
 		task.trainingInformation = {
 			...task.trainingInformation,
 			scheme: "federated",
@@ -81,7 +81,7 @@ describe("end-to-end federated", () => {
 		};
 		const url = await startServer({
 			...defaultTasks.cifar10,
-			getTask: () => task,
+			getTask: () => Promise.resolve(task),
 		});
 		const dataset = await datasets.loadCifar10();
 
@@ -99,14 +99,14 @@ describe("end-to-end federated", () => {
 	}).timeout("2m");
 
 	it("two titanic users reach consensus", async () => {
-		const task = defaultTasks.titanic.getTask();
+		const task = await defaultTasks.titanic.getTask();
 		task.trainingInformation = {
 			...task.trainingInformation,
 			minNbOfParticipants: 2,
 		};
 		const url = await startServer({
 			...defaultTasks.titanic,
-			getTask: () => task,
+			getTask: () => Promise.resolve(task),
 		});
 		const dataset = datasets.loadTitanic();
 
@@ -123,7 +123,7 @@ describe("end-to-end federated", () => {
 	}).timeout("30s");
 
 	it("two lus_covid users reach consensus", async () => {
-		const task = defaultTasks.lusCovid.getTask();
+		const task = await defaultTasks.lusCovid.getTask();
 		task.trainingInformation = {
 			...task.trainingInformation,
 			epochs: 10,
@@ -132,7 +132,7 @@ describe("end-to-end federated", () => {
 		};
 		const url = await startServer({
 			...defaultTasks.lusCovid,
-			getTask: () => task,
+			getTask: () => Promise.resolve(task),
 		});
 		const dataset = await datasets.loadLusCOVID();
 
@@ -149,7 +149,7 @@ describe("end-to-end federated", () => {
 	}).timeout("2m");
 
 	it("two wikitext reach consensus", async () => {
-		const task = defaultTasks.wikitext.getTask();
+		const task = await defaultTasks.wikitext.getTask();
 		task.trainingInformation = {
 			...task.trainingInformation,
 			epochs: 2,
@@ -158,7 +158,7 @@ describe("end-to-end federated", () => {
 		};
 		const url = await startServer({
 			...defaultTasks.wikitext,
-			getTask: () => task,
+			getTask: () => Promise.resolve(task),
 		});
 		const dataset = datasets.loadWikitext();
 
@@ -170,7 +170,7 @@ describe("end-to-end federated", () => {
 	}).timeout("5m");
 
   it("clients emit expected events", async () => {
-		const task = defaultTasks.lusCovid.getTask();
+		const task = await defaultTasks.lusCovid.getTask();
 		task.trainingInformation = {
 			...task.trainingInformation,
 			roundDuration: 1,
@@ -178,7 +178,7 @@ describe("end-to-end federated", () => {
 		};
 		const url = await startServer({
 			...defaultTasks.lusCovid,
-			getTask: () => task,
+			getTask: () => Promise.resolve(task),
 		});
 		const dataset = await datasets.loadLusCOVID();
 

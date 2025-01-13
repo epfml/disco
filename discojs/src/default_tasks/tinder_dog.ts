@@ -1,11 +1,11 @@
 import * as tf from '@tensorflow/tfjs'
 
-import type { Model, Task, TaskProvider } from '../index.js'
+import type { Model, TaskProvider } from '../index.js'
 import { models } from '../index.js'
 
 export const tinderDog: TaskProvider<'image'> = {
-  getTask (): Task<'image'> {
-    return {
+  getTask() {
+    return Promise.resolve({
       id: 'tinder_dog',
       dataType: "image",
       displayInformation: {
@@ -37,14 +37,16 @@ export const tinderDog: TaskProvider<'image'> = {
         minNbOfParticipants: 3,
         tensorBackend: 'tfjs'
       }
-    }
+    });
   },
 
 
   async getModel(): Promise<Model<'image'>> {
+    const task = await this.getTask();
+
     const seed = 42 // set a seed to ensure reproducibility during GDHF demo
-    const imageHeight = this.getTask().trainingInformation.IMAGE_H
-    const imageWidth = this.getTask().trainingInformation.IMAGE_W
+    const imageHeight = task.trainingInformation.IMAGE_H
+    const imageWidth = task.trainingInformation.IMAGE_W
     const imageChannels = 3
 
     const model = tf.sequential()
