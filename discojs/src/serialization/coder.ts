@@ -48,8 +48,22 @@ CODEC.register({
     copy(raw),
 });
 
-export function encode(serialized: unknown): Encoded {
-  return msgpack.encode(serialized, { extensionCodec: CODEC });
+type Encodable =
+  | null
+  | undefined
+  | boolean
+  | number
+  | string
+  | Float32Array
+  | ArrayBuffer
+  | Encodable[]
+  | { [_: string]: Encodable };
+
+export function encode(serialized: Encodable): Encoded {
+  return msgpack.encode(serialized, {
+    extensionCodec: CODEC,
+    ignoreUndefined: true,
+  });
 }
 
 export function decode(encoded: Encoded): unknown {
