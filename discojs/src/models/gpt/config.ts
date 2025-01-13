@@ -7,7 +7,7 @@ type GPTModelType =
   | 'gpt-micro'
   | 'gpt-nano'
 
-export interface GPTConfig {
+export type GPTConfig = {
   lr: number
   contextLength: number
   vocabSize?: number
