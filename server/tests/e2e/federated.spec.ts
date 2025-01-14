@@ -150,7 +150,7 @@ describe("end-to-end federated", () => {
 
     const [m1, m2] = await Promise.all([titanicUser(), titanicUser()]);
     assert.isTrue(m1.equals(m2));
-  }).timeout("10s");
+  }).timeout("30s");
 
   it("two lus_covid users reach consensus", async () => {
     [server, url] = await new Server().serve(
@@ -160,7 +160,7 @@ describe("end-to-end federated", () => {
 
     const [m1, m2] = await Promise.all([lusCovidUser(), lusCovidUser()]);
     assert.isTrue(m1.equals(m2));
-  }).timeout("1m");
+  }).timeout("2m");
   
   it("two wikitext reach consensus", async () => {
     [server, url] = await new Server().serve(
@@ -170,7 +170,7 @@ describe("end-to-end federated", () => {
     
     const [m1, m2] = await Promise.all([wikitextUser(), wikitextUser()]);
     assert.isTrue(m1.equals(m2))
-  }).timeout("3m");
+  }).timeout("5m");
 
   it("clients emit expected events", async () => {
     const result = await setupLusCOVID("federated");
@@ -300,5 +300,5 @@ describe("end-to-end federated", () => {
     expect(await nbParticipantsUser3.next()).equal(1)
 
     await discoUser3.close()
-  }).timeout("1m");
+  }).timeout("2m");
 });

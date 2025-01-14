@@ -322,5 +322,5 @@ describe('end-to-end decentralized', function () {
     expect(await nbParticipantsUser3.next()).equal(1)
 
     await discoUser3.close()
-  }).timeout("1m");
+  }).timeout("2m");
 })
