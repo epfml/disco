@@ -22,7 +22,11 @@ export class TaskRouter {
     this.#expressRouter.get('/', (_, res) => {
       res
         .status(200)
-        .send(this.#taskSet.tasks.map(([t, _]) => t).toArray())
+        .send(
+          this.#taskSet.tasks
+            .map(([t, _]) => [...serialization.task.encode(t)])
+            .toArray(),
+        );
     })
 
     // POST request to add a new task

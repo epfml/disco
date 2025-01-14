@@ -1,4 +1,4 @@
-import type { Task } from "@epfml/discojs";
+import { serialization, type Task } from "@epfml/discojs";
 
 import * as tf from "@tensorflow/tfjs";
 
@@ -64,6 +64,7 @@ it("submits with tabular task", () => {
     .its("request.body")
     .then((body) => JSON.parse(body))
     .its("task")
+    .then(serialization.task.decode)
     .should("deep.equal", {
       id: "id",
       dataType: "tabular",

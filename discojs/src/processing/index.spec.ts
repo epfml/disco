@@ -32,7 +32,7 @@ describe("preprocess", () => {
     ]);
 
     try {
-      const preprocessed = await preprocess(task, dataset);
+      const preprocessed = preprocess(task, dataset);
       for await (const _ of preprocessed);
     } catch {
       return;

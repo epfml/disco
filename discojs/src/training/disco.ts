@@ -212,7 +212,7 @@ export class Disco<D extends DataType> extends EventEmitter<{
   > {
     const { batchSize, validationSplit } = this.#task.trainingInformation;
 
-    let preprocessed = await processing.preprocess(this.#task, dataset);
+    let preprocessed = processing.preprocess(this.#task, dataset);
 
     preprocessed = (
       this.#preprocessOnce

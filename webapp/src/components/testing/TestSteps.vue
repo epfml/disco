@@ -310,28 +310,35 @@ async function startTest(): Promise<void> {
     return;
   }
 
+  // TODO processing can hog the browser when big enough
+  // this allow other computations to run
+  // will be fixed by using WebWorker
+  const slowedDataset = toRaw(dataset.value).map(
+    (e) => new Promise((resolve) => setTimeout(() => resolve(e), 100)),
+  );
+
   toaster.info("Model testing started");
   try {
     switch (props.task.dataType) {
       case "image":
         await startImageTest(
-          props.task as Task<"image">,
+          toRaw(props.task) as Task<"image">,
           toRaw(props.model) as Model<"image">,
-          toRaw(dataset.value) as LabeledDataset["image"],
+          slowedDataset as LabeledDataset["image"],
         );
         break;
       case "tabular":
         await startTabularTest(
-          props.task as Task<"tabular">,
+          toRaw(props.task) as Task<"tabular">,
           toRaw(props.model) as Model<"tabular">,
-          toRaw(dataset.value) as LabeledDataset["tabular"],
+          slowedDataset as LabeledDataset["tabular"],
         );
         break;
       case "text":
         await startTextTest(
-          props.task as Task<"text">,
+          toRaw(props.task) as Task<"text">,
           toRaw(props.model) as Model<"text">,
-          toRaw(dataset.value) as LabeledDataset["text"],
+          slowedDataset as LabeledDataset["text"],
         );
         break;
     }
@@ -358,7 +365,7 @@ async function startImageTest(
       { filename, image, label },
       { predicted, truth },
     ] of dataset.zip(
-      await validator.test(
+      validator.test(
         dataset.map(({ image, label }) => [image, label] as [Image, string]),
       ),
     )) {
@@ -410,7 +417,7 @@ async function startTabularTest(
     controller.value = new AbortController();
 
     for await (const [row, { predicted, truth }] of dataset.zip(
-      await validator.test(dataset),
+      validator.test(dataset),
     )) {
       const truth_label = row[outputColumn];
       if (truth_label === undefined)
@@ -451,7 +458,7 @@ async function startTextTest(
   try {
     controller.value = new AbortController();
 
-    for await (const { predicted, truth } of await validator.test(dataset)) {
+    for await (const { predicted, truth } of validator.test(dataset)) {
       results = results.push({ output: { correct: predicted === truth } });
       tested.value = results as Tested[D];
       if (controller.value.signal.aborted) break;

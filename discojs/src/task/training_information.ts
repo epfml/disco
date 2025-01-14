@@ -39,13 +39,15 @@ export namespace TrainingInformation {
       outputColumn: z.string(),
     }),
     text: baseSchema.extend({
-      tokenizer: z.string(),
+      tokenizer: z
+        .string()
+        .transform((name) => Tokenizer.from_pretrained(name)),
       contextLength: z.number().positive().int(),
     }),
   } satisfies Record<DataType, unknown>;
 }
 
-interface Privacy {
+type Privacy = {
   // maximum weights difference between each round
   clippingRadius?: number;
   // variance of the Gaussian noise added to the shared weights.
@@ -100,7 +102,7 @@ interface DataTypeToTrainingInformation {
   text: {
     // tokenizer (string | PreTrainedTokenizer). This field should be initialized with the name of a Transformers.js pre-trained tokenizer, e.g., 'Xenova/gpt2'.
     // When the tokenizer is first called, the actual object will be initialized and loaded into this field for the subsequent tokenizations.
-    tokenizer: string | Tokenizer;
+    tokenizer: Tokenizer;
 
     // contextLength: the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
     // truncate strings to a maximum length. The default value is tokenizer.model_max_length
@@ -266,8 +268,7 @@ export function isTrainingInformation<D extends DataType>(
       > = raw;
 
       if (
-        (typeof tokenizer !== "string" &&
-          !(tokenizer instanceof Tokenizer)) ||
+        !(tokenizer instanceof Tokenizer) ||
         (typeof contextLength !== "number")
       )
         return false;

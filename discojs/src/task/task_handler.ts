@@ -1,13 +1,9 @@
-import createDebug from "debug";
 import { Map } from "immutable";
 
 import type { DataType, Model } from "../index.js";
 import { serialization } from "../index.js";
 
-import type { Task } from "./task.js";
-import { isTask } from "./task.js";
-
-const debug = createDebug("discojs:task:handlers");
+import { Task } from "./task.js";
 
 function urlToTasks(base: URL): URL {
   const ret = new URL(base);
@@ -23,7 +19,7 @@ export async function pushTask<D extends DataType>(
   const response = await fetch(urlToTasks(base), {
     method: "POST",
     body: JSON.stringify({
-      task,
+      task: [...serialization.task.encode(task)],
       model: await serialization.model.encode(model),
       weights: await serialization.weights.encode(model.weights),
     }),
@@ -36,22 +32,28 @@ export async function fetchTasks(
 ): Promise<Map<Task.ID, Task<DataType>>> {
   const response = await fetch(urlToTasks(base));
   if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`);
-  const tasks: unknown = await response.json();
+  const json: unknown = await response.json();
 
-  if (!Array.isArray(tasks)) {
+  if (
+    !Array.isArray(json) ||
+    !json.every((raw) => Array.isArray(raw)) ||
+    !json.every((arr) => arr.every((e) => typeof e === "number"))
+  )
     throw new Error(
-      "Expected to receive an array of Tasks when fetching tasks",
+      "invalid tasks response: expected an array of array of numbers",
     );
-  } else if (!tasks.every(isTask)) {
-    for (const task of tasks) {
-      if (!isTask(task)) {
-        debug("task has invalid format: :O", task);
-      }
-    }
-    throw new Error(
-      "invalid tasks response, the task object received is not well formatted",
+
+  try {
+    const tasks = await Promise.all(
+      json
+        .map((raw) => Uint8Array.from(raw))
+        .map((t) => serialization.task.decode(t)),
     );
+
+    return Map(tasks.map((t) => [t.id, t]));
+  } catch (cause) {
+    throw new Error("invalid tasks response: unable to parse all tasks", {
+      cause,
+    });
   }
-
-  return Map(tasks.map((t) => [t.id, t]));
 }
