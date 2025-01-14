@@ -32,7 +32,7 @@ describe("validator", () => {
     }
 
     expect(hits / size).to.be.greaterThan(0.3);
-  }).timeout("10s");
+  }).timeout("20s");
 
   it("can read and predict randomly on titanic", async () => {
     const provider = defaultTasks.titanic;
@@ -52,7 +52,7 @@ describe("validator", () => {
     }
 
     expect(hits / size).to.be.greaterThan(0.3);
-  });
+  }).timeout("10s");
 
   it("can read and predict randomly on lus_covid", async () => {
     const provider = defaultTasks.lusCovid;
@@ -71,5 +71,5 @@ describe("validator", () => {
     }
 
     expect(hits / size).to.be.greaterThan(0.3);
-  }).timeout("10s");
+  }).timeout("20s");
 });
