@@ -10,17 +10,17 @@ import type {
   Task,
   TrainingInformation,
 } from "../index.js";
-import { models } from "../index.js";
+
 
 import * as processing from "./index.js";
 
 export * from "./image.js";
 export * from "./tabular.js";
 
-export async function preprocess<D extends DataType>(
+export function preprocess<D extends DataType>(
   task: Task<D>,
   dataset: Dataset<DataFormat.Raw[D]>,
-): Promise<Dataset<DataFormat.ModelEncoded[D]>> {
+): Dataset<DataFormat.ModelEncoded[D]> {
   switch (task.dataType) {
     case "image": {
       // cast as typescript doesn't reduce generic type
@@ -56,8 +56,7 @@ export async function preprocess<D extends DataType>(
       const d = dataset as Dataset<DataFormat.Raw["text"]>;
       const t = task as Task<"text">;
 
-      const { contextLength } = t.trainingInformation;
-      const tokenizer = await models.getTaskTokenizer(t);
+      const { contextLength, tokenizer } = t.trainingInformation;
 
       return d
         .map((text) => tokenizer.tokenize(text))
@@ -72,10 +71,10 @@ export async function preprocess<D extends DataType>(
   throw new Error("should never happen")
 }
 
-export async function preprocessWithoutLabel<D extends DataType>(
+export function preprocessWithoutLabel<D extends DataType>(
   task: Task<D>,
   dataset: Dataset<DataFormat.RawWithoutLabel[D]>,
-): Promise<Dataset<DataFormat.ModelEncoded[D][0]>> {
+): Dataset<DataFormat.ModelEncoded[D][0]> {
   switch (task.dataType) {
     case "image": {
       // cast as typescript doesn't reduce generic type
@@ -102,8 +101,7 @@ export async function preprocessWithoutLabel<D extends DataType>(
       const d = dataset as Dataset<DataFormat.Raw["text"]>;
       const t = task as Task<"text">;
 
-      const contextLength = t.trainingInformation.contextLength
-      const tokenizer = await models.getTaskTokenizer(t);
+      const { contextLength, tokenizer } = t.trainingInformation;
 
       return d
         .map((text) => tokenizer.tokenize(text))
@@ -116,10 +114,10 @@ export async function preprocessWithoutLabel<D extends DataType>(
   throw new Error("should never happen")
 }
 
-export async function postprocess<D extends DataType>(
+export function postprocess<D extends DataType>(
 	task: Task<D>,
 	encoded: DataFormat.ModelEncoded[D][1],
-): Promise<DataFormat.Inferred[D]> {
+): DataFormat.Inferred[D] {
 	switch (task.dataType) {
 		case "image": {
 			// cast as typescript doesn't reduce generic type
@@ -142,9 +140,10 @@ export async function postprocess<D extends DataType>(
 			// cast as typescript doesn't reduce generic type
 			const token = encoded as DataFormat.ModelEncoded["text"][1];
 			const t = task as Task<"text">;
-			const tokenizer = await models.getTaskTokenizer(t);
 
-			return tokenizer.decode([token]) as DataFormat.Inferred[D];
+			return t.trainingInformation.tokenizer.decode([
+				token,
+			]) as DataFormat.Inferred[D];
 		}
 	}
 

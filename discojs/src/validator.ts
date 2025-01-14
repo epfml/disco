@@ -12,10 +12,10 @@ export class Validator<D extends DataType> {
   }
 
   /** infer every line of the dataset and check that it is as labelled */
-	async test(
+	test(
 		dataset: Dataset<DataFormat.Raw[D]>,
-	): Promise<Dataset<Record<"predicted" | "truth", DataFormat.Inferred[D]>>> {
-		const preprocessed = await processing.preprocess(this.task, dataset);
+	): Dataset<Record<"predicted" | "truth", DataFormat.Inferred[D]>> {
+		const preprocessed = processing.preprocess(this.task, dataset);
 		const batched = preprocessed.batch(this.task.trainingInformation.batchSize);
 
 		const predictionWithTruth = batched
@@ -26,9 +26,9 @@ export class Validator<D extends DataType> {
 			)
 			.flatten();
 
-		return predictionWithTruth.map(async ([predicted, truth]) => ({
-			predicted: await processing.postprocess(this.task, predicted),
-			truth: await processing.postprocess(this.task, truth),
+		return predictionWithTruth.map(([predicted, truth]) => ({
+			predicted: processing.postprocess(this.task, predicted),
+			truth: processing.postprocess(this.task, truth),
 		}));
 	}
 
@@ -36,9 +36,8 @@ export class Validator<D extends DataType> {
   async *infer(
     dataset: Dataset<DataFormat.RawWithoutLabel[D]>,
   ): AsyncGenerator<DataFormat.Inferred[D], void> {
-    const modelPredictions = (
-      await processing.preprocessWithoutLabel(this.task, dataset)
-    )
+    const modelPredictions = processing
+      .preprocessWithoutLabel(this.task, dataset)
       .batch(this.task.trainingInformation.batchSize)
       .map((batch) => this.#model.predict(batch))
       .flatten();

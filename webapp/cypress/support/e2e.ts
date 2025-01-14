@@ -22,7 +22,9 @@ export function setupServerWith(
     .as("taskAndModels");
 
   cy.get<Array<[Task<DataType>, unknown]>>("@taskAndModels")
-    .then((taskAndModels) => taskAndModels.map(([t]) => t))
+    .then((taskAndModels) =>
+      taskAndModels.map(([t]) => [...serialization.task.encode(t)]),
+    )
     .then((tasks) =>
       cy.intercept({ hostname: "server", pathname: "tasks" }, tasks),
     );

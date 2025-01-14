@@ -20,8 +20,6 @@ async function main(): Promise<void> {
   // Toggle TRAIN_MODEL to either train and save a new model from scratch or load an existing model
   const TRAIN_MODEL = true
 
-  // Retrieve the tokenizer 
-  const tokenizer = await models.getTaskTokenizer(task)
   if (TRAIN_MODEL) {
     // Load the wikitext dataset from the `datasets` folder
     const dataset = loadText("../../datasets/wikitext/wiki.train.tokens")
@@ -39,7 +37,10 @@ async function main(): Promise<void> {
     // Load the trained model
     model = await loadModelFromDisk(`${modelFolder}/${modelFileName}`) as models.GPT
   }
+
+  // Preprocess prompt
   const prompt = 'The game began development in 2010 , carrying over a large portion'
+  const { tokenizer } = task.trainingInformation;
   let tokens = tokenizer.tokenize(prompt);
 
   // Predict a few tokens

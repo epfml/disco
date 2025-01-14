@@ -4,7 +4,6 @@ import {
 	env,
 } from "@xenova/transformers";
 import { List } from "immutable";
-import type { Task } from "../task/task.js";
 
 type PaddingSide = "left" | "right";
 
@@ -84,10 +83,4 @@ export class Tokenizer {
 
 function isArrayOfNumber(raw: unknown): raw is number[] {
 	return Array.isArray(raw) && raw.every((e) => typeof e === "number");
-}
-
-export async function getTaskTokenizer(task: Task<"text">): Promise<Tokenizer> {
-	const { tokenizer: raw } = task.trainingInformation;
-	if (typeof raw !== "string") return raw;
-	return Tokenizer.from_pretrained(raw);
 }

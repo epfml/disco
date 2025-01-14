@@ -4,8 +4,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import { createPersistedStatePlugin } from "pinia-plugin-persistedstate-2";
 
-import type { Task } from "@epfml/discojs";
-import { models as discoModels } from "@epfml/discojs";
+import { models as discoModels, serialization, Task } from "@epfml/discojs";
 
 import { CONFIG } from "@/config";
 import { useModelsStore } from "@/store";
@@ -13,7 +12,7 @@ import { useTasksStore } from "@/store";
 
 import ModelLibrary from "../ModelLibrary.vue";
 
-const TASK: Task<"text"> = {
+const TASK = await Task.schema.parseAsync({
   id: "task",
   dataType: "text",
   displayInformation: {
@@ -31,7 +30,7 @@ const TASK: Task<"text"> = {
     validationSplit: 0,
     contextLength: 64,
   },
-};
+});
 
 it("shows stored models", async () => {
   const wrapper = mount(ModelLibrary, {
@@ -62,7 +61,9 @@ it("shows stored models", async () => {
 it("allows to download server's models", async () => {
   vi.stubGlobal("fetch", async (url: string | URL) => {
     if (url.toString() === new URL("tasks", CONFIG.serverUrl).href)
-      return new Response(JSON.stringify([TASK]));
+      return new Response(
+        JSON.stringify([[...serialization.task.encode(TASK)]]),
+      );
     throw new Error(`unhandled get: ${url}`);
   });
   afterEach(() => {

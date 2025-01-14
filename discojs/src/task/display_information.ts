@@ -45,7 +45,7 @@ export interface DisplayInformation<D extends DataType> {
   sampleDataset?: SampleDataset;
 }
 
-interface Summary {
+type Summary = {
   preview: string;
   overview: string;
 }
@@ -58,7 +58,7 @@ interface DataTypeToDataExample {
   text: string;
 }
 
-interface SampleDataset {
+type SampleDataset = {
   // URL to download a dataset for the task, is displayed in the UI when asking to connect data
   link: string;
   // Instructions to download, unzip, and connect the right file of the sample dataset

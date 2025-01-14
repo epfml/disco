@@ -1,6 +1,6 @@
 export { Model } from './model.js'
 export { BatchLogs, EpochLogs, ValidationMetrics } from "./logs.js";
-export { Tokenizer, getTaskTokenizer } from "./tokenizer.js";
+export { Tokenizer } from "./tokenizer.js";
 
 export { GPT } from './gpt/index.js'
 export { ONNXModel } from './onnx.js'
