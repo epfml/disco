@@ -25,7 +25,7 @@ describe("validator", () => {
 
     let hits = 0;
     let size = 0;
-    for await (const correct of validator.test(dataset)) {
+    for await (const correct of await validator.test(dataset)) {
       if (correct) hits++;
       size++;
     }
@@ -45,7 +45,7 @@ describe("validator", () => {
 
     let hits = 0;
     let size = 0;
-    for await (const correct of validator.test(dataset)) {
+    for await (const correct of await validator.test(dataset)) {
       if (correct) hits++;
       size++;
     }
@@ -73,7 +73,7 @@ describe("validator", () => {
 
     let hits = 0;
     let size = 0;
-    for await (const correct of validator.test(dataset)) {
+    for await (const correct of await validator.test(dataset)) {
       if (correct) hits++;
       size++;
     }

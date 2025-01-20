@@ -1,4 +1,4 @@
-import type { Dataset, DataFormat, DataType, Model, Task } from "./index.js";
+import { Dataset, DataFormat, DataType, Model, Task } from "./index.js";
 import { processing } from "./index.js";
 
 export class Validator<D extends DataType> {
@@ -12,32 +12,25 @@ export class Validator<D extends DataType> {
   }
 
   /** infer every line of the dataset and check that it is as labelled */
-  async *test(
-    dataset: Dataset<DataFormat.Raw[D]>,
-  ): AsyncGenerator<{ result: boolean; predicted: DataFormat.Inferred[D]; truth : number }, void> {
-    const preprocessed = await processing.preprocess(this.task, dataset);
-    const batched = preprocessed.batch(this.task.trainingInformation.batchSize);
+	async test(
+		dataset: Dataset<DataFormat.Raw[D]>,
+	): Promise<Dataset<Record<"predicted" | "truth", DataFormat.Inferred[D]>>> {
+		const preprocessed = await processing.preprocess(this.task, dataset);
+		const batched = preprocessed.batch(this.task.trainingInformation.batchSize);
 
-    const initialResults = batched
-      .map(async (batch) =>
-        (await this.#model.predict(batch.map(([inputs, _]) => inputs)))
-          .zip(batch.map(([_, outputs]) => outputs))
-          .map(([inferred, truth]) => ({ result: inferred === truth, predicted: inferred, truth })),
-      )
-      .flatten();
+		const predictionWithTruth = batched
+			.map(async (batch) =>
+				(await this.#model.predict(batch.map(([inputs, _]) => inputs))).zip(
+					batch.map(([_, outputs]) => outputs),
+				),
+			)
+			.flatten();
 
-    const predictions = await processing.postprocess(
-      this.task,
-      initialResults.map(({ predicted }) => predicted),
-    );
-
-    const finalResults = initialResults.zip(predictions).map(([result, predicted]) => ({
-      ...result,
-      predicted,
-    }));
-
-    for await (const e of finalResults) yield e;
-  }
+		return predictionWithTruth.map(async ([predicted, truth]) => ({
+			predicted: await processing.postprocess(this.task, predicted),
+			truth: await processing.postprocess(this.task, truth),
+		}));
+	}
 
   /** use the model to predict every line of the dataset */
   async *infer(
@@ -50,10 +43,9 @@ export class Validator<D extends DataType> {
       .map((batch) => this.#model.predict(batch))
       .flatten();
 
-    const predictions = await processing.postprocess(
-      this.task,
-      modelPredictions,
-    );
+		const predictions = modelPredictions.map((prediction) =>
+			processing.postprocess(this.task, prediction),
+		);
 
     for await (const e of predictions) yield e;
   }
