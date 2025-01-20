@@ -24,7 +24,7 @@
     <IconCard class="mx-auto mt-10 lg:w-1/2" title-placement="left">
       <template #title> Test &amp; validate your model </template>
 
-      <div v-show="generator === undefined">
+      <div v-show="controller === undefined">
         By clicking the button below, you will be able to validate your model
         against a chosen dataset of yours. Below, once you assessed the model,
         you can compare the ground truth and the predicted values
@@ -32,7 +32,7 @@
           <CustomButton @click="startTest()"> test </CustomButton>
         </div>
       </div>
-      <div v-show="generator !== undefined">
+      <div v-show="controller !== undefined">
         <div class="flex justify-center">
           <CustomButton @click="stopTest()"> stop testing </CustomButton>
         </div>
@@ -172,7 +172,12 @@ const props = defineProps<{
 interface Tested {
   image: List<{
     input: { filename: string; image: ImageData };
-    output: { truth: number; correct: boolean; predicted : string, label : string };
+    output: {
+      truth: string;
+      correct: boolean;
+      predicted: string;
+      label: string;
+    };
   }>;
   tabular: {
     labels: {
@@ -189,7 +194,7 @@ interface Tested {
 }
 
 const dataset = ref<LabeledDataset[D]>();
-const generator = ref<AsyncGenerator<{result : boolean, predicted : string | number; truth : number}, void>>();
+const controller = ref<AbortController>();
 const tested = ref<Tested[D]>();
 
 const visitedSamples = computed<number>(() => {
@@ -330,11 +335,15 @@ async function startImageTest(
   let results: Tested["image"] = List();
   
   try {
-    generator.value = validator.test(
-      dataset.map(({ image, label }) => [image, label] as [Image, string]),
-    );
-    for await (const [{ filename, image, label }, {result, predicted, truth}] of dataset.zip(
-      toRaw(generator.value),
+    controller.value = new AbortController();
+
+    for await (const [
+      { filename, image, label },
+      { predicted, truth },
+    ] of dataset.zip(
+      await validator.test(
+        dataset.map(({ image, label }) => [image, label] as [Image, string]),
+      ),
     )) {
       results = results.push({
         input: {
@@ -346,17 +355,19 @@ async function startImageTest(
           ),
         },
         output: {
-          label: label,
-          correct: result,
-          predicted: String(predicted),
-          truth : truth,
+          label,
+          correct: predicted === truth,
+          predicted,
+          truth,
         },
       });
 
       tested.value = results as Tested[D];
+
+      if (controller.value.signal.aborted) break;
     }
   } finally {
-    generator.value = undefined;
+    controller.value = undefined;
   }
 }
 
@@ -379,8 +390,11 @@ async function startTabularTest(
 
   let results: Tested["tabular"]["results"] = List();
   try {
-    generator.value = validator.test(dataset);
-    for await (const [row, {result, predicted, truth}] of dataset.zip(toRaw(generator.value))) {
+    controller.value = new AbortController();
+
+    for await (const [row, { predicted, truth }] of dataset.zip(
+      await validator.test(dataset),
+    )) {
       const truth_label = row[outputColumn];
       if (truth_label === undefined)
         throw new Error("row doesn't have expected output column");
@@ -393,17 +407,19 @@ async function startTabularTest(
           return ret;
         }),
         output: {
-          truth: truth,
-          correct: result,
-          predicted : Number(predicted),
-          label : truth_label,
+          truth,
+          correct: truth === predicted,
+          predicted,
+          label: truth_label,
         },
       });
 
       tested.value = { labels, results } as Tested[D];
+
+      if (controller.value.signal.aborted) break;
     }
   } finally {
-    generator.value = undefined;
+    controller.value = undefined;
   }
 }
 
@@ -416,22 +432,24 @@ async function startTextTest(
   let results: Tested["text"] = List();
 
   try {
-    generator.value = validator.test(dataset);
-    for await (const {result} of toRaw(generator.value)) {
-      results = results.push({ output:  {correct : result} });
+    controller.value = new AbortController();
+
+    for await (const { predicted, truth } of await validator.test(dataset)) {
+      results = results.push({ output: { correct: predicted === truth } });
       tested.value = results as Tested[D];
+      if (controller.value.signal.aborted) break;
     }
   } finally {
-    generator.value = undefined;
+    controller.value = undefined;
   }
 }
 
 async function stopTest(): Promise<void> {
-  const g = generator.value;
-  if (g === undefined) return;
+  const c = controller.value;
+  if (c === undefined) return;
 
-  generator.value = undefined;
-  g.return();
+  controller.value = undefined;
+  c.abort();
 }
 
 function saveCsv(): void {
