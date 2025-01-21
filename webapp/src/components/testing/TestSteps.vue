@@ -58,47 +58,51 @@
       </div>
     </div>
 
-    
-    <div
+    <IconCard
       v-if="confusionMatrix !== undefined"
       class="p-4 mx-auto lg:w-1/2 h-full bg-white dark:bg-slate-950 rounded-md"
     >
-      <h4 class="p-4 text-lg font-semibold text-slate-500 dark:text-slate-300">
-      Confusion Matrix
-    </h4>
-    <table class="min-w-full divide-y divide-slate-600 dark:divide-slate-400 text-center">
-      <thead>
-        <tr>
-          <th class="px-0 py-3 text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider text-center border-r-gray-600 dark:border-r-gray-400 border-r-2 diagonal-header">
-            Label \ Prediction
-          </th>
-          <th
-              v-for="(_, label) in confusionMatrix"
-              :key="label"
-              class="text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider"
-            >
-              {{ label }}
-            </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(_, row) in confusionMatrix" :key="row">
-          <td
-            class="py-2 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-gray-200 border-r-gray-600 dark:border-r-gray-400 border-r-2"
-          >
-            {{ row }}
-          </td>
-          <td
-            v-for="(_, col) in confusionMatrix[row]"
-            :key="col"
-            class="whitespace-nowrap text-sm dark:text-gray-300 text-gray-700"
-          >
-            {{ confusionMatrix[row][col] }}
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+      <template #title> Confusion Matrix </template>
+
+      <div class="flex flex-row w-full justify-center">
+        <table
+          class="divide-y-2 divide-slate-600 dark:divide-slate-400 text-center"
+        >
+          <thead>
+            <tr>
+              <th
+                class="p-2 text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider text-center border-r-gray-600 dark:border-r-gray-400 border-r-2 diagonal-header"
+              >
+                Label \ Prediction
+              </th>
+              <th
+                v-for="(_, label) in confusionMatrix"
+                :key="label"
+                class="p-2 text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider"
+              >
+                {{ label }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(_, row) in confusionMatrix" :key="row">
+              <td
+                class="p-2 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-gray-200 border-r-gray-600 dark:border-r-gray-400 border-r-2"
+              >
+                {{ row }}
+              </td>
+              <td
+                v-for="(_, col) in confusionMatrix[row]"
+                :key="col"
+                class="p-2 whitespace-nowrap text-sm dark:text-gray-300 text-gray-700"
+              >
+                {{ confusionMatrix[row][col] }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </IconCard>
 
     <div v-if="tested !== undefined">
       <div class="mx-auto lg:w-1/2 text-center pb-8">
