@@ -59,7 +59,10 @@
     </div>
 
     
-    <div v-if="confusionMatrix && confusionMatrix.matrix && Object.keys(confusionMatrix.matrix).length > 0" class="p-4 mx-auto lg:w-1/2 h-full bg-white dark:bg-slate-950 rounded-md">
+    <div
+      v-if="confusionMatrix !== undefined"
+      class="p-4 mx-auto lg:w-1/2 h-full bg-white dark:bg-slate-950 rounded-md"
+    >
       <h4 class="p-4 text-lg font-semibold text-slate-500 dark:text-slate-300">
       Confusion Matrix
     </h4>
@@ -69,18 +72,28 @@
           <th class="px-0 py-3 text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider text-center border-r-gray-600 dark:border-r-gray-400 border-r-2 diagonal-header">
             Label \ Prediction
           </th>
-          <th v-for="(label, index) in Object.keys(confusionMatrix.matrix)" :key="'header-' + index" class="text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider">
-            {{ label }}
-          </th>
+          <th
+              v-for="(_, label) in confusionMatrix"
+              :key="label"
+              class="text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider"
+            >
+              {{ label }}
+            </th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(rowLabel, rowIndex) in Object.keys(confusionMatrix.matrix)" :key="'row-' + rowIndex">
-          <td class="py-2 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-gray-200 border-r-gray-600 dark:border-r-gray-400 border-r-2">
-            {{ rowLabel }}
+        <tr v-for="(_, row) in confusionMatrix" :key="row">
+          <td
+            class="py-2 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-gray-200 border-r-gray-600 dark:border-r-gray-400 border-r-2"
+          >
+            {{ row }}
           </td>
-          <td v-for="(colLabel, colIndex) in Object.keys(confusionMatrix.matrix[rowLabel])" :key="'col-' + colIndex" class="whitespace-nowrap text-sm dark:text-gray-300 text-gray-700">
-            {{ confusionMatrix.matrix[rowLabel][colLabel] }}
+          <td
+            v-for="(_, col) in confusionMatrix[row]"
+            :key="col"
+            class="whitespace-nowrap text-sm dark:text-gray-300 text-gray-700"
+          >
+            {{ confusionMatrix[row][col] }}
           </td>
         </tr>
       </tbody>
@@ -158,7 +171,6 @@ import ImageCard from "@/components/containers/ImageCard.vue";
 import LabeledDatasetInput from "@/components/dataset_input/LabeledDatasetInput.vue";
 import TableLayout from "@/components/containers/TableLayout.vue";
 import type { LabeledDataset } from "@/components/dataset_input/types.js";
-import { Map } from 'immutable';
 
 const debug = createDebug("webapp:testing:TestSteps");
 const toaster = useToaster();
@@ -213,21 +225,21 @@ const visitedSamples = computed<number>(() => {
   }
 });
 
-const confusionMatrix = computed<{ labels: Map<number, string>; matrix: { [key: string]: { [key: string]: number } } }>(() => {
-  if (tested.value === undefined) {
-    return { labels: Map<number, string>(), matrix: {} };
-  }
-  let labels : string[] = [];
+const confusionMatrix = computed<{ [key: string]: { [key: string]: number } } | undefined>(() => {
+  if (tested.value === undefined) return undefined;
+
+  let labels: string[] = [];
   switch (props.task.trainingInformation.dataType) {
-    case "image" : 
+    case "image":
       labels = (props.task as Task<"image">).trainingInformation.LABEL_LIST;
       break;
-    case "tabular" :
+    case "tabular":
       labels = ["0", "1"]; // binary classification
       break;
-    case "text" :
-      return { labels: Map<number, string>(), matrix: {} };    default: {
-    const _: never = props.task.trainingInformation;
+    case "text":
+      return undefined;
+    default: {
+      const _: never = props.task.trainingInformation;
       throw new Error("should never happen");
     }
   }
@@ -237,9 +249,9 @@ const confusionMatrix = computed<{ labels: Map<number, string>; matrix: { [key: 
 
   // Initialize the confusion matrix
   labels.forEach((label) => {
-    matrix[label.toString()] = {};
+    matrix[label] = {};
     labels.forEach((innerLabel) => {
-      matrix[label.toString()][innerLabel.toString()] = 0;
+      matrix[label][innerLabel] = 0;
     });
   });
 
@@ -249,8 +261,6 @@ const confusionMatrix = computed<{ labels: Map<number, string>; matrix: { [key: 
           ( {output} ) => matrix[output.label][output.predicted] = matrix[output.label][output.predicted] + 1,
         );
         break;
-    //case "text":
-    //  return undefined;
     case "tabular":
       (tested.value as Tested["tabular"]).results.map(
         ({ output }) => matrix[output.truth][output.predicted] = matrix[output.truth][output.predicted] + 1,
@@ -261,8 +271,8 @@ const confusionMatrix = computed<{ labels: Map<number, string>; matrix: { [key: 
       throw new Error("should never happen");
     }
   }
-  const mapLabels = Map(labels.map((label, index) => [index, label]));
-  return {labels : mapLabels, matrix : matrix};
+
+  return matrix;
 })
 
 const currentAccuracy = computed<string>(() => {
