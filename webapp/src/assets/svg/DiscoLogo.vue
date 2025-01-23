@@ -63,7 +63,7 @@
 
 <script lang="ts">
 export default {
-  name: "DiscoLogoBoule",
+  name: "DiscoLogo",
   props: {
     customClass: {
       default: "bi bi-info-circle w-7 h-7",
