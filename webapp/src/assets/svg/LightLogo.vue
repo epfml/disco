@@ -59,6 +59,6 @@
 
 <script lang="ts">
 export default {
-  name: "LightLogo",
+  name: "LogoLight",
 };
 </script>

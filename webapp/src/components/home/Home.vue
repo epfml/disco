@@ -29,7 +29,7 @@
     <!-- Disco logo -->
     <div class="flex flex-col justify-center items-center space-y-4 m-8">
       <div class="w-full sm:pb-2 lg:w-5/12">
-        <DiscoLogo class="px-4" />
+        <LogoDisco class="px-4" />
       </div>
       <span
         class="text-lg sm:text-2xl md:text-3xl text-center text-slate-600 dark:text-slate-300"
@@ -174,7 +174,7 @@ import FeedbackIcon from "@/assets/svg/FeedbackIcon.vue";
 import InfoIcon from "@/assets/svg/InfoIcon.vue";
 import FederatedGIF from "@/assets/gif/FederatedGIF.vue";
 import DecentralizedGIF from "@/assets/gif/DecentralizedGIF.vue";
-import DiscoLogo from "@/assets/svg/DiscoLogo.vue";
+import LogoDisco from "@/assets/svg/DiscoLogo.vue";
 import RealTimeCollaboration from "@/assets/svg/RealTimeCollaboration.vue";
 import { useRouter } from "vue-router";
 import { List } from "immutable";

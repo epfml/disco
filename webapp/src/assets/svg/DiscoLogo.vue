@@ -63,13 +63,6 @@
 
 <script lang="ts">
 export default {
-  name: "DiscoLogo",
-  props: {
-    customClass: {
-      default: "bi bi-info-circle w-7 h-7",
-      type: String,
-    },
-    viewBox: { default: "-1 -1 18 18", type: String },
-  },
+  name: "LogoDisco",
 };
 </script>

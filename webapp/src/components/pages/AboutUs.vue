@@ -79,7 +79,7 @@
             href="https://www.yale-light.org/"
             target="_blank"
           >
-            <LightLogo class="w-full h-20 lg:h-48" />
+            <LogoLight class="w-full h-20 lg:h-48" />
           </a>
         </div>
       </div>
@@ -91,7 +91,7 @@
 import DISCO from "@/components/simple/DISCO.vue";
 import IconCard from "@/components/containers/IconCard.vue";
 import MLOLogo from "@/assets/svg/MLOLogo.vue";
-import LightLogo from "@/assets/svg/LightLogo.vue";
+import LogoLight from "@/assets/svg/LightLogo.vue";
 import { ref } from "vue";
 
 const currentTheme = ref(localStorage.getItem("theme"));
