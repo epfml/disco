@@ -59,9 +59,12 @@ import DISCO from "@/components/simple/DISCO.vue";
 import SidebarButton from "./SidebarButton.vue";
 import MoonIcon from "@/assets/svg/MoonIcon.vue";
 import SunIcon from "@/assets/svg/SunIcon.vue";
+import { useThemeStore } from "@/store/theme";
 
 const currentTheme = ref(localStorage.getItem("theme") || "light");
 
+const themeStore = useThemeStore();
+themeStore.currentTheme = currentTheme.value;
 // Apply the initial theme on mount
 onMounted(() => {
   if (currentTheme.value === "dark") {
@@ -74,5 +77,6 @@ const toggleDarkMode = () => {
   document.documentElement.classList.toggle("dark", newTheme === "dark");
   localStorage.setItem("theme", newTheme);
   currentTheme.value = newTheme;
+  themeStore.toggleTheme();
 };
 </script>

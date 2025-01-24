@@ -69,7 +69,7 @@
             href="https://www.epfl.ch/labs/mlo/"
             target="_blank"
           >
-            <MLOLogo class="w-full h-20 lg:h-48" :color="mloTextColor" />
+            <LogoMLO class="w-full h-20 lg:h-48" :color="mloTextColor" />
           </a>
         </div>
         <!-- LiGHT logo -->
@@ -90,13 +90,26 @@
 <script lang="ts" setup>
 import DISCO from "@/components/simple/DISCO.vue";
 import IconCard from "@/components/containers/IconCard.vue";
-import MLOLogo from "@/assets/svg/MLOLogo.vue";
+import LogoMLO from "@/assets/svg/MLOLogo.vue";
 import LogoLight from "@/assets/svg/LightLogo.vue";
-import { ref } from "vue";
+import { ref, watch } from "vue";
+import { useThemeStore } from "@/store/theme";
 
-const currentTheme = ref(localStorage.getItem("theme"));
+const mloTextColor = ref("#000000");
 
-const mloTextColor = ref(
-  currentTheme.value === "light" ? "#000000" : "#ffffff",
+const themeStore = useThemeStore();
+
+watch(
+  () => themeStore.currentTheme,
+  (newValue) => {
+    console.log(newValue);
+    if (newValue === "light") {
+      mloTextColor.value = "#000000";
+      console.log("color", mloTextColor.value);
+    } else {
+      mloTextColor.value = "#ffffff";
+      console.log("dark color", mloTextColor.value);
+    }
+  },
 );
 </script>
