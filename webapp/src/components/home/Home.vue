@@ -1,6 +1,7 @@
 <template>
   <div class="flex flex-col justify-between pb-12 h-svh">
     <div
+      v-if="isVisible"
       class="flex flex-row flex-wrap justify-between gap-x-4 items-center mb-5 py-2 px-4 bg-purple-200 rounded-md"
     >
       <div class="flex flex-row gap-x-4 items-center">
@@ -10,21 +11,24 @@
           how it works.
         </p>
       </div>
-      <a
-        target="_blank"
-        href="https://framaforms.org/disco-feedback-form-1718716636"
-      >
-        <div
-          class="flex flex-row flex-wrap shrink-0 items-center gap-x-2 justify-end"
+      <div class="flex flex-row flex-wrap items-center">
+        <a
+          target="_blank"
+          href="https://framaforms.org/disco-feedback-form-1718716636"
         >
-          <p
-            class="text-disco-blue font-bold text-xs hover:underline hover:text-disco-cyan text-end dark:text-disco-dark-cyan"
+          <div
+            class="flex flex-row flex-wrap shrink-0 items-center gap-x-2 justify-end"
           >
-            Give us some feedback
-          </p>
-          <FeedbackIcon custom-class="min-w-8 min-h-8 w-8 h-8" />
-        </div>
-      </a>
+            <p
+              class="text-disco-blue font-bold text-xs hover:underline hover:text-disco-cyan text-end dark:text-disco-dark-cyan"
+            >
+              Give us some feedback
+            </p>
+            <FeedbackIcon custom-class="min-w-8 min-h-8 w-8 h-8" />
+          </div>
+        </a>
+        <IconClose @click="hideBlock" />
+      </div>
     </div>
     <!-- Disco logo -->
     <div class="flex flex-col justify-center items-center space-y-4">
@@ -168,10 +172,18 @@ import { useRouter } from "vue-router";
 import { List } from "immutable";
 import DISCOllaboratives from "@/components/simple/DISCOllaboratives.vue";
 import ButtonsCard from "@/components/containers/ButtonsCard.vue";
+import { ref } from "vue";
+import IconClose from "@/assets/svg/CloseIcon.vue";
 
 const router = useRouter();
 
 function goToTaskList(): void {
   router.push({ path: "/list" });
+}
+
+const isVisible = ref(true);
+
+function hideBlock(): void {
+  isVisible.value = false;
 }
 </script>
