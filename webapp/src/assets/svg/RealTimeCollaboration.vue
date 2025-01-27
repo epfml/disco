@@ -366,10 +366,5 @@
 <script lang="ts">
 export default {
   name: "RealTimeCollaboration",
-  props: {
-    color: {
-      type: String,
-    },
-  },
 };
 </script>
