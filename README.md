@@ -1,15 +1,19 @@
+<p align="center">
+  <img 
+    src="https://storage.googleapis.com/deai-313515.appspot.com/gifs/disco_middle.gif" 
+  />
+</p>  
+
 # **DISCO** - DIStributed COllaborative Machine Learning
-
-
 
 DISCO leverages federated :star2: and decentralized :sparkles: learning to allow several data owners to collaboratively build machine learning models without sharing any original data.
 
-The latest version is always running on the following link, [directly in your browser](https://discolab.ai/), for web and mobile:
-
- :man_dancing: [https://discolab.ai/](https://discolab.ai/) :man_dancing:
-
+The latest version is always running on the following link, for web and mobile:
+<p align="center">
+  <b> :man_dancing: https://discolab.ai/ :man_dancing:</b>
+</p>
 ___
-:magic_wand: DEVELOPERS: DISCO is written fully in JavaScript/TypeScript. Have a look at our [developer guide](DEV.md).
+:magic_wand: **DEVELOPERS:** DISCO is written fully in JavaScript/TypeScript. Have a look at our [developer guide](DEV.md).
 ___
 
 :question: **WHY DISCO?** 
