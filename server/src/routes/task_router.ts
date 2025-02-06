@@ -3,9 +3,11 @@ import type { Request, Response } from 'express'
 import express from 'express'
 import { Set } from 'immutable'
 
-import { Task, serialization } from "@epfml/discojs";
+import type { Task } from "@epfml/discojs";
+import { serialization } from "@epfml/discojs";
 
 import type { TaskSet } from '../task_set.js'
+import { z } from "zod";
 
 const debug = createDebug("server:router:task_router");
 
@@ -28,37 +30,39 @@ export class TaskRouter {
         );
     })
 
-    // POST request to add a new task
-    this.#expressRouter.post("/", async (req, res) => {
-      const raw: unknown = req.body
-      if (typeof raw !== "object" || raw === null) {
-        res.status(400);
-        return;
-      }
-      const { model: encoded, newTask }: Partial<Record<'model' | 'newTask', unknown>> = raw
+		this.#expressRouter.use(express.json());
 
-      if (!serialization.isEncoded(encoded)) {
-        debug("posted model isn't a valid encoding");
-        res.status(400).end();
-        return;
-      }
+		// POST request to add a new task
+		this.#expressRouter.post("/", async (req, res) => {
+			const parsed = await z
+				.object({
+					model: z
+						.array(z.number())
+						.transform((arr) => Uint8Array.from(arr))
+						.transform(serialization.model.decode),
+					task: z
+						.array(z.number())
+						.transform((arr) => Uint8Array.from(arr))
+						.transform(serialization.task.decode),
+				})
+				.safeParseAsync(req.body);
 
-      const parsed = await Task.schema.safeParseAsync(newTask);
-      if (!parsed.success) {
-        debug("posted task failed parsing: %s", parsed.error);
-        res.status(400).end();
-        return;
-      }
+			if (!parsed.success) {
+				debug("posted task isn't valid: %s", parsed.error);
+				res.status(400).end();
+				return;
+			}
+			const { model, task } = parsed.data;
 
-      try {
-        await this.#taskSet.addTask(parsed.data, encoded);
-      } catch (e) {
-        debug("add task failed with: %o", e);
-        res.status(500).end();
-      }
+			try {
+				await this.#taskSet.addTask(task, model);
+			} catch (e) {
+				debug("add task failed with: %o", e);
+				res.status(500).end();
+			}
 
-      res.status(200).end("Successful task upload");
-    })
+			res.status(200).end("Successful task upload");
+		});
 
     this.#taskSet.on("newTask", ([task]) => {
       this.#expressRouter.get(`/${task.id}/:file`, (req, res) =>

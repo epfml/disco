@@ -61,9 +61,7 @@ it("submits with tabular task", () => {
   cy.get("button[type='submit']").click();
 
   cy.wait("@posted")
-    .its("request.body")
-    .then((body) => JSON.parse(body))
-    .its("task")
+    .its("request.body.task")
     .then(serialization.task.decode)
     .should("deep.equal", {
       id: "id",

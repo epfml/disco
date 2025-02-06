@@ -18,10 +18,10 @@ export async function pushTask<D extends DataType>(
 ): Promise<void> {
   const response = await fetch(urlToTasks(base), {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       task: [...serialization.task.encode(task)],
-      model: await serialization.model.encode(model),
-      weights: await serialization.weights.encode(model.weights),
+      model: [...await serialization.model.encode(model)],
     }),
   });
   if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`);
