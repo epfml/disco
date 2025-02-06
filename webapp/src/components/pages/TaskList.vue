@@ -2,7 +2,7 @@
   <div class="space-y-8 mt-4">
       <!-- In case no tasks were retrieved, suggest reloading the page -->
       <ButtonsCard
-        v-if="taskStore.status == 'failed'"
+        v-if="sortedTasks === 'failed'"
         :buttons="List.of(['reload page', () => router.go(0)])"
         class="mx-auto"
       >
@@ -15,8 +15,7 @@
         class="contents"
         v-else
       >
-        <div class="max-w-[700px] lg:max-w-full mx-auto flex flex-col lg:flex-row justify-center items-start"
-        >
+        <div class="max-w-[700px] lg:max-w-full mx-auto flex flex-col lg:flex-row justify-center items-start">
         <!-- swap ordering with screen width to ensure text is at the top on narrow screens and on the right on wide ones-->
           <div class="order-1 lg:order-2 px-4 pb-4 lg:p-0 lg:max-w-[300px] 2xl:max-w-[350px]">
             <p class="text-xl font-bold text-heading-light dark:text-heading-dark">
@@ -34,7 +33,7 @@
             </p>
           </div>
           <div
-            v-if="taskStore.status == 'loading'"
+            v-if="sortedTasks === 'loading'"
             class="order-2 lg:order-1 my-10 flex flex-col justify-center items-center w-[700px]"
           >
             <VueSpinner size="50" color="#6096BA"/>
@@ -105,12 +104,16 @@ import DISCOllaboratives from '@/components/simple/DISCOllaboratives.vue'
 const router = useRouter()
 const trainingStore = useTrainingStore()
 const tutorialStore = useTutorialStore();
-const taskStore = useTasksStore()
-const { tasks } = storeToRefs(taskStore)
+const { tasks } = storeToRefs(useTasksStore())
 
-const sortedTasks = computed(() => [...tasks.value.values()].sort(
-  (task1, task2) => task1.displayInformation.title.localeCompare(task2.displayInformation.title)
-))
+const sortedTasks = computed(() => {
+  if (typeof tasks.value === "string") return tasks.value;
+  return [...tasks.value.values()].sort((task1, task2) =>
+    task1.displayInformation.title.localeCompare(
+      task2.displayInformation.title,
+    ),
+  );
+});
 
 function getSchemeColor(task: Task<DataType>): string {
   switch (task.trainingInformation.scheme) {

@@ -55,20 +55,14 @@
 </template>
 
 <script lang="ts" setup>
-import createDebug from "debug";
-import { RouterView, useRoute } from 'vue-router'
+import { RouterView, useRoute } from "vue-router";
 
-import { useTasksStore, useThemeStore } from "@/store";
-import BaseLayout from './containers/BaseLayout.vue'
-import SideBar from '@/components/sidebar/SideBar.vue'
+import { useThemeStore } from "@/store";
+import BaseLayout from "./containers/BaseLayout.vue";
+import SideBar from "@/components/sidebar/SideBar.vue";
 
-const debug = createDebug("webapp:App");
-
-const route = useRoute()
-
-const tasksStore = useTasksStore()
-tasksStore.initTasks().catch((e) => debug("while init tasks: %o", e));
+const route = useRoute();
 
 const themeStore = useThemeStore();
-const themeClass = themeStore.selectByTheme("", "dark")
+const themeClass = themeStore.selectByTheme("", "dark");
 </script>

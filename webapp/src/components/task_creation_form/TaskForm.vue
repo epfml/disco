@@ -401,6 +401,7 @@
 
 <script lang="ts" setup>
 import createDebug from "debug";
+import { storeToRefs } from "pinia";
 import { FieldArray, Form } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { ref } from "vue";
@@ -416,6 +417,7 @@ import { CONFIG } from "@/config";
 import IconCard from "@/components/containers/IconCard.vue";
 import CustomButton from "@/components/simple/CustomButton.vue";
 import DISCOllaboratives from "@/components/simple/DISCOllaboratives.vue";
+import { useTasksStore } from "@/store";
 
 import FormField from "./FormField.vue";
 import FormLabel from "./FormLabel.vue";
@@ -423,6 +425,7 @@ import FileSelection from "../dataset_input/FileSelection.vue";
 
 const debug = createDebug("webapp:TaskForm");
 const toaster = useToaster();
+const { tasks } = storeToRefs(useTasksStore())
 
 const dataType = ref();
 
@@ -551,5 +554,11 @@ async function onSubmit(form: unknown): Promise<void> {
     return;
   }
   toaster.success("Task successfully submitted");
+
+  if (typeof tasks.value === "string") {
+    debug("tasks store not available, skipping adding task to it");
+    return;
+  }
+  tasks.value = tasks.value.set(task.id, task);
 }
 </script>
