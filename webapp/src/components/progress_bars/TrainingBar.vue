@@ -111,6 +111,7 @@
 </template>
 
 <script lang="ts" setup>
+import { storeToRefs } from "pinia";
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
@@ -129,15 +130,15 @@ import TrainingButtons from './TrainingButtons.vue'
 const router = useRouter()
 const route = useRoute()
 const toaster = useToaster()
-const tasksStore = useTasksStore()
+const { tasks } = storeToRefs(useTasksStore());
 const trainingStore = useTrainingStore()
 
 const title = computed(() => {
-  if (trainingStore.task === undefined) return undefined
-  const task = tasksStore.tasks.get(trainingStore.task)
-  return task?.displayInformation?.title
-
-})
+  if (trainingStore.task === undefined) return undefined;
+  if (typeof tasks.value === "string") return undefined;
+  const task = tasks.value.get(trainingStore.task);
+  return task?.displayInformation.title;
+});
 
 const displayTitle = computed(() => route.fullPath !== '/list')
 

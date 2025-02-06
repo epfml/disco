@@ -26,6 +26,7 @@
 </template>
 
 <script lang="ts" setup>
+import { storeToRefs } from "pinia";
 import { computed, onMounted, ref, toRaw, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
@@ -50,7 +51,7 @@ import { useTasksStore, useTrainingStore } from "@/store";
 const router = useRouter();
 const route = useRoute();
 const trainingStore = useTrainingStore();
-const tasksStore = useTasksStore();
+const { tasks } = storeToRefs(useTasksStore());
 
 // task ID given by the route
 const props = defineProps<{
@@ -64,9 +65,8 @@ function setupTrainingStore() {
 // Init the task once the taskStore has been loaded successfully
 // If it is not we redirect to the task list
 const task = computed<Task<DataType> | undefined>(() => {
-  if (tasksStore.status == "success") {
-    return tasksStore.tasks.get(props.id);
-  }
+  if (typeof tasks.value !== "string") return tasks.value.get(props.id);
+
   // Redirect to the task list if not loaded yet
   // This happens when refreshing the page, every task are reset when fetched
   if (route.name !== "task-list") {

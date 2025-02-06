@@ -78,7 +78,7 @@
           </template>
 
           <div
-            v-if="tasksStore.status == 'loading'"
+            v-if="federatedTasks === 'loading'"
             class="my-10 flex flex-col justify-center items-center"
           >
             <VueSpinner size="50" color="#6096BA" />
@@ -87,7 +87,11 @@
               <p class="text-disco-blue text-xs">This can take a few seconds</p>
             </div>
           </div>
-          <div v-else-if="federatedTasks.size > 0">
+          <div
+            v-else-if="
+              typeof federatedTasks !== 'string' && federatedTasks.size > 0
+            "
+          >
             Select any model below to download it. For federated tasks only. The
             models listed are not currently stored in your browser's memory, but
             are available and downloadable from the remote Disco server.
@@ -144,6 +148,7 @@
 <script lang="ts" setup>
 import createDebug from "debug";
 import { List } from "immutable";
+import { storeToRefs } from "pinia";
 import { computed, ref, onActivated } from "vue";
 import { RouterLink } from "vue-router";
 import { VueSpinner } from "vue3-spinners";
@@ -171,7 +176,7 @@ import PredictSteps from "./PredictSteps.vue";
 const debug = createDebug("webapp:ModelLibrary");
 const validationStore = useValidationStore();
 const models = useModelsStore();
-const tasksStore = useTasksStore();
+const { tasks } = storeToRefs(useTasksStore());
 const toaster = useToaster();
 
 type Selection<D extends DataType> = {
@@ -182,10 +187,13 @@ type Selection<D extends DataType> = {
 };
 const selection = ref<Selection<DataType>>();
 
-const federatedTasks = computed(() =>
-  tasksStore.tasks
-    .filter((t) => t.trainingInformation.scheme === "federated")
-    .toList(),
+const federatedTasks = computed<"loading" | "failed" | List<Task<DataType>>>(
+  () => {
+    if (typeof tasks.value === "string") return tasks.value;
+    return tasks.value
+      .filter((t) => t.trainingInformation.scheme === "federated")
+      .toList();
+  },
 );
 
 const sortedModelsInfos = computed(() => {
@@ -263,7 +271,9 @@ async function selectModel(
 
   const taskID = models.infos.get(modelID)?.taskID;
   if (taskID === undefined) throw new Error("task ID for model ID not found");
-  const task = tasksStore.tasks.get(taskID);
+  if (typeof tasks.value === "string")
+    throw new Error("task store not available");
+  const task = tasks.value.get(taskID);
   if (task === undefined) throw new Error("task not found");
 
   selection.value = { mode, model, task };
@@ -280,9 +290,9 @@ async function removeModel(modelID: ModelID): Promise<void> {
 }
 
 function taskTitle(taskID: string): string | undefined {
-  if (tasksStore.status !== "success") return undefined;
+  if (typeof tasks.value === "string") return undefined;
 
-  const titled = tasksStore.tasks.get(taskID);
+  const titled = tasks.value.get(taskID);
   if (titled === undefined)
     throw new Error("Task title not found for task id: " + taskID);
 

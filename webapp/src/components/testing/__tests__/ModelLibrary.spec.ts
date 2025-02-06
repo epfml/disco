@@ -1,3 +1,6 @@
+import { Map } from "immutable";
+
+import { storeToRefs } from "pinia";
 import { afterEach, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
@@ -46,10 +49,9 @@ it("shows stored models", async () => {
     },
   });
 
-  const tasks = useTasksStore();
-  tasks.status = "success";
-  tasks.addTask(TASK);
-  await nextTick();
+  const { tasks } = storeToRefs(useTasksStore());
+  await flushPromises();
+  tasks.value = Map([[TASK.id, TASK]])
 
   const models = useModelsStore();
   await models.add("task", new discoModels.GPT());
@@ -83,8 +85,9 @@ it("allows to download server's models", async () => {
     },
   });
 
-  const tasks = useTasksStore();
-  await tasks.initTasks();
+	// load tasks
+	const { tasks } = storeToRefs(useTasksStore());
+	while (tasks.value === "loading") await flushPromises();
 
   expect(wrapper.get("button").text()).to.equal("download");
   await wrapper.get("button").trigger("click");
