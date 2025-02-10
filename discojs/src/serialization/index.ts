@@ -4,3 +4,12 @@ export * as weights from './weights.js'
 
 export type { Encoded } from "./coder.js";
 export { isEncoded } from "./coder.js";
+
+export type JSON =
+	| null
+	| undefined
+	| boolean
+	| number
+	| string
+	| JSON[]
+	| { [_: string]: JSON };

@@ -61,9 +61,7 @@ export namespace TrainingInformation {
     }),
     text: baseSchema.extend({
       // should be set with the name of a Transformers.js pre-trained tokenizer, e.g., 'Xenova/gpt2'.
-      tokenizer: z
-        .string()
-        .transform((name) => Tokenizer.from_pretrained(name)),
+      tokenizer: z.instanceof(Tokenizer),
       // the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
       // truncate strings to a maximum length. The default value is tokenizer.model_max_length
       contextLength: z.number().positive().int(),

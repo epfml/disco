@@ -3,11 +3,10 @@ import { expect } from "chai";
 import { serialization, defaultTasks } from "../index.js";
 
 it("can encode what it decodes", async () => {
-  const task = await defaultTasks.wikitext.getTask();
+	const task = await defaultTasks.wikitext.getTask();
 
-  const encoded = serialization.task.encode(task);
-  expect(serialization.isEncoded(encoded)).to.be.true;
-  const decoded = await serialization.task.decode(encoded);
+	const serialized = serialization.task.serializeToJSON(task);
+	const deserialized = await serialization.task.deserializeFromJSON(serialized);
 
-  expect(decoded).to.be.deep.equal(task);
+	expect(deserialized).to.be.deep.equal(task);
 });

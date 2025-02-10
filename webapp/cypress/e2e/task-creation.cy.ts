@@ -62,7 +62,7 @@ it("submits with tabular task", () => {
 
   cy.wait("@posted")
     .its("request.body.task")
-    .then(serialization.task.decode)
+    .then(serialization.task.deserializeFromJSON)
     .should("deep.equal", {
       id: "id",
       dataType: "tabular",

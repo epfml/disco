@@ -9,9 +9,11 @@ export namespace Task {
   export type ID = string;
 }
 
-const baseSchema = z.object({
-  id: z.string(),
-});
+const baseSchema = z
+	.object({
+		id: z.string(),
+	})
+	.strict();
 
 export namespace Task {
   export const schemas = {
