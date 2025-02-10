@@ -7,7 +7,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import { createPersistedStatePlugin } from "pinia-plugin-persistedstate-2";
 
-import { models as discoModels, serialization, Task } from "@epfml/discojs";
+import { models as discoModels, serialization, Task, Tokenizer } from "@epfml/discojs";
 
 import { CONFIG } from "@/config";
 import { useModelsStore } from "@/store";
@@ -15,7 +15,7 @@ import { useTasksStore } from "@/store";
 
 import ModelLibrary from "../ModelLibrary.vue";
 
-const TASK = await Task.schema.parseAsync({
+const TASK = Task.schema.parse({
   id: "task",
   dataType: "text",
   displayInformation: {
@@ -23,7 +23,7 @@ const TASK = await Task.schema.parseAsync({
     summary: { preview: "", overview: "" },
   },
   trainingInformation: {
-    tokenizer: "Xenova/gpt2",
+    tokenizer: await Tokenizer.from_pretrained("Xenova/gpt2"),
     tensorBackend: "gpt",
     scheme: "federated",
     minNbOfParticipants: 1,
@@ -64,7 +64,7 @@ it("allows to download server's models", async () => {
   vi.stubGlobal("fetch", async (url: string | URL) => {
     if (url.toString() === new URL("tasks", CONFIG.serverUrl).href)
       return new Response(
-        JSON.stringify([[...serialization.task.encode(TASK)]]),
+        JSON.stringify([serialization.task.serializeToJSON(TASK)]),
       );
     throw new Error(`unhandled get: ${url}`);
   });

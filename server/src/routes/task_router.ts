@@ -25,7 +25,7 @@ export class TaskRouter {
         .status(200)
         .send(
           this.#taskSet.tasks
-            .map(([t, _]) => [...serialization.task.encode(t)])
+            .map(([t, _]) => serialization.task.serializeToJSON(t))
             .toArray(),
         );
     })
@@ -40,10 +40,7 @@ export class TaskRouter {
 						.array(z.number())
 						.transform((arr) => Uint8Array.from(arr))
 						.transform(serialization.model.decode),
-					task: z
-						.array(z.number())
-						.transform((arr) => Uint8Array.from(arr))
-						.transform(serialization.task.decode),
+					task: z.any().transform(serialization.task.deserializeFromJSON),
 				})
 				.safeParseAsync(req.body);
 

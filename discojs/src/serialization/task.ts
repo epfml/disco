@@ -1,33 +1,41 @@
+import { z } from "zod";
 import type { DataType } from "../index.js";
-import { Task } from "../index.js";
+import { Task, Tokenizer } from "../index.js";
 
-import { Encoded } from "./coder.js";
-import * as coder from "./coder.js";
+import type { JSON } from "./index.js";
 
-export function encode(task: Task<DataType>): Encoded {
-  let serialized;
-  switch (task.dataType) {
-    case "image":
-    case "tabular":
-      serialized = task;
-      break;
-    case "text": {
-      serialized = {
-        ...task,
-        trainingInformation: {
-          ...task.trainingInformation,
-          tokenizer: task.trainingInformation.tokenizer.name,
-        },
-      };
-      break;
-    }
-  }
-
-  return coder.encode(serialized);
+export function serializeToJSON(task: Task<DataType>): JSON {
+	switch (task.dataType) {
+		case "image":
+		case "tabular":
+			return task;
+		case "text": {
+			return {
+				...task,
+				trainingInformation: {
+					...task.trainingInformation,
+					tokenizer: task.trainingInformation.tokenizer.name,
+				},
+			};
+		}
+	}
 }
 
-export async function decode(encoded: Encoded): Promise<Task<DataType>> {
-  const raw = coder.decode(encoded);
-  const task = await Task.schema.parseAsync(raw);
-  return task;
+export async function deserializeFromJSON(
+	serialized: JSON,
+): Promise<Task<DataType>> {
+	return await z
+		.object({
+			trainingInformation: z
+				.object({
+					tokenizer: z
+						.string()
+						.transform((name) => Tokenizer.from_pretrained(name))
+						.optional(),
+				})
+				.passthrough(),
+		})
+		.passthrough()
+		.pipe(Task.schema)
+		.parseAsync(serialized);
 }

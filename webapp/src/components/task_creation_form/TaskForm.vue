@@ -410,7 +410,7 @@ import * as z from "zod";
 import { isSet } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 
-import { models, pushTask, Task } from "@epfml/discojs";
+import { models, pushTask, Task, Tokenizer } from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster";
 import { CONFIG } from "@/config";
@@ -425,7 +425,7 @@ import FileSelection from "../dataset_input/FileSelection.vue";
 
 const debug = createDebug("webapp:TaskForm");
 const toaster = useToaster();
-const { tasks } = storeToRefs(useTasksStore())
+const { tasks } = storeToRefs(useTasksStore());
 
 const dataType = ref();
 
@@ -469,40 +469,41 @@ const schema =
     Task.schema.discriminator,
     // options.map doesn't keep size
     [
-      Task.schema.options[0]
+      Task.schemas.image
         .merge(
           z.object({
             trainingInformation:
-              Task.schema.options[0].shape.trainingInformation.merge(
+              Task.schemas.image.shape.trainingInformation.merge(
                 TFJSBackendSchema,
               ),
           }),
         )
         .merge(TFJSModelSchema),
-      Task.schema.options[1]
+      Task.schemas.tabular
         .merge(
           z.object({
             trainingInformation:
-              Task.schema.options[1].shape.trainingInformation.merge(
+              Task.schemas.tabular.shape.trainingInformation.merge(
                 TFJSBackendSchema,
               ),
           }),
         )
         .merge(TFJSModelSchema),
-      Task.schema.options[2]
+      Task.schemas.text
         .merge(
           z.object({
-            trainingInformation:
-              Task.schema.options[2].shape.trainingInformation.merge(
-                TFJSBackendSchema,
-              ),
+            trainingInformation: Task.schemas.text.shape.trainingInformation
+              .merge(TFJSBackendSchema)
+              .extend({
+                tokenizer: z
+                  .string()
+                  .transform((name) => Tokenizer.from_pretrained(name)),
+              }),
           }),
         )
         .merge(TFJSModelSchema),
     ],
   );
-// @ts-expect-error all options are used
-Task.schema.options[3];
 
 async function onSubmit(form: unknown): Promise<void> {
   // TODO double check as @submit isn't generic vee-validate#4845
