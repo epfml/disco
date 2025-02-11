@@ -16,10 +16,8 @@
             class="text-blue-500 hover:underline"
             href="https://www.epfl.ch/labs/mlo/"
             target="_blank"
-          >
-            MLO
-          </a>
-          (Machine Learning and Optimization Laboratory) at
+          >MLO</a>
+          (Machine Learning and Optimization Laboratory) hosted at
           <a
             href="https://www.epfl.ch/"
             class="text-blue-500 hover:underline"
@@ -30,22 +28,19 @@
         <li>
           <a
             class="text-blue-500 hover:underline"
-            href="https://www.yale-light.org/"
+            href="https://www.light-laboratory.org/"
             target="_blank"
-          >
-            LiGHT
-          </a>
+          >LiGHT</a>
           (Laboratory for Intelligent Global Health & Humanitarian Response
-          Technologies) at
+          Technologies) hosted at
           <a
-            href="https://www.yale.edu/"
+            href="https://www.ariadnelabs.org/"
             class="text-blue-500 hover:underline"
             target="_blank"
-            >Yale</a
-          >, US
+            >AriadneLabs</a
+          >, Boston, USA
         </li>
       </ul>
-
       <br />
       <p>
         <DISCO /> relies on public funds and its code is open-source and
@@ -55,9 +50,13 @@
           class="text-blue-500 hover:underline"
           target="_blank"
           >Github</a
-        >.
-        <br />
-        Your support and feedback would be greatly appreciated.
+        >. You can reach out to us by email at 
+        <a
+          href="mailto:discolab@listes.epfl.ch"
+          class="text-blue-500 hover:underline"
+          target="_blank"
+          >discolab AT listes.epfl.ch</a>.<br/>
+        Your support and feedback is greatly appreciated.
       </p>
 
       <!-- Lab logos -->
@@ -69,17 +68,17 @@
             href="https://www.epfl.ch/labs/mlo/"
             target="_blank"
           >
-            <LogoMLO class="w-full h-20 lg:h-48" :color="mloTextColor" />
+            <MLOLogo class="w-full h-20 lg:h-48"/>
           </a>
         </div>
         <!-- LiGHT logo -->
         <div class="flex flex-col items-center mb-1">
           <a
             class="hover:mouse-pointer"
-            href="https://www.yale-light.org/"
+            href="https://www.light-laboratory.org/"
             target="_blank"
           >
-            <LogoLight class="w-full h-20 lg:h-48" />
+            <LightLogo class="w-full h-20 lg:h-48" />
           </a>
         </div>
       </div>
@@ -90,26 +89,6 @@
 <script lang="ts" setup>
 import DISCO from "@/components/simple/DISCO.vue";
 import IconCard from "@/components/containers/IconCard.vue";
-import LogoMLO from "@/assets/svg/MLOLogo.vue";
-import LogoLight from "@/assets/svg/LightLogo.vue";
-import { ref, watch } from "vue";
-import { useThemeStore } from "@/store/theme";
-
-const mloTextColor = ref("#000000");
-
-const themeStore = useThemeStore();
-
-watch(
-  () => themeStore.currentTheme,
-  (newValue) => {
-    console.log(newValue);
-    if (newValue === "light") {
-      mloTextColor.value = "#000000";
-      console.log("color", mloTextColor.value);
-    } else {
-      mloTextColor.value = "#ffffff";
-      console.log("dark color", mloTextColor.value);
-    }
-  },
-);
+import MLOLogo from "@/assets/logos/MLOLogo.vue";
+import LightLogo from "@/assets/logos/LightLogo.vue";
 </script>
