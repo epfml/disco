@@ -2,7 +2,7 @@
   <svg
     width="100%"
     height="100%"
-    viewBox="0 0 680 300"
+    viewBox="70 40 530 245"
     version="1.1"
     xmlns="http://www.w3.org/2000/svg"
     xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -17,8 +17,6 @@
   >
     <g transform="matrix(1,0,0,1,0,-366)">
       <g
-        id="Logo-boule"
-        serif:id="Logo boule"
         transform="matrix(1,0,0,1,0,366)"
       >
         <rect x="0" y="0" width="680" height="300" style="fill: none" />
@@ -60,9 +58,3 @@
     </g>
   </svg>
 </template>
-
-<script lang="ts">
-export default {
-  name: "LogoDisco",
-};
-</script>

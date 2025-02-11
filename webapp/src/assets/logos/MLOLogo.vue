@@ -213,11 +213,6 @@
 </template>
 
 <script lang="ts" setup>
-defineProps<{
-  color: string;
-}>();
-
-defineOptions({
-  name: "LogoMLO",
-});
+  import getThemeColor from './getThemeColor';
+  const color = getThemeColor("#333", "#eee");
 </script>

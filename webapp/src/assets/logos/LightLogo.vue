@@ -56,9 +56,3 @@
     </g>
   </svg>
 </template>
-
-<script lang="ts">
-export default {
-  name: "LogoLight",
-};
-</script>
