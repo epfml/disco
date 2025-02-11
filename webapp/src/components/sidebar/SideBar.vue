@@ -33,13 +33,13 @@
         <SidebarButton
           to=""
           :text="
-            currentTheme === 'light'
+            themeStore.current === 'light'
               ? 'Switch to Dark Mode'
               : 'Switch to Light Mode'
           "
           @click="toggleDarkMode"
         >
-          <MoonIcon v-if="currentTheme === 'light'" />
+          <MoonIcon v-if="themeStore.current === 'light'" />
           <SunIcon v-else />
         </SidebarButton>
       </div>
@@ -47,7 +47,6 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
 import { RouterLink } from "vue-router";
 
 import HomeIcon from "@/assets/svg/HomeIcon.vue";
@@ -59,24 +58,11 @@ import DISCO from "@/components/simple/DISCO.vue";
 import SidebarButton from "./SidebarButton.vue";
 import MoonIcon from "@/assets/svg/MoonIcon.vue";
 import SunIcon from "@/assets/svg/SunIcon.vue";
-import { useThemeStore } from "@/store/theme";
-
-const currentTheme = ref(localStorage.getItem("theme") || "light");
+import { useThemeStore } from "@/store";
 
 const themeStore = useThemeStore();
-themeStore.currentTheme = currentTheme.value;
-// Apply the initial theme on mount
-onMounted(() => {
-  if (currentTheme.value === "dark") {
-    document.documentElement.classList.add("dark");
-  }
-});
 // Function to toggle the dark mode
 const toggleDarkMode = () => {
-  const newTheme = currentTheme.value === "light" ? "dark" : "light";
-  document.documentElement.classList.toggle("dark", newTheme === "dark");
-  localStorage.setItem("theme", newTheme);
-  currentTheme.value = newTheme;
-  themeStore.toggleTheme();
+  themeStore.current = (themeStore.current === "light") ? "dark" : "light";
 };
 </script>

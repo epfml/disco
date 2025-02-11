@@ -4,3 +4,4 @@ export { useModelsStore } from "./models";
 export { useTasksStore } from "./tasks";
 export { useTrainingStore } from "./training";
 export { useValidationStore } from "./validation";
+export { useThemeStore } from "./theme";

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :class="[themeClass]">
     <!-- Global container for the screen -->
     <div
       class="
@@ -57,14 +57,17 @@
 import createDebug from "debug";
 import { RouterView, useRoute } from 'vue-router'
 
-import { useTasksStore } from "@/store";
+import { useTasksStore, useThemeStore } from "@/store";
 import BaseLayout from './containers/BaseLayout.vue'
 import SideBar from '@/components/sidebar/SideBar.vue'
 
 const debug = createDebug("webapp:App");
 
 const route = useRoute()
-const tasksStore = useTasksStore()
 
+const tasksStore = useTasksStore()
 tasksStore.initTasks().catch((e) => debug("while init tasks: %o", e));
+
+const themeStore = useThemeStore();
+const themeClass = themeStore.selectByTheme("", "dark")
 </script>

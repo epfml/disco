@@ -147,16 +147,12 @@
 </template>
 
 <script lang="ts" setup>
-  import getThemeColor from './getThemeColor';
-  const color = getThemeColor("#343433", "#eee");
+  import { useThemeStore } from "@/store";
+  const themeStore = useThemeStore();
+  const color = themeStore.selectByTheme("#343433", "#eee");
 </script>
 
 
 <style scoped>
   .st0{fill:v-bind('color');}
-  .st1{fill:#545554;}
-  .st2{fill:#3E3E3D;}
-  .st3{fill:#4D4C4D;}
-  .st4{fill:#5D5D5D;}
-  .st5{fill:#717272;}
 </style>

@@ -119,8 +119,9 @@
 </template>
 
 <script lang="ts" setup>
-  import getThemeColor from './getThemeColor';
-  const color = getThemeColor("#6d6e71", "#eee");
+  import { useThemeStore } from "@/store";
+  const themeStore = useThemeStore();
+  const color = themeStore.selectByTheme("#6d6e71", "#eee");
 </script>
 
 
