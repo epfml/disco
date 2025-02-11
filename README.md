@@ -12,6 +12,7 @@ The latest version is always running on the following link, for web and mobile:
 <p align="center">
   <b> :man_dancing: https://discolab.ai/ :man_dancing:</b>
 </p>
+
 ___
 :magic_wand: **DEVELOPERS:** DISCO is written fully in JavaScript/TypeScript. Have a look at our [developer guide](DEV.md).
 ___
