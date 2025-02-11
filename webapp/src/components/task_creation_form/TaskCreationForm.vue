@@ -1,14 +1,5 @@
 <template>
   <div class="flex flex-col cards-gap">
-    <div class="rounded-md py-2 px-4 bg-purple-200">
-      <div class="flex flex-row flex-wrap justify-center gap-x-4 items-center">
-        <InfoIcon custom-class="min-w-6 min-h-6 w-6 h-6 text-slate-600" />
-        <p class="text-slate-600 text-xs pt-1">
-          Adding custom tasks is not available in this live demo.
-        </p>
-      </div>
-    </div>
-
     <IconCard>
       <template #title
         ><span>Create your own <DISCOllaborative /></span
@@ -459,7 +450,6 @@ import * as tf from "@tensorflow/tfjs";
 
 import { models, pushTask, Task, Tokenizer } from "@epfml/discojs";
 
-import InfoIcon from "@/assets/svg/InfoIcon.vue";
 import { useToaster } from "@/composables/toaster";
 import { CONFIG } from "@/config";
 import IconCard from "@/components/containers/IconCard.vue";
