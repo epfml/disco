@@ -431,8 +431,38 @@ const dataType = ref();
 
 const TFJSModelSchema = z.object({
   model: z.object({
-    loss: z.string(),
-    optimizer: z.string(),
+    // from https://github.com/tensorflow/tfjs/blob/master/tfjs-layers/src/losses.ts#L242
+    loss: z.enum([
+      "meanSquaredError",
+      "meanAbsoluteError",
+      "meanAbsolutePercentageError",
+      "meanSquaredLogarithmicError",
+      "squaredHinge",
+      "hinge",
+      "categoricalHinge",
+      "logcosh",
+      "categoricalCrossentropy",
+      "sparseCategoricalCrossentropy",
+      "binaryCrossentropy",
+      "kullbackLeiblerDivergence",
+      "poisson",
+      "cosineProximity",
+    ]),
+    // from https://github.com/tensorflow/tfjs/blob/master/tfjs-layers/src/optimizers.ts
+    optimizer: z.enum([
+      "Adagrad",
+      "adagrad",
+      "Adadelta",
+      "adadelta",
+      "Adam",
+      "adam",
+      "Adamax",
+      "adamax",
+      "RMSProp",
+      "rmsprop",
+      "SGD",
+      "sgd",
+    ]),
     topology: z.unknown().transform((files, ctx) => {
       if (files === undefined) {
         ctx.addIssue({
@@ -495,9 +525,18 @@ const schema =
             trainingInformation: Task.schemas.text.shape.trainingInformation
               .merge(TFJSBackendSchema)
               .extend({
-                tokenizer: z
-                  .string()
-                  .transform((name) => Tokenizer.from_pretrained(name)),
+                tokenizer: z.string().transform(async (name, ctx) => {
+                  try {
+                    return await Tokenizer.from_pretrained(name);
+                  } catch (e) {
+                    console.log("tokenizer error:", e);
+                    ctx.addIssue({
+                      code: z.ZodIssueCode.custom,
+                      message: "Unable to load tokenizer from HuggingFace",
+                    });
+                    return z.NEVER;
+                  }
+                }),
               }),
           }),
         )
