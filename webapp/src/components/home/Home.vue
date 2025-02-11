@@ -1,179 +1,266 @@
 <template>
-  <div class="flex flex-col justify-between pb-12 h-svh">
-    <div
-      v-if="isVisible"
-      class="flex flex-row flex-wrap justify-between gap-x-4 items-center mb-5 py-2 px-4 bg-purple-200 rounded-md"
-    >
-      <div class="flex flex-row gap-x-4 items-center">
-        <InfoIcon custom-class="min-w-6 min-h-6 w-6 h-6 text-slate-600" />
-        <p class="text-slate-600 text-xs pt-0.5">
-          DISCO is 100% open-source. Use this live demo site to explore and test
-          how it works.
-        </p>
-      </div>
-      <div class="flex flex-row flex-wrap items-center">
-        <a
-          target="_blank"
-          href="https://framaforms.org/disco-feedback-form-1718716636"
-        >
-          <div
-            class="flex flex-row flex-wrap shrink-0 items-center gap-x-2 justify-end"
-          >
-            <p
-              class="text-disco-blue font-bold text-xs hover:underline hover:text-disco-cyan text-end dark:text-disco-dark-cyan"
-            >
-              Give us some feedback
-            </p>
-            <FeedbackIcon custom-class="min-w-8 min-h-8 w-8 h-8" />
-          </div>
-        </a>
-        <IconClose @click="hideBlock" />
-      </div>
-    </div>
-    <!-- Disco logo -->
-    <div class="flex flex-col justify-center items-center space-y-4">
-      <div class="w-full lg:w-2/3 xl:w-3/6">
-        <LogoDisco class="px-4" />
-      </div>
-      <span
-        class="text- xl sm:text-2xl md:text-3xl text-slate-600 dark:text-slate-300"
-      >
-        <span class="font-disco text-disco-cyan font-semibold">DIS</span
-        >tributed
-        <span class="font-disco text-disco-blue font-semibold">CO</span
-        >llaborative Learning
-      </span>
-    </div>
-    <p
-      class="text-xl sm:text-2xl md:text-3xl lg:text-3xl text-slate-600 dark:text-slate-300"
-    >
-      Enables collaborative and privacy-preserving training of machine learning
-      models
-    </p>
-  </div>
-  <!-- Information -->
   <div
-    class="grid grid-cols-1 gap-8 mx-3 lg:mx-4 text-slate-600 dark:text-slate-300"
+    class="mx-0 lg:mx-8 text-slate-600 dark:text-slate-300"
   >
-    <div class="grid grid-cols-1 gap-y-6 lg:grid-cols-2 place-items-center">
-      <RealTimeCollaboration class="w-full h-full lg:w-4/5 h-4/5" />
-      <p class="text-base sm:text-xl md:text-2xl lg:tetx-3xl">
-        Disco is an easy-to-use mobile app and web software that enables
-        collaborative and privacy-preserving training of machine learning
-        models, running directly in your browser. Leveraging federated and
-        decentralized learning, Disco ensures seamless collaboration while
-        maintaining data privacy.
-      </p>
-    </div>
 
-    <div class="grid grid-cols-1 gap-4 place-items-center lg:grid-cols-2">
-      <div class="flex flex-col gap-y-2">
-        <h6
-          class="font-semibold text-justify leading-none text-xl tracking-wider sm:text-2xl md:text-3xl xlg:text-3xl"
+  <!-- First screen -->
+    <div class="mb-20 lg:mb-0 lg:h-dvh flex flex-col justify-around pb-12">
+  <!-- Disco logo -->
+    <div class="flex flex-col justify-center items-center space-y-4">
+        <div class="">
+          <DiscoGIF v-if="themeStore.currentTheme == 'light'" class="pb-4"/>
+          <DiscoLogo v-else class="w-[640px] h-[264px]"/>
+        </div>
+        <span
+          class="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-slate-600 dark:text-slate-300"
         >
-          Federated Learning
-        </h6>
-        <FederatedGIF
-          class="bg-slate-100 rounded-lg border-slate-300 border-4 mt-4 lg:mt-0"
-        />
+          <span class="font-disco text-disco-cyan font-semibold">DIS</span
+          >tributed
+          <span class="font-disco text-disco-blue font-semibold">CO</span
+          >llaborative Learning
+        </span>
       </div>
-      <p class="text-base sm:text-xl md:text-2xl lg:tetx-3xl">
-        The key insight is to share weight updates instead of data - each user
-        trains on their own device and periodically shares weight updates with a
-        central server, while keeping data local at all times. The server will
-        agreggate all these weights between participants, and send them back.
-      </p>
-    </div>
-    <div class="grid grid-cols-1 gap-4 place-items-center lg:grid-cols-2">
-      <div>
-        <p class="text-base sm:text-xl md:text-2xl lg:tetx-3xl">
-          Building upon the same principles as in federated learning,
-          decentralized learning achieved allows collaboration and data privacy
-          without the need for a central coordinator. Updates are shared purely
-          via peer2peer communication. Disco puts users in control of the entire
-          collaborative training process, without a central point of failure.
+      <div class="text-center md:text-left mt-24">
+        <p
+          class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold
+          text-slate-700 dark:text-white leading-9"
+        >
+          Train AI Models Together.<br/>
+          Keep Data Private.
         </p>
-      </div>
-      <div class="flex flex-col gap-y-2">
-        <h6
-          class="font-semibold text-justify leading-none text-xl tracking-wider sm:text-2xl md:text-3xl lg:text-3xl lg:text-right xlg:text-4xl"
+        <p class="text-base sm:text-base md:text-lg lg:text-xl
+          text-slate-600 dark:text-slate-300 mt-3"
         >
-          Decentralized Learning
-        </h6>
-        <DecentralizedGIF
-          class="bg-slate-100 rounded-lg border-slate-300 border-4 mt-4 lg:mt-0"
-        />
+          Build and train AI models without sharing any data. <br/>
+          Machine Learning directly in your browser.
+        </p>
+        <div class="flex justify-center mb-12">
+          <button
+            type="button"
+            @click="goToTaskList()"
+            class="
+            mt-4 px-6 py-3 min-w-[8rem]
+            text-xl text-white tracking-wide
+            bg-orange-400 rounded-xl duration-200
+            hover:scale-105 transform
+            drop-shadow-[0px_0px_5px_rgba(251,146,60,0.5)]
+            hover:drop-shadow-[0px_0px_10px_rgba(251,146,60,0.5)]"
+          >
+            Start training
+          </button>
+        </div>
       </div>
     </div>
 
-    <div class="flex flex-col items-center text-justify gap-y-6">
-      <h6
-        class="font-semibold text-justify leading-none text-xl tracking-wider sm:text-2xl md:text-3xl lg:text-3xl xlg:text-4xl"
-      >
-        Why use Disco?
-      </h6>
-      <div class="grid grid-cols-1 gap-x-8 gap-y-4 lg:grid-cols-3">
-        <div class="flex flex-col">
-          <p class="font-semibold text-lg md:text-xl lg:text-2xl">
-            Supports arbitrary deep learning architectures
-          </p>
-          <span class="text-base md:text-lg lg:text-xl"
-            >Disco supports arbitrary deep learning tasks and model
-            architectures, running on your device via TensorFlow.js</span
-          >
-        </div>
-        <div class="flex flex-col">
-          <p class="font-semibold text-lg md:text-xl lg:text-2xl">
-            Data and model privacy
-          </p>
-          <span class="text-base md:text-lg lg:text-xl">
-            Data privacy by design - no data ever leaves any device. Models
-            updates can be protected by encryption (secure multiparty
-            computation), and by differential privacy.
+<!-- 2nd screen -->
+    <div class="mb-40 lg:mb-0 lg:h-dvh flex flex-col lg:flex-row gap-16 justify-center items-center">
+      <div class="flex flex-col justify-center text-center lg:text-right items-center lg:items-end">
+        <span
+        class="text-4xl lg:text-5xl xl:text-6xl font-semibold
+        text-slate-700 dark:text-white"
+        >
+          Simple by design.
+        </span>
+        <span class="text-lg mt-4">
+          Disco runs fully in your browser.<br/>
+          No need to install anything.<br/>
+          No need to code anything.
+        </span>
+      </div>
+      <MultiDeviceIcon class="w-2/5 h-2/5 min-w-[250px] drop-shadow-[0_5px_5px_rgba(0,0,0,0.25)]"/>
+    </div>
+<!-- 3nd screen -->
+    <div class="mb-40 lg:pb-40 flex flex-col">
+      <div class="flex flex-col items-around justify-start w-full">
+        <div class="mb-8 lg:mb-20 w-full text-center lg:text-left">
+          <span class="text-4xl lg:text-5xl font-semibold text-slate-700 dark:text-white">
+            3 steps.
           </span>
         </div>
-        <div class="flex flex-col">
-          <p class="font-semibold text-lg md:text-xl lg:text-2xl">
-            Runs anywhere
-          </p>
-          <span class="text-base md:text-lg lg:text-xl">
-            Disco runs in the browser, from any device equipped with a modern
-            browser. For developers, we also offer a standalone node.js version,
-            not needing any browser.
-          </span>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-x-16 gap-y-8 place-items-start">
+          <div class="flex flex-col gap-8 justify-center items-center text-center w-full">
+            <span class="text-2xl lg:text-3xl font-semibold text-slate-700 dark:text-white">
+              Connect your data
+            </span>
+            <ConnectDataIcon class="w-[150px] h-[150px] lg:w-[300px] lg:h-[200px] drop-shadow-lg"/>
+          </div>
+          <div class="flex flex-col gap-8 justify-center items-center text-center w-full">
+            <span class="text-2xl lg:text-3xl font-semibold text-slate-700 dark:text-white">
+              Join the session
+            </span>
+            <LaunchIcon class="w-[150px] h-[150px] lg:w-[300px] lg:h-[200px] drop-shadow-md"/>
+          </div>
+          <div class="flex flex-col gap-8 justify-center items-center text-center w-full">
+            <span class="text-2xl lg:text-3xl font-semibold text-slate-700 dark:text-white">
+              Use the model
+            </span>
+            <CompletedIcon class="w-[150px] h-[150px] lg:w-[300px] lg:h-[200px] drop-shadow-md"/>
+          </div>
         </div>
       </div>
     </div>
-    <div class="flex flex-col justify-center">
-      <ButtonsCard
-        class="lg:w-2/6 mx-auto"
-        title-align="center"
-        :buttons="List.of(['get started', goToTaskList])"
-      >
-        <template #title>
-          Train a model and contribute to existing
-          <span title="Click Participate to learn more on DISCOllaboratives">
-            <DISCOllaboratives />
+<!-- 4th screen -->
+    <div class="mb-20 lg:mb-0 lg:h-dvh flex flex-col justify-around">
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 place-items-start">
+        <span
+          class="text-4xl lg:text-5xl font-semibold
+          text-slate-700 dark:text-white text-left"
+          >
+          Your data, your rules.
+        </span>
+        <span class="text-lg w-full md:w-2/3 xl:w-full max-w-[500px]">
+          <b>Your data is never shared and never leave your device.</b><br/>
+          You set your privacy level. Train via federated learning or decentralized learning for extra security, 
+          choose the encryption algorithm and privacy mechanisms.
+        </span>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 place-items-center pb-20 mt-12 lg:mt-0">
+        <div class="flex flex-col items-center">
+          <span class="text-center text-2xl font-semibold">
+            Federated Learning
           </span>
-        </template>
-      </ButtonsCard>
+          <span class="text-center text-lg">
+            More efficient, orchestrated by on a central server
+          </span>
+          <FederatedGIF
+            class="w-full md:w-2/3 lg:w-full mt-4 rounded-lg dark:bg-slate-100 dark:border-slate-300 dark:border-4"
+          />
+        </div>
+        <div class="flex flex-col items-center">
+          <span class="text-center text-2xl font-semibold">
+            Decentralized Learning
+          </span>
+          <span class="text-center text-lg">
+            More secure, peer-to-peer technology
+          </span>
+          <DecentralizedGIF
+            class="w-full md:w-2/3 lg:w-full mt-4 rounded-lg dark:bg-slate-100 dark:border-slate-300 dark:border-4"
+          />
+        </div>
+      </div>
     </div>
-  </div>
+
+<!-- 5th screen -->
+    <div class="mb-40 lg:mb-0 flex flex-col gap-16 justify-center items-center">
+      <div class="w-full flex flex-col justify-center text-center items-center">
+        <span
+        class="text-4xl lg:text-5xl font-semibold
+        text-slate-700 dark:text-white"
+        >
+          Design your own AI model.
+        </span>
+        <span class="text-lg mt-4 w-full lg:w-2/5 max-w-[500px]">
+          Disco supports a wide range of deep learning architectures and tasks ranging from image classification to training Transformers model.
+        </span>
+      </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 place-items-center gap-4 gap-y-8">
+        <span class="text-3xl font-semibold text-slate-700 dark:text-white">
+          Powered by
+        </span>
+          <a 
+            class="flex justify-center"
+            href="https://www.tensorflow.org/js" target="_blank"
+          >
+            <TensorflowLogo class="w-2/3 min-w-[50px]"/>
+          </a>
+          <a
+            class="flex justify-center" 
+            href="https://onnx.ai/" target="_blank"
+          >
+            <ONNXLogo class="w-4/5 min-w-[50px]"/>
+          </a>
+      </div>
+    </div>
+  <!-- 6th screen -->
+    <div class="lg:h-dvh lg:pt-16 flex flex-col gap-16 justify-center items-center">
+      <div class="w-full flex flex-col justify-center text-center items-center lg:items-start lg:text-left">
+        <span
+        class="text-4xl lg:text-5xl font-semibold
+        text-slate-700 dark:text-white"
+        >
+          Free and open source.
+        </span>
+        <span class="text-lg mt-4 w-full lg:w-2/5 max-w-[500px]">
+          Disco is a non-profit academic initiative. <br/>
+          Open-source and free to use.
+        </span>
+      </div>
+        <div class="mt-8 w-full grid grid-cols-1 lg:grid-cols-4 place-items-center gap-x-4 gap-y-16 ">
+          <a
+            class="flex justify-center" 
+            href="https://www.epfl.ch/labs/mlo/" target="_blank"
+          >
+            <MLOLogo class="w-full"/>
+          </a>
+          <a
+            class="flex justify-center ml-4" 
+            href="https://www.light-laboratory.org/" target="_blank"
+          >
+            <LightLogo class="w-4/5"/>
+          </a>
+          <a
+            class="flex justify-center ml-4" 
+            href="https://www.light-laboratory.org/" target="_blank"
+          >
+            <AriadneLabsLogo class="w-full"/>
+          </a>
+          <a
+            class="flex justify-center ml-4" 
+            href="https://www.light-laboratory.org/" target="_blank"
+          >
+            <CMUAfricaLogo class="w-full max-h-[100px]"/>
+          </a>
+      </div>
+      <div class="mb-20 lg:mb-0 flex flex-wrap justify-center gap-x-8">
+          <button
+            type="button"
+            @click="goToTaskList()"
+            class="
+            mt-4 px-6 py-3 min-w-[8rem]
+            text-xl text-white tracking-wide
+            bg-orange-400 rounded-xl duration-200
+            hover:drop-shadow-[0px_0px_10px_rgba(251,146,60,0.5)]"
+          >
+            Get started
+          </button>
+          <a
+            href="mailto:discolab@listes.epfl.ch"
+            target="_blank"
+            class="
+            mt-4 px-6 py-3 min-w-[8rem]
+            text-xl dark:text-white tracking-wide
+            outline outline-1 outline-slate-400 rounded-xl
+            hover:outline-2"
+          >
+            Contact us
+        </a>
+        </div>
+    </div>
+  </div> 
 </template>
 
 <script lang="ts" setup>
-import FeedbackIcon from "@/assets/svg/FeedbackIcon.vue";
-import InfoIcon from "@/assets/svg/InfoIcon.vue";
+import { useRouter } from "vue-router";
+
+import DiscoGIF from "@/assets/gif/DiscoGIF.vue";
+import DiscoLogo from "@/assets/logos/DiscoLogo.vue";
+import TensorflowLogo from "@/assets/logos/TensorflowLogo.vue";
+import ONNXLogo from "@/assets/logos/ONNXLogo.vue";
+import LightLogo from "@/assets/logos/LightLogo.vue";
+import MLOLogo from "@/assets/logos/MLOLogo.vue";
+import AriadneLabsLogo from "@/assets/logos/AriadneLabsLogo.vue";
+import CMUAfricaLogo from "@/assets/logos/CMUAfricaLogo.vue";
+
 import FederatedGIF from "@/assets/gif/FederatedGIF.vue";
 import DecentralizedGIF from "@/assets/gif/DecentralizedGIF.vue";
-import LogoDisco from "@/assets/svg/DiscoLogo.vue";
-import RealTimeCollaboration from "@/assets/svg/RealTimeCollaboration.vue";
-import { useRouter } from "vue-router";
-import { List } from "immutable";
-import DISCOllaboratives from "@/components/simple/DISCOllaboratives.vue";
-import ButtonsCard from "@/components/containers/ButtonsCard.vue";
-import { ref } from "vue";
-import IconClose from "@/assets/svg/CloseIcon.vue";
+
+import ConnectDataIcon from "@/assets/svg/ConnectDataIcon.vue";
+import CompletedIcon from "@/assets/svg/CompletedIcon.vue";
+import LaunchIcon from "@/assets/svg/LaunchIcon.vue";
+import MultiDeviceIcon from "@/assets/svg/MultiDeviceIcon.vue";
+import { useThemeStore } from "@/store/theme";
+
+const themeStore = useThemeStore();
 
 const router = useRouter();
 
@@ -181,9 +268,4 @@ function goToTaskList(): void {
   router.push({ path: "/list" });
 }
 
-const isVisible = ref(true);
-
-function hideBlock(): void {
-  isVisible.value = false;
-}
 </script>

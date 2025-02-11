@@ -42,8 +42,8 @@
                 class="
                 mt-4 px-6 py-2 min-w-[8rem]
                 text-xl uppercase text-white
-                bg-orange-400 rounded duration-200
-                hover:bg-white hover:outline hover:outline-orange-400 hover:outline-2 hover:text-orange-400"
+                bg-disco-orange rounded duration-200
+                hover:bg-white hover:outline hover:outline-disco-orange hover:outline-2 hover:text-disco-orange"
               >
                 start training
               </button>
