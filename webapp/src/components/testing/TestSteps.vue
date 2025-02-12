@@ -306,13 +306,6 @@ async function startTest(): Promise<void> {
     return;
   }
 
-  // TODO processing can hog the browser when big enough
-  // this allow other computations to run
-  // will be fixed by using WebWorker
-  const slowedDataset = toRaw(dataset.value).map(
-    (e) => new Promise((resolve) => setTimeout(() => resolve(e), 100)),
-  );
-
   toaster.info("Model testing started");
   try {
     switch (props.task.dataType) {
@@ -320,21 +313,21 @@ async function startTest(): Promise<void> {
         await startImageTest(
           toRaw(props.task) as Task<"image">,
           toRaw(props.model) as Model<"image">,
-          slowedDataset as LabeledDataset["image"],
+          toRaw(dataset.value) as LabeledDataset["image"],
         );
         break;
       case "tabular":
         await startTabularTest(
           toRaw(props.task) as Task<"tabular">,
           toRaw(props.model) as Model<"tabular">,
-          slowedDataset as LabeledDataset["tabular"],
+          toRaw(dataset.value) as LabeledDataset["tabular"],
         );
         break;
       case "text":
         await startTextTest(
           toRaw(props.task) as Task<"text">,
           toRaw(props.model) as Model<"text">,
-          slowedDataset as LabeledDataset["text"],
+          toRaw(dataset.value) as LabeledDataset["text"],
         );
         break;
     }
@@ -457,7 +450,13 @@ async function startTextTest(
     for await (const { predicted, truth } of validator.test(dataset)) {
       results = results.push({ output: { correct: predicted === truth } });
       tested.value = results as Tested[D];
+
       if (controller.value.signal.aborted) break;
+
+      // TODO processing can hog the browser when big enough
+      // this allow other computations to run
+      // will be fixed by using WebWorker
+      await new Promise<void>((resolve) => setTimeout(() => resolve(), 100));
     }
   } finally {
     controller.value = undefined;
