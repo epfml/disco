@@ -47,13 +47,10 @@ module.exports = {
         'Description',
         'Disco',
         'Download',
-        'Features',
         'File',
         'Finished',
         'Forward',
-        'Further',
         'Home',
-        'Information',
         'Landing',
         'Model',
         'People',
@@ -65,7 +62,6 @@ module.exports = {
         'Timer',
         'Trainer',
         'Training',
-        'Tutorial',
         'Upload'
       ]
     }]
