@@ -35,36 +35,7 @@ module.exports = {
         varsIgnorePattern: '^_',
         ignoreRestSiblings: true
       }
-    ],
-    // TODO fix instead of ignoring
-    'vue/multi-word-component-names': ['error', {
-      ignores: [
-        'Bezier2',
-        'Bin',
-        'Clock',
-        'Contact',
-        'Data',
-        'Description',
-        'Disco',
-        'Download',
-        'File',
-        'Finished',
-        'Forward',
-        'Home',
-        'Landing',
-        'Model',
-        'People',
-        'Performances',
-        'Settings',
-        'Tasks',
-        'Tester',
-        'Testing',
-        'Timer',
-        'Trainer',
-        'Training',
-        'Upload'
-      ]
-    }]
+    ]
   },
   ignorePatterns: ['dist/**']
 }

@@ -7,7 +7,7 @@ import * as fs from "node:fs/promises";
 import { defaultTasks, serialization } from "@epfml/discojs";
 import { loadCSV } from "@epfml/discojs-web";
 
-import Trainer from "../Trainer.vue";
+import TrainerDashboard from "../TrainerDashboard.vue";
 import TrainingInformation from "../TrainingInformation.vue";
 
 async function setupForTask() {
@@ -25,7 +25,7 @@ async function setupForTask() {
     vi.unstubAllGlobals();
   });
 
-  return mount(Trainer, {
+  return mount(TrainerDashboard, {
     global: {
       directives: { Tippy },
       stubs: { apexchart: true },

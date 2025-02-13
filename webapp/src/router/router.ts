@@ -3,12 +3,12 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 
 import TrainingBar from '@/components/progress_bars/TrainingBar.vue'
 import TestingBar from '@/components/progress_bars/TestingBar.vue'
-import Home from '@/components/pages/Home.vue'
+import HomePage from '@/components/pages/HomePage.vue'
 import TaskCreationForm from '@/components/task_creation_form/TaskCreationForm.vue'
 import TaskList from '@/components/pages/TaskList.vue'
 import NotFound from '@/components/pages/NotFound.vue'
 import Training from '@/components/training/TrainingSteps.vue'
-import Testing from '@/components/testing/Testing.vue'
+import ModelLibrary from '@/components/testing/ModelLibrary.vue'
 import AboutUs from '@/components/pages/AboutUs.vue'
 
 const debug = createDebug("webapp:router");
@@ -26,8 +26,8 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: Home
+      name: 'HomePage',
+      component: HomePage
     },
     {
       path: '/create',
@@ -51,7 +51,7 @@ const router = createRouter({
       path: '/evaluate',
       name: 'evaluate',
       components: {
-        default: Testing,
+        default: ModelLibrary,
         ProgressBar: TestingBar
       }
     },

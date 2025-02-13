@@ -10,7 +10,7 @@ import { models as discoModels } from "@epfml/discojs";
 import { useModelsStore } from "@/store";
 import { useTasksStore } from "@/store";
 
-import Testing from "../Testing.vue";
+import ModelLibrary from "../ModelLibrary.vue";
 
 const TASK: Task<"text"> = {
   id: "task",
@@ -33,7 +33,7 @@ const TASK: Task<"text"> = {
 };
 
 it("shows stored models", async () => {
-  const wrapper = mount(Testing, {
+  const wrapper = mount(ModelLibrary, {
     global: {
       plugins: [
         createTestingPinia({
@@ -68,7 +68,7 @@ it("allows to download server's models", async () => {
     vi.unstubAllGlobals();
   });
 
-  const wrapper = mount(Testing, {
+  const wrapper = mount(ModelLibrary, {
     global: {
       plugins: [
         createTestingPinia({

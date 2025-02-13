@@ -36,7 +36,7 @@
                     @click="removeModel(id)"
                     class="hover:text-red-500 transition duration-200"
                   >
-                    <Bin2Icon />
+                    <BinIcon />
                   </button>
                 </template>
 
@@ -151,7 +151,7 @@ import { VueSpinner } from "vue3-spinners";
 import type { DataType, Model, Task } from "@epfml/discojs";
 import { client as clients, aggregator } from "@epfml/discojs";
 
-import Bin2Icon from "@/assets/svg/Bin2Icon.vue";
+import BinIcon from "@/assets/svg/BinIcon.vue";
 import { useToaster } from "@/composables/toaster";
 import { CONFIG } from "@/config";
 import type { ModelID } from "@/store";
@@ -168,7 +168,7 @@ import DISCOllaboratives from "@/components/simple/DISCOllaboratives.vue";
 import TestSteps from "./TestSteps.vue";
 import PredictSteps from "./PredictSteps.vue";
 
-const debug = createDebug("webapp:Testing");
+const debug = createDebug("webapp:ModelLibrary");
 const validationStore = useValidationStore();
 const models = useModelsStore();
 const tasksStore = useTasksStore();

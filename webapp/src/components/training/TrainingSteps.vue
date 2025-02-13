@@ -1,6 +1,6 @@
 <template>
   <div v-if="task !== undefined">
-    <Description v-show="trainingStore.step === 1" :task="task" />
+    <TrainingDescription v-show="trainingStore.step === 1" :task="task" />
 
     <div
       v-show="trainingStore.step === 2"
@@ -13,14 +13,14 @@
       </LabeledDatasetInput>
     </div>
 
-    <Trainer
+    <TrainerDashboard
       v-show="trainingStore.step === 3"
       :task
       :dataset="unamedDataset"
       @model="(m) => (trainedModel = m)"
     />
 
-    <Finished v-show="trainingStore.step === 4" :task :model="trainedModel" />
+    <TrainingFinished v-show="trainingStore.step === 4" :task :model="trainedModel" />
   </div>
   <TrainingButtons />
 </template>
@@ -42,9 +42,9 @@ import type { LabeledDataset } from "@/components/dataset_input/types.js";
 import DataDescription from "@/components/dataset_input/DataDescription.vue";
 import LabeledDatasetInput from "@/components/dataset_input/LabeledDatasetInput.vue";
 import TrainingButtons from "@/components/progress_bars/TrainingButtons.vue";
-import Description from "@/components/training/Description.vue";
-import Finished from "@/components/training/Finished.vue";
-import Trainer from "@/components/training/Trainer.vue";
+import TrainingDescription from "@/components/training/TrainingDescription.vue";
+import TrainingFinished from "@/components/training/TrainingFinished.vue";
+import TrainerDashboard from "@/components/training/TrainerDashboard.vue";
 import { useTasksStore, useTrainingStore } from "@/store";
 
 const router = useRouter();

@@ -12,7 +12,6 @@
 </template>
 <script lang="ts">
 export default {
-  name: 'CreateIcon',
   props: {
     customClass: {
       default: 'w-6 h-6',

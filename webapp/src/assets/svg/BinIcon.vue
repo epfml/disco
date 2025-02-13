@@ -13,7 +13,6 @@
 </template>
 <script lang="ts">
 export default {
-  name: 'Bin2Icon',
   props: {
     customClass: {
       default: 'h-9 w-5',

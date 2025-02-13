@@ -14,7 +14,7 @@
       <slot name="icon" />
     </div>
 
-    <slot />
+    <div><slot /></div>
     <div
       class="flex flex-wrap mt-auto items-center gap-x-4"
       :class="`justify-${buttonsJustify}`"

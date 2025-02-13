@@ -28,7 +28,7 @@
         :text="`${allEpochs.size} / ${numberOfEpochs}`"
         class="w-72 shrink-0 hover:cursor-pointer"
       >
-        <Timer />
+        <TimerIcon />
       </IconCardSmall>
       <IconCardSmall
         v-tippy="{
@@ -163,7 +163,7 @@ import type { BatchLogs, EpochLogs, RoundLogs } from "@epfml/discojs";
 
 import IconCardSmall from "@/components/containers/IconCardSmall.vue";
 import IconCard from "@/components/containers/IconCard.vue";
-import Timer from "@/assets/svg/Timer.vue";
+import TimerIcon from "@/assets/svg/TimerIcon.vue";
 import ModelExchangeIcon from "@/assets/svg/ModelExchangeIcon.vue";
 import ModelUpdateIcon from "@/assets/svg/ModelUpdateIcon.vue";
 import PeopleIcon from "@/assets/svg/PeopleIcon.vue";
