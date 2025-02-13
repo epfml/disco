@@ -245,7 +245,7 @@ async function downloadModel(task: Task<DataType>): Promise<void> {
 
   toaster.success("Model successfully downloaded!");
 
-  const scrollableDiv = document.getElementById("scrollable-div");
+  const scrollableDiv = document.getElementById("base-container");
   if (scrollableDiv !== null)
     scrollableDiv.scrollTo({
       top: 0,

@@ -46,7 +46,7 @@ function setStep(index: number): void {
       throw new Error("step out of range");
   }
 
-  const appElement = document.getElementById("scrollable-div");
+  const appElement = document.getElementById("base-container");
   if (appElement !== null) appElement.scrollTop = 0;
 }
 </script>

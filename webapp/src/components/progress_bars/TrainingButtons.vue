@@ -35,10 +35,8 @@ const trainingStore = useTrainingStore()
 const route = useRoute()
 
 const scrollToTop = ():void => {
-  const appElement = document.getElementById('scrollable-div');
-  if (appElement) {
-    appElement.scrollTop = 0;
-  }
+  const appElement = document.getElementById('base-container');
+  if (appElement !== null) appElement.scrollTop = 0;
 }
 
 const prevStepOrList = async (): Promise<void> => {

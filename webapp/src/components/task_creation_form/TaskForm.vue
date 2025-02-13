@@ -311,18 +311,10 @@ const getContent = (field: FormField): string => {
 }
 
 function goToInformation () {
-  const scrollableDiv = document.getElementById('scrollable-div');
-  if (scrollableDiv !== null) {
-    scrollableDiv.scrollTo(0, 0) // doesn't work with behavior: 'smooth'
-  }
   router.push({ path: '/information' })
 }
 
 function goToDiscollaborative () {
-  const scrollableDiv = document.getElementById('scrollable-div');
-  if (scrollableDiv !== null) {
-    scrollableDiv.scrollTo(0, 0) // doesn't work with behavior: 'smooth'
-  }
   router.push({ path: '/list' })
 }
 </script>

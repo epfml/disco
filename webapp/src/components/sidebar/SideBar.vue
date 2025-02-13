@@ -16,22 +16,28 @@
 
       <!-- Mini Sidebar content-->
       <div class="flex flex-col items-center justify-center flex-1 space-y-4">
-        <SidebarButton to="/" text="Home"> <HomeIcon /> </SidebarButton>
-
-        <SidebarButton to="/list" text="DISCOllaboratives">
-          <TasksIcon class="w-6 h-6" />
+        <SidebarButton text="Home"> 
+          <RouterLink to="/">
+            <HomeIcon />
+          </RouterLink>
         </SidebarButton>
-
-        <SidebarButton to="/create" text="Create a new DISCOllaborative">
-          <CreateIcon />
+        <SidebarButton text="DISCOllaboratives"> 
+          <RouterLink to="/list">
+            <TasksIcon class="w-6 h-6" />
+          </RouterLink>
         </SidebarButton>
-
-        <SidebarButton to="/evaluate" text="Evaluate models">
-          <EvaluateIcon />
+        <SidebarButton text="Create a new DISCOllaborative"> 
+          <RouterLink to="/create">
+            <CreateIcon />
+          </RouterLink>
+        </SidebarButton>
+        <SidebarButton text="Evaluate models"> 
+          <RouterLink to="/evaluate">
+            <EvaluateIcon />
+          </RouterLink>
         </SidebarButton>
 
         <SidebarButton
-          to=""
           :text="
             themeStore.current === 'light'
               ? 'Switch to Dark Mode'

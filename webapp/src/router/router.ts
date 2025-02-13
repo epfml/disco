@@ -20,6 +20,14 @@ const debug = createDebug("webapp:router");
 
 const router = createRouter({
   history: createWebHashHistory(),
+  scrollBehavior(_to, _from, _savedPosition) {
+    // Always scroll to top when navigating to a new page
+    // Because router is wrapped in a BaseLayout, returning { top: 0 } doesn't do anything
+    // https://github.com/vuejs/vue-router/issues/3451#issuecomment-975637797
+    const containerId = document.getElementById('base-container');
+    if (containerId) containerId.scrollTop = 0;
+    return { top: 0 }
+  },
   routes: [
     {
       path: '/',
@@ -105,11 +113,7 @@ const router = createRouter({
       name: 'not-found',
       component: NotFound
     }
-  ],
-  scrollBehavior(_to, _from, _savedPosition) {
-    // always scroll to top
-    return { top: 0 }
-  },
+  ]
 })
 
 // Handle router errors
