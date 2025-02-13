@@ -65,10 +65,10 @@
         <IconCard>
           <template #title> Training Loss of the Model </template>
 
-          <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
+          <span class="text-2xl">
             {{ (lastEpoch?.training.loss ?? 0).toFixed(2) }}
           </span>
-          <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
+          <span class="text-sm">
             training loss
           </span>
 
@@ -85,10 +85,10 @@
         <IconCard>
           <template #title> Training Accuracy of the Model </template>
 
-          <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
+          <span class="text-2xl">
             {{ percent(lastEpoch?.training.accuracy ?? 0) }}
           </span>
-          <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
+          <span class="text-sm">
             % of training accuracy
           </span>
 
@@ -113,10 +113,10 @@
         <IconCard>
           <template #title> Validation Loss of the Model </template>
 
-          <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
+          <span class="text-2xl">
             {{ (lastEpoch?.validation?.loss ?? 0).toFixed(2) }}
           </span>
-          <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
+          <span class="text-sm">
             validation loss
           </span>
 
@@ -132,10 +132,10 @@
         <IconCard>
           <template #title> Validation Accuracy of the Model </template>
 
-          <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
+          <span class="text-2xl">
             {{ percent(lastEpoch?.validation?.accuracy ?? 0) }}
           </span>
-          <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
+          <span class="text-sm">
             % of validation accuracy
           </span>
 

@@ -14,7 +14,7 @@ it("can test titanic", () => {
   );
   cy.contains("button", "next").click();
 
-  cy.contains("Test & validate")
+  cy.contains("Validate your model")
     .parent()
     .parent()
     .contains("button", "test")
@@ -35,7 +35,7 @@ it("can test lus_covid", () => {
   );
   cy.contains("button", "next").click();
 
-  cy.contains("Test & validate")
+  cy.contains("Validate your model")
     .parent()
     .parent()
     .contains("button", "test")
@@ -56,7 +56,7 @@ it("can start and stop testing of wikitext", () => {
   );
   cy.contains("button", "next").click();
 
-  cy.contains("Test & validate")
+  cy.contains("Validate your model")
     .parent()
     .parent()
     .contains("button", "test")

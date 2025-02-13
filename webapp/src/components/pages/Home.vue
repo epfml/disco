@@ -1,41 +1,39 @@
 <template>
-  <div
-    class="lg:mx-8 text-slate-600 dark:text-slate-300"
-  >
+  <div class="lg:mx-8">
 
   <!-- First screen -->
     <div class="mb-40 lg:mb-0 gap-16 lg:gap-0 lg:h-dvh flex flex-col justify-around pb-12">
   <!-- Disco logo -->
       <div class="flex flex-col justify-center items-center space-y-4">
-        <div class="">
-          <DiscoGIF v-if="themeStore.current == 'light'" class="pb-4"/>
-          <DiscoLogo v-else class="w-[640px] h-[264px]"/>
+        <div class="mx-auto w-full h-full min-w-[250px] max-w-[640px] max-h-[264px]">
+          <DiscoLogo v-if="themeStore.current == 'dark'"/>
+          <DiscoGIF v-else class="pb-4"/>
         </div>
-        <span
-          class="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-slate-600 dark:text-slate-300"
-        >
-          <span class="font-disco text-disco-cyan font-semibold">DIS</span
-          >tributed
-          <span class="font-disco text-disco-blue font-semibold">CO</span
-          >llaborative Learning
-        </span>
+        <div class="text-center">
+          <span
+            class="font-disco text-xl md:text-3xl lg:text-4xl"
+          >
+            <span class="font-disco text-disco-cyan font-bold">DIS</span
+            >tributed
+            <span class="font-disco text-disco-blue font-bold">CO</span
+            >llaborative Learning
+          </span>
       </div>
-      <div class="text-center lg:text-left mt-24">
+      </div>
+      <div class="text-center lg:text-center mt-12">
         <p
-          class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold
-          text-slate-700 dark:text-white leading-9"
+          class="font-disco text-4xl lg:text-5xl font-bold
+           text-heading-light dark:text-heading-dark"
         >
           Train AI Models Together.<br/>
           Keep Data Private.
         </p>
-        <p class="text-base sm:text-base md:text-lg lg:text-xl
-          text-slate-600 dark:text-slate-300 mt-3"
-        >
+        <p class="text-base lg:text-lg mt-3">
           Build and train AI models without sharing any data.<br/>
           Machine Learning directly in your browser.
         </p>
       </div>
-      <div class="flex justify-center mb-12">
+      <div class="flex justify-center">
         <CTAButton>
           Start training
         </CTAButton>
@@ -46,12 +44,12 @@
     <div class="mb-40 lg:mb-0 lg:h-dvh flex flex-col lg:flex-row gap-16 justify-center items-center">
       <div class="flex flex-col justify-center text-center lg:text-right items-center lg:items-end">
         <span
-        class="text-4xl lg:text-5xl xl:text-6xl font-semibold
-        text-slate-700 dark:text-white"
+        class="font-disco text-4xl lg:text-5xl font-bold
+           text-heading-light dark:text-heading-dark"
         >
           Simple by design.
         </span>
-        <span class="text-lg mt-4">
+        <span class="text-base lg:text-lg mt-4">
           Disco runs fully in your browser.<br/>
           No need to install anything.<br/>
           No need to code anything.
@@ -62,20 +60,21 @@
 <!-- 3nd screen -->
     <div class="mb-40 lg:pb-40 lg:mb-0 lg:h-dvh flex flex-col justify-center">
       <div class="flex flex-col items-around justify-start w-full">
-        <div class="mb-8 lg:mb-20 w-full text-center lg:text-left">
-          <span class="text-4xl lg:text-5xl font-semibold text-slate-700 dark:text-white">
+        <div class="mb-8 lg:mb-20 w-full text-center lg:text-center">
+          <span class="font-disco text-4xl lg:text-5xl font-bold
+           text-heading-light dark:text-heading-dark">
             3 steps.
           </span>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-x-16 gap-y-8 place-items-start">
           <div class="flex flex-col gap-8 justify-center items-center text-center w-full">
-            <span class="text-2xl lg:text-3xl font-semibold text-slate-700 dark:text-white">
+            <span class="text-2xl font-bold text-heading-light dark:text-heading-dark">
               Connect your data
             </span>
             <ConnectDataIcon class="w-[150px] h-[150px] lg:w-[300px] lg:h-[200px] drop-shadow-lg"/>
           </div>
           <div class="flex flex-col gap-8 justify-center items-center text-center w-full">
-            <span class="text-2xl lg:text-3xl font-semibold text-heading-light dark:text-heading-dark">
+            <span class="text-2xl font-bold text-heading-light dark:text-heading-dark">
               Join the <span 
                 class="underline hover:cursor-pointer"
                 v-tippy="{
@@ -88,7 +87,7 @@
             <LaunchIcon class="w-[150px] h-[150px] lg:w-[300px] lg:h-[200px] drop-shadow-md"/>
           </div>
           <div class="flex flex-col gap-8 justify-center items-center text-center w-full">
-            <span class="text-2xl lg:text-3xl font-semibold text-slate-700 dark:text-white">
+            <span class="text-2xl font-bold text-heading-light dark:text-heading-dark">
               Use the model
             </span>
             <CompletedIcon class="w-[150px] h-[150px] lg:w-[300px] lg:h-[200px] drop-shadow-md"/>
@@ -100,37 +99,37 @@
     <div class="mb-40 lg:mb-0 lg:h-dvh flex flex-col justify-center gap-16">
       <div class="flex flex-col gap-4 items-center text-center">
         <span
-          class="text-4xl lg:text-5xl font-semibold
-          text-slate-700 dark:text-white text-left"
+          class="font-disco text-4xl lg:text-5xl font-bold
+           text-heading-light dark:text-heading-dark"
           >
           Your data, your rules.
         </span>
-        <span class="text-lg w-full md:w-2/3 xl:w-full max-w-[500px]">
+        <span class="text-base lg:text-lg">
           <b>Your data is never shared and never leaves your device.</b><br/>
           Choose the privacy mechanisms. You set your privacy level.
         </span>
       </div>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 place-items-center pb-20">
         <div class="flex flex-col items-center">
-          <span class="text-center text-2xl font-semibold">
+          <span class="text-center text-2xl font-bold">
             Federated Learning
           </span>
-          <span class="text-center text-lg">
+          <span class="text-center text-base lg:text-lg">
             More efficient, orchestrated by on a central server
           </span>
           <FederatedGIF
-            class="w-full md:w-2/3 lg:w-full mt-4 rounded-lg dark:bg-slate-100 dark:border-slate-300 dark:border-4"
+            class="w-full md:w-2/3 lg:w-full mt-4 rounded-lg bg-slate-50 border-slate-300 border-4"
           />
         </div>
         <div class="flex flex-col items-center">
-          <span class="text-center text-2xl font-semibold">
+          <span class="text-center text-2xl font-bold">
             Decentralized Learning
           </span>
-          <span class="text-center text-lg">
+          <span class="text-center text-base lg:text-lg">
             More secure, peer-to-peer technology
           </span>
           <DecentralizedGIF
-            class="w-full md:w-2/3 lg:w-full mt-4 rounded-lg dark:bg-slate-100 dark:border-slate-300 dark:border-4"
+            class="w-full md:w-2/3 lg:w-full mt-4 rounded-lg bg-slate-50 border-slate-300 border-4"
           />
         </div>
       </div>
@@ -140,17 +139,17 @@
     <div class="mb-40 lg:mb-0 lg:h-dvh flex flex-col gap-16 justify-center items-center">
       <div class="w-full flex flex-col justify-center text-center items-center">
         <span
-        class="text-4xl lg:text-5xl font-semibold
-        text-slate-700 dark:text-white"
+        class="font-disco text-4xl lg:text-5xl font-bold
+           text-heading-light dark:text-heading-dark"
         >
           Design your own AI model.
         </span>
-        <span class="text-lg mt-4 w-full lg:w-2/5 max-w-[500px]">
+        <span class="text-base lg:text-lg mt-4 w-full lg:w-2/5 max-w-[500px]">
           Disco supports a wide array of deep learning architectures and tasks from image classification to training Transformers model.
         </span>
       </div>
         <div class="grid grid-cols-1 lg:grid-cols-3 place-items-center gap-4 gap-y-8">
-        <span class="text-3xl font-semibold text-slate-700 dark:text-white">
+        <span class="text-3xl font-bold text-heading-light dark:text-heading-dark">
           Powered by
         </span>
           <a 
@@ -168,21 +167,24 @@
       </div>
     </div>
   <!-- 6th screen -->
-    <div class="lg:h-dvh lg:pt-16 flex flex-col gap-16 justify-center items-center">
+    <div class="lg:h-dvh flex flex-col gap-16 justify-start items-center">
       <div class="w-full flex flex-col justify-center text-center items-center lg:items-start lg:text-left">
         <span
-        class="text-4xl lg:text-5xl font-semibold
-        text-slate-700 dark:text-white"
+        class="font-disco text-4xl lg:text-5xl font-bold
+           text-heading-light dark:text-heading-dark"
         >
           Free and open source.
         </span>
-        <span class="text-lg mt-4 w-full lg:w-2/5 max-w-[500px]">
+        <span class="text-base lg:text-lg mt-4 w-full lg:w-2/5 max-w-[500px]">
           Disco is a non-profit academic initiative. <br/>
           Open-source and free to use.
         </span>
       </div>
-      <div class="w-full grid grid-rows-2 place-items-center gap-y-4 ">
-        <div class="w-full lg:w-3/4 grid grid-cols-2">
+      <div class="flex flex-col gap-y-8 text-center items-center">
+        <span class="text-3xl font-bold text-heading-light dark:text-heading-dark">
+          A joint project of
+        </span>
+        <div class="w-3/4 grid grid-cols-2 place-items-center">
           <a
             class="flex justify-center" 
             href="https://www.epfl.ch/labs/mlo/" target="_blank"
@@ -196,7 +198,10 @@
             <LightLogo class="w-3/4"/>
           </a>
         </div>
-        <div class="w-full lg:w-3/5 grid grid-cols-3 place-items-center">
+        <span class="mt-4 text-3xl font-bold text-heading-light dark:text-heading-dark">
+          Supported by
+        </span>
+        <div class="w-3/4 grid grid-cols-3 place-items-center">
           <a
             class="flex justify-center ml-4" 
             href="https://www.epfl.ch/en/" target="_blank"
@@ -275,6 +280,7 @@ import MultiDeviceIcon from "@/assets/svg/MultiDeviceIcon.vue";
 import CTAButton from "../simple/CTAButton.vue";
 import { useThemeStore } from "@/store";
 import DISCOllaborative from "../simple/DISCOllaborative.vue";
+import DISCO from "../simple/DISCO.vue";
 import EPFL from "@/assets/logos/EPFL.vue";
 import DiscoParticlesIcon from "@/assets/svg/DiscoParticlesIcon.vue";
 

@@ -57,10 +57,14 @@
                 <div>{{ task.displayInformation.taskTitle }}</div>
                 <div class="flex flex-row shrink-0 justify-end gap-1">
                   <div class="px-2 py-1 rounded-md flex items-center" :class="getSchemeColor(task)">
-                    <div class="text-xs font-semibold text-slate-500 ">{{ task.trainingInformation.scheme.toUpperCase() }}</div>
+                    <div 
+                      class="text-xs font-semibold text-body-secondary-light"
+                    >{{ task.trainingInformation.scheme.toUpperCase() }}</div>
                   </div>
                   <div class="px-2 py-1 rounded-md flex items-center" :class="getDataTypeColor(task)">
-                    <div class="text-xs font-semibold text-slate-500">{{ task.trainingInformation.dataType.toUpperCase() }}</div>
+                    <div 
+                      class="text-xs font-semibold text-body-secondary-light"
+                    >{{ task.trainingInformation.dataType.toUpperCase() }}</div>
                   </div>
                 </div>
               </div>

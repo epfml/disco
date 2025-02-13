@@ -4,7 +4,10 @@
       <slot />
     </main>
 
-    <footer class="flex items-center p-4 bg-white dark:bg-slate-800 border-t dark:border-slate-900 text-slate-500 dark:text-slate-300">
+    <footer class="
+      flex items-center p-4 bg-white dark:bg-slate-800 border-t dark:border-slate-900 
+      text-body-secondary-light dark:text-body-secondary-dark"
+    >
       <div class="flex mx-auto space-x-6 items-center">
         <a
           class="fa-brands fa-github fa-xl"

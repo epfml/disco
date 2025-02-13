@@ -1,8 +1,8 @@
 <template>
   <div class="space-y-4 md:space-y-8">
     <!-- Train Button -->
-    <div class="flex justify-center">
-      <IconCard title-placement="center" fill-space>
+    <div class="w-full lg:w-1/2 lg:max-w-[640px] mx-auto">
+      <IconCard title-placement="center">
         <template #title> Control the Training Flow </template>
           <!-- If we are not currently training -->
           <div v-if="!isTraining" class="flex flex-col gap-y-4">
@@ -78,8 +78,8 @@
     <div
       class="flex flex-row justify-between gap-x-4 items-center mb-5 py-4 px-4 bg-purple-100 rounded-md"
     >
-      <InfoIcon custom-class="min-w-6 min-h-6 w-6 h-6 text-slate-600" />
-      <p class="text-slate-600 text-xs pt-0.5">
+      <InfoIcon custom-class="min-w-6 min-h-6 w-6 h-6" />
+      <p class="text-sm pt-0.5">
         In this live demo, the model you are training is a newly initialized
         one. In a real use case you would start training with the latest model
         resulting from all users' collaborative training. To persist
@@ -92,7 +92,7 @@
           <!-- Warning about the maximum nb of iteration per epoch for LLMs -->
           <span
             v-if="task.trainingInformation.dataType === 'text'"
-            class="text-slate-600 text-xs"
+            class="text-sm"
           >
           <!-- Leading space is important -->
           Additionally, when training language models we have limited the number

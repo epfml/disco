@@ -6,10 +6,11 @@
         flex
         h-screen
         antialiased
-        text-slate-900
         bg-slate-100
         dark:bg-slate-900
-        dark:text-slate-100
+        text-body-light
+        dark:text-body-dark
+        text-sm md:text-base
       "
     >
       <!-- Sidebar -->
