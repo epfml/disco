@@ -203,7 +203,7 @@ const modelURL = ref('')
 const modelFiles = shallowRef(List<File>())
 
 
-const formatSection = (section: FormSection, rawTask: any): any => {
+const formatSection = (section: FormSection, rawTask: any): [string, Record<string, any>] => {
   let fields = List(section.fields)
     .map((field) => {
       const content = rawTask[field.id]

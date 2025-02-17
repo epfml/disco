@@ -36,9 +36,8 @@ async function main(): Promise<void> {
 
   const maxNewTokens = 14
   for (let n = 0; n < maxNewTokens; n++) {
-    const next: number = (await model.predict(
-      List.of(tokens), { seed })
-    ).first();
+		const next = (await model.predict(List.of(tokens), { seed })).first();
+		if (next === undefined) throw new Error("empty prediction");
     tokens = tokens.push(next)
   }
   const generation = tokenizer.decode(tokens.toArray(), { skip_special_tokens: true })
