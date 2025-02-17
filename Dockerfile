@@ -25,11 +25,7 @@ COPY --link --from=builder /disco/package*.json /disco/
 COPY --link --from=builder /disco/discojs/package.json discojs/
 COPY --link --from=builder /disco/discojs-node/package.json discojs-node/
 COPY --link --from=builder /disco/server/package.json server/
-RUN npm \
-	--workspace=discojs \
-	--workspace=discojs-node \
-	--workspace=server \
-	--omit=dev ci
+RUN npm --omit=dev ci
 
 COPY --link --from=builder /disco/discojs/dist/ discojs/dist/
 COPY --link --from=builder /disco/discojs-node/dist/ discojs-node/dist/
