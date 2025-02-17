@@ -129,6 +129,8 @@ export class FederatedClient extends Client {
    * @returns the new global weights sent by the server
    */
   override async onRoundEndCommunication(weights: WeightsContainer): Promise<WeightsContainer> {
+		if (this._ownId === undefined)
+			throw new Error("no received ID from server");
     if (this.aggregationResult === undefined) {
       throw new Error("local aggregation result was not set");
     }
@@ -138,7 +140,11 @@ export class FederatedClient extends Client {
     this.saveAndEmit("updating model")
     // Send our local contribution to the server
     // and receive the server global update for this round as an answer to our contribution
-    const payloadToServer: WeightsContainer = this.aggregator.makePayloads(weights).first()
+		const payloadToServer = this.aggregator
+			.makePayloads(weights)
+			.get(SERVER_NODE_ID);
+		if (payloadToServer === undefined)
+			throw new Error("aggregator didn't make a payload for the server");
     const msg: messages.SendPayload = {
       type: type.SendPayload,
       payload: await serialization.weights.encode(payloadToServer),

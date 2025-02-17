@@ -131,7 +131,7 @@ describe("dataset", () => {
   it("zips with non-async iterable", async () => {
     const dataset = new Dataset([1, 2, 3]);
 
-    const zipped = dataset.zip(Range());
+    const zipped = dataset.zip(Range(0, Number.POSITIVE_INFINITY));
 
     expect(await arrayFromAsync(zipped)).to.have.deep.ordered.members([
       [1, 0],

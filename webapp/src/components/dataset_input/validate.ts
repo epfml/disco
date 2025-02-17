@@ -8,7 +8,7 @@ export async function tabular(
 ): Promise<void> {
   for await (const [columns, i] of dataset
     .map((row) => Set(Object.keys(row)))
-    .zip(Range(1)))
+    .zip(Range(1, Number.POSITIVE_INFINITY)))
     if (!columns.isSuperset(wantedColumns))
       throw new Error(
         `row ${i} is missing columns ${wantedColumns.subtract(columns).join(", ")}`,

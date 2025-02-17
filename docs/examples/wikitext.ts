@@ -45,7 +45,8 @@ async function main(): Promise<void> {
   // Predict a few tokens
   const numberOfTokens = 10;
   for (let i = 0; i < numberOfTokens; i++) {
-    const next: number = (await model.predict(List.of(tokens))).first();
+    const next = (await model.predict(List.of(tokens))).first();
+		if (next === undefined) throw new Error("no prediction");
     tokens = tokens.push(next)
   }
   console.log(tokenizer.decode(tokens.toArray()));

@@ -17,7 +17,6 @@
   "dependencies": {
     "server": "*",
     "@epfml/discojs-node": "*",
-    "immutable": "4",
     "tslib": "2"
   },
   "devDependencies": {

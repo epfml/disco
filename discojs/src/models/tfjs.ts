@@ -44,8 +44,9 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
   ): AsyncGenerator<BatchLogs, EpochLogs> {
     let batchesLogs = List<BatchLogs>();
-    for await (const [batch, batchNumber] of trainingDataset.zip(Range())) {
-
+		for await (const [batch, batchNumber] of trainingDataset.zip(
+			Range(0, Number.POSITIVE_INFINITY),
+		)) {
       const batchLogs = {
         batch: batchNumber,
         ...(await this.#runBatch(batch)),

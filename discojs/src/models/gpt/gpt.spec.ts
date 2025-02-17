@@ -14,10 +14,14 @@ describe("gpt-tfjs", function () {
 
     const data = "Lorem ipsum dolor sit";
     const dataTokens = processing.tokenize(tokenizer, data);
+		const lastToken = dataTokens.last();
+		if (lastToken === undefined) throw new Error("no token generated");
     const seed = 42
-    const dataset = new Dataset<DataFormat.ModelEncoded["text"]>(
-      [[dataTokens.pop(), dataTokens.last()]]
-    ).repeat().batch(8);
+		const dataset = new Dataset<DataFormat.ModelEncoded["text"]>([
+			[dataTokens.pop(), lastToken],
+		])
+			.repeat()
+			.batch(8);
 
     const model = new GPT({
       modelType: "gpt-nano",
@@ -34,9 +38,10 @@ describe("gpt-tfjs", function () {
     const input = "Lorem ipsum dolor";
     const inputTokens = processing.tokenize(tokenizer, data);
     
-    const outputToken: number = (
-      await model.predict(List.of(inputTokens), { seed })
-    ).first();
+		const outputToken = (
+			await model.predict(List.of(inputTokens), { seed })
+		).first();
+		if (outputToken === undefined) throw new Error("empty prediction");
     const output = tokenizer.decode([outputToken]);
 
     expect(input + output).equal(data); // Assert that the model completes 'Lorem ipsum dolor' with 'sit'

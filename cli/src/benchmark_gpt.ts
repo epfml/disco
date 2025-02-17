@@ -119,7 +119,8 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     for (let i = 0; i < iterations; i++) {
       const timeStart = performance.now()
       for (let n = 0; n < maxNewTokens; n++) {
-        const next: number = (await model.predict(List.of(tokens))).first();
+				const next = (await model.predict(List.of(tokens))).first();
+				if (next === undefined) throw new Error("empty prediction");
         tokens = tokens.push(next)
       }
       inferenceTime += performance.now() - timeStart
