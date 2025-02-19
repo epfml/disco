@@ -1,4 +1,4 @@
-import { Set } from 'immutable'
+import { Map } from "immutable";
 import fs from 'node:fs/promises'
 import '@tensorflow/tfjs-node'
 
@@ -33,12 +33,12 @@ type TaskAndModel = [Task<DataType>, EncodedModel];
 export class TaskSet extends EventEmitter<{
   newTask: TaskAndModel;
 }> {
-  // Keep track of previously initialized task-model pairs
-  #tasks = Set<TaskAndModel>();
+	// Keep track of previously initialized task-model pairs
+	#tasks = Map<Task.ID, TaskAndModel>();
 
-  get tasks(): Set<TaskAndModel> {
-    return this.#tasks
-  }
+	get tasks(): Map<Task.ID, TaskAndModel> {
+		return this.#tasks;
+	}
 
   // send known tasks to new listener
   override on(
@@ -89,9 +89,10 @@ export class TaskSet extends EventEmitter<{
       encodedModel = await serialization.model.encode(tfModel)
     }
 
-    // Add the task-model pair to the set
-    this.#tasks = this.#tasks.add([task, encodedModel])
-    this.emit("newTask", [task, encodedModel]);
+		// Add the task-model pair to the set
+		if (this.#tasks.has(task.id)) throw new Error("already existing");
+		this.#tasks = this.#tasks.set(task.id, [task, encodedModel]);
+		this.emit("newTask", [task, encodedModel]);
   }
 
   /**

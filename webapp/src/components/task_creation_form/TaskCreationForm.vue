@@ -700,8 +700,10 @@ async function onSubmit(form: unknown): Promise<void> {
   try {
     await pushTask(CONFIG.serverUrl, task, model);
   } catch (e) {
-    toaster.error("An error occured server-side");
     debug("while pushing task to server: %o", e);
+    if (e instanceof Error && e.message.endsWith("HTTP status 409"))
+      toaster.error("This identifier is already taken");
+    else toaster.error("An error occured server-side");
     return;
   }
   toaster.success("Task successfully submitted");
