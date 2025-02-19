@@ -35,7 +35,7 @@
         <IconCard>
           <template #title> General </template>
 
-          <FormLabel label="Unique identifier">
+          <FormLabel label="Unique identifier" required>
             <FormField
               name="id"
               placeholder="my-task-identifier"
@@ -44,7 +44,7 @@
             />
           </FormLabel>
 
-          <FormLabel label="Data type">
+          <FormLabel label="Data type" required>
             <FormField name="dataType" as="select" v-model="dataType">
               <option value="image">Image</option>
               <option value="tabular">Tabular</option>
@@ -57,7 +57,7 @@
           <template #title> Model </template>
 
           <div class="flex flex-col">
-            <FormLabel v-if="dataType === 'image'" label="Labels">
+            <FormLabel v-if="dataType === 'image'" label="Labels" required>
               <FieldArray
                 name="trainingInformation.LABEL_LIST"
                 v-slot="{ fields, push, remove }"
@@ -85,7 +85,7 @@
             </FormLabel>
 
             <div v-if="dataType === 'image'" class="flex flex-row flex-wrap">
-              <FormLabel label="Width to scale images to">
+              <FormLabel label="Width to scale images to" required>
                 <FormField
                   name="trainingInformation.IMAGE_W"
                   placeholder="100"
@@ -95,7 +95,7 @@
                 />
               </FormLabel>
 
-              <FormLabel label="Height to scale images to">
+              <FormLabel label="Height to scale images to" required>
                 <FormField
                   name="trainingInformation.IMAGE_H"
                   placeholder="100"
@@ -109,6 +109,7 @@
             <FormLabel
               v-if="dataType === 'tabular'"
               label="Input columns names"
+              required
             >
               <FieldArray
                 name="trainingInformation.inputColumns"
@@ -136,7 +137,11 @@
               </FieldArray>
             </FormLabel>
 
-            <FormLabel v-if="dataType === 'tabular'" label="Output column name">
+            <FormLabel
+              v-if="dataType === 'tabular'"
+              label="Output column name"
+              required
+            >
               <FormField
                 name="trainingInformation.outputColumn"
                 placeholder="predicated_value"
@@ -145,7 +150,7 @@
             </FormLabel>
 
             <div v-if="dataType === 'text'" class="flex flex-row flex-wrap">
-              <FormLabel label="Name of a HuggingFace tokenizer">
+              <FormLabel label="Name of a HuggingFace tokenizer" required>
                 <FormField
                   name="trainingInformation.tokenizer"
                   placeholder="Xenova/gpt2"
@@ -153,7 +158,7 @@
                 />
               </FormLabel>
 
-              <FormLabel label="Number of token used for context">
+              <FormLabel label="Number of token used for context" required>
                 <FormField
                   name="trainingInformation.contextLength"
                   placeholder="128"
@@ -164,7 +169,7 @@
               </FormLabel>
             </div>
 
-            <FormLabel label="TFJS model.json file">
+            <FormLabel label="TFJS model.json file" required>
               <FormField
                 name="model.topology"
                 v-slot="{ handleChange, handleBlur }"
@@ -178,7 +183,7 @@
             </FormLabel>
 
             <div class="flex flex-row flex-wrap">
-              <FormLabel label="TFJS model optimizer">
+              <FormLabel label="TFJS model optimizer" required>
                 <FormField
                   name="model.optimizer.name"
                   placeholder="sgd"
@@ -186,7 +191,7 @@
                 />
               </FormLabel>
 
-              <FormLabel label="TFJS model optimizer learning rate">
+              <FormLabel label="TFJS model optimizer learning rate" required>
                 <FormField
                   name="model.optimizer.learningRate"
                   placeholder="0.01"
@@ -196,7 +201,7 @@
                 />
               </FormLabel>
 
-              <FormLabel label="TFJS model loss">
+              <FormLabel label="TFJS model loss" required>
                 <FormField name="model.loss" placeholder="hinge" as="input" />
               </FormLabel>
             </div>
@@ -207,7 +212,7 @@
           <template #title> Training </template>
 
           <div class="flex flex-row flex-wrap">
-            <FormLabel label="Epochs">
+            <FormLabel label="Epochs" required>
               <FormField
                 name="trainingInformation.epochs"
                 placeholder="30"
@@ -217,7 +222,7 @@
               />
             </FormLabel>
 
-            <FormLabel label="Batch size">
+            <FormLabel label="Batch size" required>
               <FormField
                 name="trainingInformation.batchSize"
                 placeholder="10"
@@ -227,7 +232,7 @@
               />
             </FormLabel>
 
-            <FormLabel label="Fraction of dataset used for validation">
+            <FormLabel label="Fraction of dataset used for validation" required>
               <FormField
                 name="trainingInformation.validationSplit"
                 placeholder="0.1"
@@ -245,7 +250,7 @@
           <template #title> Network </template>
 
           <div class="flex flex-col">
-            <FormLabel label="Collaborative algorithm">
+            <FormLabel label="Collaborative algorithm" required>
               <FormField name="trainingInformation.scheme" as="select">
                 <option value="federated">Federated</option>
                 <option value="decentralized">Decentralized</option>
@@ -263,7 +268,10 @@
               </FormField>
             </FormLabel>
 
-            <FormLabel label="Number of epochs before aggregating weights">
+            <FormLabel
+              label="Number of epochs before aggregating weights"
+              required
+            >
               <FormField
                 name="trainingInformation.roundDuration"
                 placeholder="5"
@@ -272,7 +280,7 @@
               />
             </FormLabel>
 
-            <FormLabel label="Minimum number of peers per round">
+            <FormLabel label="Minimum number of peers per round" required>
               <FormField
                 name="trainingInformation.minNbOfParticipants"
                 placeholder="3"
@@ -322,7 +330,7 @@
           <template #title> Description </template>
 
           <div class="flex flex-col">
-            <FormLabel label="Title">
+            <FormLabel label="Title" required>
               <FormField
                 name="displayInformation.title"
                 placeholder="Home Labelator"
@@ -330,7 +338,7 @@
               />
             </FormLabel>
 
-            <FormLabel label="Short description">
+            <FormLabel label="Short description" required>
               <FormField
                 name="displayInformation.summary.preview"
                 placeholder="Detect and label everyday objects"
@@ -338,7 +346,7 @@
               />
             </FormLabel>
 
-            <FormLabel label="Extended description">
+            <FormLabel label="Extended description" required>
               <FormField
                 name="displayInformation.summary.overview"
                 placeholder="Standard classification model used in computer vision."

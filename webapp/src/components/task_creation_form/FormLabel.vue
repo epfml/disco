@@ -2,6 +2,7 @@
   <label class="root">
     <span class="text-slate-600 dark:text-slate-200">
       {{ label }}
+      <span v-if="required" class="text-slate-400 dark:text-slate-400">*</span>
     </span>
 
     <slot />
@@ -28,5 +29,7 @@
 </style>
 
 <script lang="ts" setup>
-defineProps<{ label: string }>();
+withDefaults(defineProps<{ label: string; required?: boolean }>(), {
+  required: false,
+});
 </script>
