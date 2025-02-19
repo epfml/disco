@@ -484,6 +484,20 @@ const { tasks } = storeToRefs(useTasksStore());
 
 const dataType = ref();
 
+function enumFailsWithInvalidChoice(
+  issue: z.ZodIssueOptionalMessage,
+  ctx: z.ErrorMapCtx,
+) {
+  switch (issue.code) {
+    case "invalid_enum_value":
+      return {
+        message: `Invalid choice, choose one from: ${issue.options.join(", ")}`,
+      };
+  }
+
+  return { message: ctx.defaultError };
+}
+
 // from https://github.com/tensorflow/tfjs/blob/master/tfjs-core/src/optimizers/optimizer_constructors.ts
 const modelOptimizerNames = [
   "adadelta",
@@ -497,24 +511,29 @@ const modelOptimizerNames = [
 const TFJSModelSchema = z.object({
   model: z.object({
     // from https://github.com/tensorflow/tfjs/blob/master/tfjs-layers/src/losses.ts#L242
-    loss: z.enum([
-      "meanSquaredError",
-      "meanAbsoluteError",
-      "meanAbsolutePercentageError",
-      "meanSquaredLogarithmicError",
-      "squaredHinge",
-      "hinge",
-      "categoricalHinge",
-      "logcosh",
-      "categoricalCrossentropy",
-      "sparseCategoricalCrossentropy",
-      "binaryCrossentropy",
-      "kullbackLeiblerDivergence",
-      "poisson",
-      "cosineProximity",
-    ]),
+    loss: z.enum(
+      [
+        "binaryCrossentropy",
+        "categoricalCrossentropy",
+        "categoricalHinge",
+        "cosineProximity",
+        "hinge",
+        "kullbackLeiblerDivergence",
+        "logcosh",
+        "meanAbsoluteError",
+        "meanAbsolutePercentageError",
+        "meanSquaredError",
+        "meanSquaredLogarithmicError",
+        "poisson",
+        "sparseCategoricalCrossentropy",
+        "squaredHinge",
+      ],
+      { errorMap: enumFailsWithInvalidChoice },
+    ),
     optimizer: z.object({
-      name: z.enum(modelOptimizerNames),
+      name: z.enum(modelOptimizerNames, {
+        errorMap: enumFailsWithInvalidChoice,
+      }),
       learningRate: z.number().positive(),
     }),
     topology: z.unknown().transform((files, ctx) => {
@@ -595,6 +614,15 @@ const schema =
         )
         .merge(TFJSModelSchema),
     ],
+    {
+      errorMap: (issue, ctx) => {
+        switch (issue.code) {
+          case "invalid_union_discriminator":
+            return { message: "Invalid choice" };
+        }
+        return { message: ctx.defaultError };
+      },
+    },
   );
 
 async function onSubmit(form: unknown): Promise<void> {
