@@ -84,7 +84,7 @@
               </FieldArray>
             </FormLabel>
 
-            <div v-if="dataType === 'image'" class="flex flex-row">
+            <div v-if="dataType === 'image'" class="flex flex-row flex-wrap">
               <FormLabel label="Width to scale images to">
                 <FormField
                   name="trainingInformation.IMAGE_W"
