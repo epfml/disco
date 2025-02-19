@@ -44,7 +44,7 @@
             />
           </FormLabel>
 
-          <FormLabel label="Category of data">
+          <FormLabel label="Data type">
             <FormField name="dataType" as="select" v-model="dataType">
               <option value="image">Image</option>
               <option value="tabular">Tabular</option>
@@ -197,7 +197,7 @@
           <template #title> Training </template>
 
           <div class="flex flex-row flex-wrap">
-            <FormLabel label="Number of pass over the data">
+            <FormLabel label="Epochs">
               <FormField
                 name="trainingInformation.epochs"
                 placeholder="30"
@@ -207,7 +207,7 @@
               />
             </FormLabel>
 
-            <FormLabel label="Number of dataset element to process at once">
+            <FormLabel label="Batch size">
               <FormField
                 name="trainingInformation.batchSize"
                 placeholder="10"
@@ -235,7 +235,7 @@
           <template #title> Network </template>
 
           <div class="flex flex-col">
-            <FormLabel label="Kind of network to run on">
+            <FormLabel label="Collaborative algorithm">
               <FormField name="trainingInformation.scheme" as="select">
                 <option value="federated">Federated</option>
                 <option value="decentralized">Decentralized</option>
@@ -243,7 +243,7 @@
               </FormField>
             </FormLabel>
 
-            <FormLabel label="Type of aggregation to perform">
+            <FormLabel label="Type of aggregation">
               <FormField
                 name="trainingInformation.aggregationStrategy"
                 as="select"
@@ -253,9 +253,7 @@
               </FormField>
             </FormLabel>
 
-            <FormLabel
-              label="Number of epoch before exchanging with the network"
-            >
+            <FormLabel label="Number of epochs before aggregating weights">
               <FormField
                 name="trainingInformation.roundDuration"
                 placeholder="5"
