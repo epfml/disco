@@ -26,6 +26,7 @@
 
     <Form
       @submit="onSubmit"
+      @invalid-submit="onInvalidSubmit"
       :validation-schema="toTypedSchema(schema)"
       class="flex flex-col cards-gap"
     >
@@ -710,5 +711,20 @@ async function onSubmit(form: unknown): Promise<void> {
     return;
   }
   tasks.value = tasks.value.set(task.id, task);
+}
+
+function onInvalidSubmit({
+  errors,
+}: {
+  errors: Partial<Record<string, string>>;
+}): void {
+  const field = document.querySelector(
+    `label:has(${Object.keys(errors)
+      .map((name) => `> [name="${name}"]`)
+      .join(",")})`,
+  );
+  if (field === null) throw new Error("unable to find erroneous field");
+
+  field.scrollIntoView({ behavior: "smooth" });
 }
 </script>
