@@ -19,16 +19,15 @@ export class TaskRouter {
     this.#taskSet = taskSet
     this.#expressRouter = express.Router()
 
-    // Return available tasks upon GET requests
-    this.#expressRouter.get('/', (_, res) => {
-      res
-        .status(200)
-        .send(
-          this.#taskSet.tasks
-            .map(([t, _]) => serialization.task.serializeToJSON(t))
-            .toArray(),
-        );
-    })
+		// Return available tasks upon GET requests
+		this.#expressRouter.get("/", (_, res) => {
+			res.status(200).send(
+				this.#taskSet.tasks
+					.valueSeq()
+					.map(([t, _]) => serialization.task.serializeToJSON(t))
+					.toArray(),
+			);
+		});
 
 		this.#expressRouter.use(express.json());
 
@@ -55,7 +54,10 @@ export class TaskRouter {
 				await this.#taskSet.addTask(task, model);
 			} catch (e) {
 				debug("add task failed with: %o", e);
-				res.status(500).end();
+				if (e instanceof Error && e.message === "already existing")
+					res.status(409).end();
+				else res.status(500).end();
+				return;
 			}
 
 			res.status(200).end("Successful task upload");
