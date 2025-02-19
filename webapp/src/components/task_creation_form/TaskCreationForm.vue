@@ -180,9 +180,19 @@
             <div class="flex flex-row flex-wrap">
               <FormLabel label="TFJS model optimizer">
                 <FormField
-                  name="model.optimizer"
+                  name="model.optimizer.name"
                   placeholder="sgd"
                   as="input"
+                />
+              </FormLabel>
+
+              <FormLabel label="TFJS model optimizer learning rate">
+                <FormField
+                  name="model.optimizer.learningRate"
+                  placeholder="0.01"
+                  as="input"
+                  type="number"
+                  min="0"
                 />
               </FormLabel>
 
@@ -466,6 +476,16 @@ const { tasks } = storeToRefs(useTasksStore());
 
 const dataType = ref();
 
+// from https://github.com/tensorflow/tfjs/blob/master/tfjs-core/src/optimizers/optimizer_constructors.ts
+const modelOptimizerNames = [
+  "adadelta",
+  "adagrad",
+  "adam",
+  "adamax",
+  // "momentum", TODO requires a second argument
+  "rmsprop",
+  "sgd",
+] as const;
 const TFJSModelSchema = z.object({
   model: z.object({
     // from https://github.com/tensorflow/tfjs/blob/master/tfjs-layers/src/losses.ts#L242
@@ -485,21 +505,10 @@ const TFJSModelSchema = z.object({
       "poisson",
       "cosineProximity",
     ]),
-    // from https://github.com/tensorflow/tfjs/blob/master/tfjs-layers/src/optimizers.ts
-    optimizer: z.enum([
-      "Adagrad",
-      "adagrad",
-      "Adadelta",
-      "adadelta",
-      "Adam",
-      "adam",
-      "Adamax",
-      "adamax",
-      "RMSProp",
-      "rmsprop",
-      "SGD",
-      "sgd",
-    ]),
+    optimizer: z.object({
+      name: z.enum(modelOptimizerNames),
+      learningRate: z.number().positive(),
+    }),
     topology: z.unknown().transform((files, ctx) => {
       if (files === undefined) {
         ctx.addIssue({
@@ -596,9 +605,29 @@ async function onSubmit(form: unknown): Promise<void> {
   if (
     !(topology instanceof File) ||
     typeof loss !== "string" ||
-    typeof optimizer !== "string"
+    !(
+      typeof optimizer === "object" &&
+      optimizer !== null &&
+      "name" in optimizer &&
+      typeof optimizer["name"] === "string" &&
+      "learningRate" in optimizer &&
+      typeof optimizer["learningRate"] === "number"
+    )
   )
     throw new Error("zod validated model info aren't valid");
+  switch (optimizer.name) {
+    case modelOptimizerNames[0]:
+    case modelOptimizerNames[1]:
+    case modelOptimizerNames[2]:
+    case modelOptimizerNames[3]:
+    case modelOptimizerNames[4]:
+    case modelOptimizerNames[5]:
+      // @ts-expect-error whole array is valid
+      modelOptimizerNames[6];
+      break;
+    default:
+      throw new Error("zod validated model info aren't valid");
+  }
 
   // TODO TFJS' browserFiles hangs when parsing invalid JSON tfjs#8517
   try {
@@ -614,7 +643,10 @@ async function onSubmit(form: unknown): Promise<void> {
       case "image":
       case "tabular": {
         const loaded = await tf.loadLayersModel(tf.io.browserFiles([topology]));
-        loaded.compile({ loss, optimizer });
+        loaded.compile({
+          loss,
+          optimizer: tf.train[optimizer.name](optimizer.learningRate),
+        });
         model = new models.TFJS(task.dataType, loaded);
         break;
       }

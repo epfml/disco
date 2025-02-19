@@ -56,7 +56,8 @@ it("submits with tabular task", () => {
       }),
     );
   cy.get("input[name='model.loss']").type("hinge");
-  cy.get("input[name='model.optimizer']").type("sgd");
+  cy.get("input[name='model.optimizer.name']").type("sgd");
+  cy.get("input[name='model.optimizer.learningRate']").type("0.01");
 
   cy.get("button[type='submit']").click();
 
