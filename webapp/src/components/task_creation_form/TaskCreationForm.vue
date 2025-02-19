@@ -600,7 +600,13 @@ async function onSubmit(form: unknown): Promise<void> {
   )
     throw new Error("zod validated model info aren't valid");
 
-  toaster.success("Form validation succeeded! Uploading...");
+  // TODO TFJS' browserFiles hangs when parsing invalid JSON tfjs#8517
+  try {
+    JSON.parse(await topology.text());
+  } catch {
+    toaster.error("Model file isn't valid");
+    return;
+  }
 
   let model;
   try {
