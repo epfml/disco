@@ -2,7 +2,18 @@
   <label class="root">
     <span class="text-slate-600 dark:text-slate-200">
       {{ label }}
-      <span v-if="required" class="text-slate-400 dark:text-slate-400">*</span>
+      <span
+        v-if="type === 'required'"
+        class="text-slate-400 dark:text-slate-400"
+      >
+        *
+      </span>
+      <span
+        v-else-if="type === 'checkbox'"
+        class="text-slate-400 dark:text-slate-400"
+      >
+        <input type="checkbox" v-model="model" />
+      </span>
     </span>
 
     <slot />
@@ -29,7 +40,15 @@
 </style>
 
 <script lang="ts" setup>
-withDefaults(defineProps<{ label: string; required?: boolean }>(), {
-  required: false,
-});
+withDefaults(
+  defineProps<{
+    label: string;
+    type?: "required" | "optional" | "checkbox";
+  }>(),
+  {
+    type: "optional",
+  },
+);
+
+const model = defineModel<boolean>();
 </script>

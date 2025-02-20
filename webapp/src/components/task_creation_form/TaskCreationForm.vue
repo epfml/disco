@@ -36,7 +36,7 @@
         <IconCard>
           <template #title> General </template>
 
-          <FormLabel label="Unique identifier" required>
+          <FormLabel label="Unique identifier" type="required">
             <FormField
               name="id"
               placeholder="my-task-identifier"
@@ -45,7 +45,7 @@
             />
           </FormLabel>
 
-          <FormLabel label="Data type" required>
+          <FormLabel label="Data type" type="required">
             <FormField name="dataType" as="select" v-model="dataType">
               <option value="image">Image</option>
               <option value="tabular">Tabular</option>
@@ -58,7 +58,11 @@
           <template #title> Model </template>
 
           <div class="flex flex-col">
-            <FormLabel v-if="dataType === 'image'" label="Labels" required>
+            <FormLabel
+              v-if="dataType === 'image'"
+              label="Labels"
+              type="required"
+            >
               <FieldArray
                 name="trainingInformation.LABEL_LIST"
                 v-slot="{ fields, push, remove }"
@@ -86,7 +90,7 @@
             </FormLabel>
 
             <div v-if="dataType === 'image'" class="flex flex-row flex-wrap">
-              <FormLabel label="Width to scale images to" required>
+              <FormLabel label="Width to scale images to" type="required">
                 <FormField
                   name="trainingInformation.IMAGE_W"
                   placeholder="100"
@@ -96,7 +100,7 @@
                 />
               </FormLabel>
 
-              <FormLabel label="Height to scale images to" required>
+              <FormLabel label="Height to scale images to" type="required">
                 <FormField
                   name="trainingInformation.IMAGE_H"
                   placeholder="100"
@@ -110,7 +114,7 @@
             <FormLabel
               v-if="dataType === 'tabular'"
               label="Input columns names"
-              required
+              type="required"
             >
               <FieldArray
                 name="trainingInformation.inputColumns"
@@ -141,7 +145,7 @@
             <FormLabel
               v-if="dataType === 'tabular'"
               label="Output column name"
-              required
+              type="required"
             >
               <FormField
                 name="trainingInformation.outputColumn"
@@ -151,7 +155,10 @@
             </FormLabel>
 
             <div v-if="dataType === 'text'" class="flex flex-row flex-wrap">
-              <FormLabel label="Name of a HuggingFace tokenizer" required>
+              <FormLabel
+                label="Name of a HuggingFace tokenizer"
+                type="required"
+              >
                 <FormField
                   name="trainingInformation.tokenizer"
                   placeholder="Xenova/gpt2"
@@ -159,7 +166,10 @@
                 />
               </FormLabel>
 
-              <FormLabel label="Number of token used for context" required>
+              <FormLabel
+                label="Number of token used for context"
+                type="required"
+              >
                 <FormField
                   name="trainingInformation.contextLength"
                   placeholder="128"
@@ -170,7 +180,7 @@
               </FormLabel>
             </div>
 
-            <FormLabel label="TFJS model.json file" required>
+            <FormLabel label="TFJS model.json file" type="required">
               <FormField
                 name="model.topology"
                 v-slot="{ handleChange, handleBlur }"
@@ -184,7 +194,7 @@
             </FormLabel>
 
             <div class="flex flex-row flex-wrap">
-              <FormLabel label="TFJS model optimizer" required>
+              <FormLabel label="TFJS model optimizer" type="required">
                 <FormField
                   name="model.optimizer.name"
                   placeholder="sgd"
@@ -192,7 +202,10 @@
                 />
               </FormLabel>
 
-              <FormLabel label="TFJS model optimizer learning rate" required>
+              <FormLabel
+                label="TFJS model optimizer learning rate"
+                type="required"
+              >
                 <FormField
                   name="model.optimizer.learningRate"
                   placeholder="0.01"
@@ -202,7 +215,7 @@
                 />
               </FormLabel>
 
-              <FormLabel label="TFJS model loss" required>
+              <FormLabel label="TFJS model loss" type="required">
                 <FormField name="model.loss" placeholder="hinge" as="input" />
               </FormLabel>
             </div>
@@ -213,7 +226,7 @@
           <template #title> Training </template>
 
           <div class="flex flex-row flex-wrap">
-            <FormLabel label="Epochs" required>
+            <FormLabel label="Epochs" type="required">
               <FormField
                 name="trainingInformation.epochs"
                 placeholder="30"
@@ -223,7 +236,7 @@
               />
             </FormLabel>
 
-            <FormLabel label="Batch size" required>
+            <FormLabel label="Batch size" type="required">
               <FormField
                 name="trainingInformation.batchSize"
                 placeholder="10"
@@ -233,7 +246,10 @@
               />
             </FormLabel>
 
-            <FormLabel label="Fraction of dataset used for validation" required>
+            <FormLabel
+              label="Fraction of dataset used for validation"
+              type="required"
+            >
               <FormField
                 name="trainingInformation.validationSplit"
                 placeholder="0.1"
@@ -251,7 +267,7 @@
           <template #title> Network </template>
 
           <div class="flex flex-col">
-            <FormLabel label="Collaborative algorithm" required>
+            <FormLabel label="Collaborative algorithm" type="required">
               <FormField name="trainingInformation.scheme" as="select">
                 <option value="federated">Federated</option>
                 <option value="decentralized">Decentralized</option>
@@ -271,7 +287,7 @@
 
             <FormLabel
               label="Number of epochs before aggregating weights"
-              required
+              type="required"
             >
               <FormField
                 name="trainingInformation.roundDuration"
@@ -281,7 +297,10 @@
               />
             </FormLabel>
 
-            <FormLabel label="Minimum number of peers per round" required>
+            <FormLabel
+              label="Minimum number of peers per round"
+              type="required"
+            >
               <FormField
                 name="trainingInformation.minNbOfParticipants"
                 placeholder="3"
@@ -290,10 +309,15 @@
               />
             </FormLabel>
 
-            <FormLabel label="Differential privacy">
-              <div class="flex flex-col">
+            <FormLabel
+              label="Differential privacy"
+              type="checkbox"
+              v-model="differentialPrivacy"
+            >
+              <div class="flex flex-col" v-show="differentialPrivacy">
                 <FormLabel
                   label="Maximum weights difference between each round"
+                  type="required"
                 >
                   <FormField
                     name="trainingInformation.privacy.clippingRadius"
@@ -303,7 +327,10 @@
                   />
                 </FormLabel>
 
-                <FormLabel label="Size of the noise added to the weights">
+                <FormLabel
+                  label="Size of the noise added to the weights"
+                  type="required"
+                >
                   <FormField
                     name="trainingInformation.privacy.noiseScale"
                     placeholder="2"
@@ -314,8 +341,15 @@
               </div>
             </FormLabel>
 
-            <FormLabel label="Secure Aggregation">
-              <FormLabel label="Maximum value of a single weight">
+            <FormLabel
+              label="Secure Aggregation"
+              type="checkbox"
+              v-model="secureAggregation"
+            >
+              <FormLabel
+                label="Maximum value of a single weight"
+                v-show="secureAggregation"
+              >
                 <FormField
                   name="trainingInformation.maxShareValue"
                   placeholder="100"
@@ -331,7 +365,7 @@
           <template #title> Description </template>
 
           <div class="flex flex-col">
-            <FormLabel label="Title" required>
+            <FormLabel label="Title" type="required">
               <FormField
                 name="displayInformation.title"
                 placeholder="Home Labelator"
@@ -339,7 +373,7 @@
               />
             </FormLabel>
 
-            <FormLabel label="Short description" required>
+            <FormLabel label="Short description" type="required">
               <FormField
                 name="displayInformation.summary.preview"
                 placeholder="Detect and label everyday objects"
@@ -347,7 +381,7 @@
               />
             </FormLabel>
 
-            <FormLabel label="Extended description" required>
+            <FormLabel label="Extended description" type="required">
               <FormField
                 name="displayInformation.summary.overview"
                 placeholder="Standard classification model used in computer vision."
@@ -484,6 +518,8 @@ const toaster = useToaster();
 const { tasks } = storeToRefs(useTasksStore());
 
 const dataType = ref();
+const differentialPrivacy = ref(false);
+const secureAggregation = ref(false);
 
 function enumFailsWithInvalidChoice(
   issue: z.ZodIssueOptionalMessage,
@@ -498,6 +534,53 @@ function enumFailsWithInvalidChoice(
 
   return { message: ctx.defaultError };
 }
+
+const privacySchema = z.object({
+  privacy:
+    Task.schema.options[0].shape.trainingInformation.shape.privacy.transform(
+      (arg, ctx) => {
+        if (!differentialPrivacy.value) return undefined;
+
+        const addUndefIssue = (field?: string) => {
+          const path = field !== undefined ? [field] : undefined;
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Required",
+            path,
+          });
+        };
+
+        if (arg === undefined) {
+          addUndefIssue();
+          return z.NEVER;
+        }
+        if (arg.clippingRadius === undefined) addUndefIssue("clippingRadius");
+        if (arg.noiseScale === undefined) addUndefIssue("noiseScale");
+        if (arg.clippingRadius === undefined || arg.noiseScale === undefined)
+          return z.NEVER;
+
+        return arg;
+      },
+    ),
+});
+const secureAggregationSchema = z.object({
+  maxShareValue:
+    Task.schema.options[0].shape.trainingInformation.shape.maxShareValue.transform(
+      (arg, ctx) => {
+        if (!secureAggregation.value) return undefined;
+
+        if (arg === undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Required",
+          });
+          return z.NEVER;
+        }
+
+        return arg;
+      },
+    ),
+});
 
 // from https://github.com/tensorflow/tfjs/blob/master/tfjs-core/src/optimizers/optimizer_constructors.ts
 const modelOptimizerNames = [
@@ -576,20 +659,20 @@ const schema =
       Task.schemas.image
         .merge(
           z.object({
-            trainingInformation:
-              Task.schemas.image.shape.trainingInformation.merge(
-                TFJSBackendSchema,
-              ),
+            trainingInformation: Task.schemas.image.shape.trainingInformation
+              .merge(TFJSBackendSchema)
+              .merge(privacySchema)
+              .merge(secureAggregationSchema),
           }),
         )
         .merge(TFJSModelSchema),
       Task.schemas.tabular
         .merge(
           z.object({
-            trainingInformation:
-              Task.schemas.tabular.shape.trainingInformation.merge(
-                TFJSBackendSchema,
-              ),
+            trainingInformation: Task.schemas.tabular.shape.trainingInformation
+              .merge(TFJSBackendSchema)
+              .merge(privacySchema)
+              .merge(secureAggregationSchema),
           }),
         )
         .merge(TFJSModelSchema),
@@ -598,6 +681,8 @@ const schema =
           z.object({
             trainingInformation: Task.schemas.text.shape.trainingInformation
               .merge(TFJSBackendSchema)
+              .merge(privacySchema)
+              .merge(secureAggregationSchema)
               .extend({
                 tokenizer: z.string().transform(async (name, ctx) => {
                   try {
