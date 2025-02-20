@@ -16,28 +16,28 @@
 
       <!-- Mini Sidebar content-->
       <div class="flex flex-col items-center justify-center flex-1 space-y-4">
-        <SidebarButton text="Home" label="Home"> 
+        <SidebarButton text="Home" label="Home"  id="tuto-home-bttn"> 
           <RouterLink to="/">
-            <HomeIcon />
+            <HomeIcon/>
           </RouterLink>
         </SidebarButton>
         <SidebarButton text="Join existing DISCOllaboratives" label="Join"> 
           <RouterLink to="/list">
-            <TasksIcon class="w-6 h-6" />
+            <TasksIcon class="w-6 h-6"/>
           </RouterLink>
         </SidebarButton>
-        <SidebarButton text="Create a new DISCOllaborative" label="Create"> 
+        <SidebarButton text="Create a new DISCOllaborative" label="Create" id="tuto-create-bttn"> 
           <RouterLink to="/create">
-            <CreateIcon />
+            <CreateIcon/>
           </RouterLink>
         </SidebarButton>
-        <SidebarButton text="Evaluate models" label="Evaluate"> 
+        <SidebarButton text="Evaluate or download a model in the Model Library" label="Models" id="tuto-evaluate-bttn"> 
           <RouterLink to="/evaluate">
-            <EvaluateIcon />
+            <EvaluateIcon/>
           </RouterLink>
         </SidebarButton>
       </div>
-      <div class="flex justify-center">
+      <div class="flex flex-col justify-center space-y-4 items-center">
         <SidebarButton
           :text="
             themeStore.current === 'light'
@@ -47,8 +47,16 @@
           label="Theme"
           @click="toggleDarkMode"
         >
-          <MoonIcon v-if="themeStore.current === 'light'" />
-          <SunIcon v-else />
+          <MoonIcon v-if="themeStore.current === 'light'"/>
+          <SunIcon v-else/>
+        </SidebarButton>
+        <SidebarButton 
+          text="Check out the tutorial"
+          label="Tutorial"
+          @click="tutorialStore.startFromSidebar"
+          id="tuto-help-bttn" 
+        >
+          <QuestionMarkIcon/>
         </SidebarButton>
       </div>
     </nav>
@@ -61,16 +69,22 @@ import HomeIcon from "@/assets/svg/HomeIcon.vue";
 import TasksIcon from "@/assets/svg/TasksIcon.vue";
 import CreateIcon from "@/assets/svg/CreateIcon.vue";
 import EvaluateIcon from "@/assets/svg/EvaluateIcon.vue";
+import QuestionMarkIcon from "@/assets/svg/QuestionMarkIcon.vue";
 import DISCO from "@/components/simple/DISCO.vue";
 
 import SidebarButton from "./SidebarButton.vue";
 import MoonIcon from "@/assets/svg/MoonIcon.vue";
 import SunIcon from "@/assets/svg/SunIcon.vue";
+
 import { useThemeStore } from "@/store";
+import { useTutorialStore } from "@/store";
 
 const themeStore = useThemeStore();
+const tutorialStore = useTutorialStore();
+
 // Function to toggle the dark mode
 const toggleDarkMode = () => {
   themeStore.current = (themeStore.current === "light") ? "dark" : "light";
 };
+
 </script>

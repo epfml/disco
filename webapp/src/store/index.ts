@@ -5,3 +5,4 @@ export { useTasksStore } from "./tasks";
 export { useTrainingStore } from "./training";
 export { useValidationStore } from "./validation";
 export { useThemeStore } from "./theme";
+export { useTutorialStore } from "./tutorial";

@@ -4,7 +4,9 @@
       <template #title> Expected Data Format </template>
 
       <!-- Sample dataset link and instructions -->
-       <div class="mb-5 text-left" v-show="task.displayInformation.sampleDatasetLink !== undefined">
+       <div 
+          class="mb-5 text-left tuto-example-data" 
+          v-show="task.displayInformation.sampleDatasetLink !== undefined">
           <b>Don't have any data?</b> You can download an example dataset <a target="_blank" class='underline text-blue-400' :href="task.displayInformation.sampleDatasetLink">here</a>.
           <br/><span v-html="task.displayInformation.sampleDatasetInstructions"/><br/>
       </div>

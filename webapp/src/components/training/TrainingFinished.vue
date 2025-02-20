@@ -1,6 +1,6 @@
 <template>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10 items-stretch">
-    <!-- Save the model -->
+    <!-- Test the model -->
     <ButtonsCard :buttons="List.of(['test model', onTestModel])">
       <template #title> Test the model </template>
 
@@ -8,12 +8,12 @@
       testing it on new data (that was not used in training).
     </ButtonsCard>
 
-    <!-- Test the model -->
+    <!-- Save the model -->
     <ButtonsCard :buttons="List.of(['save model', onSaveModel])">
       <template #title> Save the model </template>
 
-      Saving the model will allow you to access it later to update training in a
-      new <DISCOllaborative />.
+      Saving the model will allow you to access it later to update training in
+      a new <DISCOllaborative />.
     </ButtonsCard>
   </div>
 </template>

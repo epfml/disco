@@ -14,11 +14,13 @@
           href="https://github.com/epfml/disco"
           target="_blank"
         />
-        <a
-          class="fa-brands fa-slack fa-xl"
-          href="https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw"
-          target="_blank"
-        />
+        <div id="tuto-slack-link">
+          <a
+            class="fa-brands fa-slack fa-xl"
+            href="https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw"
+            target="_blank"
+          />
+        </div>
 
         <RouterLink
           title="The DISCO team"

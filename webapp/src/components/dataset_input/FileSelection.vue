@@ -18,7 +18,9 @@
         @dragleave="onDragLeave"
         @drop="async (e: DragEvent) => await dragFiles(e)"
       >
-        <p class="p-4 text-lg text-disco-blue dark:text-disco-light-blue flex-wrap justify-center">
+        <p
+          class="p-4 text-lg text-disco-blue dark:text-disco-light-blue flex-wrap justify-center"
+        >
           <span>Drag and drop the {{ fileType }} or</span>
         </p>
         <label class="mb-6">

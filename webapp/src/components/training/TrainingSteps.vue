@@ -8,7 +8,7 @@
     >
       <LabeledDatasetInput :task v-model="dataset">
         <template #header>
-          <DataDescription :task />
+          <DataDescription :task class="tuto-data-desc"/>
         </template>
       </LabeledDatasetInput>
     </div>
@@ -45,6 +45,7 @@ import TrainingButtons from "@/components/progress_bars/TrainingButtons.vue";
 import TrainingDescription from "@/components/training/TrainingDescription.vue";
 import TrainingFinished from "@/components/training/TrainingFinished.vue";
 import TrainerDashboard from "@/components/training/TrainerDashboard.vue";
+
 import { useTasksStore, useTrainingStore } from "@/store";
 
 const router = useRouter();

@@ -88,17 +88,15 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { VueSpinner } from 'vue3-spinners';
-
 import { List } from "immutable";
 
-import type { DataType, Task } from "@epfml/discojs";
+import { useTasksStore, useTrainingStore, useTutorialStore } from "@/store";
 
-import { useTasksStore } from "@/store";
-import { useTrainingStore } from "@/store";
+import type { DataType, Task } from "@epfml/discojs";
 import ButtonsCard from '@/components/containers/ButtonsCard.vue'
 import DISCO from '@/components/simple/DISCO.vue'
 import DISCOllaborative from '@/components/simple/DISCOllaborative.vue'
@@ -106,6 +104,7 @@ import DISCOllaboratives from '@/components/simple/DISCOllaboratives.vue'
 
 const router = useRouter()
 const trainingStore = useTrainingStore()
+const tutorialStore = useTutorialStore();
 const taskStore = useTasksStore()
 const { tasks } = storeToRefs(taskStore)
 
@@ -144,4 +143,8 @@ function toTask(task: Task<DataType>): void {
 const goToCreateTask = (): void => {
   router.push({ path: '/create' })
 }
+
+// Start the tutorial on mount if it has not already been seen
+onMounted(() => { tutorialStore.startOnFirstVisit(); });
+
 </script>

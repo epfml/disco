@@ -12,7 +12,7 @@
     >
       <DISCOllaboratives />
     </div>
-    <div class="hidden md:inline-block w-full py-6">
+    <div class="hidden md:inline-block w-full py-6" id="tuto-training-bar">
       <div class="flex">
         <!-- Step 1 -->
         <ProgressIcon

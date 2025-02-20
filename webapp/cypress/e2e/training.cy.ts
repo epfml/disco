@@ -2,14 +2,18 @@ import { defaultTasks } from "@epfml/discojs";
 
 import { setupServerWith } from "../support/e2e";
 
+function goToTaskOverview() {
+  cy.visit("/");
+  cy.contains("a", "Start training").click();
+  cy.get(".driver-popover-close-btn").click();
+  cy.contains("button", "participate").click();
+}
+
 describe("training page", () => {
   it("is navigable", () => {
     setupServerWith(defaultTasks.titanic);
 
-    cy.visit("/");
-
-    cy.contains("a", "Start training").click();
-    cy.contains("button", "participate").click();
+    goToTaskOverview();
 
     const navigationButtons = 3;
     for (let i = 0; i < navigationButtons; i++) {
@@ -23,10 +27,7 @@ describe("training page", () => {
   it("can train titanic", () => {
     setupServerWith(defaultTasks.titanic);
 
-    cy.visit("/");
-
-    cy.contains("a", "Start training").click();
-    cy.contains("button", "participate").click();
+    goToTaskOverview();
     cy.contains("button", "next").click();
 
     cy.contains("label", "select CSV").selectFile(
@@ -52,10 +53,7 @@ describe("training page", () => {
     // throwing to stop training
     cy.on("uncaught:exception", (e) => !e.message.includes("stop training"));
 
-    cy.visit("/");
-
-    cy.contains("a", "Start training").click();
-    cy.contains("button", "participate").click();
+    goToTaskOverview();
     cy.contains("button", "next").click();
 
     cy.task<string[]>("readdir", "../datasets/lus_covid/COVID+/").then(

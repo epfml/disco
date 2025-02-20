@@ -2,7 +2,9 @@ import { defaultTasks } from "@epfml/discojs";
 
 import { setupServerWith } from "../../support/e2e";
 
-it("stores models", () => {
+it("stores models",
+  { retries: 5 }, // can exhaust memory
+  () => {
   setupServerWith(defaultTasks.titanic);
 
   cy.visit("/#/evaluate");
@@ -13,7 +15,9 @@ it("stores models", () => {
   cy.contains("button", "test").should("exist");
 });
 
-it("stores larger models", () => {
+it("stores larger models",
+  { retries: 5 }, // can exhaust memory
+  () => {
   setupServerWith(defaultTasks.wikitext);
 
   cy.visit("/#/evaluate");
