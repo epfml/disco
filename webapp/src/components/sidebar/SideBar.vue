@@ -16,33 +16,35 @@
 
       <!-- Mini Sidebar content-->
       <div class="flex flex-col items-center justify-center flex-1 space-y-4">
-        <SidebarButton text="Home"> 
+        <SidebarButton text="Home" label="Home"> 
           <RouterLink to="/">
             <HomeIcon />
           </RouterLink>
         </SidebarButton>
-        <SidebarButton text="DISCOllaboratives"> 
+        <SidebarButton text="Join existing DISCOllaboratives" label="Join"> 
           <RouterLink to="/list">
             <TasksIcon class="w-6 h-6" />
           </RouterLink>
         </SidebarButton>
-        <SidebarButton text="Create a new DISCOllaborative"> 
+        <SidebarButton text="Create a new DISCOllaborative" label="Create"> 
           <RouterLink to="/create">
             <CreateIcon />
           </RouterLink>
         </SidebarButton>
-        <SidebarButton text="Evaluate models"> 
+        <SidebarButton text="Evaluate models" label="Evaluate"> 
           <RouterLink to="/evaluate">
             <EvaluateIcon />
           </RouterLink>
         </SidebarButton>
-
+      </div>
+      <div class="flex justify-center">
         <SidebarButton
           :text="
             themeStore.current === 'light'
               ? 'Switch to Dark Mode'
               : 'Switch to Light Mode'
           "
+          label="Theme"
           @click="toggleDarkMode"
         >
           <MoonIcon v-if="themeStore.current === 'light'" />
