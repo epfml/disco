@@ -1,7 +1,7 @@
 <template>
   <div
     class="flex flex-col p-7 gap-4 bg-white dark:bg-slate-950 rounded-lg 
-    transition duration-200 hover:-translate-y-1 hover:scale-[101%] hover:cursor-pointer"
+    hover:outline hover:outline-1 hover:outline-disco-cyan hover:cursor-pointer"
   >
     <div class="flex flex-row">
       <div
