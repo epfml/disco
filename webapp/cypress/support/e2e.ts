@@ -1,6 +1,7 @@
 import type {
   DataType,
   Model,
+  Network,
   Task,
   TaskProvider,
   TrainingInformation,
@@ -8,7 +9,7 @@ import type {
 import { serialization } from "@epfml/discojs";
 
 export function setupServerWith(
-  ...providers: (Task<DataType> | TaskProvider<DataType>)[]
+  ...providers: (Task<DataType, Network> | TaskProvider<DataType, Network>)[]
 ): void {
   cy.wrap(providers)
     .then((providers) =>
@@ -21,7 +22,7 @@ export function setupServerWith(
     )
     .as("taskAndModels");
 
-  cy.get<Array<[Task<DataType>, unknown]>>("@taskAndModels")
+  cy.get<Array<[Task<DataType,Network>, unknown]>>("@taskAndModels")
     .then((taskAndModels) =>
       taskAndModels.map(([t]) => serialization.task.serializeToJSON(t)),
     )
@@ -29,7 +30,7 @@ export function setupServerWith(
       cy.intercept({ hostname: "server", pathname: "tasks" }, tasks),
     );
 
-  cy.get<Array<[Task<DataType>, Model<DataType> | undefined]>>(
+  cy.get<Array<[Task<DataType, Network>, Model<DataType> | undefined]>>(
     "@taskAndModels",
   ).then((tasksAndModels) => {
     tasksAndModels.forEach(([task, model]) => {
@@ -63,15 +64,15 @@ type BasicKeys =
   | "validationSplit"
   | "tensorBackend"
   | "scheme"
-  | "minNbOfParticipants";
+  | "aggregationStrategy";
 
-export function basicTask<D extends DataType>(
-  dataType: D,
-  info: {
-    [K in DataType]: Omit<TrainingInformation<K>, BasicKeys> &
-      Partial<Pick<TrainingInformation<K>, BasicKeys>>;
-  }[D],
-): Task<D> {
+export function basicTask<D extends DataType, N extends Network>(
+	dataType: D,
+	info: {
+		[K in DataType]: Omit<TrainingInformation<K, N>, BasicKeys> &
+			Partial<Pick<TrainingInformation<K, N>, BasicKeys>>;
+	}[D],
+): Task<D, N> {
   const trainingInformation = {
     epochs: 1,
     batchSize: 1,
@@ -80,9 +81,10 @@ export function basicTask<D extends DataType>(
     tensorBackend: "tfjs",
     scheme: "local",
     minNbOfParticipants: 1,
+    aggregationStrategy: "mean",
     ...info,
     // cast as typescript doesn't work well w/ generics
-  } as TrainingInformation<D>;
+  } as TrainingInformation<D, N>;
 
   return {
     id: "task",
@@ -93,7 +95,7 @@ export function basicTask<D extends DataType>(
       summary: { preview: "preview", overview: "overview" },
     },
     // cast as typescript doesn't work well w/ generics
-  } as Task<D>;
+  } as Task<D, N>;
 }
 
 beforeEach(() =>

@@ -132,6 +132,7 @@ import type {
   RoundLogs,
   RoundStatus,
   Task,
+  Network,
 } from "@epfml/discojs";
 import { async_iterator, Disco } from "@epfml/discojs";
 
@@ -147,7 +148,7 @@ const debug = createDebug("webapp:training:Trainer");
 const toaster = useToaster();
 
 const props = defineProps<{
-  task: Task<D>;
+  task: Task<D, Network>;
   dataset?: Dataset<DataFormat.Raw[D]>;
 }>();
 const emit = defineEmits<{
@@ -202,6 +203,7 @@ async function startTraining(): Promise<void> {
 
   toaster.info("Model training started");
 
+  console.log("server URL:", CONFIG.serverUrl.toString())
   const disco = new Disco(props.task, CONFIG.serverUrl, {
     scheme: isTrainingAlone.value ? "local": props.task.trainingInformation.scheme,
   });

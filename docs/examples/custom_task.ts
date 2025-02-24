@@ -5,7 +5,7 @@ import { defaultTasks, models } from '@epfml/discojs'
 import { Server as DiscoServer } from 'server'
 
 // Define your own task provider (task definition + model)
-const customTask: TaskProvider<"tabular"> = {
+const customTask: TaskProvider<"tabular", "federated"> = {
   getTask () {
     return Promise.resolve({
       id: 'custom-task',
@@ -27,6 +27,7 @@ const customTask: TaskProvider<"tabular"> = {
         ],
         outputColumn: 'Output',
         scheme: 'federated',
+        aggregationStrategy: "mean",
         minNbOfParticipants: 2,
         tensorBackend: 'tfjs',
         noiseScale: undefined,

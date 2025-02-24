@@ -23,7 +23,7 @@ const SERVER_NODE_ID = "federated-server-node-id";
  * Client class that communicates with a centralized, federated server, when training
  * a specific task in the federated setting.
  */
-export class FederatedClient extends Client {  
+export class FederatedClient extends Client<"federated"> {  
 
   /**
    * Initializes the connection to the server, gets our node ID

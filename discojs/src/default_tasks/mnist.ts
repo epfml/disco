@@ -3,7 +3,7 @@ import * as tf from '@tensorflow/tfjs'
 import type { Model, TaskProvider } from "../index.js";
 import { models } from '../index.js'
 
-export const mnist: TaskProvider<'image'> = {
+export const mnist: TaskProvider<"image", "decentralized"> = {
   getTask() {
     return Promise.resolve({
       id: 'mnist',

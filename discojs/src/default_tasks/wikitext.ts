@@ -1,9 +1,9 @@
 import type { TaskProvider } from "../index.js";
-import { Task, Tokenizer, models } from "../index.js";
+import { Tokenizer, models } from "../index.js";
 
-export const wikitext: TaskProvider<'text'> = {
+export const wikitext: TaskProvider<"text", "federated"> = {
   async getTask() {
-    return Task.schemas.text.parse({
+    return {
       id: 'llm_task',
       dataType: "text",
       displayInformation: {
@@ -42,7 +42,7 @@ export const wikitext: TaskProvider<'text'> = {
         contextLength: 64,
         tensorBackend: 'gpt'
       }
-    });
+    }
   },
 
   async getModel() {

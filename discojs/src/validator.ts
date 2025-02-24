@@ -1,11 +1,18 @@
-import { Dataset, DataFormat, DataType, Model, Task } from "./index.js";
+import type {
+	Dataset,
+	DataFormat,
+	DataType,
+	Model,
+	Task,
+	Network,
+} from "./index.js";
 import { processing } from "./index.js";
 
 export class Validator<D extends DataType> {
   readonly #model: Model<D>;
 
   constructor(
-    public readonly task: Task<D>,
+    public readonly task: Task<D, Network>,
     model: Model<D>,
   ) {
     this.#model = model;

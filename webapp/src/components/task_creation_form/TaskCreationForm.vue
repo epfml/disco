@@ -499,7 +499,13 @@ import * as z from "zod";
 import { isSet } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 
-import { models, pushTask, Task, Tokenizer } from "@epfml/discojs";
+import {
+  models,
+  pushTask,
+  Task,
+  Tokenizer,
+  TrainingInformation,
+} from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster";
 import { CONFIG } from "@/config";
@@ -521,66 +527,83 @@ const dataType = ref();
 const differentialPrivacy = ref(false);
 const secureAggregation = ref(false);
 
-function enumFailsWithInvalidChoice(
-  issue: z.ZodIssueOptionalMessage,
-  ctx: z.ErrorMapCtx,
-) {
-  switch (issue.code) {
-    case "invalid_enum_value":
-      return {
-        message: `Invalid choice, choose one from: ${issue.options.join(", ")}`,
+const nonLocalNetworkSchema = z.object({
+  privacy: z
+    .object({
+      clippingRadius: z.number().optional(),
+      noiseScale: z.number().optional(),
+    })
+    .optional()
+    .transform((arg, ctx) => {
+      if (!differentialPrivacy.value) return undefined;
+
+      const addUndefIssue = (field?: string) => {
+        const path = field !== undefined ? [field] : undefined;
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Required",
+          path,
+        });
       };
-  }
 
-  return { message: ctx.defaultError };
-}
+      if (arg === undefined) {
+        addUndefIssue();
+        return z.NEVER;
+      }
+      if (arg.clippingRadius === undefined) addUndefIssue("clippingRadius");
+      if (arg.noiseScale === undefined) addUndefIssue("noiseScale");
+      if (arg.clippingRadius === undefined || arg.noiseScale === undefined)
+        return z.NEVER;
 
-const privacySchema = z.object({
-  privacy:
-    Task.schema.options[0].shape.trainingInformation.shape.privacy.transform(
-      (arg, ctx) => {
-        if (!differentialPrivacy.value) return undefined;
-
-        const addUndefIssue = (field?: string) => {
-          const path = field !== undefined ? [field] : undefined;
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Required",
-            path,
-          });
-        };
-
-        if (arg === undefined) {
-          addUndefIssue();
-          return z.NEVER;
-        }
-        if (arg.clippingRadius === undefined) addUndefIssue("clippingRadius");
-        if (arg.noiseScale === undefined) addUndefIssue("noiseScale");
-        if (arg.clippingRadius === undefined || arg.noiseScale === undefined)
-          return z.NEVER;
-
-        return arg;
-      },
-    ),
+      return arg;
+    }),
+  minNbOfParticipants: z.number().positive().int(),
 });
-const secureAggregationSchema = z.object({
-  maxShareValue:
-    Task.schema.options[0].shape.trainingInformation.shape.maxShareValue.transform(
-      (arg, ctx) => {
-        if (!secureAggregation.value) return undefined;
+const trainingInformationNetworks = z.union([
+  z
+    .object({
+      scheme: z.literal("decentralized"),
+    })
+    .merge(nonLocalNetworkSchema)
+    .and(
+      z.union([
+        z.object({
+          aggregationStrategy: z.literal("mean"),
+        }),
+        z.object({
+          aggregationStrategy: z.literal("secure"),
+          maxShareValue: z
+            .number()
+            .positive()
+            .int()
+            .optional()
+            .transform((arg, ctx) => {
+              if (!secureAggregation.value) return undefined;
 
-        if (arg === undefined) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Required",
-          });
-          return z.NEVER;
-        }
+              if (arg === undefined) {
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  message: "Required",
+                });
+                return z.NEVER;
+              }
 
-        return arg;
-      },
+              return arg;
+            }),
+        }),
+      ]),
     ),
-});
+  z
+    .object({
+      scheme: z.literal("federated"),
+      aggregationStrategy: z.literal("mean"),
+    })
+    .merge(nonLocalNetworkSchema),
+  z.object({
+    scheme: z.literal("local"),
+    aggregationStrategy: z.literal("mean"),
+  }),
+]);
 
 // from https://github.com/tensorflow/tfjs/blob/master/tfjs-core/src/optimizers/optimizer_constructors.ts
 const modelOptimizerNames = [
@@ -595,29 +618,24 @@ const modelOptimizerNames = [
 const TFJSModelSchema = z.object({
   model: z.object({
     // from https://github.com/tensorflow/tfjs/blob/master/tfjs-layers/src/losses.ts#L242
-    loss: z.enum(
-      [
-        "binaryCrossentropy",
-        "categoricalCrossentropy",
-        "categoricalHinge",
-        "cosineProximity",
-        "hinge",
-        "kullbackLeiblerDivergence",
-        "logcosh",
-        "meanAbsoluteError",
-        "meanAbsolutePercentageError",
-        "meanSquaredError",
-        "meanSquaredLogarithmicError",
-        "poisson",
-        "sparseCategoricalCrossentropy",
-        "squaredHinge",
-      ],
-      { errorMap: enumFailsWithInvalidChoice },
-    ),
+    loss: z.enum([
+      "binaryCrossentropy",
+      "categoricalCrossentropy",
+      "categoricalHinge",
+      "cosineProximity",
+      "hinge",
+      "kullbackLeiblerDivergence",
+      "logcosh",
+      "meanAbsoluteError",
+      "meanAbsolutePercentageError",
+      "meanSquaredError",
+      "meanSquaredLogarithmicError",
+      "poisson",
+      "sparseCategoricalCrossentropy",
+      "squaredHinge",
+    ]),
     optimizer: z.object({
-      name: z.enum(modelOptimizerNames, {
-        errorMap: enumFailsWithInvalidChoice,
-      }),
+      name: z.enum(modelOptimizerNames),
       learningRate: z.number().positive(),
     }),
     topology: z.unknown().transform((files, ctx) => {
@@ -646,43 +664,38 @@ const TFJSModelSchema = z.object({
   }),
 });
 
-const TFJSBackendSchema = z.object({
+const trainingInformationSchema = TrainingInformation.baseSchema.extend({
   tensorBackend: z.literal("tfjs").default("tfjs"),
 });
-
-const schema =
-  // no object methods on discriminated union zod#1768
-  z.discriminatedUnion(
-    Task.schema.discriminator,
-    // options.map doesn't keep size
-    [
-      Task.schemas.image
+const schema = Task.baseSchema
+  .extend({
+    trainingInformation: trainingInformationSchema,
+  })
+  .and(
+    z.union([
+      Task.dataTypeToSchema.image
         .merge(
           z.object({
-            trainingInformation: Task.schemas.image.shape.trainingInformation
-              .merge(TFJSBackendSchema)
-              .merge(privacySchema)
-              .merge(secureAggregationSchema),
+            trainingInformation: trainingInformationSchema
+              .merge(TrainingInformation.dataTypeToSchema.image)
+              .and(trainingInformationNetworks),
           }),
         )
         .merge(TFJSModelSchema),
-      Task.schemas.tabular
+      Task.dataTypeToSchema.tabular
         .merge(
           z.object({
-            trainingInformation: Task.schemas.tabular.shape.trainingInformation
-              .merge(TFJSBackendSchema)
-              .merge(privacySchema)
-              .merge(secureAggregationSchema),
+            trainingInformation: trainingInformationSchema
+              .merge(TrainingInformation.dataTypeToSchema.tabular)
+              .and(trainingInformationNetworks),
           }),
         )
         .merge(TFJSModelSchema),
-      Task.schemas.text
+      Task.dataTypeToSchema.text
         .merge(
           z.object({
-            trainingInformation: Task.schemas.text.shape.trainingInformation
-              .merge(TFJSBackendSchema)
-              .merge(privacySchema)
-              .merge(secureAggregationSchema)
+            trainingInformation: trainingInformationSchema
+              .merge(TrainingInformation.dataTypeToSchema.text)
               .extend({
                 tokenizer: z.string().transform(async (name, ctx) => {
                   try {
@@ -695,21 +708,27 @@ const schema =
                     return z.NEVER;
                   }
                 }),
-              }),
+              })
+              .and(trainingInformationNetworks),
           }),
         )
         .merge(TFJSModelSchema),
-    ],
-    {
-      errorMap: (issue, ctx) => {
-        switch (issue.code) {
-          case "invalid_union_discriminator":
-            return { message: "Invalid choice" };
-        }
-        return { message: ctx.defaultError };
-      },
-    },
+    ]),
   );
+
+// TODO avoid modifying global state
+z.setErrorMap((issue, ctx) => {
+  switch (issue.code) {
+    case "invalid_enum_value":
+      return {
+        message: `Invalid choice, choose one from: ${issue.options.join(", ")}`,
+      };
+    case "invalid_literal":
+      return { message: "Missing dependant fields" };
+  }
+
+  return { message: ctx.defaultError };
+});
 
 async function onSubmit(form: unknown): Promise<void> {
   // TODO double check as @submit isn't generic vee-validate#4845

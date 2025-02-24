@@ -23,7 +23,7 @@ import { List } from "immutable";
 import { ref, toRaw, watch } from "vue";
 import { useRouter } from "vue-router";
 
-import type { DataType, Model, Task } from "@epfml/discojs";
+import type { DataType, Model, Network, Task } from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster";
 import type { ModelID } from "@/store";
@@ -39,7 +39,7 @@ const router = useRouter();
 const toaster = useToaster();
 
 const props = defineProps<{
-  task: Task<D>;
+  task: Task<D, Network>;
   model?: Model<D>;
 }>();
 

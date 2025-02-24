@@ -15,7 +15,7 @@ import { useTasksStore } from "@/store";
 
 import ModelLibrary from "../ModelLibrary.vue";
 
-const TASK = Task.schema.parse({
+const TASK: Task<"text", "federated"> = {
   id: "task",
   dataType: "text",
   displayInformation: {
@@ -26,6 +26,7 @@ const TASK = Task.schema.parse({
     tokenizer: await Tokenizer.from_pretrained("Xenova/gpt2"),
     tensorBackend: "gpt",
     scheme: "federated",
+    aggregationStrategy: "mean",
     minNbOfParticipants: 1,
     epochs: 1,
     batchSize: 1,
@@ -33,7 +34,7 @@ const TASK = Task.schema.parse({
     validationSplit: 0,
     contextLength: 64,
   },
-});
+};
 
 it("shows stored models", async () => {
   const wrapper = mount(ModelLibrary, {

@@ -161,7 +161,7 @@ import createDebug from "debug";
 import { List } from "immutable";
 import { computed, ref, toRaw } from "vue";
 
-import type { DataType, Image, Model, Task } from "@epfml/discojs";
+import type { DataType, Image, Model, Network, Task } from "@epfml/discojs";
 import { Validator } from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster";
@@ -180,7 +180,7 @@ const toaster = useToaster();
 const validationStore = useValidationStore();
 
 const props = defineProps<{
-  task: Task<D>;
+  task: Task<D, Network>;
   model: Model<D>;
 }>();
 
@@ -234,7 +234,8 @@ const confusionMatrix = computed<{ [key: string]: { [key: string]: number } } | 
   let labels: string[] = [];
   switch (props.task.dataType) {
     case "image":
-      labels = (props.task as Task<"image">).trainingInformation.LABEL_LIST;
+      labels = (props.task as Task<"image", Network>).trainingInformation
+        .LABEL_LIST;
       break;
     case "tabular":
       labels = ["0", "1"]; // binary classification
@@ -311,21 +312,21 @@ async function startTest(): Promise<void> {
     switch (props.task.dataType) {
       case "image":
         await startImageTest(
-          toRaw(props.task) as Task<"image">,
+          toRaw(props.task) as Task<"image", Network>,
           toRaw(props.model) as Model<"image">,
           toRaw(dataset.value) as LabeledDataset["image"],
         );
         break;
       case "tabular":
         await startTabularTest(
-          toRaw(props.task) as Task<"tabular">,
+          toRaw(props.task) as Task<"tabular", Network>,
           toRaw(props.model) as Model<"tabular">,
           toRaw(dataset.value) as LabeledDataset["tabular"],
         );
         break;
       case "text":
         await startTextTest(
-          toRaw(props.task) as Task<"text">,
+          toRaw(props.task) as Task<"text", Network>,
           toRaw(props.model) as Model<"text">,
           toRaw(dataset.value) as LabeledDataset["text"],
         );
@@ -340,7 +341,7 @@ async function startTest(): Promise<void> {
 }
 
 async function startImageTest(
-  task: Task<"image">,
+  task: Task<"image", Network>,
   model: Model<"image">,
   dataset: LabeledDataset["image"],
 ): Promise<void> {
@@ -385,7 +386,7 @@ async function startImageTest(
 }
 
 async function startTabularTest(
-  task: Task<"tabular">,
+  task: Task<"tabular", Network>,
   model: Model<"tabular">,
   dataset: LabeledDataset["tabular"],
 ): Promise<void> {
@@ -437,7 +438,7 @@ async function startTabularTest(
 }
 
 async function startTextTest(
-  task: Task<"text">,
+  task: Task<"text", Network>,
   model: Model<"text">,
   dataset: LabeledDataset["text"],
 ): Promise<void> {

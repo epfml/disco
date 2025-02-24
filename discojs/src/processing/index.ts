@@ -2,15 +2,22 @@
 
 import { List } from "immutable";
 
-import type { Dataset, DataFormat, DataType, Tabular, Task } from "../index.js";
+import type {
+	Dataset,
+	DataFormat,
+	DataType,
+	Tabular,
+	Task,
+	Network,
+} from "../index.js";
 
 import * as processing from "./index.js";
 
 export * from "./image.js";
 export * from "./tabular.js";
 
-export function preprocess<D extends DataType>(
-  task: Task<D>,
+export function preprocess<D extends DataType, N extends Network>(
+  task: Task<D, N>,
   dataset: Dataset<DataFormat.Raw[D]>,
 ): Dataset<DataFormat.ModelEncoded[D]> {
   switch (task.dataType) {
@@ -59,7 +66,7 @@ export function preprocess<D extends DataType>(
 }
 
 export function preprocessWithoutLabel<D extends DataType>(
-  task: Task<D>,
+  task: Task<D, Network>,
   dataset: Dataset<DataFormat.RawWithoutLabel[D]>,
 ): Dataset<DataFormat.ModelEncoded[D][0]> {
   switch (task.dataType) {
@@ -96,7 +103,7 @@ export function preprocessWithoutLabel<D extends DataType>(
 }
 
 export function postprocess<D extends DataType>(
-	task: Task<D>,
+	task: Task<D, Network>,
 	encoded: DataFormat.ModelEncoded[D][1],
 ): DataFormat.Inferred[D] {
 	switch (task.dataType) {

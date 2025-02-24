@@ -93,13 +93,13 @@ import { storeToRefs } from 'pinia'
 import { VueSpinner } from 'vue3-spinners';
 import { List } from "immutable";
 
-import { useTasksStore, useTrainingStore, useTutorialStore } from "@/store";
+import type { DataType, Network, Task } from "@epfml/discojs";
 
-import type { DataType, Task } from "@epfml/discojs";
 import ButtonsCard from '@/components/containers/ButtonsCard.vue'
 import DISCO from '@/components/simple/DISCO.vue'
 import DISCOllaborative from '@/components/simple/DISCOllaborative.vue'
 import DISCOllaboratives from '@/components/simple/DISCOllaboratives.vue'
+import { useTasksStore, useTrainingStore, useTutorialStore } from "@/store";
 
 const router = useRouter()
 const trainingStore = useTrainingStore()
@@ -115,7 +115,7 @@ const sortedTasks = computed(() => {
   );
 });
 
-function getSchemeColor(task: Task<DataType>): string {
+function getSchemeColor(task: Task<DataType, Network>): string {
   switch (task.trainingInformation.scheme) {
     case 'decentralized':
       return '#E656FF'
@@ -126,7 +126,7 @@ function getSchemeColor(task: Task<DataType>): string {
   }
 }
 
-function getDataTypeColor(task: Task<DataType>): string {
+function getDataTypeColor(task: Task<DataType, Network>): string {
   switch (task.dataType) {
     case 'image':
       return '#95F88D'
@@ -137,7 +137,7 @@ function getDataTypeColor(task: Task<DataType>): string {
   }
 }
 
-function toTask(task: Task<DataType>): void {
+function toTask(task: Task<DataType, Network>): void {
   trainingStore.setTask(task.id)
   trainingStore.setStep(1)
   router.push(`/${task.id}`)

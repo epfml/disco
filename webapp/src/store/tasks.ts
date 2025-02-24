@@ -3,7 +3,7 @@ import { Map, Set } from "immutable";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-import type { DataType, Task } from "@epfml/discojs";
+import type { DataType, Network, Task } from "@epfml/discojs";
 import { fetchTasks } from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster";
@@ -16,9 +16,9 @@ const TASKS_TO_FILTER_OUT = Set.of("simple_face", "cifar10");
 export const useTasksStore = defineStore("tasks", () => {
 	// 3-state variable used to test whether the tasks have been retrieved successfully,
 	// if the retrieving failed, or if they are currently being loaded
-	const tasks = ref<"loading" | "failed" | Map<Task.ID, Task<DataType>>>(
-		"loading",
-	);
+	const tasks = ref<
+		"loading" | "failed" | Map<Task.ID, Task<DataType, Network>>
+	>("loading");
 
 	fetchTasks(CONFIG.serverUrl)
 		.then((fetched) => {

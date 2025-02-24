@@ -10,7 +10,7 @@
 import { Set } from "immutable";
 import { computed, ref, toRaw, watch } from "vue";
 
-import type { DataType, Task } from "@epfml/discojs";
+import type { DataType, Network, Task } from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster.js";
 
@@ -23,7 +23,7 @@ import * as validate from "./validate.js";
 const toaster = useToaster();
 
 const props = defineProps<{
-  task: Task<D>;
+  task: Task<D, Network>;
 }>();
 
 const type = computed<D>(() => props.task.dataType as D);
@@ -47,7 +47,7 @@ watch([imageDataset, tabularDataset, textDataset], async () => {
       dataset.value = imageDataset.value as UnlabeledDataset[D];
       break;
     case "tabular": {
-      const task = props.task as Task<"tabular">;
+      const task = props.task as Task<"tabular", Network>;
 
       if (tabularDataset.value === undefined) {
         dataset.value = undefined;

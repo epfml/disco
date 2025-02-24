@@ -1,4 +1,4 @@
-import type { DataType, Task } from '../index.js'
+import type { DataType, Network, Task } from "../index.js";
 import { client as clients, type aggregator } from '../index.js'
 
 // Time to wait for the others in milliseconds.
@@ -10,23 +10,38 @@ export async function timeout (ms = MAX_WAIT_PER_ROUND, errorMsg: string = 'time
   })
 }
 
-export function getClient(
-  trainingScheme: Task<DataType>["trainingInformation"]["scheme"],
-  serverURL: URL,
-  task: Task<DataType>,
-  aggregator: aggregator.Aggregator,
-): clients.Client {
+export function getClient<D extends DataType, N extends Network>(
+	scheme: N | "local",
+	serverURL: URL,
+	task: Task<D, N>,
+	aggregator: aggregator.Aggregator,
+): clients.Client<N> {
+	switch (scheme) {
+		case "decentralized": {
+			const t = task as Task<D, "decentralized">;
+			t.trainingInformation.scheme = scheme;
 
-  switch (trainingScheme) {
-    case 'decentralized':
-      return new clients.decentralized.DecentralizedClient(serverURL, task, aggregator)
-    case 'federated':
-      return new clients.federated.FederatedClient(serverURL, task, aggregator)
-    case 'local':
-      return new clients.LocalClient(serverURL, task, aggregator)
-    default: {
-      const _: never = trainingScheme
-      throw new Error('should never happen')
-    }
-  }
+			return new clients.decentralized.DecentralizedClient(
+				serverURL,
+				t,
+				aggregator,
+			);
+		}
+		case "federated": {
+			const t = task as Task<D, "federated">;
+			t.trainingInformation.scheme = scheme;
+
+			return new clients.federated.FederatedClient(serverURL, t, aggregator);
+		}
+		case "local": {
+			const t = task as Task<D, "local">;
+			t.trainingInformation.scheme = scheme;
+
+			return new clients.LocalClient(serverURL, t, aggregator);
+		}
+		default: {
+			const _: never = scheme;
+			throw new Error("should never happen");
+		}
+	}
 }

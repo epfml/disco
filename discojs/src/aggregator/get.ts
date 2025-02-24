@@ -1,8 +1,8 @@
-import type { DataType, Task } from '../index.js'
+import type { DataType, Network, Task } from '../index.js'
 import { aggregator } from '../index.js'
 
 type AggregatorOptions = Partial<{
-  scheme: Task<DataType>["trainingInformation"]["scheme"]; // if undefined, fallback on task.trainingInformation.scheme
+  scheme: Task<DataType, Network>["trainingInformation"]["scheme"]; // if undefined, fallback on task.trainingInformation.scheme
   roundCutOff: number, // MeanAggregator
   threshold: number, // MeanAggregator
   thresholdType: 'relative' | 'absolute', // MeanAggregator
@@ -27,13 +27,12 @@ type AggregatorOptions = Partial<{
  * @returns The aggregator
  */
 export function getAggregator(
-  task: Task<DataType>,
+	task: Task<DataType, Network>,
   options: AggregatorOptions = {},
 ): aggregator.Aggregator {
-  const aggregationStrategy = task.trainingInformation.aggregationStrategy ?? 'mean'
   const scheme = options.scheme ?? task.trainingInformation.scheme
   
-  switch (aggregationStrategy) {
+  switch (task.trainingInformation.aggregationStrategy) {
     case 'mean':
       if (scheme === 'decentralized') {
         // If options are not specified, we default to expecting a contribution from all peers, so we set the threshold to 100%

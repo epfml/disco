@@ -1,11 +1,11 @@
 import { parse } from 'ts-command-line-args'
 import { Map, Set } from 'immutable'
 
-import type { DataType, TaskProvider } from "@epfml/discojs";
+import type { DataType, Network, TaskProvider } from "@epfml/discojs";
 import { defaultTasks } from '@epfml/discojs'
 
 interface BenchmarkArguments {
-  provider: TaskProvider<DataType>
+	provider: TaskProvider<DataType, Network>;
   numberOfUsers: number
   epochs: number
   roundDuration: number
@@ -46,7 +46,7 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
 
 const supportedTasks = Map(
   await Promise.all(
-    Set.of<TaskProvider<"image" | "tabular">>(
+    Set.of<TaskProvider<"image" | "tabular", Network>>(
       defaultTasks.cifar10,
       defaultTasks.lusCovid,
       defaultTasks.simpleFace,
@@ -56,7 +56,7 @@ const supportedTasks = Map(
       async (t) =>
         [(await t.getTask()).id, t] as [
           string,
-          TaskProvider<"image" | "tabular">,
+          TaskProvider<"image" | "tabular", Network>,
         ],
     ),
   ),

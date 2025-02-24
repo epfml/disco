@@ -5,7 +5,6 @@ import {
   ConsoleLogger,
   EpochLogs,
   Logger,
-  TrainingInformation,
   processing,
   Dataset,
 } from "../index.js";
@@ -14,6 +13,7 @@ import type {
   DataFormat,
   DataType,
   Model,
+  Network,
   Task,
 } from "../index.js";
 import type { Aggregator } from "../aggregator/index.js";
@@ -23,8 +23,8 @@ import { EventEmitter } from "../utils/event_emitter.js";
 
 import { RoundLogs, Trainer } from "./trainer.js";
 
-interface DiscoConfig {
-  scheme: TrainingInformation<DataType>["scheme"];
+interface DiscoConfig<N extends Network> {
+  scheme: N;
   logger: Logger;
 
   /**
@@ -47,14 +47,14 @@ export type RoundStatus = 'not enough participants' | // Server notification to 
  * a convenient object providing a reduced yet complete API that wraps model training and
  * communication with nodes.
  */
-export class Disco<D extends DataType> extends EventEmitter<{
+export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   status: RoundStatus;
   participants: number
 }> {
-  public readonly trainer: Trainer<D>;
-  readonly #client: clients.Client;
+  public readonly trainer: Trainer<D, N>;
+  readonly #client: clients.Client<N>;
   readonly #logger: Logger;
-  readonly #task: Task<D>;
+  readonly #task: Task<D, N>;
   readonly #preprocessOnce: boolean;
 
   /**
@@ -65,13 +65,14 @@ export class Disco<D extends DataType> extends EventEmitter<{
    * @param config the DiscoConfig
    */
   constructor(
-    task: Task<D>,
-    clientConfig: clients.Client | URL | { aggregator: Aggregator; url: URL },
-    config: Partial<DiscoConfig>,
+    task: Task<D, N>,
+    clientConfig: clients.Client<N> | URL | { aggregator: Aggregator; url: URL },
+    config: Partial<DiscoConfig<N>>,
   ) {
     super();
     const { scheme, logger, preprocessOnce } = {
-      scheme: task.trainingInformation.scheme,
+      // cast as typescript is bad at generic
+      scheme: task.trainingInformation.scheme as N,
       logger: new ConsoleLogger(),
       preprocessOnce: false,
       ...config,
@@ -164,7 +165,7 @@ export class Disco<D extends DataType> extends EventEmitter<{
     for await (const [round, epochs] of enumerate(
       this.trainer.train(trainingDataset, validationDataset),
     )) {
-      yield async function* (this: Disco<D>) {
+      yield async function* (this: Disco<D, N>) {
         const [gen, returnedRoundLogs] = split(epochs);
         for await (const [epoch, batches] of enumerate(gen)) {
           const [gen, returnedEpochLogs] = split(batches);

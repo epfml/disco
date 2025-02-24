@@ -14,8 +14,8 @@ import MessageTypes = client.messages.type
 const debug = createDebug("server:controllers:decentralized")
 
 export class DecentralizedController<
-  D extends DataType,
-> extends TrainingController<D> {
+	D extends DataType,
+> extends TrainingController<D, "decentralized"> {
   // Map of nodes who want to join the round.
   // The boolean value indicates if the node is ready to exchange weight updates (i.e.
   // the node has already sent a PeerIsReady message)
