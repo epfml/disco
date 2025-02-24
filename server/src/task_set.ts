@@ -2,11 +2,11 @@ import { Map } from "immutable";
 import fs from 'node:fs/promises'
 import '@tensorflow/tfjs-node'
 
-import type { DataType, Task, TaskProvider } from "@epfml/discojs";
+import type { DataType, Network, Task, TaskProvider } from "@epfml/discojs";
 import { EventEmitter, Model, serialization } from "@epfml/discojs";
 
 type EncodedModel = serialization.Encoded;
-type TaskAndModel = [Task<DataType>, EncodedModel];
+type TaskAndModel = [Task<DataType, Network>, EncodedModel];
 
 /**
  * The TaskSet essentially handles initializing a Task and 
@@ -61,10 +61,10 @@ export class TaskSet extends EventEmitter<{
    * @param taskOrProvider either a Task or TaskProvider
    * @param model optional model, can already be an EncodedModel, a Model or a URL for the model
    */
-  async addTask<D extends DataType>(
-    taskOrProvider: Task<D> | TaskProvider<D>,
-    model?: Model<D> | EncodedModel,
-  ): Promise<void> {
+	async addTask<D extends DataType>(
+		taskOrProvider: Task<D, Network> | TaskProvider<D, Network>,
+		model?: Model<D> | EncodedModel,
+	): Promise<void> {
     // get the task
     const task =
       "getTask" in taskOrProvider
@@ -102,9 +102,9 @@ export class TaskSet extends EventEmitter<{
    * @param taskOrProvider either a Task or a TaskProvider
    * @returns a promise for the associated model
    */
-  private async loadModelFromTask(
-    taskOrProvider: Task<DataType> | TaskProvider<DataType>,
-  ): Promise<Model<DataType>> {
+	private async loadModelFromTask(
+		taskOrProvider: Task<DataType, Network> | TaskProvider<DataType, Network>,
+	): Promise<Model<DataType>> {
     const task =
       "getTask" in taskOrProvider
         ? await taskOrProvider.getTask()

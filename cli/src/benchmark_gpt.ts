@@ -2,8 +2,8 @@ import '@tensorflow/tfjs-node';
 import { List } from "immutable";
 import { parse } from "ts-command-line-args";
 
+import type { Network, Task } from "@epfml/discojs";
 import {
-  Task,
   async_iterator,
   defaultTasks,
   fetchTasks,
@@ -57,7 +57,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
 
   // Fetch the wikitext task from the server
   const tasks = await fetchTasks(url)
-  const task = tasks.get('llm_task') as Task<'text'> | undefined
+	const task = tasks.get("llm_task") as Task<"text", Network> | undefined;
   if (task === undefined) { throw new Error('task not found') }  
   const { tokenizer } = task.trainingInformation;
 

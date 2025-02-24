@@ -17,9 +17,10 @@ import FederatedMessages = client.federated.messages
 
 const debug = createDebug("server:controllers:federated")
 
-export class FederatedController<
-  D extends DataType,
-> extends TrainingController<D> {
+export class FederatedController<D extends DataType> extends TrainingController<
+	D,
+	"federated"
+> {
   /**
    * Aggregators for each hosted task.
     By default the server waits for 100% of the nodes to send their contributions before aggregating the updates
@@ -32,7 +33,10 @@ export class FederatedController<
    */
   #latestGlobalWeights: serialization.Encoded;
 
-  constructor(task: Task<D>, private readonly initialWeights: serialization.Encoded) {
+	constructor(
+		task: Task<D, "federated">,
+		private readonly initialWeights: serialization.Encoded,
+	) {
     super(task)
     this.#latestGlobalWeights = this.initialWeights
 

@@ -3,7 +3,7 @@ import express from "express";
 import expressWS from "express-ws";
 import type * as http from "http";
 
-import type { DataType, TaskProvider } from "@epfml/discojs";
+import type { DataType, Network, TaskProvider } from "@epfml/discojs";
 
 import { TaskRouter, TrainingRouter } from './routes/index.js'
 import { TaskSet } from "./task_set.js";
@@ -20,7 +20,7 @@ export class Server {
   readonly #taskSet = new TaskSet();
 
   /** setup with given initial tasks */
-  static async with(...tasks: TaskProvider<DataType>[]): Promise<Server> {
+  static async with(...tasks: TaskProvider<DataType, Network>[]): Promise<Server> {
     const server = new Server();
 
     await Promise.all(tasks.map((t) => server.#taskSet.addTask(t)));

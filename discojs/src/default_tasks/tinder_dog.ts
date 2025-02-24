@@ -3,7 +3,7 @@ import * as tf from '@tensorflow/tfjs'
 import type { Model, TaskProvider } from '../index.js'
 import { models } from '../index.js'
 
-export const tinderDog: TaskProvider<'image'> = {
+export const tinderDog: TaskProvider<"image", "federated"> = {
   getTask() {
     return Promise.resolve({
       id: 'tinder_dog',

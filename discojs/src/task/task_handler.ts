@@ -1,6 +1,6 @@
 import { Map, Seq } from "immutable";
 
-import type { DataType, Model } from "../index.js";
+import type { DataType, Model, Network } from "../index.js";
 import { serialization } from "../index.js";
 
 import type { Task } from "./task.js";
@@ -13,7 +13,7 @@ function urlToTasks(base: URL): URL {
 
 export async function pushTask<D extends DataType>(
 	base: URL,
-	task: Task<D>,
+	task: Task<D, Network>,
 	model: Model<D>,
 ): Promise<void> {
 	const response = await fetch(urlToTasks(base), {
@@ -29,7 +29,7 @@ export async function pushTask<D extends DataType>(
 
 export async function fetchTasks(
 	base: URL,
-): Promise<Map<Task.ID, Task<DataType>>> {
+): Promise<Map<Task.ID, Task<DataType, Network>>> {
 	const response = await fetch(urlToTasks(base));
 	if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`);
 	const json = (await response.json()) as serialization.JSON;

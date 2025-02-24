@@ -3,6 +3,7 @@ import createDebug from "debug";
 import type {
   DataType,
   Model,
+  Network,
   RoundStatus,
   Task,
   WeightsContainer,
@@ -20,10 +21,10 @@ const debug = createDebug("discojs:client");
  * Main, abstract, class representing a Disco client in a network, which handles
  * communication with other nodes, be it peers or a server.
  */
-export abstract class Client extends EventEmitter<{
-  'status': RoundStatus,
-  'participants': number
-}>{
+export abstract class Client<N extends Network> extends EventEmitter<{
+	status: RoundStatus;
+	participants: number;
+}> {
   // Own ID provided by the network's server.
   protected _ownId?: NodeID
   // The network's server.
@@ -50,7 +51,7 @@ export abstract class Client extends EventEmitter<{
 
   constructor (
     public readonly url: URL, // The network server's URL to connect to
-    public readonly task: Task<DataType>, // The client's corresponding task
+    public readonly task: Task<DataType, N>, // The client's corresponding task
     public readonly aggregator: Aggregator,
   ) {
     super()

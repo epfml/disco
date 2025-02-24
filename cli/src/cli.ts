@@ -11,6 +11,7 @@ import type {
   RoundLogs,
   Task,
   TaskProvider,
+  Network,
 } from "@epfml/discojs";
 import { Disco, aggregator as aggregators, client as clients } from '@epfml/discojs'
 
@@ -24,14 +25,15 @@ async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
   return ret;
 }
 
-async function runUser<D extends DataType>(
-  task: Task<D>,
-  url: URL,
-  data: Dataset<DataFormat.Raw[D]>,
+async function runUser<D extends DataType, N extends Network>(
+	task: Task<D, N>,
+	url: URL,
+	data: Dataset<DataFormat.Raw[D]>,
 ): Promise<List<RoundLogs>> {
-  const trainingScheme = task.trainingInformation.scheme
+  // cast as typescript isn't good with generics
+  const trainingScheme = task.trainingInformation.scheme as N
   const aggregator = aggregators.getAggregator(task)
-  const client = clients.getClient(trainingScheme, url, task, aggregator) 
+  const client = clients.getClient(trainingScheme, url, task, aggregator)
   const disco = new Disco(task, client, { scheme: trainingScheme });
 
   const logs = List(await arrayFromAsync(disco.trainByRound(data)));
@@ -40,9 +42,9 @@ async function runUser<D extends DataType>(
   return logs;
 }
 
-async function main<D extends DataType>(
-  provider: TaskProvider<D>,
-  numberOfUsers: number,
+async function main<D extends DataType, N extends Network>(
+	provider: TaskProvider<D, N>,
+	numberOfUsers: number,
 ): Promise<void> {
   const task = await provider.getTask();
   console.log(`Started ${task.trainingInformation.scheme} training of ${task.id}`)

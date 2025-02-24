@@ -2,7 +2,13 @@ import { Repeat } from 'immutable'
 import * as path from 'node:path'
 import '@tensorflow/tfjs-node'
 
-import type { Dataset, DataFormat, DataType, Image, Task } from '@epfml/discojs'
+import type {
+  Dataset,
+  DataFormat,
+  DataType,
+  Image,
+  Task,
+} from "@epfml/discojs";
 import { Disco, fetchTasks, defaultTasks } from '@epfml/discojs'
 import { loadCSV, loadImagesInDir } from '@epfml/discojs-node'
 import { Server } from 'server'
@@ -13,7 +19,7 @@ import { Server } from 'server'
  */
 async function runUser<D extends DataType>(
   url: URL,
-  task: Task<D>,
+  task: Task<D, "federated">,
   dataset: Dataset<DataFormat.Raw[D]>,
 ): Promise<void> {
   // Create Disco object associated with the server url, the training scheme
@@ -26,7 +32,10 @@ async function runUser<D extends DataType>(
   await disco.close()
 }
 
-type TaskAndDataset<D extends DataType> = [Task<D>, Dataset<DataFormat.Raw[D]>];
+type TaskAndDataset<D extends DataType> = [
+  Task<D, "federated">,
+  Dataset<DataFormat.Raw[D]>,
+];
 
 async function main (): Promise<void> {
   // Arbitrary chosen Task ID
@@ -47,13 +56,13 @@ async function main (): Promise<void> {
   let taskAndDataset: TaskAndDataset<'image' | 'tabular'>
   switch (NAME) {
     case "titanic": {
-      const task = tasks.get("titanic") as Task<"tabular"> | undefined;
+      const task = tasks.get("titanic") as | Task<"tabular", "federated"> | undefined;
       if (task === undefined) throw new Error("task not found");
       taskAndDataset = [task, loadCSV("../../datasets/titanic_train.csv")];
       break;
     }
     case "simple_face": {
-      const task = tasks.get("simple_face") as Task<"image"> | undefined;
+      const task = tasks.get("simple_face") as | Task<"image", "federated"> | undefined;
       if (task === undefined) throw new Error("task not found");
       taskAndDataset = [task, await loadSimpleFaceData()];
       break;

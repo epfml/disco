@@ -6,7 +6,7 @@ import { preprocess } from "./index.js";
 
 describe("preprocess", () => {
   it("throws on missing column in tabular", async () => {
-    const task: Task<"tabular"> = {
+    const task: Task<"tabular", "local"> = {
       id: "task",
       dataType: "tabular",
       displayInformation: {
@@ -16,7 +16,7 @@ describe("preprocess", () => {
       trainingInformation: {
         tensorBackend: "tfjs",
         scheme: "local",
-        minNbOfParticipants: 1,
+        aggregationStrategy: "mean",
         epochs: 1,
         roundDuration: 1,
         batchSize: 1,

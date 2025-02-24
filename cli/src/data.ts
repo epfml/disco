@@ -60,7 +60,8 @@ function loadTinderDogData(split: number): Dataset<DataFormat.Raw["image"]> {
 }
 
 export async function getTaskData<D extends DataType>(
-  taskID: Task<D>['id'], userIdx: number
+	taskID: Task.ID,
+	userIdx: number,
 ): Promise<Dataset<DataFormat.Raw[D]>> {
   switch (taskID) {
     case "simple_face":

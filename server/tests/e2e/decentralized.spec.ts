@@ -1,19 +1,18 @@
 import type * as http from 'node:http'
-import { List } from 'immutable'
 import { expect } from 'chai'
+import { List } from 'immutable'
 
-import type { DataType, RoundStatus, TaskProvider } from "@epfml/discojs";
-import { datasets, Queue } from '../utils.js'
-
+import type { DataType, RoundStatus, Task, TaskProvider } from "@epfml/discojs";
 import {
-  aggregator as aggregators,
-  client as clients,
-  defaultTasks,
-  Disco,
-  WeightsContainer,
+	Disco,
+	WeightsContainer,
+	aggregator as aggregators,
+	client as clients,
+	defaultTasks,
 } from "@epfml/discojs";
 
 import { Server } from '../../src/index.js'
+import { Queue, datasets } from '../utils.js'
 
 async function WSIntoList(ws: WeightsContainer): Promise<List<List<number>>> {
   return List((await Promise.all(ws.weights.map(async (w) => await w.data()))).map(
@@ -34,7 +33,9 @@ describe('end-to-end decentralized', function () {
   this.timeout(30_000)
 
   let handle: http.Server | undefined;
-  async function startServer(task: TaskProvider<DataType>): Promise<URL> {
+	async function startServer(
+		task: TaskProvider<DataType, "decentralized">,
+	): Promise<URL> {
     const server = await Server.with(task);
 
     let url: URL;
@@ -57,16 +58,17 @@ describe('end-to-end decentralized', function () {
    * with other ready peers. The input will vary with model architecture and training data. If secure is true,
    * the client will implement secure aggregation. If it is false, it will be a clear text client.
    */
-  async function simulateClient (
-    url: URL,
-    aggregatorType: 'mean' | 'secure',
-    input: number[],
-    rounds: number
-  ): Promise<[WeightsContainer, clients.Client]> {
-    const task = await defaultTasks.cifar10.getTask()
-    const aggregator = aggregatorType == 'mean' ? 
-      new aggregators.MeanAggregator(0, 1, 'relative')
-      : new aggregators.SecureAggregator()
+	async function simulateClient(
+		url: URL,
+		aggregatorType: "mean" | "secure",
+		input: number[],
+		rounds: number,
+	): Promise<[WeightsContainer, clients.Client<"decentralized">]> {
+		const task = await defaultTasks.cifar10.getTask();
+		const aggregator =
+			aggregatorType === "mean"
+				? new aggregators.MeanAggregator(0, 1, "relative")
+				: new aggregators.SecureAggregator();
 
     const client = new clients.decentralized.DecentralizedClient(url, task, aggregator)
     await client.connect()
@@ -137,12 +139,15 @@ describe('end-to-end decentralized', function () {
   });
 
   it("peers emit expected events", async () => {
-		const task = await defaultTasks.lusCovid.getTask();
-		task.trainingInformation = {
-			...task.trainingInformation,
-			scheme: "decentralized",
-			roundDuration: 1,
-			minNbOfParticipants: 2,
+		const baseTask = await defaultTasks.lusCovid.getTask();
+		const task: Task<"image", "decentralized"> = {
+			...baseTask,
+			trainingInformation: {
+				...baseTask.trainingInformation,
+				scheme: "decentralized",
+				roundDuration: 1,
+				minNbOfParticipants: 2,
+			},
 		};
 		const url = await startServer({
 			...defaultTasks.lusCovid,

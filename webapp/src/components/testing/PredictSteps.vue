@@ -108,7 +108,7 @@ import createDebug from "debug";
 import { List } from "immutable";
 import { computed, ref, toRaw } from "vue";
 
-import type { DataFormat, DataType, Model, Task } from "@epfml/discojs";
+import type { DataFormat, DataType, Model, Network, Task } from "@epfml/discojs";
 import { Validator } from "@epfml/discojs";
 
 import InfoIcon from "@/assets/svg/InfoIcon.vue";
@@ -128,7 +128,7 @@ const toaster = useToaster();
 const validationStore = useValidationStore();
 
 const props = defineProps<{
-  task: Task<D>;
+  task: Task<D, Network>;
   model: Model<D>;
 }>();
 
@@ -176,14 +176,14 @@ async function startInference(): Promise<void> {
     switch (props.task.dataType) {
       case "image":
         await startImageInference(
-          props.task as Task<"image">,
+          props.task as Task<"image", Network>,
           toRaw(props.model) as Model<"image">,
           toRaw(dataset.value) as UnlabeledDataset["image"],
         );
         break;
       case "tabular":
         await startTabularInference(
-          props.task as Task<"tabular">,
+          props.task as Task<"tabular", Network>,
           toRaw(props.model) as Model<"tabular">,
           toRaw(dataset.value) as UnlabeledDataset["tabular"],
         );
@@ -200,7 +200,7 @@ async function startInference(): Promise<void> {
 }
 
 async function startImageInference(
-  task: Task<"image">,
+  task: Task<"image", Network>,
   model: Model<"image">,
   dataset: UnlabeledDataset["image"],
 ): Promise<void> {
@@ -231,7 +231,7 @@ async function startImageInference(
 }
 
 async function startTabularInference(
-  task: Task<"tabular">,
+  task: Task<"tabular", Network>,
   model: Model<"tabular">,
   dataset: UnlabeledDataset["tabular"],
 ): Promise<void> {

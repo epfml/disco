@@ -4,7 +4,7 @@ import { Map } from 'immutable'
 import * as msgpack from "@msgpack/msgpack";
 
 import { client } from '@epfml/discojs'
-import type { DataType, Task } from "@epfml/discojs";
+import type { DataType, Network, Task } from "@epfml/discojs";
 
 const debug = createDebug("server:controllers")
 
@@ -23,7 +23,10 @@ const debug = createDebug("server:controllers")
  * https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/routes
  * 
  */
-export abstract class TrainingController<D extends DataType> {
+export abstract class TrainingController<
+	D extends DataType,
+	N extends Exclude<Network, "local">,
+> {
   /**
    * Boolean used to know if we have enough participants to train or if 
    * we should be waiting for more
@@ -36,7 +39,7 @@ export abstract class TrainingController<D extends DataType> {
    */
   protected connections = Map<client.NodeID, WebSocket>()
 
-  constructor(protected readonly task: Task<D>) {}
+  constructor(protected readonly task: Task<D, N>) {}
 
   abstract handle(
     ws: WebSocket

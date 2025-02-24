@@ -36,6 +36,7 @@ import type {
   DataType,
   Model,
   Task,
+  Network,
 } from "@epfml/discojs";
 
 import type { LabeledDataset } from "@/components/dataset_input/types.js";
@@ -64,7 +65,7 @@ function setupTrainingStore() {
 }
 // Init the task once the taskStore has been loaded successfully
 // If it is not we redirect to the task list
-const task = computed<Task<DataType> | undefined>(() => {
+const task = computed<Task<DataType, Network> | undefined>(() => {
   if (typeof tasks.value !== "string") return tasks.value.get(props.id);
 
   // Redirect to the task list if not loaded yet

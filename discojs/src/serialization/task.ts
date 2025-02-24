@@ -1,10 +1,10 @@
 import { z } from "zod";
-import type { DataType } from "../index.js";
+import type { DataType, Network } from "../index.js";
 import { Task, Tokenizer } from "../index.js";
 
 import type { JSON } from "./index.js";
 
-export function serializeToJSON(task: Task<DataType>): JSON {
+export function serializeToJSON(task: Task<DataType, Network>): JSON {
 	switch (task.dataType) {
 		case "image":
 		case "tabular":
@@ -23,7 +23,7 @@ export function serializeToJSON(task: Task<DataType>): JSON {
 
 export async function deserializeFromJSON(
 	serialized: JSON,
-): Promise<Task<DataType>> {
+): Promise<Task<DataType, Network>> {
 	return await z
 		.object({
 			trainingInformation: z

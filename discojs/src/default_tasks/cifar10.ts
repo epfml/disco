@@ -5,7 +5,7 @@ import { models } from '../index.js'
 
 import baseModel from '../models/mobileNet_v1_025_224.js'
 
-export const cifar10: TaskProvider<'image'> = {
+export const cifar10: TaskProvider<"image", "decentralized"> = {
   getTask() {
     return Promise.resolve({
       id: 'cifar10',

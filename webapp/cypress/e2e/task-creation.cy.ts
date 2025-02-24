@@ -25,6 +25,7 @@ it("submits with tabular task", () => {
   });
 
   cy.get("select[name='trainingInformation.scheme']").select("federated");
+  cy.get("select[name='trainingInformation.aggregationStrategy']").select("mean");
   cy.get("input[name='trainingInformation.epochs']").type("10");
   cy.get("input[name='trainingInformation.batchSize']").type("5");
   cy.get("input[name='trainingInformation.roundDuration']").type("2");
@@ -77,6 +78,7 @@ it("submits with tabular task", () => {
       },
       trainingInformation: {
         scheme: "federated",
+        aggregationStrategy: "mean",
         epochs: 10,
         batchSize: 5,
         roundDuration: 2,
@@ -86,7 +88,7 @@ it("submits with tabular task", () => {
         outputColumn: "output",
         tensorBackend: "tfjs",
       },
-    } satisfies Task<"tabular">);
+		} satisfies Task<"tabular", "federated">);
 });
 
 async function getArtifacts(

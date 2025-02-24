@@ -19,7 +19,7 @@ const debug = createDebug("discojs:client:decentralized");
  * with the server is based off regular WebSockets, whereas peer-to-peer communication uses
  * WebRTC for Node.js.
  */
-export class DecentralizedClient extends Client {
+export class DecentralizedClient extends Client<"decentralized"> {
   /**
    * The pool of peers to communicate with during the current training round.
    */

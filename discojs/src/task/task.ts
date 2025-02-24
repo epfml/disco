@@ -1,49 +1,68 @@
 import { z } from "zod";
 
-import { DataType } from "../index.js";
+import type { DataType, Network } from "../index.js";
 
 import { DisplayInformation } from "./display_information.js";
 import { TrainingInformation } from "./training_information.js";
 
 export namespace Task {
-  export type ID = string;
-}
+	export type ID = string;
 
-const baseSchema = z
-	.object({
+	export const baseSchema = z.object({
 		id: z.string(),
-	})
-	.strict();
+		displayInformation: DisplayInformation.baseSchema,
+		trainingInformation: TrainingInformation.baseSchema,
+	});
 
-export namespace Task {
-  export const schemas = {
-    image: baseSchema.extend({
-      dataType: z.literal("image"),
-      displayInformation: DisplayInformation.schemas["image"],
-      trainingInformation: TrainingInformation.schemas["image"],
-    }),
-    tabular: baseSchema.extend({
-      dataType: z.literal("tabular"),
-      displayInformation: DisplayInformation.schemas["tabular"],
-      trainingInformation: TrainingInformation.schemas["tabular"],
-    }),
-    text: baseSchema.extend({
-      dataType: z.literal("text"),
-      displayInformation: DisplayInformation.schemas["text"],
-      trainingInformation: TrainingInformation.schemas["text"],
-    }),
-  };
+	export const dataTypeToSchema = {
+		image: z.object({
+			dataType: z.literal("image"),
+			displayInformation: DisplayInformation.dataTypeToSchema.image,
+			trainingInformation: TrainingInformation.dataTypeToSchema.image,
+		}),
+		tabular: z.object({
+			dataType: z.literal("tabular"),
+			displayInformation: DisplayInformation.dataTypeToSchema.tabular,
+			trainingInformation: TrainingInformation.dataTypeToSchema.tabular,
+		}),
+		text: z.object({
+			dataType: z.literal("text"),
+			displayInformation: DisplayInformation.dataTypeToSchema.text,
+			trainingInformation: TrainingInformation.dataTypeToSchema.text,
+		}),
+	} satisfies Record<DataType, unknown>;
 
-  export const schema = z.discriminatedUnion("dataType", [
-    schemas.image,
-    schemas.tabular,
-    schemas.text,
-  ]);
+	export const networkToSchema = {
+		decentralized: z.object({
+			trainingInformation: TrainingInformation.networkToSchema.decentralized,
+		}),
+		federated: z.object({
+			trainingInformation: TrainingInformation.networkToSchema.federated,
+		}),
+		local: z.object({
+			trainingInformation: TrainingInformation.networkToSchema.local,
+		}),
+	} satisfies Record<Network, unknown>;
+
+	export const schema = baseSchema
+		.and(
+			z.union([
+				dataTypeToSchema.image,
+				dataTypeToSchema.tabular,
+				dataTypeToSchema.text,
+			]),
+		)
+		.and(
+			z.union([
+				networkToSchema.decentralized,
+				networkToSchema.federated,
+				networkToSchema.local,
+			]),
+		);
 }
 
-export type Task<D extends DataType> = DataTypeToTask[D];
-interface DataTypeToTask {
-  image: z.infer<typeof Task.schemas.image>;
-  tabular: z.infer<typeof Task.schemas.tabular>;
-  text: z.infer<typeof Task.schemas.text>;
-}
+export type Task<D extends DataType, N extends Network> = z.infer<
+	typeof Task.baseSchema
+> &
+	z.infer<(typeof Task.dataTypeToSchema)[D]> &
+	z.infer<(typeof Task.networkToSchema)[N]>;

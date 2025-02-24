@@ -38,30 +38,30 @@
             <th>Batch size</th>
             <td>{{ task.trainingInformation.batchSize }}</td>
           </tr>
-          <tr>
+          <tr v-if="task.trainingInformation.scheme !== 'local'">
             <th>Minimum # of ready peers before aggregation</th>
             <td>{{ task.trainingInformation.minNbOfParticipants }}</td>
           </tr>
           <tr v-if="task.dataType === 'image'">
             <th>Height of image (pixels)</th>
-            <td>{{ (task as Task<"image">).trainingInformation.IMAGE_H }}</td>
+            <td>
+              {{ task.trainingInformation.IMAGE_H }}
+            </td>
           </tr>
           <tr v-if="task.dataType === 'image'">
             <th>Width of image (pixels)</th>
-            <td>{{ (task as Task<"image">).trainingInformation.IMAGE_W }}</td>
+            <td>
+              {{ task.trainingInformation.IMAGE_W }}
+            </td>
           </tr>
           <tr v-if="task.dataType === 'image'">
             <th>List of labels</th>
             <td>
-              {{
-                (task as Task<"image">).trainingInformation.LABEL_LIST.join(
-                  ", ",
-                )
-              }}
+              {{ task.trainingInformation.LABEL_LIST.join(", ") }}
             </td>
           </tr>
         </tbody>
-        <tbody>
+        <tbody v-if="task.trainingInformation.scheme !== 'local'">
           <tr>
             <th colspan="2" class="text-slate-600 dark:text-slate-200">
               Privacy
@@ -79,7 +79,7 @@
               {{ task.trainingInformation.privacy?.clippingRadius ?? "Unused" }}
             </td>
           </tr>
-          <tr>
+          <tr v-if="task.trainingInformation.aggregationStrategy === 'secure'">
             <th>Maximum Value of Shares used in Secure Aggregation</th>
             <td>{{ task.trainingInformation.maxShareValue ?? "Unused" }}</td>
           </tr>
@@ -104,13 +104,11 @@ tr:not(:first-child) > * {
 </style>
 
 <script lang="ts" setup>
-import type { DataType, Task } from "@epfml/discojs";
+import type { DataType, Network, Task } from "@epfml/discojs";
 
 import IconCard from "@/components/containers/IconCard.vue";
 import DropdownCard from "@/components/containers/DropdownCard.vue";
 import ModelIcon from "@/assets/svg/ModelIcon.vue";
 
-const props = defineProps<{
-  task: Task<DataType>;
-}>();
+const props = defineProps<{ task: Task<DataType, Network> }>();
 </script>

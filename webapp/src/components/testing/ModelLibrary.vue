@@ -72,9 +72,10 @@
       <div>
         <IconCard title-placement="center">
           <template #title>
-            <span><DISCO /> Model Repository — <span class="italic">Download and Test</span></span>
-
-
+            <span
+              ><DISCO /> Model Repository —
+              <span class="italic">Download and Test</span></span
+            >
           </template>
 
           <div
@@ -128,7 +129,6 @@
 
   <div v-if="selection !== undefined">
     <div v-if="validationStore.step !== 0">
-
       <TestSteps
         v-if="selection.mode === 'test'"
         :task="selection.task"
@@ -153,7 +153,7 @@ import { computed, ref, onActivated } from "vue";
 import { RouterLink } from "vue-router";
 import { VueSpinner } from "vue3-spinners";
 
-import type { DataType, Model, Task } from "@epfml/discojs";
+import type { DataType, Model, Network, Task } from "@epfml/discojs";
 import { client as clients, aggregator } from "@epfml/discojs";
 
 import BinIcon from "@/assets/svg/BinIcon.vue";
@@ -181,20 +181,23 @@ const toaster = useToaster();
 
 type Selection<D extends DataType> = {
   mode: "predict" | "test";
-  task: Task<D>;
+  task: Task<D, Network>;
   // same as in validation store but not undef
   model: Model<D>;
 };
 const selection = ref<Selection<DataType>>();
 
-const federatedTasks = computed<"loading" | "failed" | List<Task<DataType>>>(
-  () => {
-    if (typeof tasks.value === "string") return tasks.value;
-    return tasks.value
-      .filter((t) => t.trainingInformation.scheme === "federated")
-      .toList();
-  },
-);
+const federatedTasks = computed<
+  "loading" | "failed" | List<Task<DataType, "federated">>
+>(() => {
+  if (typeof tasks.value === "string") return tasks.value;
+  return tasks.value
+    .filter(
+      (t): t is Task<DataType, "federated"> =>
+        t.trainingInformation.scheme === "federated",
+    )
+    .toList();
+});
 
 const sortedModelsInfos = computed(() => {
   const shortDate = new Intl.DateTimeFormat(undefined, {
@@ -233,13 +236,19 @@ onActivated(() => {
     selectModel(validationStore.modelID, "test");
 });
 
-async function downloadModel(task: Task<DataType>): Promise<void> {
+async function downloadModel(task: Task<DataType, Network>): Promise<void> {
   try {
     toaster.info("Downloading model...");
 
     const client = new clients.LocalClient(
       CONFIG.serverUrl,
-      task,
+      {
+        ...task,
+        trainingInformation: {
+          ...task.trainingInformation,
+          scheme: "local",
+        },
+      } as Task<DataType, "local">,
       aggregator.getAggregator(task),
     );
     const model = await client.getLatestModel();

@@ -34,10 +34,7 @@
         <template v-if="task.displayInformation.dataExample !== undefined">
           <figure v-if="task.dataType === 'image'">
             <figcaption>Example of an image</figcaption>
-            <img
-              class="m-auto"
-              :src="(task as Task<'image'>).displayInformation.dataExample"
-            />
+            <img class="m-auto" :src="task.displayInformation.dataExample" />
           </figure>
 
           <table v-if="task.dataType === 'tabular'">
@@ -46,8 +43,7 @@
             </caption>
             <tbody>
               <tr
-                v-for="column in (task as Task<'tabular'>).displayInformation
-                  .dataExample"
+                v-for="column in task.displayInformation.dataExample"
                 :key="column.name"
               >
                 <th>{{ column.name }}</th>
@@ -59,7 +55,7 @@
           <figure v-if="task.dataType === 'text'">
             <figcaption>Example of a text</figcaption>
             <p class="italic text-justify">
-              {{ (task as Task<"text">).displayInformation.dataExample }}
+              {{ task.displayInformation.dataExample }}
             </p>
           </figure>
         </template>
@@ -82,11 +78,9 @@ figcaption {
 </style>
 
 <script setup lang="ts">
-import type { DataType, Task } from "@epfml/discojs";
+import type { DataType, Network, Task } from "@epfml/discojs";
 
 import DropdownCard from "@/components/containers/DropdownCard.vue";
 
-defineProps<{
-  task: Task<DataType>;
-}>();
+defineProps<{ task: Task<DataType, Network> }>();
 </script>

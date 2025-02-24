@@ -11,6 +11,7 @@ import type {
   Model,
   Task,
   WeightsContainer,
+  Network,
 } from "../index.js";
 import { privacy } from "../index.js";
 import { Client } from "../client/index.js";
@@ -22,11 +23,16 @@ export interface RoundLogs {
 }
 
 /** Train a model and exchange with others **/
-export class Trainer<D extends DataType> {
-  readonly #client: Client;
+export class Trainer<D extends DataType, N extends Network> {
+  readonly #client: Client<N>;
   readonly #roundDuration: number;
   readonly #epochs: number;
-  readonly #privacy: Task<DataType>["trainingInformation"]["privacy"];
+  readonly #privacy:
+   | Task<
+      DataType,
+      "decentralized" | "federated"
+     >["trainingInformation"]["privacy"]
+   | undefined;
   #model: Model<D> | undefined;
   #training?: AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
@@ -43,11 +49,12 @@ export class Trainer<D extends DataType> {
     this.#model = model;
   }
 
-  constructor(task: Task<D>, client: Client) {
+  constructor(task: Task<D, N>, client: Client<N>) {
     this.#client = client;
     this.#roundDuration = task.trainingInformation.roundDuration;
     this.#epochs = task.trainingInformation.epochs;
-    this.#privacy = task.trainingInformation.privacy;
+		if ("privacy" in task.trainingInformation)
+			this.#privacy = task.trainingInformation.privacy;
 
     if (!Number.isInteger(this.#epochs / this.#roundDuration))
       throw new Error(
@@ -132,7 +139,13 @@ export class Trainer<D extends DataType> {
 async function applyPrivacy(
   previous: WeightsContainer | undefined,
   current: WeightsContainer,
-  options: Exclude<Task<DataType>["trainingInformation"]["privacy"], undefined>,
+	options: Exclude<
+		Task<
+			DataType,
+			"decentralized" | "federated"
+		>["trainingInformation"]["privacy"],
+		undefined
+	>,
 ): Promise<WeightsContainer> {
   let ret = current;
 
