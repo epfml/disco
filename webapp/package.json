@@ -13,7 +13,7 @@
   "dependencies": {
     "@epfml/discojs": "*",
     "@epfml/discojs-web": "*",
-    "@msgpack/msgpack": "<3.0.0-beta5",
+    "@msgpack/msgpack": "<4.0.0",
     "apexcharts": "4",
     "cypress": "13",
     "d3": "7",
