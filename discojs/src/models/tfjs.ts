@@ -1,3 +1,4 @@
+import createDebug from "debug";
 import { List, Map, Range } from "immutable";
 import * as tf from '@tensorflow/tfjs'
 
@@ -12,6 +13,8 @@ import {
 import { BatchLogs } from './index.js'
 import { Model } from './index.js'
 import { EpochLogs } from './logs.js'
+
+const debug = createDebug("discojs:models:tfjs");
 
 type Serialized<D extends DataType> = [D, tf.io.ModelArtifacts];
 
@@ -64,9 +67,41 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     batch: Batched<DataFormat.ModelEncoded[D]>,
   ): Promise<BatchLogs> {
     const { xs, ys } = this.#batchToTF(batch);
-    const logs = await this.model.trainOnBatch(xs, ys);
+    // Toggling two next lines should yield the same training loss
+    const logs = await this.trainFedProx(xs, ys);
+    // const logs = await this.model.trainOnBatch(xs, ys);
     tf.dispose([xs, ys])
     return this.getBatchLogs(logs)
+  }
+
+  // First iteration: replace trainOnBatch with custom loss computation
+  async trainFedProx(
+    xs: tf.Tensor, ys: tf.Tensor): Promise<[number, number]> {
+
+    debug(this.model.loss, this.model.losses, this.model.lossFunctions)
+    const lossFunction: () => tf.Scalar = () => {
+      this.model.apply(xs)
+      const logits = this.model.apply(xs)
+          if (Array.isArray(logits))
+            throw new Error('model outputs too many tensor')
+          if (logits instanceof tf.SymbolicTensor)
+            throw new Error('model outputs symbolic tensor')
+          
+          // binaryCrossEntropyLoss as implemented by tensorflow.js
+          // https://github.com/tensorflow/tfjs/blob/2644bd0d6cea677f80e44ed4a44bea5e04aabeb3/tfjs-layers/src/losses.ts#L193
+          let y: tf.Tensor;
+          y = tf.clipByValue(logits, 0.00001, 1 - 0.00001);
+          y = tf.log(tf.div(y, tf.sub(1, y)));
+          return tf.losses.sigmoidCrossEntropy(ys, y);
+    }
+    const lossTensor = this.model.optimizer.minimize(lossFunction, true)
+    if (lossTensor === null) throw new Error("loss should not be null")
+    
+    const loss = await lossTensor.array()
+    tf.dispose([xs, ys, lossTensor])
+      
+    // dummy accuracy for now
+    return [loss, 0]
   }
 
   async #evaluate(

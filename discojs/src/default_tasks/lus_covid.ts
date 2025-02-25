@@ -39,7 +39,8 @@ export const lusCovid: TaskProvider<'image'> = {
 
   // Model architecture from tensorflow.js docs: 
   // https://codelabs.developers.google.com/codelabs/tfjs-training-classfication/index.html#4
-  async getModel (): Promise<Model<'image'>> {
+  async getModel(): Promise<Model<'image'>> {
+    const seed = 42
     const imageHeight = 100
     const imageWidth = 100
     const imageChannels = 3
@@ -55,7 +56,7 @@ export const lusCovid: TaskProvider<'image'> = {
       filters: 8,
       strides: 1,
       activation: 'relu',
-      kernelInitializer: 'varianceScaling'
+      kernelInitializer: tf.initializers.heNormal({ seed })
     }))
 
     // The MaxPooling layer acts as a sort of downsampling using max values
@@ -69,7 +70,7 @@ export const lusCovid: TaskProvider<'image'> = {
       filters: 16,
       strides: 1,
       activation: 'relu',
-      kernelInitializer: 'varianceScaling'
+      kernelInitializer: tf.initializers.heNormal({ seed })
     }))
     model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }))
 
@@ -82,12 +83,12 @@ export const lusCovid: TaskProvider<'image'> = {
     // output class.
     model.add(tf.layers.dense({
       units: numOutputClasses,
-      kernelInitializer: 'varianceScaling',
-      activation: 'softmax'
+      activation: 'softmax',
+      kernelInitializer: tf.initializers.heNormal({ seed })
     }))
-
+    
     model.compile({
-      optimizer: 'sgd',
+      optimizer: tf.train.sgd(0.001),
       loss: 'binaryCrossentropy',
       metrics: ['accuracy']
     })
