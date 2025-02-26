@@ -1,24 +1,20 @@
 <template>
   <div
     v-show="showPrev || showNext"
-    class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8"
+    class="mx-auto flex gap-4 lg:gap-8 mt-8 lg:mt-12 justify-center"
   >
-    <div class="text-center md:text-right">
-      <CustomButton
-        v-show="showPrev"
-        @click="setStep(validationStore.step - 1)"
-      >
-        previous
-      </CustomButton>
-    </div>
-    <div class="text-center md:text-left">
-      <CustomButton
-        v-show="showNext"
-        @click="setStep(validationStore.step + 1)"
-      >
-        next
-      </CustomButton>
-    </div>
+    <CustomButton
+      v-show="showPrev"
+      @click="setStep(validationStore.step - 1)"
+    >
+      previous
+    </CustomButton>
+    <CustomButton
+      v-show="showNext"
+      @click="setStep(validationStore.step + 1)"
+    >
+      next
+    </CustomButton>
   </div>
 </template>
 
