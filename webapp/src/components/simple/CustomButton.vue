@@ -2,11 +2,14 @@
   <button
     type="button"
     class="
-    px-4 py-1 min-w-[8rem]
-    text-lg uppercase text-white
-    bg-disco-cyan
-    rounded duration-200
-    hover:bg-white dark:hover:bg-black hover:outline hover:outline-disco-cyan dark:hover:outline-disco-light-cyan hover:outline-2 hover:text-disco-cyan dark:hover:text-disco-light-cyan"
+    px-4 py-2 min-w-[8rem]
+    text-lg capitalize text-white
+    bg-disco-cyan font-disco
+    rounded-full duration-200
+    hover:bg-transparent dark:hover:bg-transparent 
+    hover:outline hover:outline-2 
+    hover:outline-disco-cyan dark:hover:outline-disco-light-cyan 
+    hover:text-disco-cyan dark:hover:text-disco-light-cyan"
   >
     <slot />
     <!-- Optional description slot -->
