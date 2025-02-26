@@ -10,7 +10,7 @@
             <div class="flex justify-center">
               <button
                 id="train-collaboratively-bttn"
-                class="w-60 py-1 uppercase text-lg rounded-l-lg border-2 border-disco-cyan focus:outline-none"
+                class="w-60 py-1 capitalize text-lg font-disco rounded-l-full border-2 border-disco-cyan focus:outline-none"
                 :class="isTrainingAlone ? 'text-disco-cyan bg-transparent' : 'text-white bg-disco-cyan'"
                 @click="isTrainingAlone = false"
                 v-tippy="{
@@ -22,7 +22,7 @@
               </button>
               <button
                 id="training-locally-bttn"
-                class="w-60 py-1 uppercase text-lg rounded-r-lg border-2 border-disco-cyan focus:outline-none"
+                class="w-60 py-1 capitalize text-lg font-disco rounded-r-full border-2 border-disco-cyan focus:outline-none"
                 :class="isTrainingAlone ? 'text-white bg-disco-cyan': 'text-disco-cyan bg-transparent'"
                 @click="isTrainingAlone = true"
                 v-tippy="{
@@ -41,11 +41,11 @@
                 @click="startTraining()"
                 class="
                 mt-4 px-6 py-2 min-w-[8rem]
-                text-xl uppercase text-white
-                bg-disco-orange rounded duration-200
-                hover:bg-white hover:outline hover:outline-disco-orange hover:outline-2 hover:text-disco-orange"
+                text-xl text-white font-disco
+                bg-disco-orange rounded-full duration-200
+                hover:bg-transparent hover:outline hover:outline-disco-orange hover:outline-2 hover:text-disco-orange"
               >
-                start training
+                Start training
               </button>
             </div>
           </div>
@@ -76,7 +76,8 @@
     </div>
     <!-- Demo warning -->
     <div
-      class="flex flex-row justify-between gap-x-4 items-center mb-5 py-4 px-4 bg-purple-100 rounded-md"
+      class="flex flex-row justify-between gap-x-4 items-center mb-5 py-4 px-4 
+      bg-purple-100 dark:text-body-light rounded-md"
     >
       <InfoIcon custom-class="min-w-6 min-h-6 w-6 h-6" />
       <p class="text-sm pt-0.5">
