@@ -27,7 +27,7 @@
   <div 
     v-show="validationStore.step === 2" 
   >
-    <div class="space-y-8 mb-8 w-full lg:w-1/2 lg:max-w-[640px] mx-auto">
+    <div class="space-y-8 mb-8 w-full lg:max-w-[700px] mx-auto">
       <IconCard>
         <template #title> Run model inference </template>
 
