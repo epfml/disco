@@ -12,9 +12,7 @@ describe("tasks page", () => {
     );
 
     cy.visit("/#/list").contains("button", "participate");
-
-    // Length 5 = 4 tasks and 1 div for text description
-    cy.get('div[id="tasks"]').children().should("have.length", 5);
+    cy.get('div[id="tasks"]').children().should("have.length", 4);
   });
 
   it("redirects to training", () => {
