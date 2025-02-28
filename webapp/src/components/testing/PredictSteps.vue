@@ -8,7 +8,7 @@
       <span
         class="shrink-0 py-4 px-4 bg-purple-100 dark:text-disco-dark-blue rounded-md flex flex-row gap-x-4 items-center"
       >
-        <InfoIcon custom-class="min-w-6 min-h-6 w-6 h-6 text-slate-600" />
+        <InfoIcon custom-class="min-w-6 min-h-6 w-6 h-6" />
 
         Prompting a language model will be available soon!
       </span>
@@ -24,41 +24,43 @@
     </UnlabeledDatasetInput>
   </div>
 
-  <div v-show="validationStore.step === 2" class="space-y-8">
-    <IconCard class="mx-auto mt-10 lg:w-1/2" title-placement="left">
-      <template #title> Run model inference </template>
+  <div 
+    v-show="validationStore.step === 2" 
+  >
+    <div class="space-y-8 mb-8 w-full lg:max-w-[700px] mx-auto">
+      <IconCard>
+        <template #title> Run model inference </template>
 
-      <div v-show="generator === undefined">
-        By clicking the button below, you will be able to predict using the
-        selected model with chosen dataset of yours.
+        <div v-show="generator === undefined">
+          By clicking the button below, you will be able to predict using the
+          selected model with chosen dataset of yours.
 
-        <div class="flex justify-center mt-4">
-          <CustomButton @click="startInference()"> predict </CustomButton>
+          <div class="flex justify-center mt-4">
+            <CustomButton @click="startInference()"> predict </CustomButton>
+          </div>
         </div>
-      </div>
-      <div v-show="generator !== undefined">
-        <div class="flex justify-center">
-          <CustomButton @click="stopInference()"> stop inference </CustomButton>
+        <div v-show="generator !== undefined">
+          <div class="flex justify-center">
+            <CustomButton @click="stopInference()"> stop inference </CustomButton>
+          </div>
         </div>
-      </div>
-    </IconCard>
+      </IconCard>
 
-    <div class="p-4 mx-auto lg:w-1/2 h-full bg-white dark:bg-slate-950 rounded-md">
-      <!-- header -->
-      <h4 class="p-4 border-b text-lg font-semibold text-slate-500 dark:text-slate-300">
-        Inference metrics
-      </h4>
-      <!-- stats -->
-      <div class="flex justify-center p-4 font-medium text-slate-500 dark:text-slate-400">
-        <div class="text-center">
-          <span class="text-2xl"> {{ visitedSamples }} </span>
-          <span class="text-sm">&nbsp;samples visited</span>
+      <IconCard>
+        <!-- header -->
+        <template #title>Inference metrics</template>
+        <!-- stats -->
+        <div class="flex justify-center p-4">
+          <div class="text-center">
+            <span class="text-2xl"> {{ visitedSamples }} </span>
+            <span class="text-sm">&nbsp;samples visited</span>
+          </div>
         </div>
-      </div>
+      </IconCard>
     </div>
 
     <div v-if="predictions !== undefined">
-      <div class="mx-auto lg:w-1/2 text-center pb-8">
+      <div class="mx-auto text-center pb-8">
         <CustomButton @click="saveCsv()"> download as csv </CustomButton>
       </div>
 
@@ -73,7 +75,7 @@
           :image="result.input.image"
         >
           <template #title>
-            <span class="font-bold text-slate-600 uppercase">
+            <span class="font-bold uppercase">
             {{ result.output }}
           </span>
           </template>
@@ -82,7 +84,7 @@
 
       <div
         v-else-if="task.trainingInformation.dataType === 'tabular'"
-        class="mx-auto lg:w-3/4 h-full bg-white dark:bg-slate-950 rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
+        class="mx-auto p-4 w-full h-full max-h-128 bg-white dark:bg-slate-950 rounded-md overflow-x-scroll overflow-y-hidden"
       >
         <TableLayout
           :columns="

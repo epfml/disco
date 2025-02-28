@@ -127,8 +127,7 @@
         <template #title> How to join after ?</template>
         <div>
             After submitting the form, others will be able to join the task from the
-            <span @click="goToDiscollaborative()" class="underline text-blue-400 cursor-pointer"><DISCOllaboratives /> page</span>. You can find more explanations about
-            <DISCO /> in the <span @click="goToInformation()" class="underline text-blue-400 cursor-pointer">Information page</span>.
+            <span @click="goToDiscollaborative()" class="underline text-blue-400 cursor-pointer"><DISCOllaboratives /> page</span>.
         </div>
       </IconCard>
       <div class="flex flex-wrap justify-center gap-8 my-2">
@@ -176,7 +175,6 @@ import NumberContainer from './containers/NumberContainer.vue'
 import FloatContainer from './containers/FloatContainer.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import { useRouter } from "vue-router";
-import DISCO from "@/components/simple/DISCO.vue";
 import DISCOllaboratives from "@/components/simple/DISCOllaboratives.vue";
 
 const router = useRouter()
@@ -310,19 +308,7 @@ const getContent = (field: FormField): string => {
   return "Expected type : " + field.type
 }
 
-function goToInformation () {
-  const scrollableDiv = document.getElementById('scrollable-div');
-  if (scrollableDiv !== null) {
-    scrollableDiv.scrollTo(0, 0) // doesn't work with behavior: 'smooth'
-  }
-  router.push({ path: '/information' })
-}
-
 function goToDiscollaborative () {
-  const scrollableDiv = document.getElementById('scrollable-div');
-  if (scrollableDiv !== null) {
-    scrollableDiv.scrollTo(0, 0) // doesn't work with behavior: 'smooth'
-  }
   router.push({ path: '/list' })
 }
 </script>

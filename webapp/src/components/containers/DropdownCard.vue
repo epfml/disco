@@ -18,7 +18,7 @@
 
       <div
         v-show="opened"
-        class="text-sm text-slate-500 dark:text-slate-300 p-8 border-t"
+        class="p-8 border-t"
       >
         <slot />
       </div>

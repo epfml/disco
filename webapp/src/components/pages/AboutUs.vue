@@ -1,21 +1,23 @@
 <template>
   <div class="space-y-8 mb-8">
-    <h1 class="text-disco-cyan font-disco text-3xl text-center">The <DISCO/> team</h1>
+    <h1 class="text-disco-cyan font-disco text-3xl text-center">
+      The <DISCO /> team
+    </h1>
 
     <IconCard>
       <template #title> About Us </template>
-      <p><DISCO/> is the result of a collaboration between two research labs:</p>
+      <p>
+        <DISCO /> is the result of a collaboration between two research labs:
+      </p>
 
       <ul class="list-disc list-inside">
         <li>
           <a
-          class="text-blue-500 hover:underline"
-          href="https://www.epfl.ch/labs/mlo/"
-          target="_blank"
-          >
-            MLO
-          </a>
-          (Machine Learning and Optimization Laboratory) at
+            class="text-blue-500 hover:underline"
+            href="https://www.epfl.ch/labs/mlo/"
+            target="_blank"
+          >MLO</a>
+          (Machine Learning and Optimization Laboratory) hosted at
           <a
             href="https://www.epfl.ch/"
             class="text-blue-500 hover:underline"
@@ -26,22 +28,19 @@
         <li>
           <a
             class="text-blue-500 hover:underline"
-            href="https://www.yale-light.org/"
+            href="https://www.light-laboratory.org/"
             target="_blank"
-          >
-          LiGHT
-          </a>
+          >LiGHT</a>
           (Laboratory for Intelligent Global Health & Humanitarian Response
-          Technologies) at 
+          Technologies) hosted at
           <a
-            href="https://www.yale.edu/"
+            href="https://www.ariadnelabs.org/"
             class="text-blue-500 hover:underline"
             target="_blank"
-            >Yale</a
-          >, US
+            >AriadneLabs</a
+          >, Boston, USA
         </li>
       </ul>
-
       <br />
       <p>
         <DISCO /> relies on public funds and its code is open-source and
@@ -51,9 +50,13 @@
           class="text-blue-500 hover:underline"
           target="_blank"
           >Github</a
-        >.
-        <br />
-        Your support and feedback would be greatly appreciated.
+        >. You can reach out to us by email at 
+        <a
+          href="mailto:discolab@listes.epfl.ch"
+          class="text-blue-500 hover:underline"
+          target="_blank"
+          >discolab AT listes.epfl.ch</a>.<br/>
+        Your support and feedback is greatly appreciated.
       </p>
 
       <!-- Lab logos -->
@@ -65,18 +68,18 @@
             href="https://www.epfl.ch/labs/mlo/"
             target="_blank"
           >
-          <img class="max-h-52 w-full max-w-3xl" src="@/assets/images/mlologo.png"/>
-        </a>
+            <MLOLogo class="w-full h-20 lg:h-48"/>
+          </a>
         </div>
         <!-- LiGHT logo -->
         <div class="flex flex-col items-center mb-1">
           <a
             class="hover:mouse-pointer"
-            href="https://www.yale-light.org/"
+            href="https://www.light-laboratory.org/"
             target="_blank"
           >
-            <img class="max-h-52 w-full max-w-3xl" src="@/assets/images/LiGHT.gif" />
-            </a>
+            <LightLogo class="w-full h-20 lg:h-48" />
+          </a>
         </div>
       </div>
     </IconCard>
@@ -86,4 +89,6 @@
 <script lang="ts" setup>
 import DISCO from "@/components/simple/DISCO.vue";
 import IconCard from "@/components/containers/IconCard.vue";
+import MLOLogo from "@/assets/logos/MLOLogo.vue";
+import LightLogo from "@/assets/logos/LightLogo.vue";
 </script>

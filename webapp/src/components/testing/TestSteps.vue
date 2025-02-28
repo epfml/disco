@@ -5,7 +5,7 @@
   >
     <LabeledDatasetInput :task v-model="dataset">
       <template #header>
-        <IconCard>
+        <IconCard class="mx-auto w-full max-w-[700px]">
           <template #title> Model Validation </template>
 
           It is very important that your model is tested against
@@ -19,93 +19,93 @@
     </LabeledDatasetInput>
   </div>
 
-  <div v-show="validationStore.step === 2" class="space-y-8">
+  <div 
+    v-show="validationStore.step === 2" 
+  >
     <!-- Test the model on a data set with labels -->
-    <IconCard class="mx-auto mt-10 lg:w-1/2" title-placement="left">
-      <template #title> Test &amp; validate your model </template>
+    <div class="space-y-8 mb-8 w-full lg:max-w-[700px] mx-auto">
+      <IconCard>
+        <template #title>Validate your model</template>
 
-      <div v-show="controller === undefined">
-        By clicking the button below, you will be able to validate your model
-        against a chosen dataset of yours. Below, once you assessed the model,
-        you can compare the ground truth and the predicted values
-        <div class="flex justify-center mt-4">
-          <CustomButton @click="startTest()"> test </CustomButton>
+        <div v-show="controller === undefined">
+          By clicking the button below, you will be able to validate your model
+          against a chosen dataset of yours. Below, once you assessed the model,
+          you can compare the ground truth and the predicted values
+          <div class="flex justify-center mt-4">
+            <CustomButton @click="startTest()"> test </CustomButton>
+          </div>
         </div>
-      </div>
-      <div v-show="controller !== undefined">
-        <div class="flex justify-center">
-          <CustomButton @click="stopTest()"> stop testing </CustomButton>
+        <div v-show="controller !== undefined">
+          <div class="flex justify-center">
+            <CustomButton @click="stopTest()"> stop testing </CustomButton>
+          </div>
         </div>
-      </div>
-    </IconCard>
+      </IconCard>
 
-    <!-- display the evaluation metrics -->
-    <div class="p-4 mx-auto lg:w-1/2 h-full bg-white dark:bg-slate-950 rounded-md">
-      <!-- header -->
-      <h4 class="p-4 border-b text-lg font-semibold text-slate-500 dark:text-slate-300">
-        Test Accuracy
-      </h4>
-      <!-- stats -->
-      <div class="grid grid-cols-2 p-4 font-medium text-slate-500 dark:text-slate-400">
-        <div class="text-center">
-          <span class="text-2xl">{{ currentAccuracy }}</span>
-          <span class="text-sm">% of test accuracy</span>
+      <!-- display the evaluation metrics -->
+      <IconCard>
+        <template #title>Test accuracy</template>
+        <!-- stats -->
+        <div class="grid grid-cols-2 p-4">
+          <div class="text-center">
+            <span class="text-2xl">{{ currentAccuracy }}</span>
+            <span class="text-sm">% of test accuracy</span>
+          </div>
+          <div class="text-center">
+            <span class="text-2xl">{{ visitedSamples }}</span>
+            <span class="text-sm">&nbsp;samples visited</span>
+          </div>
         </div>
-        <div class="text-center">
-          <span class="text-2xl">{{ visitedSamples }}</span>
-          <span class="text-sm">&nbsp;samples visited</span>
+      </IconCard>
+
+      <IconCard
+        v-if="confusionMatrix !== undefined"
+        class="half-width -4 mx-auto h-full bg-white dark:bg-slate-950 rounded-md"
+      >
+        <template #title> Confusion Matrix </template>
+
+        <div class="flex flex-row w-full justify-center">
+          <table
+            class="divide-y-2 divide-slate-600 dark:divide-slate-400 text-center"
+          >
+            <thead>
+              <tr>
+                <th
+                  class="p-2 text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider text-center border-r-gray-600 dark:border-r-gray-400 border-r-2 diagonal-header"
+                >
+                  Label \ Prediction
+                </th>
+                <th
+                  v-for="(_, label) in confusionMatrix"
+                  :key="label"
+                  class="p-2 text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider"
+                >
+                  {{ label }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(_, row) in confusionMatrix" :key="row">
+                <td
+                  class="p-2 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-gray-200 border-r-gray-600 dark:border-r-gray-400 border-r-2"
+                >
+                  {{ row }}
+                </td>
+                <td
+                  v-for="(_, col) in confusionMatrix[row]"
+                  :key="col"
+                  class="p-2 whitespace-nowrap text-sm dark:text-gray-300 text-gray-700"
+                >
+                  {{ confusionMatrix[row][col] }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-      </div>
+      </IconCard>
     </div>
-
-    <IconCard
-      v-if="confusionMatrix !== undefined"
-      class="p-4 mx-auto lg:w-1/2 h-full bg-white dark:bg-slate-950 rounded-md"
-    >
-      <template #title> Confusion Matrix </template>
-
-      <div class="flex flex-row w-full justify-center">
-        <table
-          class="divide-y-2 divide-slate-600 dark:divide-slate-400 text-center"
-        >
-          <thead>
-            <tr>
-              <th
-                class="p-2 text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider text-center border-r-gray-600 dark:border-r-gray-400 border-r-2 diagonal-header"
-              >
-                Label \ Prediction
-              </th>
-              <th
-                v-for="(_, label) in confusionMatrix"
-                :key="label"
-                class="p-2 text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider"
-              >
-                {{ label }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(_, row) in confusionMatrix" :key="row">
-              <td
-                class="p-2 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-gray-200 border-r-gray-600 dark:border-r-gray-400 border-r-2"
-              >
-                {{ row }}
-              </td>
-              <td
-                v-for="(_, col) in confusionMatrix[row]"
-                :key="col"
-                class="p-2 whitespace-nowrap text-sm dark:text-gray-300 text-gray-700"
-              >
-                {{ confusionMatrix[row][col] }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </IconCard>
-
     <div v-if="tested !== undefined">
-      <div class="mx-auto lg:w-1/2 text-center pb-8">
+      <div class="mx-auto text-center pb-8">
         <CustomButton @click="saveCsv()"> download as csv </CustomButton>
       </div>
 
@@ -132,7 +132,7 @@
 
       <div
         v-else-if="task.trainingInformation.dataType === 'tabular'"
-        class="mx-auto lg:w-3/4 h-full bg-white dark:text-slate-950 rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
+        class="mx-auto p-4 w-full h-full max-h-128 bg-white dark:bg-slate-950 rounded-md overflow-x-scroll overflow-y-hidden"
       >
         <TableLayout
           :columns="
@@ -149,7 +149,7 @@
       </div>
       <div
         v-else-if="task.trainingInformation.dataType === 'text'"
-        class="mx-auto lg:w-3/4 h-full bg-white dark:text-slate-950 rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
+        class="mx-auto lg:w-3/4 h-full bg-white dark:bg-slate-950 rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
       >
         <!-- Display nothing for now -->
       </div>

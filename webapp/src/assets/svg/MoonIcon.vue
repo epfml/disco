@@ -17,7 +17,6 @@
 </template>
 <script lang="ts">
 export default {
-  name: 'MoonIcon',
   props: {
     customClass: {
       default: 'bi bi-info-circle w-7 h-7',

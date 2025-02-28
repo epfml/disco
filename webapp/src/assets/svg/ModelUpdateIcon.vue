@@ -26,7 +26,6 @@
 </template>
 <script lang="ts">
 export default {
-  name: 'ModelUpdateIcon',
   props: {
 		customClass: { default: 'w-12 h-12  text-gray-400', type: String },
     viewBox: { default: '-6 -6 48 48', type: String }

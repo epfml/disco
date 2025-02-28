@@ -1,15 +1,16 @@
 <template>
-  <div>
+  <div :class="[themeClass]">
     <!-- Global container for the screen -->
     <div
       class="
         flex
         h-screen
         antialiased
-        text-slate-900
         bg-slate-100
         dark:bg-slate-900
-        dark:text-slate-100
+        text-body-light
+        dark:text-body-dark
+        text-sm md:text-base
       "
     >
       <!-- Sidebar -->
@@ -57,14 +58,17 @@
 import createDebug from "debug";
 import { RouterView, useRoute } from 'vue-router'
 
-import { useTasksStore } from "@/store";
+import { useTasksStore, useThemeStore } from "@/store";
 import BaseLayout from './containers/BaseLayout.vue'
 import SideBar from '@/components/sidebar/SideBar.vue'
 
 const debug = createDebug("webapp:App");
 
 const route = useRoute()
-const tasksStore = useTasksStore()
 
+const tasksStore = useTasksStore()
 tasksStore.initTasks().catch((e) => debug("while init tasks: %o", e));
+
+const themeStore = useThemeStore();
+const themeClass = themeStore.selectByTheme("", "dark")
 </script>
