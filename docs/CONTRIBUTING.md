@@ -38,7 +38,7 @@ There are many ways to use Disco.js: from a browser, a CLI, by importing `discoj
 
 ### Running TypeScript
 
-As a contributor, you will certainly end up having to run TypeScript scripts. A practical way to do so is to use on ts-node:
+As a contributor, you will certainly end up having to run TypeScript scripts. A practical way to do so is to use `ts-node`:
 
 ```
 npm i -g ts-node # globally to run scripts from anywhere
@@ -104,6 +104,26 @@ npm -w webapp test
 
 The webapp tests rely on `cypress` and the test suite is located in the `webapp/cypress` folder.
 
+Note that you can also run test interactively in the browser of your choice. To do so, run
+```
+VITE_SERVER_URL=http://server npx -w webapp start-server-and-test start http://localhost:8081 'cypress open --e2e'
+```
+which should open the Cypress UI and let you choose the browser you wand to use and which tests to run. More information on [the Cypress docs](https://docs.cypress.io/app/get-started/open-the-app).
+
+#### Cypress and Github Actions
+
+It is possible to record the cypress tests ran in the Github Actions CI and visualize them in the [Cypress Cloud](cloud.cypress.io). It is currently used only when needed (because the free plan has a limited number of recordings). The [cypress documentation](https://docs.cypress.io/app/continuous-integration/github-actions) describes how to set up the recordings.
+
+1. A Disco project has been created in the Cypress Cloud and you need to be added to the project to be able to visualize the recordings.
+
+2. In case a new Cypress project is now being used, make sure that the settings are correct: 
+- In `webapp/cypress.config.ts` make sure the correct project ID has been set, It currently is:
+```js
+  projectId: "aps8et"
+```
+- The github workflow `.github/workflows/record-cypress.yml` relies on `CYPRESS_RECORD_KEY` which is a github repository secret.
+3. Finally, you can trigger the `record-cypress` workflow manually from github as described in the [documentation](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/manually-running-a-workflow#running-a-workflow)
+
 ### Contributing to `discojs`
 
 If you are brought to modify the `discojs` folder have a look at [DISCOJS.md](./DISCOJS.md) which explains some of the concepts internal to the library.
@@ -146,6 +166,43 @@ Similarly to the server, any file ending with `.spec.ts` will be ran in the test
 
 Currently, the `discojs-node` project is available as the `@epfml/discojs-node` NPM package, which can be installed with
 `npm i @epfml/discojs-node` and the `discojs-web` as the `@epfml/discojs-web`.
+
+
+### Debugging
+
+> [!TIP]
+> If your code changes don't seem to be effective, close everything, rebuild everything and restart. For example, changes in `discojs/src/default_tasks` requires rebuilding `discojs` and restarting the `server` to be effective.
+
+In Disco, we rely on the widely used [`debug` library](https://github.com/debug-js/debug). To use it, we first import debug and instantiate the debug object:
+```js
+import createDebug from "debug";
+const debug = createDebug("discojs:models:gpt:model"); // use nested namespaces
+const logs = { loss: 0.01, accuracy: 0.56}
+debug("Here are the GPT logs: %o", logs)
+```
+
+#### In the terminal
+To visualize the logs in the command line, we need to set the `DEBUG` environment variable to choose the namespaces from which you want to see the debug statements. For example:
+```bash
+DEBUG='discojs:models:gpt*' npm -w cli run benchmark_gpt
+```
+will print the debug statement from above. Similarly if we set `DEBUG='*'`.
+
+The server debug statements are visualized the same way, for example:
+```bash
+DEBUG='server*,discojs*' npm -w server start
+```
+shows the debug statements from anywhere in the server and in discojs.
+
+#### Webapp
+
+To visualize debug statements in the browser, you need to open the console (Inspect element > Console) and set the `localStorage.debug` to the namespace of your choice, for example `localStorage.debug='webapp*,discojs*'` to visualize both the debug statements from anywhere in the webapp and in discojs. Note that you may need to refresh the page for changes to localStorage to be effective.
+
+To get debug statements in the Cypress tests you need to modify `webapp/cypress/support/e2e.ts` and add:
+```js
+beforeEach(() => { localStorage.debug = "discojs*,webapp*" });
+```
+We need to set the `localStorage` before each test because it is reset between each unit tests.
 
 ## Contributing conventions
 

@@ -13,7 +13,6 @@
 </template>
 <script lang="ts">
 export default {
-  name: 'PlugIcon',
   props: {
     customClass: {
       default: 'w-8 h-8 text-disco-cyan',

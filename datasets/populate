@@ -19,3 +19,8 @@ rm archive.zip DeAI-testimages
 mkdir -p wikitext
 curl 'https://dax-cdn.cdn.appdomain.cloud/dax-wikitext-103/1.0.1/wikitext-103.tar.gz' |
 	tar --extract --gzip --strip-components=1 -C wikitext
+
+# tinder_dog
+curl 'https://storage.googleapis.com/deai-313515.appspot.com/tinder_dog.zip' > tinder_dog.zip
+unzip -u tinder_dog.zip
+rm tinder_dog.zip

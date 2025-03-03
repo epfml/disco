@@ -7,3 +7,4 @@ export type Batched<T> = List<T>;
 export { Image };
 export type Tabular = Partial<Record<string, string>>;
 export type Text = string;
+export type TokenizedText = List<number>;

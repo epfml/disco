@@ -1,7 +1,5 @@
 import path from "node:path";
-import fs from 'node:fs/promises'
-import { parse } from 'csv-parse';
-import { Dataset } from "@epfml/discojs";
+import { Dataset, processing } from "@epfml/discojs";
 import type {
   DataFormat,
   DataType,
@@ -9,8 +7,8 @@ import type {
   Task,
   Text,
 } from "@epfml/discojs";
-import { loadCSV, loadImage, loadImagesInDir, loadText } from "@epfml/discojs-node";
-import { Repeat, Map } from "immutable";
+import { loadCSV, loadImage, loadImagesInDir } from "@epfml/discojs-node";
+import { Repeat } from "immutable";
 
 async function loadSimpleFaceData(): Promise<Dataset<DataFormat.Raw["image"]>> {
   const folder = path.join("..", "datasets", "simple_face");
@@ -38,56 +36,34 @@ async function loadLusCovidData(): Promise<Dataset<DataFormat.Raw["image"]>> {
   return positive.chain(negative);
 }
 
-async function loadWikitextData(): Promise<Dataset<DataFormat.Raw["text"]>> {
-  const folder = path.join("..", "datasets", "wikitext");
-  const dataset: Dataset<Text> = loadText(path.join(folder, "wiki.train.tokens"))
-  return Promise.resolve(dataset)
-}
-
-export async function loadTinderDogData(split: number): Promise<Dataset<DataFormat.Raw["image"]>> {
+function loadTinderDogData(split: number): Dataset<DataFormat.Raw["image"]> {
   const folder = path.join("..", "datasets", "tinder_dog", `${split + 1}`);
-  console.log(`Reading data split ${folder}`)
-  const csvPath = path.join(folder, 'labels.csv')
-
-  const headers = ['filename', 'label'];
-  const fileContent = await fs.readFile(csvPath, { encoding: 'utf-8' });
-  const csvContent = await new Promise<{ filename: string, label: number }[]>((resolve, reject) => {
-    parse(fileContent, {
-      delimiter: ',',
-      columns: headers,
-    }, (error, result: { filename: string, label: number }[]) => {
-      if (error) {
-        console.error(error);
-        reject(error)
+  return loadCSV(path.join(folder, "labels.csv"))
+    .map(
+      (row) =>
+        [
+          processing.extractColumn(row, "filename"),
+          processing.extractColumn(row, "label"),
+        ] as const,
+    )
+    .map(async ([filename, label]) => {
+      try {
+        const image = await Promise.any(
+          ["png", "jpg", "jpeg"].map((ext) =>
+            loadImage(path.join(folder, `${filename}.${ext}`)),
+          ),
+        );
+        return [image, label];
+      } catch {
+        throw Error(`${filename} not found in ${folder}`);
       }
-      resolve(result)
     });
-  })
-  const imgToLabel = Map(csvContent.map(entry =>
-      [entry.filename, entry.label] as const)
-  );
-  const fileExtensions = [".png", ".jpg", ".jpeg"];
-  const imagesFile = (await fs.readdir(folder)).filter(file => {
-    for (const ext of fileExtensions) if(file.endsWith(ext)) return true;
-    return false;
-  })
-  const labels = imagesFile.map(img => {
-    const label = imgToLabel.get(img.slice(0, -4)) // remove the file extension
-    if (label === undefined) throw Error(`Image ${img} not found in CSV`)
-    return label.toString()
-  })
-  const imgPaths = imagesFile.map(imgName => path.join(folder, imgName))
-  console.log(`Found ${imgPaths.length} in split ${split}`)
-  const images = await Promise.all(imgPaths.map(imgPath => loadImage(imgPath)))
-  
-  return new Dataset(images).zip(labels)
 }
-
 
 export async function getTaskData<D extends DataType>(
-  task: Task<D>,
+  taskID: Task<D>['id'], userIdx: number
 ): Promise<Dataset<DataFormat.Raw[D]>> {
-  switch (task.id) {
+  switch (taskID) {
     case "simple_face":
       return (await loadSimpleFaceData()) as Dataset<DataFormat.Raw[D]>;
     case "titanic":
@@ -100,9 +76,9 @@ export async function getTaskData<D extends DataType>(
       ).zip(Repeat("cat")) as Dataset<DataFormat.Raw[D]>;
     case "lus_covid":
       return (await loadLusCovidData()) as Dataset<DataFormat.Raw[D]>;
-    case "llm_task":
-      return (await loadWikitextData()) as Dataset<DataFormat.Raw[D]>;
+    case "tinder_dog":
+      return loadTinderDogData(userIdx) as Dataset<DataFormat.Raw[D]>;
     default:
-      throw new Error(`Data loader for ${task.id} not implemented.`);
+      throw new Error(`Data loader for ${taskID} not implemented.`);
   }
 }

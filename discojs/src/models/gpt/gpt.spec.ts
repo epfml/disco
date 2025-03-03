@@ -2,45 +2,46 @@ import { expect } from "chai";
 import "@tensorflow/tfjs-node"; // speed up
 import { AutoTokenizer } from "@xenova/transformers";
 
-import { Dataset, DataFormat } from "../../index.js";
+import { Dataset, DataFormat, processing } from "../../index.js";
 
 import { GPT } from "./index.js";
-import { List, Repeat } from "immutable";
+import { List } from "immutable";
 
 describe("gpt-tfjs", function () {
   it("can overfit one sentence", async function () {
-    this.timeout("2m");
+    this.timeout("1m");
     const tokenizer = await AutoTokenizer.from_pretrained("Xenova/gpt2");
 
     const data = "Lorem ipsum dolor sit";
-    const dataTokens = List(
-      (tokenizer(data, { return_tensor: false }) as { input_ids: number[] })
-        .input_ids,
-    );
-    const dataset = new Dataset<DataFormat.ModelEncoded["text"]>(
-      Repeat([dataTokens.pop(), dataTokens.last()]),
-    ).batch(64);
+    const dataTokens = processing.tokenize(tokenizer, data);
+		const lastToken = dataTokens.last();
+		if (lastToken === undefined) throw new Error("no token generated");
+    const seed = 42
+		const dataset = new Dataset<DataFormat.ModelEncoded["text"]>([
+			[dataTokens.pop(), lastToken],
+		])
+			.repeat()
+			.batch(8);
 
     const model = new GPT({
       modelType: "gpt-nano",
       lr: 0.01,
       maxIter: 10,
-      evaluateEvery: 10,
+      evaluateEvery: 50,
       maxEvalBatches: 10,
-      blockSize: 8,
-      vocabSize: 50258,
+      contextLength: 8,
+      seed
     });
     for (let i = 0; i < 5; i++)
       for await (const _ of model.train(dataset, undefined));
 
     const input = "Lorem ipsum dolor";
-    const inputTokens = List(
-      (tokenizer(input, { return_tensor: false }) as { input_ids: number[] })
-        .input_ids,
-    );
-    const outputToken: number = (
-      await model.predict(List.of(inputTokens))
-    ).first();
+    const inputTokens = processing.tokenize(tokenizer, data);
+    
+		const outputToken = (
+			await model.predict(List.of(inputTokens), { seed })
+		).first();
+		if (outputToken === undefined) throw new Error("empty prediction");
     const output = tokenizer.decode([outputToken]);
 
     expect(input + output).equal(data); // Assert that the model completes 'Lorem ipsum dolor' with 'sit'

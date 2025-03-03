@@ -2,11 +2,11 @@ import createDebug from "debug";
 import * as tf from '@tensorflow/tfjs'
 
 import type { GPTConfig } from './config.js'
-import { getModelSizes, DEFAULT_CONFIG } from './config.js'
+import { getModelSizes, DefaultGPTConfig } from './config.js'
 import { getCustomAdam, clipByGlobalNormObj } from './optimizers.js'
 import { GPTArchitecture } from './layers.js'
 
-const debug = createDebug("discojs:models:gpt");
+const debug = createDebug("discojs:models:gpt:model");
 
 /**
  * tfjs does not export LazyIterator and Dataset...
@@ -27,9 +27,9 @@ export declare abstract class Dataset<T> {
 export class GPTModel extends tf.LayersModel {
   protected readonly config: Required<GPTConfig>
 
-  constructor(partialConfig?: GPTConfig, layersModel?: tf.LayersModel) {
+  constructor(partialConfig?: Partial<GPTConfig>, layersModel?: tf.LayersModel) {
     // Fill missing config parameters with default values
-    let completeConfig: Required<GPTConfig> = { ...DEFAULT_CONFIG, ...partialConfig }
+    let completeConfig: Required<GPTConfig> = { ...DefaultGPTConfig, ...partialConfig }
     // Add layer sizes depending on which model has been specified
     completeConfig = { ...completeConfig, ...getModelSizes(completeConfig.modelType) }
 
@@ -54,53 +54,101 @@ export class GPTModel extends tf.LayersModel {
       : tf.train.adam(this.config.lr) 
   }
 
-  override async trainOnBatch(x: tf.Tensor, y: tf.Tensor): Promise<number | number[]> {
-    let weightUpdateTime = performance.now()
+  override async fitDataset<T>(dataset: Dataset<T>, trainingArgs: tf.ModelFitDatasetArgs<T>): Promise<tf.History> {
+    const callbacks = trainingArgs.callbacks as tf.CustomCallbackArgs
+    const evalDataset = trainingArgs.validationData as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>
+    await callbacks.onTrainBegin?.()
 
-    let preprocessingTime = performance.now()
-    await Promise.all([x.data(), y.data()])
-    preprocessingTime = performance.now() - preprocessingTime
+    for (let epoch = 1; epoch <= trainingArgs.epochs; epoch++) {
+      let accuracyFraction: [number, number] = [0, 0];
+      let averageLoss = 0
+      let iteration = 1
+      const iterator = await dataset.iterator()
+      let next = await iterator.next()
 
-    let logitsTensor: tf.Tensor<tf.Rank>;
-    const lossTensor = tf.tidy(() => {
-      const { grads, value: lossTensor } = this.optimizer.computeGradients(() => {
-        const logits = this.apply(x)
-        if (Array.isArray(logits))
-          throw new Error('model outputs too many tensor')
-        if (logits instanceof tf.SymbolicTensor)
-          throw new Error('model outputs symbolic tensor')
-        logitsTensor = tf.keep(logits)
-        return tf.losses.softmaxCrossEntropy(y, logits)
-      })
-      const gradsClipped = clipByGlobalNormObj(grads, 1)
-      this.optimizer.applyGradients(gradsClipped)
-      return lossTensor
-    })
+      while (next.done !== true && iteration <= this.config.maxIter) {
+        let weightUpdateTime = performance.now()
+        await callbacks.onEpochBegin?.(epoch)
+        const { xs, ys } = next.value as { xs: tf.Tensor2D, ys: tf.Tensor3D }
 
-    // TODO: replace accuracy by perplexity
-    // @ts-expect-error Variable 'logitsTensor' is used before being assigned
-    const accTensor = tf.metrics.categoricalAccuracy(y, logitsTensor)
-    const accSize = accTensor.shape.reduce((l, r) => l * r, 1)
-    const accSumTensor = accTensor.sum()
-    const accSum = await accSumTensor.array()
-    if (typeof accSum !== 'number')
-      throw new Error('got multiple accuracy sum')
-    // @ts-expect-error Variable 'logitsTensor' is used before being assigned
-    tf.dispose([accTensor, accSumTensor, logitsTensor])
-    
-    const loss = await lossTensor.array()
-    weightUpdateTime = performance.now() - weightUpdateTime
+        let preprocessingTime = performance.now()
+        await Promise.all([xs.data(), ys.data()])
+        preprocessingTime = performance.now() - preprocessingTime
+        
+        // TODO include as a tensor inside the model
+        const accTensor = tf.tidy(() => {
+          const logits = this.apply(xs)
+          if (Array.isArray(logits))
+            throw new Error('model outputs too many tensor')
+          if (logits instanceof tf.SymbolicTensor)
+            throw new Error('model outputs symbolic tensor')
+          return tf.metrics.categoricalAccuracy(ys, logits)
+        })
+        const accSize = accTensor.shape.reduce((l, r) => l * r, 1)
+        const accSumTensor = accTensor.sum()
+        const accSum = await accSumTensor.array()
+        tf.dispose(accSumTensor)
+        if (typeof accSum !== 'number')
+          throw new Error('got multiple accuracy sum')
+        accuracyFraction = [accuracyFraction[0] + accSum, accuracyFraction[1] + accSize];
+        tf.dispose([accTensor])
 
-    tf.dispose([x, y, lossTensor])
-    
-    const memory = tf.memory().numBytes / 1024 / 1024 / 1024
-    debug("training metrics: %O", {
-      loss,
-      memory,
-      allocated: tf.memory().numTensors,
-      preprocessingTime,
-      weightUpdateTime,
-    });
-    return [loss, accSum / accSize]
+        const lossTensor = tf.tidy(() => {
+          const { grads, value: lossTensor } = this.optimizer.computeGradients(() => {
+            const logits = this.apply(xs)
+            if (Array.isArray(logits))
+              throw new Error('model outputs too many tensor')
+            if (logits instanceof tf.SymbolicTensor)
+              throw new Error('model outputs symbolic tensor')
+            return tf.losses.softmaxCrossEntropy(ys, logits)
+          })
+          const gradsClipped = clipByGlobalNormObj(grads, 1)
+          this.optimizer.applyGradients(gradsClipped)
+          return lossTensor
+        })
+        
+        const loss = await lossTensor.array()
+        averageLoss += loss
+        weightUpdateTime = performance.now() - weightUpdateTime
+
+        tf.dispose([xs, ys, lossTensor])
+        
+        if (
+          evalDataset !== undefined &&
+          this.config.evaluateEvery !== undefined &&
+          iteration % this.config.evaluateEvery == 0
+        ){
+          const iterationLogs = await evaluate(this, evalDataset, this.config.maxEvalBatches)
+          debug('evaluation metrics: %O', iterationLogs);
+        }
+        const memory = tf.memory().numBytes / 1024 / 1024 / 1024
+        debug("training metrics: %O", {
+          epoch,
+          iteration,
+          loss,
+          memory,
+          allocated: tf.memory().numTensors,
+          preprocessingTime,
+          weightUpdateTime,
+        });
+        iteration++
+        next = await iterator.next()
+      }
+      // Memory leak: If we reached the last iteration rather than the end of the dataset, cleanup the tensors
+      if (next.done !== true && iteration > this.config.maxIter) {
+        const { xs, ys } = next.value as { xs: tf.Tensor2D, ys: tf.Tensor3D }
+        tf.dispose([xs, ys])
+      }
+      let logs: tf.Logs = {
+        'loss': averageLoss / (iteration - 1), // -1 because iteration got incremented at the end of the loop
+        'acc': accuracyFraction[0] / accuracyFraction[1],
+      }
+      if (evalDataset !== undefined) {
+        logs = { ...logs, ...await evaluate(this, evalDataset, this.config.maxEvalBatches) }
+      }
+      await callbacks.onEpochEnd?.(epoch, logs)
+    }
+    await callbacks.onTrainEnd?.()
+    return new tf.History()
   }
 }

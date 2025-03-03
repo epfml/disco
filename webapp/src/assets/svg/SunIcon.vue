@@ -15,7 +15,6 @@
   </template>
   <script lang="ts">
   export default {
-    name: 'SunIcon',
     props: {
       customClass: {
         default: 'w-8 h-8',

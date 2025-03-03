@@ -1,8 +1,5 @@
 <template>
-  <div 
-    class="grid grid-cols-1 space-y-8 lg:gap-8 rounded-xl group/super"
-    :class="fillSpace ? 'min-w-full lg:min-w-[42rem]': ''"
-    >
+  <div class="grid grid-cols-1 space-y-8 lg:gap-8 rounded-xl">
     <div class="col-span-1 bg-white dark:bg-slate-950 rounded-xl">
       <IconCardHeader :title-placement="titlePlacement">
         <template #title> <slot name="title" /> </template>
@@ -18,13 +15,8 @@
 
 <script setup lang="ts">
 import IconCardHeader from "./IconCardHeader.vue";
-withDefaults(
-  defineProps<{
-    titlePlacement?: "left" | "center" | "right";
-    fillSpace?: boolean;
-  }>(),
-  {
-    fillSpace: false,
-  },
-);
+
+defineProps<{
+  titlePlacement?: "left" | "center" | "right";
+}>();
 </script>

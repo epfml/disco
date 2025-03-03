@@ -10,14 +10,34 @@ const config: Config = {
     },
     extend: {
       colors: {
+        // example: <div class="bg-disco-cyan dark:bg-disco-dark-cyan">...</div>
         disco: {
           cyan: "#6096BA",
           blue: "#274C78",
-          'dark-cyan': "#1F3A4F",
-          'dark-blue': "#12263A", // you just have to do dark: and then put the class you want to have in dark mode
-          'light-cyan': "#8AB9D3",
-          'light-blue': "#4A7CA1",
+          orange: "#FB923C",
+          // dark refers to the dark mode not how dark is the color
+          dark: {
+            cyan: "#1F3A4F",
+            blue: "#12263A",
+          },
+          light: {
+            cyan: "#8AB9D3",
+            blue: "#4A7CA1",
+          }
         },
+        // ex: <p class="text-body-light dark:text-body-dark">...</p>
+        body: {
+          light: "#475569", // text-slate-600
+          dark: "#e2e8f0", // text-slate-200
+          secondary: {
+            light: "#64748b", // text-slate-500
+            dark: "#cbd5e1", // text-slate-300
+          }
+        },
+        heading: {
+          light: "#334155", // text-slate-700
+          dark: "#fff", // text-white
+        }
       },
       spacing: {
         128: "32rem",

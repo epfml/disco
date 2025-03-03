@@ -20,7 +20,7 @@ export async function pushTask<D extends DataType>(
   task: Task<D>,
   model: Model<D>,
 ): Promise<void> {
-  await fetch(urlToTasks(base), {
+  const response = await fetch(urlToTasks(base), {
     method: "POST",
     body: JSON.stringify({
       task,
@@ -28,12 +28,14 @@ export async function pushTask<D extends DataType>(
       weights: await serialization.weights.encode(model.weights),
     }),
   });
+  if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`);
 }
 
 export async function fetchTasks(
   base: URL,
 ): Promise<Map<TaskID, Task<DataType>>> {
   const response = await fetch(urlToTasks(base));
+  if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`);
   const tasks: unknown = await response.json();
 
   if (!Array.isArray(tasks)) {

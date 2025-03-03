@@ -1,5 +1,4 @@
 import { describe, it, expect } from "vitest";
-
 import { loadCSV, loadText } from "./loaders/index.js";
 
 async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
@@ -22,22 +21,16 @@ describe("csv parser", () => {
 });
 
 describe("text parser", () => {
-  it("loads", async () => {
+  it("loads a simple sequence", async () => {
+    const text = ["first", "second", "third"].join("\n")
+    
     // jsdom doesn't implement .text on File/Blob
     // trick from https://github.com/jsdom/jsdom/issues/2555
-    const text = await (
-      await fetch(
-        // data URL content need to be url-encoded
-        ["data:,first", "second", "third"].join("%0A"),
-      )
+    const file = await (
+      await fetch( "data:," + encodeURIComponent(text))
     ).blob();
-
-    const parsed = loadText(text);
-
-    expect(await arrayFromAsync(parsed)).to.have.ordered.members([
-      "first",
-      "second",
-      "third",
-    ]);
+    const parsed = loadText(file)
+    expect(await parsed.size()).to.equal(1);
+    expect((await arrayFromAsync(parsed))[0]).to.equal(text);
   });
 });

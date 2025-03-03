@@ -23,7 +23,7 @@ export const tinderDog: TaskProvider<'image'> = {
       trainingInformation: {
         epochs: 10,
         roundDuration: 2,
-        validationSplit: 0,
+        validationSplit: 0, // nicer plot for GDHF demo
         batchSize: 10,
         dataType: 'image',
         IMAGE_H: 64,
@@ -39,7 +39,7 @@ export const tinderDog: TaskProvider<'image'> = {
 
 
   async getModel(): Promise<Model<'image'>> {
-    const seed = 42
+    const seed = 42 // set a seed to ensure reproducibility during GDHF demo
     const imageHeight = this.getTask().trainingInformation.IMAGE_H
     const imageWidth = this.getTask().trainingInformation.IMAGE_W
     const imageChannels = 3

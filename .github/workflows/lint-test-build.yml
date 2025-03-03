@@ -170,6 +170,16 @@ jobs:
         with:
           install: true
       - run: docker build .
+      - run: |
+          docker build --quiet --load . | \
+            xargs docker run --detach --publish 8080:8080
+          timeout=120
+          while ! curl http://localhost:8080
+          do
+            [ $timeout -eq 0 ] && exit 1
+            sleep 1
+            timeout=$((timeout - 1))
+          done
 
   build-cli:
     needs: [build-lib, build-lib-node, build-server]

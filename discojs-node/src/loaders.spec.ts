@@ -51,12 +51,13 @@ describe("image directory parser", () => {
 
 describe("text parser", () => {
   it("parses basic file", async () => {
+    const text = ["a", "b", "c"].join("\n")
     await withFile(async ({ path }) => {
-      await fs.writeFile(path, ["a", "b", "c"].join("\n"));
-
-      const parsed = loadText(path);
-
-      expect(await parsed.size()).to.equal(3);
+      await fs.writeFile(path, text);
+      
+      const sequences = await arrayFromAsync(loadText(path))
+      expect(sequences.length).to.equal(1);
+      expect(sequences[0]).to.equal(text);
     });
   });
 });

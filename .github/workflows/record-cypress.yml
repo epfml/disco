@@ -1,0 +1,76 @@
+name: record-cypress
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  download-datasets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: true
+      - uses: actions/cache@v4
+        with:
+          path: datasets
+          key: datasets-${{ hashFiles('datasets/**') }}
+      - run: datasets/populate
+
+  build-lib:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm --workspace=discojs run build
+
+  build-lib-web:
+    needs: build-lib
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run --workspace=discojs build
+      - run: npm run --workspace=discojs-web build
+
+  record-test-webapp:
+    needs: [build-lib, build-lib-web, download-datasets]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: true
+      - uses: actions/cache@v4
+        with:
+          path: datasets
+          key: datasets-${{ hashFiles('datasets/**') }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm --workspace={discojs,discojs-web} run build
+      - run: npm --workspace=webapp run test:unit
+      - uses: cypress-io/github-action@v6
+        with:
+          working-directory: webapp
+          install: false
+          start: npm start
+          wait-on: 'http://localhost:8081' # Waits for above
+          # Records to Cypress Cloud
+          # https://docs.cypress.io/guides/cloud/projects#Set-up-a-project-to-record
+          record: true
+        env:
+          VITE_SERVER_URL: http://server
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}

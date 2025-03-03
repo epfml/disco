@@ -67,6 +67,7 @@ function refreshWatcher() {
         ([label, files]) =>
           files.value?.map((f) => [label, f] as const)?.toArray() ?? [],
       );
+      // TODO: rm once dataset supports shuffling
       // shuffle the filenames o.w. they are ordered by labels
       for (let i = 0; i < expanded.length; i++) {
         const j = Math.floor(Math.random() * i)

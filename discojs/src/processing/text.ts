@@ -1,47 +1,52 @@
-import { List, Repeat } from "immutable";
+import { List } from "immutable";
 import { PreTrainedTokenizer } from "@xenova/transformers";
+import type { Text, TokenizedText } from '../index.js'
 
 function isArrayOfNumber(raw: unknown): raw is number[] {
   return Array.isArray(raw) && raw.every((e) => typeof e === "number");
 }
 
-type Token = number;
+interface TokenizingConfig {
+  padding?: boolean, // default to false, if true pads to max_length
+  padding_side?: 'left' | 'right', // default to left
+  truncation?: boolean,
+  max_length?: number, // the max sequence length used if padding or truncation is enabled
+}
 
 /**
- * Tokenize and truncates input strings
- *
- * @param length number of tokens
- * @returns encoded string in an array of token, size of max_length
+ * Tokenize one line of text. 
+ * Wrapper around Transformers.js tokenizer to handle type checking and format the output.
+ * Note that Transformers.js's tokenizer can tokenize multiple lines of text at once
+ * but we are currently not making use of it. Can be useful when padding a batch
+ * 
+ * @param tokenizer the tokenizer object
+ * @param text the text to tokenize
+ * @param config TokenizingConfig, the tokenizing parameters when using `tokenizer` 
+ * @returns List<number> the tokenized text
  */
-export function tokenizeAndLeftPad(
-  line: string,
-  tokenizer: PreTrainedTokenizer,
-  length: number,
-): List<Token> {
-  if (!Number.isInteger(length)) throw new Error("length should be an integer");
+export function tokenize(tokenizer: PreTrainedTokenizer, text: Text, config?: TokenizingConfig): TokenizedText {
+  config = { ...config }; // create a config if undefined
+  
+  if (config.padding || config.truncation) {
+    if (config.max_length === undefined) throw new Error("max_length needs to be specified to use padding or truncation");
+    if (!Number.isInteger(config.max_length))  throw new Error("max_length should be an integer");
+  }
+  
+  if (config.padding) {
+    // The padding side is set as an attribute, not in the config
+    tokenizer.padding_side = config.padding_side ?? 'left'
+    config.truncation = true // for a single sequence, padding implies truncation to max_length
+  }
 
-  // Transformers.js currently only supports right padding while we need left for text generation
-  // Right padding should be supported in the future, once it is, we can directly pad while tokenizing
-  // https://github.com/xenova/transformers.js/blob/8804c36591d11d8456788d1bb4b16489121b3be2/src/tokenizers.js#L2517
-  const tokenized: unknown = tokenizer(line, {
-    padding: false,
-    truncation: true,
-    return_tensor: false,
-    max_length: length,
-  });
+  const tokenizerResult: unknown = tokenizer(text, {...config, return_tensor: false});
 
   if (
-    typeof tokenized !== "object" ||
-    tokenized === null ||
-    !("input_ids" in tokenized) ||
-    !isArrayOfNumber(tokenized.input_ids)
+    typeof tokenizerResult !== "object" ||
+    tokenizerResult === null ||
+    !("input_ids" in tokenizerResult) ||
+    !isArrayOfNumber(tokenizerResult.input_ids)
   )
-    throw new Error("tokenizer returns unexpected type");
-  const tokens: Token[] = tokenized.input_ids;
-
-  const paddingSize = length - tokens.length;
-  if (paddingSize < 0)
-    throw new Error("tokenized returned more token than expected");
-
-  return Repeat(tokenizer.pad_token_id, paddingSize).concat(tokens).toList();
+    throw new Error("tokenizer returned unexpected type");
+    
+  return List(tokenizerResult.input_ids)
 }

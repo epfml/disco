@@ -56,19 +56,14 @@ export async function preprocess<D extends DataType>(
       // cast as typescript doesn't reduce generic type
       const d = dataset as Dataset<DataFormat.Raw["text"]>;
       const t = task as Task<"text">;
+      const contextLength = task.trainingInformation.contextLength
 
       const tokenizer = await models.getTaskTokenizer(t);
-      const totalTokenCount =
-        task.trainingInformation.maxSequenceLength ??
-        (tokenizer.model_max_length as number);
-
-      return d
-        .map((line) =>
-          processing.tokenizeAndLeftPad(line, tokenizer, totalTokenCount),
-        )
-        .map((tokens) => [tokens.pop(), tokens.last()]) as Dataset<
-        DataFormat.ModelEncoded[D]
-      >;
+      return d.map(text => processing.tokenize(tokenizer, text))
+        .flatten()
+        .batch(contextLength + 1, 1)
+        .map((tokens) => [tokens.pop(), tokens.last()]) as
+          Dataset<DataFormat.ModelEncoded[D]>;
     }
   }
 }
@@ -102,56 +97,47 @@ export async function preprocessWithoutLabel<D extends DataType>(
       // cast as typescript doesn't reduce generic type
       const d = dataset as Dataset<DataFormat.Raw["text"]>;
       const t = task as Task<"text">;
-
+      const contextLength = task.trainingInformation.contextLength
       const tokenizer = await models.getTaskTokenizer(t);
-      const totalTokenCount =
-        t.trainingInformation.maxSequenceLength ??
-        (tokenizer.model_max_length as number);
 
-      return d
-        .map((line) =>
-          processing.tokenizeAndLeftPad(line, tokenizer, totalTokenCount),
-        )
-        .map((tokens) => tokens.pop());
+      return d.map(text => processing.tokenize(tokenizer, text))
+        .flatten()
+        .batch(contextLength)
     }
   }
 }
 
 export async function postprocess<D extends DataType>(
-  task: Task<D>,
-  dataset: Dataset<DataFormat.ModelEncoded[D][1]>,
-): Promise<Dataset<DataFormat.Inferred[D]>> {
-  switch (task.trainingInformation.dataType) {
-    case "image": {
-      // cast as typescript doesn't reduce generic type
-      const d = dataset as Dataset<DataFormat.ModelEncoded["image"][1]>;
-      const { LABEL_LIST } =
-        task.trainingInformation as TrainingInformation<"image">;
-      const labels = List(LABEL_LIST);
+	task: Task<D>,
+	encoded: DataFormat.ModelEncoded[D][1],
+): Promise<DataFormat.Inferred[D]> {
+	switch (task.trainingInformation.dataType) {
+		case "image": {
+			// cast as typescript doesn't reduce generic type
+			const index = encoded as DataFormat.ModelEncoded["image"][1];
+			const { LABEL_LIST } =
+				task.trainingInformation as TrainingInformation<"image">;
+			const labels = List(LABEL_LIST);
 
-      return d.map((index) => {
-        const v = labels.get(index);
-        if (v === undefined) throw new Error("index not found in labels");
-        return v;
-      }) as Dataset<DataFormat.Inferred[D]>;
-    }
-    case "tabular": {
-      // cast as typescript doesn't reduce generic type
-      const d = dataset as Dataset<DataFormat.ModelEncoded["tabular"][1]>;
+			const v = labels.get(index);
+			if (v === undefined) throw new Error("index not found in labels");
+			return v as DataFormat.Inferred[D];
+		}
+		case "tabular": {
+			// cast as typescript doesn't reduce generic type
+			const v = encoded as DataFormat.ModelEncoded["tabular"][1];
 
-      return d as Dataset<DataFormat.Inferred[D]>;
-    }
-    case "text": {
-      // cast as typescript doesn't reduce generic type
-      const d = dataset as Dataset<DataFormat.ModelEncoded["text"][1]>;
-      const t = task as Task<"text">;
-      const tokenizer = await models.getTaskTokenizer(t);
+			return v as DataFormat.Inferred[D];
+		}
+		case "text": {
+			// cast as typescript doesn't reduce generic type
+			const token = encoded as DataFormat.ModelEncoded["text"][1];
+			const t = task as Task<"text">;
+			const tokenizer = await models.getTaskTokenizer(t);
 
-      return d.map((token) => tokenizer.decode([token])) as Dataset<
-        DataFormat.Inferred[D]
-      >;
-    }
-  }
+			return tokenizer.decode([token]) as DataFormat.Inferred[D];
+		}
+	}
 }
 
 function extractToNumbers(columns: Iterable<string>, row: Tabular) {

@@ -1,6 +1,6 @@
 import { List } from "immutable";
 
-import type { Image, processing, Tabular, Text } from "../index.js";
+import type { Image, processing, Tabular, Text, TokenizedText } from "../index.js";
 
 /**
  * The data & label format goes through various stages.
@@ -33,7 +33,7 @@ type Token = number;
 export interface ModelEncoded {
   image: [image: processing.NormalizedImage<3>, label: number];
   tabular: [row: List<number>, number];
-  text: [line: List<Token>, next: Token];
+  text: [line: TokenizedText, next: Token];
 }
 
 /** what gets outputted by the Validator, for humans */

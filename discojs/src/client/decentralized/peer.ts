@@ -1,5 +1,5 @@
 import { List, Map, Range, Seq } from 'immutable'
-import wrtc from 'isomorphic-wrtc'
+import wrtc from "@epfml/isomorphic-wrtc";
 import SimplePeer from 'simple-peer'
 
 import type { NodeID } from '../types.js'
@@ -137,7 +137,8 @@ export class Peer {
 
     return Seq.Indexed([firstChunk])
       .concat(
-        Range(1 as ChunkID).zip(tail)
+        Range(1 as ChunkID, Number.POSITIVE_INFINITY)
+          .zip(tail)
           .map(([id, raw]) => {
             const chunk = Buffer.alloc(HEADER_SIZE + raw.length)
             chunk.writeUint16BE(messageID)

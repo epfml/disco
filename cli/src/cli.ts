@@ -48,25 +48,16 @@ async function main<D extends DataType>(
   console.log(`Started ${task.trainingInformation.scheme} training of ${task.id}`)
   console.log({ args })
 
-  const url = new URL('http://localhost:8080/')
+  const dataSplits = await Promise.all(
+    Range(0, numberOfUsers).map(async i => getTaskData(task.id, i))
+  )
+  const logs = await Promise.all(
+    dataSplits.map(async data => await runUser(task, args.host, data as Dataset<DataFormat.Raw[D]>))
+  )
 
-  if (task.id === 'tinder_dog') {
-    const dataSplits = await Promise.all(
-      Range(0, numberOfUsers).map(async i => loadTinderDogData(i))
-    )
-    const _ = await Promise.all(
-      dataSplits.map(async data => runUser(task, url, data as Dataset<DataFormat.Raw[D]>))
-    )
-  } else {
-    const data = await getTaskData(task)
-  
-    const logs = await Promise.all(
-      Range(0, numberOfUsers).map(async (_) => await runUser(task, url, data)).toArray()
-    )
-    if (args.save) {
-      const fileName = `${task.id}_${numberOfUsers}users.csv`;
-      await fs.writeFile(fileName, JSON.stringify(logs, null, 2));
-    }
+  if (args.save) {
+    const fileName = `${task.id}_${numberOfUsers}users.csv`;
+    await fs.writeFile(fileName, JSON.stringify(logs, null, 2));
   }
 }
 

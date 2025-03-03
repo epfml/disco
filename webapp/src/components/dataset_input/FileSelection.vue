@@ -57,7 +57,7 @@
         v-if="$slots.default && files === undefined"
         class="flex justify-center mt-5"
       >
-        <p class="text-slate-500 dark:text-slate-300 text-sm">
+        <p class="text-sm text-font-secondary-light dark:text-font-secondary-dark">
           <span><slot /></span>
         </p>
       </div>

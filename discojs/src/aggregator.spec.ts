@@ -55,7 +55,7 @@ AGGREGATORS.forEach(([name, Aggregator]) =>
               Map(
                 network
                   .entrySeq()
-                  .zip(Range(1312))
+                  .zip(Range(1312, Number.POSITIVE_INFINITY))
                   .map(([[id, agg], ws]) => [
                     id,
                     [agg, WeightsContainer.of([ws])],

@@ -2,7 +2,6 @@
   "name": "disco",
   "type": "module",
   "workspaces": [
-    "isomorphic-wrtc",
     "discojs",
     "discojs-node",
     "discojs-web",
@@ -12,7 +11,7 @@
   ],
   "dependencies": {
     "debug": "4",
-    "immutable": "4"
+    "immutable": "5"
   },
   "devDependencies": {
     "@types/debug": "4",

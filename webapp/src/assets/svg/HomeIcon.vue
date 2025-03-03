@@ -16,7 +16,6 @@
 </template>
 <script lang="ts">
 export default {
-  name: 'HomeIcon',
   props: {
     customClass: {
       default: 'w-7 h-7',

@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Dataset } from "./dataset.js";
-import { Range } from "immutable";
+import { List, Range } from "immutable";
 
 // Array.fromAsync not yet widely used (2024)
 async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
@@ -62,7 +62,7 @@ describe("dataset", () => {
     expect(await arrayFromAsync(right)).to.have.length(1);
   });
 
-  it("batches in samed sized chunks", async () => {
+  it("batches in same sized chunks", async () => {
     const dataset = new Dataset([1, 2, 3, 4]);
 
     const batched = dataset.batch(2);
@@ -131,12 +131,66 @@ describe("dataset", () => {
   it("zips with non-async iterable", async () => {
     const dataset = new Dataset([1, 2, 3]);
 
-    const zipped = dataset.zip(Range());
+    const zipped = dataset.zip(Range(0, Number.POSITIVE_INFINITY));
 
     expect(await arrayFromAsync(zipped)).to.have.deep.ordered.members([
       [1, 0],
       [2, 1],
       [3, 2],
     ]);
+  });
+
+  it("batches with overlap", async () => {
+    const dataset = new Dataset([1, 2, 3]);
+
+    const batched = dataset.batch(2, 1);
+
+    expect(
+      (await arrayFromAsync(batched)).map((l) => l.toArray()),
+    ).to.have.deep.ordered.members([[1, 2], [2, 3]]);
+  });
+
+  it("batch with overlap yields correct batches", async () => {
+    const expectedTokens = Range(0, 53).toList()
+    const contextLength = 4
+
+    const parsed = new Dataset([expectedTokens])
+      .flatten()
+      .batch(contextLength + 1, 1)
+      
+    // -1 because the last sequence is dropped as there is no next token label
+    const expectedLength = Math.ceil(expectedTokens.size / contextLength) - 1
+    expect(await parsed.size()).to.equal(expectedLength);
+      
+    // exclude the last sequence because it has been padded
+    let sequences = List(await arrayFromAsync(parsed))
+    // we expect the last sequence to have contextLength + 1 tokens via padding
+    expect(sequences.last()?.size).to.equal(contextLength + 1)
+    sequences = sequences.pop()
+    let i = 0
+    for await (const tokens of sequences) {
+      // each sequence has length contextLength + 1 (for the label)
+      expect(tokens.toArray()).to.deep.equal(
+        expectedTokens.slice(i, i + contextLength + 1).toArray()
+      );
+      // but the window should move by contextLength only
+      i += contextLength
+    }
+  })
+
+  it("repeats content infinitely", async () => {
+    const dataset = new Dataset([0, 1, 2]).repeat();
+    const iter = dataset[Symbol.asyncIterator]()
+
+    for (const i of Range(0, 10)) {
+      const e = await iter.next()
+      expect(e.done).to.be.false
+      expect(e.value).to.equal(i % 3)
+    }
+  });
+
+  it("repeats content a fixed number of times", async () => {
+    const dataset = new Dataset([0, 1]).repeat(3);
+    expect([0,1,0,1,0,1]).to.deep.equal(await arrayFromAsync(dataset))
   });
 });

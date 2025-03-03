@@ -5,7 +5,7 @@
   >
     <LabeledDatasetInput :task v-model="dataset">
       <template #header>
-        <IconCard>
+        <IconCard class="mx-auto w-full max-w-[700px]">
           <template #title> Model Validation </template>
 
           It is very important that your model is tested against
@@ -19,47 +19,93 @@
     </LabeledDatasetInput>
   </div>
 
-  <div v-show="validationStore.step === 2" class="space-y-8">
+  <div 
+    v-show="validationStore.step === 2" 
+  >
     <!-- Test the model on a data set with labels -->
-    <IconCard class="mx-auto mt-10 lg:w-1/2" title-placement="left">
-      <template #title> Test &amp; validate your model </template>
+    <div class="space-y-8 mb-8 w-full lg:max-w-[700px] mx-auto">
+      <IconCard>
+        <template #title>Validate your model</template>
 
-      <div v-show="generator === undefined">
-        By clicking the button below, you will be able to validate your model
-        against a chosen dataset of yours. Below, once you assessed the model,
-        you can compare the ground truth and the predicted values
-        <div class="flex justify-center mt-4">
-          <CustomButton @click="startTest()"> test </CustomButton>
+        <div v-show="controller === undefined">
+          By clicking the button below, you will be able to validate your model
+          against a chosen dataset of yours. Below, once you assessed the model,
+          you can compare the ground truth and the predicted values
+          <div class="flex justify-center mt-4">
+            <CustomButton @click="startTest()"> test </CustomButton>
+          </div>
         </div>
-      </div>
-      <div v-show="generator !== undefined">
-        <div class="flex justify-center">
-          <CustomButton @click="stopTest()"> stop testing </CustomButton>
+        <div v-show="controller !== undefined">
+          <div class="flex justify-center">
+            <CustomButton @click="stopTest()"> stop testing </CustomButton>
+          </div>
         </div>
-      </div>
-    </IconCard>
+      </IconCard>
 
-    <!-- display the evaluation metrics -->
-    <div class="p-4 mx-auto lg:w-1/2 h-full bg-white dark:bg-slate-950 rounded-md">
-      <!-- header -->
-      <h4 class="p-4 border-b text-lg font-semibold text-slate-500 dark:text-slate-300">
-        Test Accuracy
-      </h4>
-      <!-- stats -->
-      <div class="grid grid-cols-2 p-4 font-medium text-slate-500 dark:text-slate-400">
-        <div class="text-center">
-          <span class="text-2xl">{{ currentAccuracy }}</span>
-          <span class="text-sm">% of test accuracy</span>
+      <!-- display the evaluation metrics -->
+      <IconCard>
+        <template #title>Test accuracy</template>
+        <!-- stats -->
+        <div class="grid grid-cols-2 p-4">
+          <div class="text-center">
+            <span class="text-2xl">{{ currentAccuracy }}</span>
+            <span class="text-sm">% of test accuracy</span>
+          </div>
+          <div class="text-center">
+            <span class="text-2xl">{{ visitedSamples }}</span>
+            <span class="text-sm">&nbsp;samples visited</span>
+          </div>
         </div>
-        <div class="text-center">
-          <span class="text-2xl">{{ visitedSamples }}</span>
-          <span class="text-sm">&nbsp;samples visited</span>
+      </IconCard>
+
+      <IconCard
+        v-if="confusionMatrix !== undefined"
+        class="half-width -4 mx-auto h-full bg-white dark:bg-slate-950 rounded-md"
+      >
+        <template #title> Confusion Matrix </template>
+
+        <div class="flex flex-row w-full justify-center">
+          <table
+            class="divide-y-2 divide-slate-600 dark:divide-slate-400 text-center"
+          >
+            <thead>
+              <tr>
+                <th
+                  class="p-2 text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider text-center border-r-gray-600 dark:border-r-gray-400 border-r-2 diagonal-header"
+                >
+                  Label \ Prediction
+                </th>
+                <th
+                  v-for="(_, label) in confusionMatrix"
+                  :key="label"
+                  class="p-2 text-xs font-medium text-gray-800 dark:text-gray-200 uppercase tracking-wider"
+                >
+                  {{ label }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(_, row) in confusionMatrix" :key="row">
+                <td
+                  class="p-2 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-gray-200 border-r-gray-600 dark:border-r-gray-400 border-r-2"
+                >
+                  {{ row }}
+                </td>
+                <td
+                  v-for="(_, col) in confusionMatrix[row]"
+                  :key="col"
+                  class="p-2 whitespace-nowrap text-sm dark:text-gray-300 text-gray-700"
+                >
+                  {{ confusionMatrix[row][col] }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-      </div>
+      </IconCard>
     </div>
-
     <div v-if="tested !== undefined">
-      <div class="mx-auto lg:w-1/2 text-center pb-8">
+      <div class="mx-auto text-center pb-8">
         <CustomButton @click="saveCsv()"> download as csv </CustomButton>
       </div>
 
@@ -75,7 +121,7 @@
         >
           <template #title>
             <p
-              class="font-bold"
+              class="font-bold uppercase"
               :class="result.output.correct ? 'text-green-500' : 'text-red-700'"
             >
               {{ result.output.truth.toUpperCase() }}
@@ -86,7 +132,7 @@
 
       <div
         v-else-if="task.trainingInformation.dataType === 'tabular'"
-        class="mx-auto lg:w-3/4 h-full bg-white dark:text-slate-950 rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
+        class="mx-auto p-4 w-full h-full max-h-128 bg-white dark:bg-slate-950 rounded-md overflow-x-scroll overflow-y-hidden"
       >
         <TableLayout
           :columns="
@@ -96,14 +142,14 @@
           "
           :rows="
             (tested as Tested['tabular']).results.map(({ input, output }) =>
-              input.concat(output.truth).push(output.correct.toString()),
+              input.concat(output.label).push(output.correct.toString()),
             )
           "
         />
       </div>
       <div
         v-else-if="task.trainingInformation.dataType === 'text'"
-        class="mx-auto lg:w-3/4 h-full bg-white dark:text-slate-950 rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
+        class="mx-auto lg:w-3/4 h-full bg-white dark:bg-slate-950 rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
       >
         <!-- Display nothing for now -->
       </div>
@@ -142,16 +188,21 @@ const props = defineProps<{
 interface Tested {
   image: List<{
     input: { filename: string; image: ImageData };
-    output: { truth: string; correct: boolean };
+    output: {
+      truth: string;
+      correct: boolean;
+      predicted: string;
+      label: string;
+    };
   }>;
   tabular: {
     labels: {
       input: List<string>;
-      output: { truth: string; correct: string };
+      output: { truth: string; correct: string, label : string };
     };
     results: List<{
       input: List<string>;
-      output: { truth: string; correct: boolean };
+      output: { truth: number; correct: boolean; predicted : number, label : string };
     }>;
   };
   // TODO what to show?
@@ -159,7 +210,7 @@ interface Tested {
 }
 
 const dataset = ref<LabeledDataset[D]>();
-const generator = ref<AsyncGenerator<boolean, void>>();
+const controller = ref<AbortController>();
 const tested = ref<Tested[D]>();
 
 const visitedSamples = computed<number>(() => {
@@ -177,9 +228,60 @@ const visitedSamples = computed<number>(() => {
     }
   }
 });
-const currentAccuracy = computed<string>(() => {
-  if (tested.value === undefined) return "0";
 
+const confusionMatrix = computed<{ [key: string]: { [key: string]: number } } | undefined>(() => {
+  if (tested.value === undefined) return undefined;
+
+  let labels: string[] = [];
+  switch (props.task.trainingInformation.dataType) {
+    case "image":
+      labels = (props.task as Task<"image">).trainingInformation.LABEL_LIST;
+      break;
+    case "tabular":
+      labels = ["0", "1"]; // binary classification
+      break;
+    case "text":
+      return undefined;
+    default: {
+      const _: never = props.task.trainingInformation;
+      throw new Error("should never happen");
+    }
+  }
+
+  // Initialize the confusion matrix
+  const matrix: { [key: string]: { [key: string]: number } } = {};
+
+  // Initialize the confusion matrix
+  labels.forEach((label) => {
+    matrix[label] = {};
+    labels.forEach((innerLabel) => {
+      matrix[label][innerLabel] = 0;
+    });
+  });
+
+  switch (props.task.trainingInformation.dataType) {
+    case "image":
+        (tested.value as Tested["image"]).map(
+          ( {output} ) => matrix[output.label][output.predicted] = matrix[output.label][output.predicted] + 1,
+        );
+        break;
+    case "tabular":
+      (tested.value as Tested["tabular"]).results.map(
+        ({ output }) => matrix[output.truth][output.predicted] = matrix[output.truth][output.predicted] + 1,
+      );
+      break;
+    default: {
+      const _: never = props.task.trainingInformation;
+      throw new Error("should never happen");
+    }
+  }
+
+  return matrix;
+})
+
+const currentAccuracy = computed<string>(() => {
+
+  if (tested.value === undefined) return "0";
   let hits: number | undefined;
   switch (props.task.trainingInformation.dataType) {
     case "image":
@@ -245,13 +347,17 @@ async function startImageTest(
 ): Promise<void> {
   const validator = new Validator(task, model);
   let results: Tested["image"] = List();
-
+  
   try {
-    generator.value = validator.test(
-      dataset.map(({ image, label }) => [image, label] as [Image, string]),
-    );
-    for await (const [{ filename, image, label }, correct] of dataset.zip(
-      toRaw(generator.value),
+    controller.value = new AbortController();
+
+    for await (const [
+      { filename, image, label },
+      { predicted, truth },
+    ] of dataset.zip(
+      await validator.test(
+        dataset.map(({ image, label }) => [image, label] as [Image, string]),
+      ),
     )) {
       results = results.push({
         input: {
@@ -263,15 +369,19 @@ async function startImageTest(
           ),
         },
         output: {
-          truth: label,
-          correct,
+          label,
+          correct: predicted === truth,
+          predicted,
+          truth,
         },
       });
 
       tested.value = results as Tested[D];
+
+      if (controller.value.signal.aborted) break;
     }
   } finally {
-    generator.value = undefined;
+    controller.value = undefined;
   }
 }
 
@@ -294,10 +404,13 @@ async function startTabularTest(
 
   let results: Tested["tabular"]["results"] = List();
   try {
-    generator.value = validator.test(dataset);
-    for await (const [row, correct] of dataset.zip(toRaw(generator.value))) {
-      const truth = row[outputColumn];
-      if (truth === undefined)
+    controller.value = new AbortController();
+
+    for await (const [row, { predicted, truth }] of dataset.zip(
+      await validator.test(dataset),
+    )) {
+      const truth_label = row[outputColumn];
+      if (truth_label === undefined)
         throw new Error("row doesn't have expected output column");
 
       results = results.push({
@@ -309,14 +422,18 @@ async function startTabularTest(
         }),
         output: {
           truth,
-          correct,
+          correct: truth === predicted,
+          predicted,
+          label: truth_label,
         },
       });
 
       tested.value = { labels, results } as Tested[D];
+
+      if (controller.value.signal.aborted) break;
     }
   } finally {
-    generator.value = undefined;
+    controller.value = undefined;
   }
 }
 
@@ -329,22 +446,24 @@ async function startTextTest(
   let results: Tested["text"] = List();
 
   try {
-    generator.value = validator.test(dataset);
-    for await (const correct of toRaw(generator.value)) {
-      results = results.push({ output: { correct } });
+    controller.value = new AbortController();
+
+    for await (const { predicted, truth } of await validator.test(dataset)) {
+      results = results.push({ output: { correct: predicted === truth } });
       tested.value = results as Tested[D];
+      if (controller.value.signal.aborted) break;
     }
   } finally {
-    generator.value = undefined;
+    controller.value = undefined;
   }
 }
 
 async function stopTest(): Promise<void> {
-  const g = generator.value;
-  if (g === undefined) return;
+  const c = controller.value;
+  if (c === undefined) return;
 
-  generator.value = undefined;
-  g.return();
+  controller.value = undefined;
+  c.abort();
 }
 
 function saveCsv(): void {
@@ -368,7 +487,7 @@ function saveCsv(): void {
           ["Filename", "Truth", "Correct"],
           ...(tested as Tested["image"]).map(({ input, output }) => [
             input.filename,
-            output.truth,
+            output.label,
             output.correct.toString(),
           ]),
         ]);
@@ -381,7 +500,7 @@ function saveCsv(): void {
             .toArray(),
           ...t.results.map((result) =>
             result.input
-              .concat(result.output.truth)
+              .concat(result.output.label)
               .push(result.output.correct.toString())
               .toArray(),
           ),

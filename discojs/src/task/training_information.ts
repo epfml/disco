@@ -65,9 +65,9 @@ interface DataTypeToTrainingInformation {
     // When the tokenizer is first called, the actual object will be initialized and loaded into this field for the subsequent tokenizations.
     tokenizer: string | PreTrainedTokenizer;
 
-    // maxSequenceLength: the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
+    // contextLength: the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
     // truncate strings to a maximum length. The default value is tokenizer.model_max_length
-    maxSequenceLength?: number;
+    contextLength: number;
   };
 }
 
@@ -224,7 +224,7 @@ export function isTrainingInformation(
     }
     case "text": {
       const {
-        maxSequenceLength,
+        contextLength,
         tokenizer,
       }: Partial<
         Omit<TrainingInformation<"text">,
@@ -234,15 +234,14 @@ export function isTrainingInformation(
       if (
         (typeof tokenizer !== "string" &&
           !(tokenizer instanceof PreTrainedTokenizer)) ||
-        (maxSequenceLength !== undefined &&
-          typeof maxSequenceLength !== "number")
+        (typeof contextLength !== "number")
       )
         return false;
 
       const _: TrainingInformation<"text"> = {
         ...repack,
         dataType,
-        maxSequenceLength,
+        contextLength,
         tokenizer,
       } satisfies Record<keyof TrainingInformation<"text">, unknown>;
 

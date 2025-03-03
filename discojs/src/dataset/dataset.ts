@@ -12,6 +12,22 @@ type DatasetLike<T> =
   | (() => AsyncIterator<T, void>)
   | (() => Iterator<T, void>);
 
+/** Convert a DatasetLike object to an async generator */
+async function* datasetLikeToGenerator<U>(content: DatasetLike<U>):
+  AsyncGenerator<U, void, undefined> {
+  let iter: AsyncIterator<U, void> | Iterator<U, void>;
+  if (typeof content === "function") iter = content();
+  else if (Symbol.asyncIterator in content)
+    iter = content[Symbol.asyncIterator]();
+  else iter = content[Symbol.iterator]();
+
+  while (true) {
+    const result = await iter.next();
+    if (result.done === true) break;
+    yield result.value;
+  }
+}
+
 /** Immutable series of data */
 export class Dataset<T> implements AsyncIterable<T> {
   readonly #content: () => AsyncIterator<T, void, undefined>;
@@ -23,18 +39,8 @@ export class Dataset<T> implements AsyncIterable<T> {
    */
   constructor(content: DatasetLike<T>) {
     this.#content = async function* () {
-      let iter: AsyncIterator<T, void> | Iterator<T, void>;
-      if (typeof content === "function") iter = content();
-      else if (Symbol.asyncIterator in content)
-        iter = content[Symbol.asyncIterator]();
-      else iter = content[Symbol.iterator]();
-
-      while (true) {
-        const result = await iter.next();
-        if (result.done === true) break;
-        yield result.value;
-      }
-    };
+      yield* datasetLikeToGenerator(content);
+    }
   }
 
   [Symbol.asyncIterator](): AsyncIterator<T> {
@@ -112,22 +118,36 @@ export class Dataset<T> implements AsyncIterable<T> {
     ];
   }
 
-  /** Slice into chunks
-   *
-   * Last slice is smaller if dataset isn't perfectly divisible
+  /** Create batches of `size` elements with potential overlap.
+   * Last batch is smaller if dataset isn't perfectly divisible
+   * 
+   * If overlap is set to a positive integer, the last `overlap` elements of a batch 
+   * are the first `overlap` elements of the next batch.
+   * 
+   * This method is tailored to create text sequences where each token's label is the following token. 
+   * In order to have a label for the last token of the input sequence, we include the first token
+   * of the next sequence (i.e. with an overlap of 1).
    *
    * @param size count of element per chunk
+   * @param overlap number of elements overlapping between two consecutive batches
    */
-  batch(size: number): Dataset<Batched<T>> {
-    if (size <= 0 || !Number.isInteger(size)) throw new Error("invalid size");
+  batch(size: number, overlap = 0): Dataset<Batched<T>> {
+    if (size <= 0 || !Number.isInteger(size))
+      throw new Error("invalid size");
+    if (overlap >= size || !Number.isInteger(overlap))
+      throw new Error("invalid overlap");
 
     return new Dataset(
       async function* (this: Dataset<T>) {
         const iter = this[Symbol.asyncIterator]();
 
+        let overlapped = List<T>();
         for (;;) {
           const batch = List(
-            await Promise.all(Range(0, size).map(() => iter.next())),
+            // get the first elements of the next batch
+            await Promise.all(
+              Range(overlapped.size, size).map(() => iter.next())
+            )
           ).flatMap((res) => {
             if (res.done) return [];
             else return [res.value];
@@ -135,20 +155,24 @@ export class Dataset<T> implements AsyncIterable<T> {
 
           if (batch.isEmpty()) break;
 
-          yield batch;
+          // yield the current batch with the first elements of the next batch
+          yield overlapped.concat(batch);
+          overlapped = batch.takeLast(overlap);
 
           // iterator couldn't generate more
-          if (batch.size < size) break;
+          if (batch.size < size - overlap) break;
         }
       }.bind(this),
     );
   }
 
-  /** Flatten chunks */
-  unbatch<U>(this: Dataset<Batched<U>>): Dataset<U> {
+  /** Flatten batches/arrays of elements */
+  flatten<U>(this: Dataset<DatasetLike<U>>): Dataset<U> {
     return new Dataset(
-      async function* (this: Dataset<Batched<U>>) {
-        for await (const batch of this) yield* batch;
+      async function* (this: Dataset<DatasetLike<U>>) {
+        for await (const batch of this) {
+          yield* datasetLikeToGenerator(batch);
+        }
       }.bind(this),
     );
   }
@@ -172,6 +196,26 @@ export class Dataset<T> implements AsyncIterable<T> {
           if (l.done || r.done) return;
           yield [l.value, r.value] as [T, U];
         }
+      }.bind(this),
+    );
+  }
+
+  /**
+   * Repeat the dataset `times` times
+   * @param times number of times to repeat the dataset, if undefined, the dataset is repeated indefinitely
+   * @returns a dataset repeated `times` times
+   */
+  repeat(times?: number): Dataset<T> {
+    if (times !== undefined && (!Number.isInteger(times) || times < 1))
+      throw new Error("times needs to be a positive integer or undefined");
+
+    return new Dataset(
+      async function* (this: Dataset<T>) {
+        let loop = 0;
+        do {
+          yield* this;
+          loop++
+        } while (times === undefined || loop < times)
       }.bind(this),
     );
   }

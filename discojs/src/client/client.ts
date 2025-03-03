@@ -178,6 +178,8 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
     url.pathname += `tasks/${this.task.id}/model.json`
 
     const response = await fetch(url);
+    if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`);
+
     const encoded = new Uint8Array(await response.arrayBuffer())
     return await serialization.model.decode(encoded)
   }

@@ -3,30 +3,32 @@
     <div class="relative mb-4">
       <div
         v-if="props.hasLeftLine"
-        class="absolute flex align-center items-center align-middle content-center"
+        class="absolute"
         style="width: calc(100% - 2.5rem - 1rem); top: 50%; transform: translate(-50%, -50%)"
       >
         <div
-          class="w-full rounded items-center align-middle align-center flex-1  transition duration-400"
+          class="rounded transition duration-400"
           :class="props.active ? 'bg-disco-blue dark:bg-disco-light-blue' : 'bg-slate-200 dark:bg-slate-600'" 
         >
           <div class="py-1" />
         </div>
       </div>
       <div
-        class="transition duration-400 w-10 h-10 mx-auto rounded-full text-lg text-white flex items-center hover:scale-105 hover:cursor-pointer"
-        :class="(props.active ? 'bg-disco-blue dark:bg-disco-light-blue border-4 border-slate-200 dark:border-slate-600' : 'bg-white dark:bg-slate-800 border-4 border-slate-200 dark:border-slate-600') + (isCurrentStep ? ' bg-orange-300 dark:bg-orange-400' : '') "
+        class="flex items-center mx-auto transition duration-400 
+        w-10 h-10 rounded-full hover:scale-105 hover:cursor-pointer"
+        :class="(props.active ? 'bg-disco-blue dark:bg-disco-light-blue border-4 border-slate-200 dark:border-slate-600'
+          : 'bg-white dark:bg-slate-800 border-4 border-slate-200 dark:border-slate-600') + (isCurrentStep ? ' bg-disco-orange dark:bg-disco-orange' : '')"
       >
         <span
-          class="text-center w-full"
-          :class="props.active ? 'text-white dark:text-white' : 'text-slate-500 dark:text-slate-200'"
+          class="text-center w-full dark:text-white"
+          :class="props.active ? 'text-white' : 'text-body-light'"
         >
           <slot name="icon" />
         </span>
       </div>
     </div>
     <!-- Text -->
-    <div class="text-xs text-center md:text-base text-slate-700 dark:text-slate-400">
+    <div class="text-center">
       <slot name="text" />
     </div>
   </div>

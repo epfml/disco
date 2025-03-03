@@ -1,3 +1,4 @@
+import '@tensorflow/tfjs-node';
 import { List } from "immutable";
 import { parse } from "ts-command-line-args";
 import { AutoTokenizer } from "@xenova/transformers";
@@ -41,7 +42,7 @@ const args = { ...defaultArgs, ...parsedArgs }
  * Benchmark results are reported in https://github.com/epfml/disco/pull/659
  */
 
-async function main(args: Required<CLIArguments>): Promise<void> { 
+async function main(args: Required<CLIArguments>): Promise<void> {
   const { inference: benchmarkInference, modelType,
     contextLength, batchSize, modelPath } = args
 
@@ -68,20 +69,20 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     const config: models.GPTConfig = {
       modelType: modelType as models.GPTConfig['modelType'],
       maxIter: iterationsPerEpoch,
-      blockSize: contextLength,
       lr: 0.0001,
-      vocabSize: 50258 // default wikitext task uses the gpt2 tokenizer with vocabSize 50258
+      contextLength,
     }
 
     // Load the dataset after setting the Task batch size and max sequence length
     // to make sure the dataset is batched and tokenized correctly
     task.trainingInformation.batchSize = batchSize
-    task.trainingInformation.maxSequenceLength = contextLength
+    task.trainingInformation.contextLength = contextLength
     const dataset = loadText('../datasets/wikitext/wiki.train.tokens')
+      .map(text => processing.tokenize(tokenizer, text))
+      .flatten()
+      .batch(config.contextLength + 1, 1)
 
-    const maxLength = task.trainingInformation.maxSequenceLength ?? (tokenizer.model_max_length as number) + 1
     const preprocessedDataset = dataset
-      .map((line) => processing.tokenizeAndLeftPad(line, tokenizer, maxLength))
       .map((tokens) => [tokens.pop(), tokens.last()] as [List<number>, number])
       .batch(batchSize);
     
@@ -108,25 +109,23 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     
     // Benchmark parameters
     const prompt = 'The game began development in 2010 , carrying over a large portion, The game began development in 2010 , carrying over a large portion, The game began development in 2010 , carrying over a large portion,'
-    const nbNewTokens = 200
+    const maxNewTokens = 200
     const iterations = 10
-    console.log("Generating", nbNewTokens, "new tokens")
+    console.log("Generating", maxNewTokens, "new tokens")
 
-    let tokens = List(
-      (tokenizer(prompt, { return_tensor: false }) as { input_ids: number[] })
-        .input_ids,
-    );
+    let tokens = processing.tokenize(tokenizer, prompt);
 
     let inferenceTime = 0
     for (let i = 0; i < iterations; i++) {
       const timeStart = performance.now()
-      for (let n = 0; n < nbNewTokens; n++) {
-        const next: number = (await model.predict(List.of(tokens))).first();
-	tokens = tokens.push(next)
+      for (let n = 0; n < maxNewTokens; n++) {
+				const next = (await model.predict(List.of(tokens))).first();
+				if (next === undefined) throw new Error("empty prediction");
+        tokens = tokens.push(next)
       }
       inferenceTime += performance.now() - timeStart
     }
-    console.log(`Inference time: ${(inferenceTime/ nbNewTokens / iterations).toFixed(2)} ms/token`)
+    console.log(`Inference time: ${(inferenceTime/ maxNewTokens / iterations).toFixed(2)} ms/token`)
   }
   await new Promise((resolve, reject) => {
     server.once('close', resolve)

@@ -9,8 +9,8 @@ type GPTModelType =
 
 export interface GPTConfig {
   lr: number
-  blockSize: number
-  vocabSize: number
+  contextLength: number
+  vocabSize?: number
   modelType: GPTModelType
   name?: string,
   evaluate?: boolean
@@ -19,20 +19,18 @@ export interface GPTConfig {
   maxIter?: number
   weightDecay?: number
   verbose?: 0 | 1
-  bias?: boolean
   debug?: boolean
   dropout?: number
   residDrop?: number
   embdDrop?: number
-  tokEmb?: boolean
-  lmHead?: boolean
   nLayer?: number
   nHead?: number
   nEmbd?: number
+  seed?: number,
 }
 // for a benchmark of performance, see https://github.com/epfml/disco/pull/659
-export const DEFAULT_CONFIG: Required<GPTConfig> = {
-  name: 'transformer',
+export const DefaultGPTConfig: Required<GPTConfig> = {
+  name: 'transformer', // prefix for the model layer names
   lr: 0.001,
   weightDecay: 0,
   maxIter: 10,
@@ -41,18 +39,16 @@ export const DEFAULT_CONFIG: Required<GPTConfig> = {
   evaluate: true,
   maxEvalBatches: 12,
   evaluateEvery: 100,
-  blockSize: 128,
-  vocabSize: 50258,
-  bias: true,
+  contextLength: 128,
+  vocabSize: 50257,
   debug: false,
   dropout: 0.2,
   residDrop: 0.2,
   embdDrop: 0.2,
-  tokEmb: true,
-  lmHead: true,
   nLayer: 3,
   nHead: 3,
   nEmbd: 48,
+  seed: Math.random(),
 }
 
 export type ModelSize = {
@@ -78,4 +74,25 @@ export function getModelSizes (modelType: GPTModelType): Required<ModelSize> {
     case 'gpt-nano':
       return { nLayer: 3, nHead: 3, nEmbd: 48 }
   }
+}
+
+export interface GenerationConfig {
+  // take random token weighted by its probability
+  // If false, predict the token with the highest probability.
+  doSample: boolean
+  // the generation temperature (higher means more randomness).
+  // Set to 0 for greedy decoding.
+  temperature: number
+  // only consider the topk most likely tokens for sampling. 
+  // used if doSample is true.
+  topk: number
+  // random seed for sampling.
+  seed: number
+}
+
+export const DefaultGenerationConfig: Required<GenerationConfig> = {
+  temperature: 1.0,
+  doSample: false,
+  seed: Math.random(),
+  topk: 50
 }
