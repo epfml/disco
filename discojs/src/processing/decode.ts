@@ -1,5 +1,10 @@
 import { PreTrainedTokenizer } from "@xenova/transformers";
 
+
+interface TokenizerOutput {
+  input_ids: number[];
+}
+
 /**
  * Encodes the text into token IDs and then decodes them back to text
  * Special tokens are skipped during decoding
@@ -10,7 +15,7 @@ import { PreTrainedTokenizer } from "@xenova/transformers";
  */
 export function encodeDecode(tokenizer: PreTrainedTokenizer, text: string): string {
   // Encode the text using the tokenizer.
-  const encoding = tokenizer(text, { return_tensor: false });
+  const encoding = tokenizer(text, { return_tensor: false }) as TokenizerOutput;
   // Decode the token IDs back into text while skipping special tokens.
   return tokenizer.decode(encoding.input_ids, { skip_special_tokens: true });
 }
