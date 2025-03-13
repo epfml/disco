@@ -16,7 +16,7 @@
     <TrainerDashboard
       v-show="trainingStore.step === 3"
       :task
-      :dataset="unamedDataset"
+      :dataset="unnamedDataset"
       @model="(m) => (trainedModel = m)"
     />
 
@@ -90,7 +90,7 @@ watch(
 onMounted(setupTrainingStore);
 
 const dataset = ref<LabeledDataset[DataType]>();
-const unamedDataset = computed<Dataset<DataFormat.Raw[DataType]> | undefined>(
+const unnamedDataset = computed<Dataset<DataFormat.Raw[DataType]> | undefined>(
   () => {
     if (task.value === undefined || dataset.value === undefined)
       return undefined;
