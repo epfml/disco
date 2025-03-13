@@ -59,7 +59,8 @@ export abstract class TrainingController<D extends DataType> {
         .forEach((participantWs, participantId) => {
           debug("Sending enough-participant message to client [%s]", participantId.slice(0, 4))
           const msg: client.messages.EnoughParticipants = {
-            type: client.messages.type.EnoughParticipants
+            type: client.messages.type.EnoughParticipants,
+            nbOfParticipants: this.connections.size
           }
           participantWs.send(msgpack.encode(msg))
         })
@@ -78,7 +79,8 @@ export abstract class TrainingController<D extends DataType> {
       .forEach((participantWs, participantId) => {
         debug("Telling remaining client [%s] to wait for participants", participantId.slice(0, 4))
         const msg: client.messages.WaitingForMoreParticipants = {
-          type: client.messages.type.WaitingForMoreParticipants
+          type: client.messages.type.WaitingForMoreParticipants,
+          nbOfParticipants: this.connections.size
         }
         participantWs.send(msgpack.encode(msg))
       })

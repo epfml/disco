@@ -49,6 +49,7 @@ export type RoundStatus = 'not enough participants' | // Server notification to 
  */
 export class Disco<D extends DataType> extends EventEmitter<{
   status: RoundStatus;
+  participants: number
 }> {
   public readonly trainer: Trainer<D>;
   readonly #client: clients.Client;
@@ -99,6 +100,7 @@ export class Disco<D extends DataType> extends EventEmitter<{
     this.trainer = new Trainer(task, client);
     // Simply propagate the training status events emitted by the client
     this.#client.on("status", (status) => this.emit("status", status));
+    this.#client.on("participants", (nbParticipants) => this.emit("participants", nbParticipants));
   }
 
   /** Train on dataset, yielding logs of every round. */

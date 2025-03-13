@@ -124,7 +124,7 @@ export class Trainer<D extends DataType> {
 
     return {
       epochs: epochsLogs,
-      participants: this.#client.getNbOfParticipants(),
+      participants: this.#client.nbOfParticipants,
     };
   }
 }

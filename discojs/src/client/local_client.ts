@@ -7,10 +7,6 @@ import { Client } from "./client.js";
  */
 export class LocalClient extends Client {
 
-  override getNbOfParticipants(): number {
-    return 1;
-  }
-
   override onRoundBeginCommunication(): Promise<void> {
     return Promise.resolve();
   }

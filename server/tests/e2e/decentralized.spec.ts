@@ -1,11 +1,9 @@
 import type * as http from 'node:http'
-import { List, Repeat } from 'immutable'
+import { List } from 'immutable'
 import { expect } from 'chai'
-import path from "node:path";
 
 import type { RoundStatus } from "@epfml/discojs";
-import { loadImagesInDir } from "@epfml/discojs-node";
-import { Queue } from './utils.js'
+import { Queue, setupLusCOVID } from '../utils.js'
 
 import {
   aggregator as aggregators,
@@ -145,32 +143,11 @@ describe('end-to-end decentralized', function () {
     await reachConsensus('secure', 3)
   })
 
-  it("peers emit expected statuses", async () => {
-    [server, url] = await new Server().serve(
-      undefined,
-      defaultTasks.lusCovid,
-    );
-
-    const lusCovidTask = defaultTasks.lusCovid.getTask();
-    lusCovidTask.trainingInformation = {
-      ...lusCovidTask.trainingInformation,
-      scheme: 'decentralized',
-      aggregationStrategy: 'mean',
-      epochs: 8,
-      minNbOfParticipants: 2,
-    }
-
-    const DATASET_DIR = path.join("..", "datasets");
-
-    const [positive, negative] = [
-      (
-        await loadImagesInDir(path.join(DATASET_DIR, "lus_covid", "COVID+"))
-      ).zip(Repeat("COVID-Positive")),
-      (
-        await loadImagesInDir(path.join(DATASET_DIR, "lus_covid", "COVID-"))
-      ).zip(Repeat("COVID-Negative")),
-    ];
-    const dataset = positive.chain(negative);
+  it("peers emit expected events", async () => {
+    const result = await setupLusCOVID("decentralized");
+    const { dataset, lusCovidTask } = result;
+    server = result.server;
+    url = result.url;
 
     /**
      * Then at each round (each call to `disco.trainByRound`) the event cycle is:
@@ -199,12 +176,14 @@ describe('end-to-end decentralized', function () {
      * - User 3 joins
      * - User 2 & 3 leave
      */
-    const statusUpdateTime = 500 // allow some time for the client to update their status
 
-    // Create User 1
+    /* USER 1 JOINS */
+
     const discoUser1 = new Disco(lusCovidTask, url, { preprocessOnce: true });
     const statusUser1 = new Queue<RoundStatus>();
+    const nbParticipantsUser1 = new Queue<number>();
     discoUser1.on("status", status => { statusUser1.put(status) })
+    discoUser1.on("participants", (participants) => { nbParticipantsUser1.put(participants) })
     const generatorUser1 = discoUser1.trainByRound(dataset)
     
     // Have User 1 join the task and train locally for one round
@@ -212,6 +191,8 @@ describe('end-to-end decentralized', function () {
     expect(logUser1Round1.done).to.be.false
     // User 1 did a) and b) so their status should be Training
     expect(await statusUser1.next()).equal("local training")
+    expect(await nbParticipantsUser1.next()).equal(1)
+
     if (logUser1Round1.done)
       throw Error("User 1 finished training at the 1st round")
     // participant list not updated yet (updated at step c))
@@ -220,14 +201,16 @@ describe('end-to-end decentralized', function () {
     // Calling next() a 2nd time makes User 1 go to c) where the peer should
     // stay stuck awaiting until another participant joins
     const logUser1Round2Promise = generatorUser1.next()
-    await new Promise((res, _) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
     expect(await statusUser1.next()).equal("connecting to peers") // tries to connect to peers
     expect(await statusUser1.next()).equal("not enough participants") // but has to wait for more participants
 
-    // Create User 2
+    /* USER 2 JOINS */
+
     const discoUser2 = new Disco(lusCovidTask, url, { preprocessOnce: true });
     const statusUser2 = new Queue<RoundStatus>();
+    const nbParticipantsUser2 = new Queue<number>();
     discoUser2.on("status", status => { statusUser2.put(status) })
+    discoUser2.on("participants", (participants) => { nbParticipantsUser2.put(participants) })
     const generatorUser2 = discoUser2.trainByRound(dataset)
 
     // Have User 2 join the task and train for one round
@@ -235,14 +218,18 @@ describe('end-to-end decentralized', function () {
     expect(logUser2Round1.done).to.be.false
     if (logUser2Round1.done)
       throw Error("User 2 finished training at the 1st round")
-    // participant list not updated yet (updated at step c))
-    expect((logUser2Round1.value).participants).equal(1)
+    // round payload should contain the number of participants
+    expect((logUser2Round1.value).participants).equal(2)
+    expect(await nbParticipantsUser2.next()).equal(2)
+    // Receive the EnoughParticipants message with the participants
+    expect(await nbParticipantsUser1.next()).equal(2)
     // User 2 did a) and b)
     expect(await statusUser2.next()).equal("local training")
     // User 1 is still in c) now waiting for user 2 to be ready to exchange weight updates
     expect(await statusUser1.next()).equal("connecting to peers")
 
-    // Proceed with round 2
+    /* ROUND 2 */
+
     // The server should answer with the round's peers list. 
     // Peers then exchange updates and then start training locally with the new weights
     const logUser2Round2 = await generatorUser2.next()
@@ -254,6 +241,8 @@ describe('end-to-end decentralized', function () {
     // nb of participants should now be updated
     expect((logUser1Round2.value).participants).equal(2)
     expect((logUser2Round2.value).participants).equal(2)
+    expect(await nbParticipantsUser2.next()).equal(2)
+    expect(await nbParticipantsUser1.next()).equal(2)
     // User 1 and 2 did c), a) and b)
     expect(await statusUser1.next()).equal("updating model") // second to last
     expect(await statusUser1.next()).equal("local training")
@@ -262,18 +251,30 @@ describe('end-to-end decentralized', function () {
     expect(await statusUser2.next()).equal("updating model")
     expect(await statusUser2.next()).equal("local training")
     
-    // Have user 1 quit the session
+    /* USER 1 LEAVES */
+
     await discoUser1.close()
+    // Disconnect updates the number of participants
+    expect(await nbParticipantsUser1.next()).equal(1)
+    // User 2 receives the WaitingForMoreParticipants message
+    expect(await nbParticipantsUser2.next()).equal(1)
+    // server notifies user 2 to wait
+    expect(await statusUser2.next()).equal("not enough participants")
     // Make user 2 go to c)
     const logUser2Round3Promise = generatorUser2.next()
-    await new Promise((res, _) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
+    // await new Promise((res, _) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
+    // starts c) and waits for user 3 to join
     expect(await statusUser2.next()).equal("connecting to peers")
     expect(await statusUser2.next()).equal("not enough participants")
+
+    /* USER 3 JOINS */
 
     // Create User 3
     const discoUser3 = new Disco(lusCovidTask, url, { preprocessOnce: true });
     const statusUser3 = new Queue<RoundStatus>();
+    const nbParticipantsUser3 = new Queue<number>();
     discoUser3.on("status", status => { statusUser3.put(status) })
+    discoUser3.on("participants", (participants) => { nbParticipantsUser3.put(participants) })
     const generatorUser3 = discoUser3.trainByRound(dataset)
 
     // User 3 joins mid-training and trains one local round
@@ -281,21 +282,31 @@ describe('end-to-end decentralized', function () {
     expect(logUser3Round1.done).to.be.false
     if (logUser3Round1.done)
       throw Error("User 3 finished training at the 1st round")
-    // participant list not updated yet
-    expect((logUser3Round1.value).participants).equal(1)
+    expect((logUser3Round1.value).participants).equal(2)
+    expect(await nbParticipantsUser3.next()).equal(2)
+    // User 2 receives the EnoughParticipants message
+    // User 2 is still in c) waiting for user 3 to share their local update
+    expect(await nbParticipantsUser2.next()).equal(2)
+  
     // User 3 did a) and b)
     expect(await statusUser3.next()).equal("local training")
     // User 2 is still in c) waiting for user 3 to be ready to exchange waits
     expect(await statusUser2.next()).equal("connecting to peers")
     
+    /* ROUND 3 */
+
     // User 3 notifies the server that they are ready to exchange waits
     // then user 2 and 3 exchange weight updates
     const logUser3Round3 = await generatorUser3.next()
     const logUser2Round3 = await logUser2Round3Promise // the promise can resolve now
     if (logUser3Round3.done || logUser2Round3.done)
       throw Error("User 1 or 2 finished training at the 3rd round")
+    
     expect(logUser2Round3.value.participants).equal(2)
     expect(logUser3Round3.value.participants).equal(2)
+    expect(await nbParticipantsUser3.next()).equal(2)
+    expect(await nbParticipantsUser2.next()).equal(2)
+
     // both user 2 and 3 did c), a) and are now in b)
     expect(await statusUser2.next()).equal("updating model")
     expect(await statusUser2.next()).equal("local training")
@@ -304,9 +315,12 @@ describe('end-to-end decentralized', function () {
     expect(await statusUser3.next()).equal("updating model")
     expect(await statusUser3.next()).equal("local training")
     
+    /* USER 2 AND 3 LEAVE */
+
     await discoUser2.close()
-    await new Promise((res, _) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
     expect(await statusUser3.next()).equal("not enough participants")
+    expect(await nbParticipantsUser3.next()).equal(1)
+
     await discoUser3.close()
   }).timeout("1m");
 })

@@ -24,14 +24,6 @@ const SERVER_NODE_ID = "federated-server-node-id";
  * a specific task in the federated setting.
  */
 export class FederatedClient extends Client {  
-  // Total number of other federated contributors, including this client, excluding the server
-  // E.g., if 3 users are training a federated model, nbOfParticipants is 3
-  #nbOfParticipants: number = 1;
-
-  // the number of participants excluding the server
-  override getNbOfParticipants(): number {
-    return this.#nbOfParticipants
-  }
 
   /**
    * Initializes the connection to the server, gets our node ID
@@ -92,7 +84,7 @@ export class FederatedClient extends Client {
     this._ownId = id;
     debug(`[${shortenId(id)}] joined session at round ${round} `);
     this.aggregator.setRound(round)
-    this.#nbOfParticipants = nbOfParticipants
+    this.nbOfParticipants = nbOfParticipants
     // Upon connecting, the server answers with a boolean
     // which indicates whether there are enough participants or not
     debug(`[${shortenId(this.ownId)}] upon connecting, wait for participant flag %o`, this.waitingForMoreParticipants)
@@ -161,8 +153,7 @@ export class FederatedClient extends Client {
       round: serverRound,
       nbOfParticipants
     } = await waitMessage( this.server, type.ReceiveServerPayload); // Wait indefinitely for the server update
-    
-    this.#nbOfParticipants = nbOfParticipants // Save the current participants
+    this.nbOfParticipants = nbOfParticipants // Save the current participants
     const serverResult = serialization.weights.decode(payloadFromServer);
     this.aggregator.setRound(serverRound);
 

@@ -111,6 +111,7 @@
         :has-validation-data="hasValidationData"
         :is-training="isTraining"
         :is-training-alone="isTrainingAlone"
+        :nb-participants="nbParticipants"
       />
     </div>
   </div>
@@ -178,6 +179,8 @@ const hasValidationData = computed(
 
 const isTraining = computed(() => trainingGenerator.value !== undefined);
 const isTrainingAlone = ref(false);
+// number of participants in the training session
+const nbParticipants = ref(1);
 
 // value to throw in generator to stop training
 // TODO better to use an AbortController but if the training fails somehow, it never returns
@@ -210,6 +213,7 @@ async function startTraining(): Promise<void> {
     'local training': "Training the model on the data you connected"
   })
   disco.on("status", status => { roundStatus.value = [status, discoStatusMessage.get(status)] })
+  disco.on("participants", participants => { nbParticipants.value = participants})
 
   // Store the cleanup function such that it can be ran if users
   // manually interrupt the training

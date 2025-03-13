@@ -50,6 +50,7 @@ export class DecentralizedController<
             const msg: messages.NewDecentralizedNodeInfo = {
               type: MessageTypes.NewDecentralizedNodeInfo,
               id: peerId,
+              nbOfParticipants: this.connections.size,
               waitForMoreParticipants: this.connections.size < minNbOfParticipants
             }
             ws.send(msgpack.encode(msg), { binary: true })

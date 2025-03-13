@@ -20,7 +20,10 @@ const debug = createDebug("discojs:client");
  * Main, abstract, class representing a Disco client in a network, which handles
  * communication with other nodes, be it peers or a server.
  */
-export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
+export abstract class Client extends EventEmitter<{
+  'status': RoundStatus,
+  'participants': number
+}>{
   // Own ID provided by the network's server.
   protected _ownId?: NodeID
   // The network's server.
@@ -40,7 +43,10 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
    * we were doing before waiting (training locally or updating our model).
    * We use this attribute to store the status to rollback to when we stop waiting
    */
-  private previousStatus: RoundStatus | undefined;
+  #previousStatus: RoundStatus | undefined;
+
+  // Current number of participants including this client in the training session
+  #nbOfParticipants: number = 1;
 
   constructor (
     public readonly url: URL, // The network server's URL to connect to
@@ -82,7 +88,7 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
    * the waiting status and once enough participants join, it can display the previous status again
    */ 
   protected saveAndEmit(status: RoundStatus) {
-    this.previousStatus = status
+    this.#previousStatus = status
     this.emit("status", status)
   }
   
@@ -111,12 +117,13 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
   protected setupServerCallbacks(setMessageInversionFlag: () => void) {
     // Setup an event callback if the server signals that we should 
     // wait for more participants
-    this.server.on(type.WaitingForMoreParticipants, () => {
+    this.server.on(type.WaitingForMoreParticipants, (event) => {
       if (this.promiseForMoreParticipants !== undefined)
         throw new Error("Server sent multiple WaitingForMoreParticipants messages")
       debug(`[${shortenId(this.ownId)}] received WaitingForMoreParticipants message from server`)
       // Display the waiting status right away
       this.emit("status", "not enough participants")
+      this.nbOfParticipants = event.nbOfParticipants // emits the `participants` event
       // Upon receiving a WaitingForMoreParticipants message,
       // the client will await for this promise to resolve before sending its
       // local weight update
@@ -129,10 +136,10 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
     // and directly follows with an EnoughParticipants message when the 2nd participant joins
     // However, the EnoughParticipants can arrive before the NewNodeInfo (which can be much bigger)
     // so we check whether we received the EnoughParticipants before being assigned a node ID
-    this.server.once(type.EnoughParticipants, () => {
+    this.server.once(type.EnoughParticipants, (event) => {
       if (this._ownId === undefined) {
-        debug(`Received EnoughParticipants message from server before the NewFederatedNodeInfo message`)
         setMessageInversionFlag()
+        this.nbOfParticipants = event.nbOfParticipants
       }
     })
   }
@@ -146,10 +153,11 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
   protected async createPromiseForMoreParticipants(): Promise<void> {
     return new Promise<void>((resolve) => {
       // "once" is important because we can't resolve the same promise multiple times
-      this.server.once(type.EnoughParticipants, () => {
+      this.server.once(type.EnoughParticipants, (event) => {
         debug(`[${shortenId(this.ownId)}] received EnoughParticipants message from server`)
         // Emit the last status emitted before waiting if defined
-        if (this.previousStatus !== undefined) this.emit("status", this.previousStatus)
+        if (this.#previousStatus !== undefined) this.emit("status", this.#previousStatus)
+        this.nbOfParticipants = event.nbOfParticipants
         resolve()
       })
     })
@@ -190,7 +198,18 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
   * If federated, it should the number of participants excluding the server
   * If local it should be 1
   */
-  abstract getNbOfParticipants(): number;
+  public get nbOfParticipants(): number {
+    return this.#nbOfParticipants
+  }
+
+  /**
+   * Setter for the number of participants
+   * It emits the number of participants to the client
+   */
+  public set nbOfParticipants(nbOfParticipants: number) {
+    this.#nbOfParticipants = nbOfParticipants
+    this.emit("participants", nbOfParticipants)
+  }
 
   get ownId(): NodeID {
     if (this._ownId === undefined) {

@@ -47,10 +47,12 @@ export interface ClientConnected {
 
 export interface EnoughParticipants {
   type: type.EnoughParticipants
+  nbOfParticipants: number
 }
 
 export interface WaitingForMoreParticipants {
   type: type.WaitingForMoreParticipants
+  nbOfParticipants: number
 }
 
 export type Message =
