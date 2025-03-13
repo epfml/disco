@@ -179,7 +179,6 @@ const props = defineProps<{
   numberOfEpochs: number;
   batchesOfEpoch: List<BatchLogs>;
   hasValidationData: boolean; // TODO infer from logs
-  messages: List<string>; // TODO why do we want messages?
   isTrainingAlone: boolean; // Should be set to True if using the training scheme 'local'
   isTraining: boolean; // Is the user currently training a model
 }>();

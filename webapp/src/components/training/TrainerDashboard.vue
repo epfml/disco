@@ -109,7 +109,6 @@
         :number-of-epochs="task.trainingInformation.epochs"
         :batches-of-epoch="batchesOfEpochLogs"
         :has-validation-data="hasValidationData"
-        :messages="messages"
         :is-training="isTraining"
         :is-training-alone="isTrainingAlone"
       />
@@ -166,7 +165,6 @@ const epochGenerator = ref<AsyncGenerator<BatchLogs, EpochLogs>>();
 const roundsLogs = ref(List<RoundLogs>());
 const epochsOfRoundLogs = ref(List<EpochLogs>());
 const batchesOfEpochLogs = ref(List<BatchLogs>());
-const messages = ref(List<string>());
 const roundStatus = ref<[RoundStatus, string | undefined]>();
 /**
  * Store a disco cleanup callback to make sure it can be ran if users
@@ -191,7 +189,6 @@ async function startTraining(): Promise<void> {
   roundsLogs.value = List<RoundLogs>();
   epochsOfRoundLogs.value = List<EpochLogs>();
   batchesOfEpochLogs.value = List<BatchLogs>();
-  messages.value = List();
 
   // Vue proxy doesn't work with Dataset's private fields
   const dataset = toRaw(props.dataset);
@@ -203,10 +200,6 @@ async function startTraining(): Promise<void> {
   toaster.info("Model training started");
 
   const disco = new Disco(props.task, CONFIG.serverUrl, {
-    logger: {
-      success: (msg: string) => messages.value = messages.value.push(msg),
-      error: (msg: string) => messages.value = messages.value.push(msg)
-    },
     scheme: isTrainingAlone.value ? "local": props.task.trainingInformation.scheme,
   });
   // set the round status displayed to the status emitted by the disco object
