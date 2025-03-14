@@ -26,7 +26,7 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
   constructor (
     public readonly datatype: D,
     private readonly model: tf.LayersModel,
-    public readonly framework: FrameWorkAlgorithm = "fedaverage",
+    public readonly framework: FrameWorkAlgorithm = "fedprox",
   ) {
     super()
 
