@@ -128,6 +128,8 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
       return [loss, accSum / accSize]
   }
 
+
+  // First iteration: replace trainOnBatch with custom loss computation
   async trainFedProx(
     xs: tf.Tensor, ys: tf.Tensor,
   ): Promise<[number, number]> {
@@ -152,7 +154,8 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
       if (logits instanceof tf.SymbolicTensor)
         throw new Error('model outputs symbolic tensor')
       logitsTensor = tf.keep(logits)
-      // binaryCrossEntropy
+      // binaryCrossentropy as implemented by tensorflow.js
+      // https://github.com/tensorflow/tfjs/blob/2644bd0d6cea677f80e44ed4a44bea5e04aabeb3/tfjs-layers/src/losses.ts#L193
       let y: tf.Tensor;
       y = tf.clipByValue(logits, 0.00001, 1 - 0.00001);
       y = tf.log(tf.div(y, tf.sub(1, y)));
