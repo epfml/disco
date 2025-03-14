@@ -67,10 +67,56 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     batch: Batched<DataFormat.ModelEncoded[D]>,
   ): Promise<BatchLogs> {
     const { xs, ys } = this.#batchToTF(batch);
-    const logs = await this.trainFedProx(xs, ys);
+    const logs = await this.trainFedAverage(xs, ys);
     // const logs = await this.model.trainOnBatch(xs, ys);
     tf.dispose([xs, ys])
     return this.getBatchLogs(logs)
+  }
+
+  async trainFedAverage(
+    xs: tf.Tensor, ys: tf.Tensor,
+  ) : Promise<[number, number]> {
+    let logitsTensor: tf.Tensor<tf.Rank>;
+    
+    const optimizer = tf.train.sgd(0.01); // adjust the learning rate here
+    const lossFunction: () => tf.Scalar = () => {
+      // Apply the model to get logits
+      const logits = this.model.apply(xs) as tf.Tensor;
+      logitsTensor = tf.keep(logits);
+  
+      // Calculate binary cross-entropy loss
+      const loss = tf.losses.sigmoidCrossEntropy(ys, logits);
+  
+      // Add regularization term (L2 norm of weights)
+      const regularizationTerm = tf.addN(
+        this.model.getWeights().map(w => w.square().sum())
+      );
+  
+      return tf.add(loss, regularizationTerm);
+    };
+    const lossTensor = optimizer.minimize(lossFunction, true);
+    if (lossTensor === null) throw new Error("loss should not be null")
+  
+      // @ts-expect-error Variable 'logitsTensor' is used before being assigned
+      const accTensor = tf.metrics.categoricalAccuracy(ys, logitsTensor)
+      const accSize = accTensor.shape.reduce((l, r) => l * r, 1)
+      const accSumTensor = accTensor.sum()
+      const accSum = await accSumTensor.array()
+      if (typeof accSum !== 'number')
+        throw new Error('got multiple accuracy sum')
+      // @ts-expect-error Variable 'logitsTensor' is used before being assigned
+      tf.dispose([accTensor, accSumTensor, logitsTensor])
+      
+      const loss = await lossTensor.array()
+      tf.dispose([xs, ys, lossTensor])
+      
+      const memory = tf.memory().numBytes / 1024 / 1024 / 1024
+      debug("training metrics: %O", {
+        loss,
+        memory,
+        allocated: tf.memory().numTensors,
+      });
+      return [loss, accSum / accSize]
   }
 
   async trainFedProx(
