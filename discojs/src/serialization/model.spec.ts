@@ -28,7 +28,7 @@ describe('serialization', () => {
       ]
     })
     rawModel.compile({ optimizer: 'sgd', loss: 'hinge' })
-    const model = new models.TFJS("image", rawModel)
+    const model = new models.TFJS("image", rawModel, "fedprox")
 
     const encoded = await serialization.model.encode(model)
     assert.isTrue(serialization.isEncoded(encoded))

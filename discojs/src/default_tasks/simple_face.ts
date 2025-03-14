@@ -48,6 +48,6 @@ export const simpleFace: TaskProvider<'image'> = {
       metrics: ['accuracy']
     })
 
-    return new models.TFJS('image', model)
+    return new models.TFJS('image', model, "fedprox")
   }
 }

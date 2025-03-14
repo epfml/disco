@@ -4,6 +4,7 @@ import * as tf from '@tensorflow/tfjs'
 import type { GPTConfig } from './config.js'
 import { getModelSizes, DefaultGPTConfig } from './config.js'
 import { getCustomAdam, clipByGlobalNormObj } from './optimizers.js'
+import evaluate from './evaluate.js'
 import { GPTArchitecture } from './layers.js'
 
 const debug = createDebug("discojs:models:gpt:model");

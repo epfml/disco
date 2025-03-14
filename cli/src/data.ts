@@ -5,7 +5,6 @@ import type {
   DataType,
   Image,
   Task,
-  Text,
 } from "@epfml/discojs";
 import { loadCSV, loadImage, loadImagesInDir } from "@epfml/discojs-node";
 import { Repeat } from "immutable";

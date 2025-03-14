@@ -90,6 +90,6 @@ export const titanic: TaskProvider<'tabular'> = {
       metrics: ['accuracy']
     })
 
-    return Promise.resolve(new models.TFJS('tabular', model))
+    return Promise.resolve(new models.TFJS('tabular', model, "fedprox"))
   }
 }

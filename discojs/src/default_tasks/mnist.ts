@@ -66,6 +66,6 @@ export const mnist: TaskProvider<'image'> = {
       metrics: ['accuracy']
     })
 
-    return Promise.resolve(new models.TFJS('image', model))
+    return Promise.resolve(new models.TFJS('image', model, "fedprox"))
   }
 }

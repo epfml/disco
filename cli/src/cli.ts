@@ -14,7 +14,7 @@ import type {
 } from "@epfml/discojs";
 import { Disco, aggregator as aggregators, client as clients } from '@epfml/discojs'
 
-import { getTaskData, loadTinderDogData } from './data.js'
+import { getTaskData } from './data.js'
 import { args } from './args.js'
 
 // Array.fromAsync not yet widely used (2024)

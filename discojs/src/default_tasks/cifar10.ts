@@ -63,6 +63,6 @@ export const cifar10: TaskProvider<'image'> = {
       metrics: ['accuracy']
     })
 
-    return new models.TFJS('image', model)
+    return new models.TFJS('image', model, "fedprox")
   }
 }

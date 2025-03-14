@@ -76,6 +76,11 @@
                   v-model="scheme"
                   :field="field"
                 />
+                <SelectContainer
+                  v-else-if="field.id === 'framework'"
+                  v-model="framework"
+                  :field="field"
+                />
                 <TextContainer
                   v-else-if="field.id === 'modelURL'"
                   v-model="modelURL"
@@ -198,6 +203,7 @@ const schema = yup.object().shape(schemaData, [['modelURL', 'weightsFile'], ['mo
 const dataType = ref('')
 const scheme = ref('')
 const modelURL = ref('')
+const framework = ref('')
 const modelFiles = shallowRef(List<File>())
 
 
@@ -270,6 +276,7 @@ const onSubmit = async (rawTask: any): Promise<void> => {
           await tf.loadLayersModel(
             tf.io.browserFiles(modelFiles.value.toArray()),
           ),
+          rawTask.framework
         );
         break;
       case "text":

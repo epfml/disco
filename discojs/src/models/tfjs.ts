@@ -18,12 +18,15 @@ const debug = createDebug("discojs:models:tfjs");
 
 type Serialized<D extends DataType> = [D, tf.io.ModelArtifacts];
 
+type FrameWorkAlgorithm = "fedaverage" | "fedprox";
+
 /** TensorFlow JavaScript model with standard training */
 export class TFJS<D extends "image" | "tabular"> extends Model<D> {
   /** Wrap the given trainable model */
   constructor (
     public readonly datatype: D,
-    private readonly model: tf.LayersModel
+    private readonly model: tf.LayersModel,
+    public readonly framework: FrameWorkAlgorithm = "fedaverage",
   ) {
     super()
 
@@ -67,8 +70,14 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     batch: Batched<DataFormat.ModelEncoded[D]>,
   ): Promise<BatchLogs> {
     const { xs, ys } = this.#batchToTF(batch);
-    const logs = await this.trainFedAverage(xs, ys);
-    // const logs = await this.model.trainOnBatch(xs, ys);
+    let logs: [number, number];
+    if (this.framework === "fedaverage") {
+      logs = await this.trainFedAverage(xs, ys);
+    } else if (this.framework === "fedprox") {
+      logs = await this.trainFedProx(xs, ys);
+    } else {
+      throw new Error("unknown framework");
+    }
     tf.dispose([xs, ys])
     return this.getBatchLogs(logs)
   }

@@ -66,6 +66,15 @@ const generalInformation: FormSection = {
       type: 'select',
       options: ['Decentralized', 'Federated'],
       default: 'Decentralized'
+    },
+    {
+      id: "framework",
+      "name" : "Training Framework",
+      "yup" : yup.string().required(),
+      "as" : "input",
+      "type" : "select",
+      "options" : ["fedaverage", "fedprox"],
+      "default" : "fedprox"
     }
   ]
 }
