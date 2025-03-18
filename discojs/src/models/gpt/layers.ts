@@ -228,7 +228,7 @@ tf.serialization.registerClass(CausalSelfAttention)
  * 
  * https://pytorch.org/docs/stable/generated/torch.nn.GELU.html
  */
-class GELU extends tf.layers.Layer {
+export class GELU extends tf.layers.Layer {
   static readonly className = 'GELU'
 
   constructor () {
@@ -368,7 +368,7 @@ function TransformerBlock (conf: BlockConfig): tf.LayersModel {
  * that can be used for both the token embeddings and the language modeling head.
  * In the GPT2 model definition, this layers corresponds to wte and lm_head (which reuses wte)
  */
-class LMEmbedding extends tf.layers.Layer {
+export class LMEmbedding extends tf.layers.Layer {
   static readonly className = 'LMEmbedding'
   embeddings?: tf.LayerVariable
 
