@@ -3,6 +3,28 @@ import { expect } from "chai";
 import { tokenize } from "./text.js";
 import { AutoTokenizer } from "@xenova/transformers";
 import { Repeat } from "immutable";
+import { PreTrainedTokenizer } from "@xenova/transformers";
+
+
+interface TokenizerOutput {
+  input_ids: number[];
+}
+
+/**
+ * Encodes the text into token IDs and then decodes them back to text
+ * Special tokens are skipped during decoding
+ *
+ * @param tokenizer - An instance of a PreTrainedTokenizer
+ * @param text - The text to process
+ * @returns The decoded text obtained after encoding and then decoding
+ */
+export function encodeDecode(tokenizer: PreTrainedTokenizer, text: string): string {
+  // Encode the text using the tokenizer.
+  const encoding = tokenizer(text, { return_tensor: false }) as TokenizerOutput;
+  // Decode the token IDs back into text while skipping special tokens.
+  return tokenizer.decode(encoding.input_ids, { skip_special_tokens: true });
+}
+
 
 describe("text processing", () => {
   const text = [
@@ -80,5 +102,52 @@ describe("text processing", () => {
       Repeat(tokenizer.pad_token_id, max_length - shortExpectedTokens.length).toArray()
     );
     expect(tokens.toArray()).to.be.deep.equal(paddedSequence);
+  });
+});
+
+
+describe("Multi-Tokenizer Tests", function () {
+  this.timeout(20000);
+
+  const sampleText = "Hello, world! This is a test string to check tokenization.";
+
+  // List of tokenizer names to test
+  const tokenizerNames = [
+    "Xenova/gpt2",
+    "Xenova/llama-3-tokenizer",
+    // "Xenova/bert-base-uncased",  // takes too long
+    "Xenova/roberta-base",
+    "Xenova/distilbert-base-uncased"
+  ];
+
+  tokenizerNames.forEach((name) => {
+    it(`should tokenize text using tokenizer "${name}"`, async () => {
+      const tokenizer = await AutoTokenizer.from_pretrained(name);
+      const tokens = tokenize(tokenizer, sampleText);
+      const tokenArray = tokens.toArray();
+
+      // Checks that we got a non-empty array of tokens and that each token is a number.
+      expect(tokenArray).to.be.an("array").that.is.not.empty;
+      tokenArray.forEach((token) => {
+        expect(token).to.be.a("number");
+      });
+    });
+  });
+});
+
+
+describe("Encode-Decode tokenization", function () {
+  this.timeout(20000);
+
+  it("should return text close to the original after encode-decode tokenization using GPT2 tokenizer", async function () {
+    // Load the GPT2 tokenizer
+    const tokenizer = await AutoTokenizer.from_pretrained("Xenova/gpt2");
+    const originalText = "Hello, world! This is a test for encode-decode tokenization.";
+    
+    // Perform round-trip tokenization
+    const decodedText = encodeDecode(tokenizer, originalText);
+    
+    // Check that the decoded text is almost equal to the original text
+    expect(decodedText).to.equal(originalText);
   });
 });
