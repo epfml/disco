@@ -142,6 +142,8 @@ describe('GPT Layers', function () {
       // two separate MLP model instances using the same config
       const model1 = MLP(config);
       const model2 = MLP(config);
+
+      //TODO: check if there are NANs
   
       const input = tf.ones([1, config.contextLength, config.nEmbd]);
   
@@ -212,25 +214,25 @@ describe('GPT Layers', function () {
     //   });
     // });
   
-    describe('_splitHeads', function () {
+    describe('splitHeads', function () {
       it('should reshape and transpose the input correctly', function () {
         const B = 2;
         const T = 6;
         const totalChannels = config.nEmbd; // 8 channels
         // input tensor with shape [B, T, totalChannels]
         const input = tf.tensor3d(new Array(B * T * totalChannels).fill(1), [B, T, totalChannels]);
-        const output = csa._splitHeads(input, B, T, config.nHead);
+        const output = csa.splitHeads(input, B, T, config.nHead);
         // expected shape: [B, nHead, T, totalChannels/nHead] = [2, 2, 6, 4]
         expect(output.shape).to.deep.equal([B, config.nHead, T, totalChannels / config.nHead]);
       });
     });
   
-    describe('_applyCausalMask', function () {
+    describe('applyCausalMask', function () {
       it('should produce a causal mask that sets upper-triangular positions to -1e9', async function () {
         const T = config.contextLength;
         // dummy attention logits tensor with shape [1, 1, T, T] filled with zeros
         const att = tf.zeros([1, 1, T, T], 'float32');
-        const masked = csa._applyCausalMask(att, T);
+        const masked = csa.applyCausalMask(att, T);
         const data = await masked.data();
         // for each position (i,j): if j > i expect -1e9 else 0
         const expected: number[] = [];
@@ -243,7 +245,7 @@ describe('GPT Layers', function () {
       });
     });
   
-    describe('_computeAttention', function () {
+    describe('computeAttention', function () {
       it('should output attention weights that sum to 1 over the last dimension', async function () {
         const B = 1;
         const nHead = config.nHead;
@@ -251,7 +253,7 @@ describe('GPT Layers', function () {
         const headSize = config.nEmbd / config.nHead;
         const q = tf.randomUniform([B, nHead, T, headSize]);
         const k = tf.randomUniform([B, nHead, T, headSize]);
-        const att = csa._computeAttention(q, k, false, T);
+        const att = csa.computeAttention(q, k, false, T);
         // expected shape: [B, nHead, T, T]
         expect(att.shape).to.deep.equal([B, nHead, T, T]);
         // check that each row of the attention logits (last dimension) sums to approximately 1

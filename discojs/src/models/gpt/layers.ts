@@ -163,13 +163,13 @@ export class CausalSelfAttention extends tf.layers.Layer {
       this.invokeCallHook(input, kwargs);
 
       // --- Use helper methods below to build the computation ---
-      const dense = this._dense.bind(this);
+      // const dense = this._dense.bind(this);
       
       // Apply attention weights to inputs as one big matrix which is then split into the
       // query, key and value submatrices
       // nHead is "number of heads", hs is "head size", and C (number of channels) = n_embd = nHead * hs
       // e.g. in GPT-2 (124M), nHead = 12, hs = 64, so nHead * hs = C = 768 channels in the Transformer      const cAttn = dense(input, this.cAttnKernel, this.cAttnBias);
-      const cAttn = dense(input, this.cAttnKernel, this.cAttnBias)
+      const cAttn = this.dense(input, this.cAttnKernel, this.cAttnBias)
       let [q, k, v] = tf.split(cAttn, 3, -1) as [tf.Tensor, tf.Tensor, tf.Tensor];
       
       // Follow naming conventions in https://github.com/karpathy/build-nanogpt/
@@ -178,19 +178,19 @@ export class CausalSelfAttention extends tf.layers.Layer {
       // if (T === undefined) throw new Error('unexpected shape'); // Ensure T is defined
 
       // Split into attention heads.
-      q = this._splitHeads(q, B, T, this.nHead);
-      k = this._splitHeads(k, B, T, this.nHead);
-      v = this._splitHeads(v, B, T, this.nHead);
+      q = this.splitHeads(q, B, T, this.nHead);
+      k = this.splitHeads(k, B, T, this.nHead);
+      v = this.splitHeads(v, B, T, this.nHead);
 
       // Scaled self attention: query @ key / sqrt(hs)
       // Matrix representing the token-to-token attention (B, nHead, T, T)
-      const att = this._computeAttention(q, k, kwargs.training === true, T);
+      const att = this.computeAttention(q, k, kwargs.training === true, T);
 
       // This is where the (attention-)weighted sum of past values is performed
       let y = tf.matMul(att, v) // (B, nHead, T, T) x (B, nHead, T, hs) -> (B, nHead, T, hs)
       y = tf.transpose(y, [0, 2, 1, 3]) // (B, T, nHead, hs)
       y = tf.reshape(y, [B, T, C]) // (B, T, C = nHead * hs)
-      y = dense(y, this.cProjKernel, this.cProjBias) // output projection (B, T, C)
+      y = this.dense(y, this.cProjKernel, this.cProjBias) // output projection (B, T, C)
       y = kwargs.training === true ? tf.dropout(y, this.dropout, undefined, this.seed) : y
       return y;
     });
@@ -198,20 +198,20 @@ export class CausalSelfAttention extends tf.layers.Layer {
 
   // --- Helper Methods ---
 
-  public _dense(x: tf.Tensor, kernel: tf.LayerVariable, bias: tf.LayerVariable): tf.Tensor {
+  public dense(x: tf.Tensor, kernel: tf.LayerVariable, bias: tf.LayerVariable): tf.Tensor {
     const k = kernel.read().expandDims(0).tile([x.shape[0], 1, 1]);
     const m = x.matMul(k);
     return tf.add(m, bias.read());
   }
 
-  public _splitHeads(x: tf.Tensor, B: number, T: number, nHead: number): tf.Tensor {
+  public splitHeads(x: tf.Tensor, B: number, T: number, nHead: number): tf.Tensor {
     return tf.transpose(
       tf.reshape(x, [B, T, nHead, (x.shape[2] ?? 0) / nHead]),
       [0, 2, 1, 3]
     );
   }
 
-  public _applyCausalMask(att: tf.Tensor, T: number): tf.Tensor {
+  public applyCausalMask(att: tf.Tensor, T: number): tf.Tensor {
     // mask is lower triangular matrix filled with 1
     const mask = this.mask.slice([0, 0], [T, T]);
     // 1 - mask                   => upper triangular matrix filled with 1
@@ -221,7 +221,7 @@ export class CausalSelfAttention extends tf.layers.Layer {
     return tf.add(att, tf.mul(tf.sub(1, mask), -1e9)); // (B, nHead, T, T)
   }
 
-  public _computeAttention(q: tf.Tensor, k: tf.Tensor, training: boolean, T: number): tf.Tensor {
+  public computeAttention(q: tf.Tensor, k: tf.Tensor, training: boolean, T: number): tf.Tensor {
     /**
     * The next operations apply attention only on the past tokens, which is
     * essentially a weighted average of the past tokens with complicated weights,
@@ -233,7 +233,7 @@ export class CausalSelfAttention extends tf.layers.Layer {
     // Matrix representing the token-to-token attention (B, nHead, T, T)
     let att = tf.matMul(q, k, false, true);  // (B, nHead, T, hs) x (B, nHead, hs, T) -> (B, nHead, T, T)
     att = tf.mul(att, tf.div(1, tf.sqrt(tf.cast(headSize, 'float32'))));  // 1 / sqrt(hs)
-    att = this._applyCausalMask(att, T);
+    att = this.applyCausalMask(att, T);
     // applying softmax zeroes out the upper triangular part (softmax(-inf) = 0)
     // i.e., zeroes out future tokens's attention weights
     // and creates a probability distribution for the lower triangular
@@ -244,10 +244,6 @@ export class CausalSelfAttention extends tf.layers.Layer {
       att = tf.dropout(att, this.dropout, undefined, this.seed);
     }
     return att;
-  }
-
-  public _projectOutput(y: tf.Tensor, kernel: tf.LayerVariable, bias: tf.LayerVariable): tf.Tensor {
-    return this._dense(y, kernel, bias);
   }
 }
 tf.serialization.registerClass(CausalSelfAttention);
