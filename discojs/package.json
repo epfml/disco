@@ -22,7 +22,7 @@
     "@epfml/isomorphic-wrtc": "1",
     "@jimp/core": "1",
     "@jimp/plugin-resize": "1",
-    "@msgpack/msgpack": "<3.0.0-beta5",
+    "@msgpack/msgpack": "3",
     "@tensorflow/tfjs": "4",
     "@xenova/transformers": "2",
     "isomorphic-ws": "5",
