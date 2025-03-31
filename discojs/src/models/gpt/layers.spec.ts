@@ -127,7 +127,7 @@ describe('GPT Layers', function () {
   // MLP Layer tests
   describe('MLP Layer', function () {  
 
-    it('should produce deterministic outputs with the same random seed', async function () {
+    it('should produce deterministic/non-NaN outputs with the same random seed', async function () {
       // an MLP config with a fixed seed
       const config: MLPConfig = {
         name: 'testMLP',
@@ -142,8 +142,6 @@ describe('GPT Layers', function () {
       // two separate MLP model instances using the same config
       const model1 = MLP(config);
       const model2 = MLP(config);
-
-      //TODO: check if there are NANs
   
       const input = tf.ones([1, config.contextLength, config.nEmbd]);
   
@@ -159,7 +157,15 @@ describe('GPT Layers', function () {
   
       // check that the models produce the same output
       expect(arr1).to.deep.equal(arr2);
-      
+
+      // Check that there are no NaN values in the outputs.
+      for (let i = 0; i < arr1.length; i++) {
+        expect(isNaN(arr1[i])).to.be.false;
+      }
+      for (let i = 0; i < arr2.length; i++) {
+        expect(isNaN(arr2[i])).to.be.false;
+      }
+
     });
   });
 
