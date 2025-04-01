@@ -2,7 +2,7 @@
   <div class="lg:mx-8">
 
   <!-- First screen -->
-    <div class="mb-40 lg:mb-0 gap-16 lg:gap-0 lg:h-dvh flex flex-col justify-around pb-12">
+    <div class="mb-40 lg:mb-0 h-dvh gap-16 lg:gap-0 flex flex-col justify-around pb-12">
   <!-- Disco logo -->
       <div class="flex flex-col justify-center items-center space-y-4">
         <div class="mx-auto w-full h-full min-w-[250px] max-w-[640px] max-h-[264px]">
