@@ -3,6 +3,7 @@ import { Repeat } from "immutable";
 
 import { Validator, defaultTasks } from "@epfml/discojs";
 import { loadCSV, loadImagesInDir } from "@epfml/discojs-node";
+import { setupLusCOVID } from "./utils.js";
 
 describe("validator", () => {
   it("can read and predict randomly on simple_face", async () => {
@@ -55,19 +56,10 @@ describe("validator", () => {
 
   it("can read and predict randomly on lus_covid", async () => {
     const provider = defaultTasks.lusCovid;
-
-    const [positive, negative] = [
-      (await loadImagesInDir("../datasets/lus_covid/COVID+")).zip(
-        Repeat("COVID-Positive"),
-      ),
-      (await loadImagesInDir("../datasets/lus_covid/COVID-")).zip(
-        Repeat("COVID-Negative"),
-      ),
-    ];
-    const dataset = positive.chain(negative);
+    const { dataset, lusCovidTask } = await setupLusCOVID("federated");
 
     const validator = new Validator(
-      provider.getTask(),
+      lusCovidTask,
       await provider.getModel(),
     );
 

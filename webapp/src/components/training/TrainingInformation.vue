@@ -50,7 +50,7 @@
           placement: 'top',
         }"
         header="number of participants"
-        :text="`${participants.current}`"
+        :text="`${nbParticipants}`"
         class="w-72 shrink-0 hover:cursor-pointer"
       >
         <PeopleIcon />
@@ -179,22 +179,10 @@ const props = defineProps<{
   numberOfEpochs: number;
   batchesOfEpoch: List<BatchLogs>;
   hasValidationData: boolean; // TODO infer from logs
-  messages: List<string>; // TODO why do we want messages?
   isTrainingAlone: boolean; // Should be set to True if using the training scheme 'local'
   isTraining: boolean; // Is the user currently training a model
+  nbParticipants: number; // Number of participants in the training
 }>();
-
-const participants = computed(() => ({
-  // if the number of participants is not defined, default to
-  // 0 if not currently training
-  // or 1 if training or before the 1st communication round)
-  current: props.rounds.last()?.participants ?? (props.isTraining ? 1 : 0),
-  average:
-    props.rounds.size > 0
-      ? props.rounds.reduce((acc, round) => acc + round.participants, 0) /
-        props.rounds.size
-      : 0,
-}));
 
 const batchesCount = computed(() => props.batchesOfEpoch.size);
 

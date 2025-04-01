@@ -11,6 +11,7 @@ export interface NewDecentralizedNodeInfo {
   type: type.NewDecentralizedNodeInfo
   id: NodeID
   waitForMoreParticipants: boolean
+  nbOfParticipants: number
 }
 
 // WebRTC signal to forward to other node

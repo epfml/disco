@@ -26,14 +26,15 @@ export class DecentralizedClient extends Client {
   #pool?: PeerPool
   #connections?: Map<NodeID, PeerConnection>
 
-  override getNbOfParticipants(): number {
-    const nbOfParticipants = this.aggregator.nodes.size
-    return nbOfParticipants === 0 ? 1 : nbOfParticipants
-  }
-
   // Used to handle timeouts and promise resolving after calling disconnect
   private get isDisconnected() : boolean {
     return this._server === undefined
+  }
+
+  private setAggregatorNodes(nodes: Set<NodeID>) {
+    this.aggregator.setNodes(nodes)
+    // Emits the `participants` event
+    this.nbOfParticipants = this.aggregator.nodes.size === 0 ? 1 : this.aggregator.nodes.size
   }
   
   /**
@@ -77,7 +78,11 @@ export class DecentralizedClient extends Client {
     }
     this.server.send(msg)
     
-    const { id, waitForMoreParticipants } = await waitMessage(this.server, type.NewDecentralizedNodeInfo)
+    const { id, waitForMoreParticipants,
+      nbOfParticipants } = await waitMessage(this.server, type.NewDecentralizedNodeInfo)
+    
+    this.nbOfParticipants = nbOfParticipants
+    
 
     // This should come right after receiving the message to make sure
     // we don't miss a subsequent message from the server
@@ -107,7 +112,7 @@ export class DecentralizedClient extends Client {
 
     if (this.#connections !== undefined) {
       const peers = this.#connections.keySeq().toSet()
-      this.aggregator.setNodes(this.aggregator.nodes.subtract(peers))
+      this.setAggregatorNodes(this.aggregator.nodes.subtract(peers))
     }
     // Disconnect from server
     await this.server?.disconnect()
@@ -180,7 +185,7 @@ export class DecentralizedClient extends Client {
         throw new Error('received peer list contains our own id')
       }
       // Store the list of peers for the current round including ourselves
-      this.aggregator.setNodes(peers.add(this.ownId))
+      this.setAggregatorNodes(peers.add(this.ownId))
       this.aggregator.setRound(receivedMessage.aggregationRound) // the server gives us the round number
 
       // Initiate peer to peer connections with each peer
@@ -197,7 +202,7 @@ export class DecentralizedClient extends Client {
       this.#connections = connections
     } catch (e) {
       debug(`Error for [${shortenId(this.ownId)}] while beginning round: %o`, e);
-      this.aggregator.setNodes(Set(this.ownId))
+      this.setAggregatorNodes(Set(this.ownId))
       this.#connections = Map()
     }
   }
