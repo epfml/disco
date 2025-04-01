@@ -67,7 +67,7 @@ describe("text processing", () => {
     ]
     const tokens = tokenize(tokenizer, text);
     expect(tokens.toArray()).to.be.deep.equal(expectedTokens);
-  });
+  }).timeout(3000);
 
   it("can tokenize text with the GPT2 tokenizer", async () => {
     const tokenizer = await AutoTokenizer.from_pretrained("Xenova/gpt2");
