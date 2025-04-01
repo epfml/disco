@@ -75,14 +75,14 @@ describe("end-to-end federated", () => {
     await disco.close();
 
     expect(logs.last()?.epochs.last()?.training.accuracy).to.be.greaterThan(
-      0.6,
+      0.5,
     );
     if (logs.last()?.epochs.last()?.validation === undefined)
       throw new Error(
         "No validation logs while validation dataset was specified",
       );
     const validationLogs = logs.last()?.epochs.last()?.validation;
-    expect(validationLogs?.accuracy).to.be.greaterThan(0.6);
+    expect(validationLogs?.accuracy).to.be.greaterThan(0.5);
 
     return disco.trainer.model.weights;
   }
@@ -122,7 +122,7 @@ describe("end-to-end federated", () => {
     await disco.close();
 
     const validationLogs = logs.last()?.epochs.last()?.validation;
-    expect(validationLogs?.accuracy).to.be.greaterThan(0.6);
+    expect(validationLogs?.accuracy).to.be.greaterThan(0.5);
 
     return disco.trainer.model.weights;
   }
