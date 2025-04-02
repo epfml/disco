@@ -35,7 +35,7 @@
           </div>
           <div
             v-if="taskStore.status == 'loading'"
-            class="my-10 flex flex-col justify-center items-center"
+            class="order-2 lg:order-1 my-10 flex flex-col justify-center items-center w-[700px]"
           >
             <VueSpinner size="50" color="#6096BA"/>
             <div class="mt-10 flex flex-col justify-center items-center">

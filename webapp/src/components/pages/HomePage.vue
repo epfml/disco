@@ -2,7 +2,7 @@
   <div class="lg:mx-8">
 
   <!-- First screen -->
-    <div class="mb-40 lg:mb-0 gap-16 lg:gap-0 lg:h-dvh flex flex-col justify-around pb-12">
+    <div class="mb-40 lg:mb-0 h-dvh gap-16 lg:gap-0 flex flex-col justify-around pb-12">
   <!-- Disco logo -->
       <div class="flex flex-col justify-center items-center space-y-4">
         <div class="mx-auto w-full h-full min-w-[250px] max-w-[640px] max-h-[264px]">
@@ -42,12 +42,12 @@
 
 <!-- 2nd screen -->
     <div class="mb-40 lg:mb-0 lg:h-dvh flex flex-col lg:flex-row gap-16 justify-center items-center">
-      <div class="flex flex-col justify-center text-center lg:text-right items-center lg:items-end">
+      <div class="flex flex-col justify-center text-center items-center ">
         <span
         class="font-disco text-4xl lg:text-5xl font-bold
            text-heading-light dark:text-heading-dark"
         >
-          Simple by design.
+        Training in the privacy<br> of your browser.
         </span>
         <span class="text-base lg:text-lg mt-4">
           Disco runs fully in your browser.<br/>
@@ -71,7 +71,9 @@
             <span class="text-2xl font-bold text-heading-light dark:text-heading-dark">
               Connect your data
             </span>
-            <ConnectDataIcon class="w-[150px] h-[150px] lg:w-[300px] lg:h-[200px] drop-shadow-lg"/>
+            <video autoplay loop muted class="w-[150px] h-[150px] lg:w-[300px] lg:h-[200px]">
+              <source src="https://storage.googleapis.com/deai-313515.appspot.com/videos/connect.webm" type="video/webm">
+            </video>
           </div>
           <div class="flex flex-col gap-8 justify-center items-center text-center w-full">
             <span class="text-2xl font-bold text-heading-light dark:text-heading-dark">
@@ -84,13 +86,17 @@
                 <DISCOllaborative/>
               </span>
             </span>
-            <LaunchIcon class="w-[150px] h-[150px] lg:w-[300px] lg:h-[200px] drop-shadow-md"/>
+            <video autoplay loop muted class="w-[150px] h-[150px] lg:w-[300px] lg:h-[200px]">
+              <source src="https://storage.googleapis.com/deai-313515.appspot.com/videos/join.webm" type="video/webm">
+            </video>
           </div>
           <div class="flex flex-col gap-8 justify-center items-center text-center w-full">
             <span class="text-2xl font-bold text-heading-light dark:text-heading-dark">
               Use the model
             </span>
-            <CompletedIcon class="w-[150px] h-[150px] lg:w-[300px] lg:h-[200px] drop-shadow-md"/>
+            <video autoplay loop muted class="w-[150px] h-[150px] lg:w-[300px] lg:h-[200px]">
+              <source src="https://storage.googleapis.com/deai-313515.appspot.com/videos/use.webm" type="video/webm">
+            </video>
           </div>
         </div>
       </div>
@@ -273,9 +279,6 @@ import CMUAfricaLogo from "@/assets/logos/CMUAfricaLogo.vue";
 import FederatedGIF from "@/assets/gif/FederatedGIF.vue";
 import DecentralizedGIF from "@/assets/gif/DecentralizedGIF.vue";
 
-import ConnectDataIcon from "@/assets/svg/ConnectDataIcon.vue";
-import CompletedIcon from "@/assets/svg/CompletedIcon.vue";
-import LaunchIcon from "@/assets/svg/LaunchIcon.vue";
 import MultiDeviceIcon from "@/assets/svg/MultiDeviceIcon.vue";
 import CTAButton from "../simple/CTAButton.vue";
 import { useThemeStore } from "@/store";
