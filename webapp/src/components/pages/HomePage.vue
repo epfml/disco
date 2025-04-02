@@ -67,15 +67,16 @@
           </span>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-x-16 gap-y-8 place-items-start">
-          <div class="flex flex-col gap-8 justify-center items-center text-center w-full">
+          <div class="flex flex-col justify-center items-center text-center w-full">
             <span class="text-2xl font-bold text-heading-light dark:text-heading-dark">
               Connect your data
             </span>
-            <video autoplay loop muted class="w-[150px] h-[150px] lg:w-[300px] lg:h-[200px]">
-              <source src="https://storage.googleapis.com/deai-313515.appspot.com/videos/connect.webm" type="video/webm">
-            </video>
+            <img 
+              :src="`https://storage.googleapis.com/deai-313515.appspot.com/gifs/homepage/connect_${themeStore.current}.gif`"
+              class="w-[150px] h-[150px] lg:w-[300px] lg:h-[300px]"
+            />
           </div>
-          <div class="flex flex-col gap-8 justify-center items-center text-center w-full">
+          <div class="flex flex-col justify-center items-center text-center w-full">
             <span class="text-2xl font-bold text-heading-light dark:text-heading-dark">
               Join the <span 
                 class="underline hover:cursor-pointer"
@@ -86,17 +87,19 @@
                 <DISCOllaborative/>
               </span>
             </span>
-            <video autoplay loop muted class="w-[150px] h-[150px] lg:w-[300px] lg:h-[200px]">
-              <source src="https://storage.googleapis.com/deai-313515.appspot.com/videos/join.webm" type="video/webm">
-            </video>
+            <img 
+              :src="`https://storage.googleapis.com/deai-313515.appspot.com/gifs/homepage/join_${themeStore.current}.gif`"
+              class="w-[150px] h-[150px] lg:w-[300px] lg:h-[300px]"
+            />
           </div>
-          <div class="flex flex-col gap-8 justify-center items-center text-center w-full">
+          <div class="flex flex-col justify-center items-center text-center w-full">
             <span class="text-2xl font-bold text-heading-light dark:text-heading-dark">
               Use the model
             </span>
-            <video autoplay loop muted class="w-[150px] h-[150px] lg:w-[300px] lg:h-[200px]">
-              <source src="https://storage.googleapis.com/deai-313515.appspot.com/videos/use.webm" type="video/webm">
-            </video>
+            <img 
+              :src="`https://storage.googleapis.com/deai-313515.appspot.com/gifs/homepage/use_${themeStore.current}.gif`"
+              class="w-[150px] h-[150px] lg:w-[300px] lg:h-[300px]"
+            />
           </div>
         </div>
       </div>
