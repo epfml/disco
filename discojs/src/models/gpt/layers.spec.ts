@@ -2,6 +2,7 @@ import * as tf from '@tensorflow/tfjs';
 import { expect } from 'chai';
 import { GELU, LMEmbedding, Range, MLP, MLPConfig, CausalSelfAttention, CausalSelfAttentionConfig } from './layers.js';
 
+
 describe('GPT Layers', function () {
   // GELU Layer tests
   describe('GELU Layer', function () {
@@ -14,10 +15,10 @@ describe('GPT Layers', function () {
     it('should compute GELU activation correctly for known inputs', async function () {
       const geluLayer = new GELU();
 
-      const input: tf.Tensor1D = tf.tensor1d([0, 1, -1, 2, -2]);
+      const input = tf.tensor1d([0, 1, -1, 2, -2]);
 
       const output = geluLayer.apply(input) as tf.Tensor;
-      const outputData: Float32Array = await output.data() as Float32Array;
+      const outputData = await output.data();
 
       // expected values based on the GELU tanh approximation
       const expected: number[] = [0, 0.8412, -0.1588, 1.955, -0.045];
@@ -39,7 +40,7 @@ describe('GPT Layers', function () {
       const lmEmbedding = new LMEmbedding(vocabSize, nEmbd, seed);
       
       // dummy 2D input representing token indices: shape [batch_size, sequence_length]
-      const tokenIndices = tf.tensor2d([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]], [2, 5], 'int32');
+      const tokenIndices = tf.randomUniformInt([2, 5], 0, 1);
 
       const output = lmEmbedding.apply(tokenIndices) as tf.Tensor;
 
@@ -47,40 +48,33 @@ describe('GPT Layers', function () {
       expect(output.shape).to.deep.equal([2, 5, nEmbd]);
     });
 
-    it('should return token logits with shape [batch_size, sequence_length, vocabSize] for 3D input', function () {
+    it("should work for 2D & 3D inputs", () => {  
+      const vocabSize = 100;  
+      const nEmbd = 16;  
+      const seed = 42;  
+  
+      const lmEmbedding = new LMEmbedding(vocabSize, nEmbd, seed);  
+  
+      const tokenIndices = tf.randomUniformInt([2, 5], 0, 1);  
+      const embeddingsInput = tf.randomUniform([2, 5, nEmbd]);  
+      const outputForToken = lmEmbedding.apply(tokenIndices) as tf.Tensor;  
+      const outputForEmbedding = lmEmbedding.apply(embeddingsInput) as tf.Tensor;  
+  
+      expect(outputForToken.shape).to.deep.equal([2, 5, nEmbd]);  
+      expect(outputForEmbedding.shape).to.deep.equal([2, 5, vocabSize]);  
+    });  
+
+    it('should throw appropriate errors for invalid input shapes', function () {
       const vocabSize = 100;
       const nEmbd = 16;
       const seed = 42;
-
       const lmEmbedding = new LMEmbedding(vocabSize, nEmbd, seed);
-
-      // dummy 3D input representing a batch of embeddings: shape [batch_size, sequence_length, nEmbd]
-      const embeddingsInput = tf.randomUniform([2, 5, nEmbd]);
-
-      const output = lmEmbedding.apply(embeddingsInput) as tf.Tensor;
-
-      // expected output shape for 3D input: [2, 5, vocabSize]
-      expect(output.shape).to.deep.equal([2, 5, vocabSize]);
-    });
-
-    it('should throw an error for unexpected input shape', function () {
-      const vocabSize = 100;
-      const nEmbd = 16;
-      const seed = 42;
-
-      const lmEmbedding = new LMEmbedding(vocabSize, nEmbd, seed);
-
-      // invalid input tensor with 1D shape.
+    
+      // Case 1: 1D tensor input
       const invalidInput = tf.tensor1d([1, 2, 3], 'int32');
-
       expect(() => lmEmbedding.apply(invalidInput)).to.throw('unexpected input shape');
-    });
-
-    it('should throw an error if input is an array with more than one tensor', function () {
-      const vocabSize = 100;
-      const nEmbd = 16;
-      const seed = 42;
-      const lmEmbedding = new LMEmbedding(vocabSize, nEmbd, seed);
+    
+      // Case 2: array with more than one tensor
       const input1 = tf.tensor2d([[1, 2, 3]], [1, 3], 'int32');
       const input2 = tf.tensor2d([[4, 5, 6]], [1, 3], 'int32');
       expect(() => lmEmbedding.apply([input1, input2])).to.throw('expected exactly one tensor');
@@ -94,7 +88,7 @@ describe('GPT Layers', function () {
       const outputShape = lmEmbedding.computeOutputShape([null, null]);
       expect(outputShape).to.deep.equal([null, null, nEmbd]);
     });
-
+    
   });
 
   // Range Layer tests
@@ -117,10 +111,9 @@ describe('GPT Layers', function () {
       expect(output.shape).to.deep.equal([1, 10]);
   
       // verify the content: the layer should output a range [0, 1, ..., T-1]
-      const outputData = await output.data();
-      for (let i = 0; i < 10; i++) {
-        expect(outputData[i]).to.equal(i);
-      }
+      expect(await output.data()).to.deep.equal(
+        Int32Array.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+      );
     });
   });
 
@@ -152,18 +145,15 @@ describe('GPT Layers', function () {
       const arr1 = await output1.data();
       const arr2 = await output2.data();
   
-      // check lengths are equal
-      expect(arr1.length).to.equal(arr2.length);
-  
       // check that the models produce the same output
       expect(arr1).to.deep.equal(arr2);
 
       // Check that there are no NaN values in the outputs.
-      for (let i = 0; i < arr1.length; i++) {
-        expect(isNaN(arr1[i])).to.be.false;
+      for (const v of arr1) {
+        expect(v).to.not.be.NaN; 
       }
-      for (let i = 0; i < arr2.length; i++) {
-        expect(isNaN(arr2[i])).to.be.false;
+      for (const v of arr2) {
+        expect(v).to.not.be.NaN;
       }
 
     });
@@ -195,30 +185,7 @@ describe('GPT Layers', function () {
     afterEach(() => {
       tf.disposeVariables();
     });
-  
-    // describe('_dense', function () {
-    //   it('should compute x * kernel + bias correctly using addWeight', async function () {
-    //     const x = tf.tensor2d([[1, 2]], [1, 2]);
-    //     const kernel = csa.addWeight(
-    //       'dense_test_kernel',
-    //       [2, 2],
-    //       'float32',
-    //       tf.initializers.constant({ value: [[1, 0], [0, 1]] })
-    //     ) as tf.layers.LayerVariable;
-    //     const bias = csa.addWeight(
-    //       'dense_test_bias',
-    //       [2],
-    //       'float32',
-    //       tf.initializers.constant({ value: [0.5, -0.5] })
-    //     ) as tf.layers.LayerVariable;
-  
-    //     const output = csa._dense(x, kernel, bias);
-    //     const outData = await output.data();
-    //     // Expected calculation:
-    //     // [1,2] dot [[1,0],[0,1]] = [1,2] and then add bias [0.5, -0.5] gives [1.5, 1.5]
-    //     expect(Array.from(outData)).to.deep.equal([1.5, 1.5]);
-    //   });
-    // });
+
   
     describe('splitHeads', function () {
       it('should reshape and transpose the input correctly', function () {
@@ -226,7 +193,7 @@ describe('GPT Layers', function () {
         const T = 6;
         const totalChannels = config.nEmbd; // 8 channels
         // input tensor with shape [B, T, totalChannels]
-        const input = tf.tensor3d(new Array(B * T * totalChannels).fill(1), [B, T, totalChannels]);
+        const input = tf.ones([B, T, totalChannels]);
         const output = csa.splitHeads(input, B, T, config.nHead);
         // expected shape: [B, nHead, T, totalChannels/nHead] = [2, 2, 6, 4]
         expect(output.shape).to.deep.equal([B, config.nHead, T, totalChannels / config.nHead]);
@@ -241,12 +208,16 @@ describe('GPT Layers', function () {
         const masked = csa.applyCausalMask(att, T);
         const data = await masked.data();
         // for each position (i,j): if j > i expect -1e9 else 0
-        const expected: number[] = [];
-        for (let i = 0; i < T; i++) {
-          for (let j = 0; j < T; j++) {
-            expected.push(j > i ? -1e9 : 0);
-          }
-        }
+        const expected = [  
+          [0, 1, 1, 1, 1],  
+          [0, 0, 1, 1, 1],  
+          [0, 0, 0, 1, 1],  
+          [0, 0, 0, 0, 1],  
+          [0, 0, 0, 0, 0],  
+        ]
+          .flat()
+          .map((v) => (v === 0 ? 0 : -1e9));
+        
         expect(Array.from(data)).to.deep.equal(expected);
       });
     });
@@ -263,46 +234,11 @@ describe('GPT Layers', function () {
         // expected shape: [B, nHead, T, T]
         expect(att.shape).to.deep.equal([B, nHead, T, T]);
         // check that each row of the attention logits (last dimension) sums to approximately 1
-        const attData = await att.data();
-        const attArray = Array.from(attData);
-        for (let b = 0; b < B; b++) {
-          for (let h = 0; h < nHead; h++) {
-            for (let i = 0; i < T; i++) {
-              // calculate the starting index for the i-th row in the flattened tensor
-              const rowStart = b * nHead * T * T + h * T * T + i * T;
-              const row = attArray.slice(rowStart, rowStart + T);
-              const rowSum = row.reduce((sum, val) => sum + val, 0);
-              expect(rowSum).to.be.closeTo(1, 1e-3);
-            }
-          }
+        for (const rowSum of await att.sum(-1).data()) {
+          expect(rowSum).to.be.closeTo(1, 1e-3);
         }
       });
     });
-  
-    // describe('_projectOutput', function () {
-    //   it('should project the input correctly using dense operation with addWeight', async function () {
-    //     const x = tf.tensor2d([[1, 2, 3]], [1, 3]);
-    //     const projKernel = csa.addWeight(
-    //       'project_test_kernel',
-    //       [3, 2],
-    //       'float32',
-    //       tf.initializers.constant({ value: [[1, 0], [0, 1], [1, -1]] })
-    //     ) as tf.layers.LayerVariable;
-    //     const projBias = csa.addWeight(
-    //       'project_test_bias',
-    //       [2],
-    //       'float32',
-    //       tf.initializers.constant({ value: [0.5, 0.5] })
-    //     ) as tf.layers.LayerVariable;
-  
-    //     const output = csa._projectOutput(x, projKernel, projBias);
-    //     const data = await output.data();
-    //     // Calculation:
-    //     // [1,2,3] dot kernel = [1*1+2*0+3*1, 1*0+2*1+3*(-1)] = [4, -1]
-    //     // Then add bias [0.5, 0.5] = [4.5, -0.5]
-    //     expect(Array.from(data)).to.deep.equal([4.5, -0.5]);
-    //   });
-    // });
   });
   
 });

@@ -162,9 +162,7 @@ export class CausalSelfAttention extends tf.layers.Layer {
       }
       this.invokeCallHook(input, kwargs);
 
-      // --- Use helper methods below to build the computation ---
-      // const dense = this._dense.bind(this);
-      
+      // --- Use helper methods below to build the computation ---     
       // Apply attention weights to inputs as one big matrix which is then split into the
       // query, key and value submatrices
       // nHead is "number of heads", hs is "head size", and C (number of channels) = n_embd = nHead * hs
@@ -175,8 +173,6 @@ export class CausalSelfAttention extends tf.layers.Layer {
       // Follow naming conventions in https://github.com/karpathy/build-nanogpt/
       const [B, T, C] = k.shape; // batch size, sequence length, embedding dimensionality (number of channels)
       
-      // if (T === undefined) throw new Error('unexpected shape'); // Ensure T is defined
-
       // Split into attention heads.
       q = this.splitHeads(q, B, T, this.nHead);
       k = this.splitHeads(k, B, T, this.nHead);
@@ -248,158 +244,6 @@ export class CausalSelfAttention extends tf.layers.Layer {
 }
 tf.serialization.registerClass(CausalSelfAttention);
 
-// class CausalSelfAttention extends tf.layers.Layer {
-//   static readonly className = 'CausalSelfAttention'
-
-//   private readonly nHead: number
-//   private readonly nEmbd: number
-//   private readonly nLayer: number
-//   private readonly dropout: number
-//   private readonly seed: number
-//   private readonly mask: tf.Tensor2D
-//   cAttnKernel?: tf.LayerVariable
-//   cAttnBias?: tf.LayerVariable
-//   cProjKernel?: tf.LayerVariable
-//   cProjBias?: tf.LayerVariable
-
-//   constructor (private readonly config: CausalSelfAttentionConfig) {
-//     super(config)
-//     if (config.nEmbd % config.nHead !== 0)
-//       throw new Error('The embedding dimension `nEmbd` must be divisible by the number of attention heads `nHead`')
-
-//     this.nEmbd = config.nEmbd
-//     this.nHead = config.nHead
-//     this.nLayer = config.nLayer
-//     this.dropout = config.dropout
-//     this.seed = config.seed
-
-//     // mask is a lower triangular matrix filled with 1
-//     // calling bandPart zero out the upper triangular part of the all-ones matrix
-//     // from the doc: tf.linalg.band_part(input, -1, 0) ==> Lower triangular part
-//     this.mask = tf.linalg.bandPart(tf.ones([config.contextLength, config.contextLength]), -1, 0)
-//   }
-
-//   override build (): void {
-//     // key, query, value projections for all heads, but in a batch
-//     this.cAttnKernel = this.addWeight(
-//       'c_attn.weight',
-//       [this.nEmbd, 3 * this.nEmbd],
-//       'float32',
-//       tf.initializers.randomNormal({ mean:0, stddev:0.02, seed: this.seed }) // use same init as GPT2
-//     )
-//     this.cAttnBias = this.addWeight(
-//       'c_attn.bias',
-//       [3 * this.nEmbd],
-//       'float32',
-//       tf.initializers.zeros()
-//     )
-//     // output projection
-//     this.cProjKernel = this.addWeight(
-//       'c_proj.kernel',
-//       [this.nEmbd, this.nEmbd],
-//       'float32',
-//       // the input keeps accumulating through the residual stream so we
-//       // scale the initialization with the nb of layers to keep a unit std
-//       // Sources:
-//       // https://github.com/karpathy/build-nanogpt/blob/6104ab1b53920f6e2159749676073ff7d815c1fa/train_gpt2.py#L103
-//       // https://youtu.be/l8pRSuU81PU?si=5GcKfi_kPgLgvtg2&t=4640
-//       tf.initializers.randomNormal({
-//         mean: 0, stddev: 0.02 * Math.sqrt(2 * this.nLayer), seed: this.seed
-//       })
-//     )
-//     this.cProjBias = this.addWeight(
-//       'c_proj.bias',
-//       [this.nEmbd],
-//       'float32',
-//       tf.initializers.zeros()
-//     )
-//   }
-
-//   override computeOutputShape (inputShape: tf.Shape | tf.Shape[]): tf.Shape | tf.Shape[] {
-//     return inputShape
-//   }
-
-//   override getConfig (): tf.serialization.ConfigDict {
-//     const config = super.getConfig()
-//     return Object.assign({}, config, this.config)
-//   }
-
-//   override call (input: tf.Tensor | tf.Tensor[], kwargs: Record<string, unknown>): tf.Tensor | tf.Tensor[] {
-//     return tf.tidy(() => {
-//       if (this.cAttnKernel === undefined ||
-//         this.cAttnBias === undefined ||
-//         this.cProjKernel === undefined ||
-//         this.cProjBias === undefined
-//       ) { throw new Error('not built') }
-
-//       if (Array.isArray(input)) {
-//         if (input.length !== 1) throw new Error('expected exactly one tensor')
-//         input = input[0]
-//       }
-//       this.invokeCallHook(input, kwargs)
-
-//       const dense = (x: tf.Tensor, kernel: tf.LayerVariable, bias: tf.LayerVariable): tf.Tensor => {
-//         // TODO: use broadcasting when tfjs will support backpropagating through broadcasting
-//         const k = kernel.read().expandDims(0).tile([x.shape[0], 1, 1])
-//         const m = x.matMul(k)
-//         return tf.add(m, bias.read())
-//       }
-//       // Apply attention weights to inputs as one big matrix which is then split into the
-//       // query, key and value submatrices
-//       // nHead is "number of heads", hs is "head size", and C (number of channels) = n_embd = nHead * hs
-//       // e.g. in GPT-2 (124M), nHead = 12, hs = 64, so nHead * hs = C = 768 channels in the Transformer
-//       const cAttn = dense(input, this.cAttnKernel, this.cAttnBias)
-//       let [q, k, v] = tf.split(cAttn, 3, -1) as [tf.Tensor, tf.Tensor, tf.Tensor]
-//       // Follow naming conventions in https://github.com/karpathy/build-nanogpt/
-//       const [B, T, C] = k.shape // batch size, sequence length, embedding dimensionality (number of channels)
-
-//       const splitHeads = (x: tf.Tensor): tf.Tensor =>
-//         tf.transpose(
-//           tf.reshape(x, [B, T, this.nHead, C / this.nHead]), // (B, T, nHead, head size)
-//           [0, 2, 1, 3] // (B, nHead, T, hs)
-//         )
-
-//       q = splitHeads(q) // (B, nHead, T, hs)
-//       k = splitHeads(k) // (B, nHead, T, hs)
-//       v = splitHeads(v) // (B, nHead, T, hs)
-
-//       // Scaled self attention: query @ key / sqrt(hs)
-//       // Matrix representing the token-to-token attention (B, nHead, T, T)
-//       let att = tf.mul(
-//         tf.matMul(q, k, false, true), // (B, nHead, T, hs) x (B, nHead, hs, T) -> (B, nHead, T, T)
-//         tf.div(1, tf.sqrt(tf.cast(k.shape[k.shape.length - 1], 'float32'))) // 1 / sqrt(hs)
-//       )
-//       /**
-//        * The next operations apply attention only on the past tokens, which is
-//        * essentially a weighted average of the past tokens with complicated weights,
-//        * it relies on a mask to not "pay any attention" to future tokens
-//        */ 
-//       // mask is lower triangular matrix filled with 1
-//       const mask = this.mask.slice([0, 0], [T, T]) // (T, T)
-//       // 1 - mask                   => upper triangular matrix filled with 1
-//       // (1 - mask) * -10^9         => upper triangular matrix filled with -inf
-//       // att + ((1 - mask) * -10^9) => lower triangular part is the same as the `att` matrix
-//       //                               upper triangular part is -inf
-//       att = tf.add(att, tf.mul(tf.sub(1, mask), -1e9)) // (B, nHead, T, T)
-//       // applying softmax zeroes out the upper triangular part (softmax(-inf) = 0)
-//       // i.e., zeroes out future tokens's attention weights
-//       // and creates a probability distribution for the lower triangular
-//       // (attention weights of past tokens). The probability distribution ensures
-//       // that the attention weights of past tokens for a particular token sum to one
-//       att = tf.softmax(att, -1)
-//       att = kwargs.training === true ? tf.dropout(att, this.dropout, undefined, this.seed) : att
-
-//       // This is where the (attention-)weighted sum of past values is performed
-//       let y = tf.matMul(att, v) // (B, nHead, T, T) x (B, nHead, T, hs) -> (B, nHead, T, hs)
-//       y = tf.transpose(y, [0, 2, 1, 3]) // (B, T, nHead, hs)
-//       y = tf.reshape(y, [B, T, C]) // (B, T, C = nHead * hs)
-//       y = dense(y, this.cProjKernel, this.cProjBias) // output projection (B, T, C)
-//       y = kwargs.training === true ? tf.dropout(y, this.dropout, undefined, this.seed) : y
-//       return y
-//     })
-//   }
-// }
-// tf.serialization.registerClass(CausalSelfAttention)
 
 /**
  * GELU with tanh approximate
