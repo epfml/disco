@@ -41,7 +41,7 @@ An extensive list can be found below:
 In this section, we will define `vue` components that can be reused by the rest of the platform using :
 
 1. style templates ([Simple directory](#simple-directory))
-2. layout templates ([Container directory](container-directory))
+2. layout templates ([Container directory](#container-directory))
 
 Both approaches are described in the following sections.
 
