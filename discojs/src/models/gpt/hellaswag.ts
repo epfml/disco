@@ -1,19 +1,35 @@
 import fs from 'fs';
+import { promises as fsPromises } from 'fs';
 import fetch from 'node-fetch';
 import * as tf from '@tensorflow/tfjs';
 import { GPT } from './index.js';
 import { tokenize } from '../../processing/text.js';
 import { PreTrainedTokenizer } from '@xenova/transformers';
 import * as readline from 'readline';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
 
 const HELLASWAG_URL = 'https://raw.githubusercontent.com/rowanz/hellaswag/master/data/hellaswag_val.jsonl';
-const LOCAL_FILE = './hellaswag_val.jsonl';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const LOCAL_FILE = path.resolve(__dirname, '../../../../datasets/hellaswag_val.jsonl');
 
-async function downloadHellaSwag(): Promise<void> {
-  if (fs.existsSync(LOCAL_FILE)) return;
+async function fileExists(path: string): Promise<boolean> {
+  try {
+    await fsPromises.access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function downloadHellaSwag(): Promise<void> {
+  if (await fileExists(LOCAL_FILE)) return;
+
   const res = await fetch(HELLASWAG_URL);
   const fileStream = fs.createWriteStream(LOCAL_FILE);
+
   await new Promise<void>((resolve, reject) => {
     res.body?.pipe(fileStream);
     res.body?.on('error', reject);
