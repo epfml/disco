@@ -8,6 +8,8 @@ import { PreTrainedTokenizer } from '@xenova/transformers';
 import * as readline from 'readline';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import { List } from 'immutable';
+import { ONNXModel } from '../onnx.js';
 
 
 const HELLASWAG_URL = 'https://raw.githubusercontent.com/rowanz/hellaswag/master/data/hellaswag_val.jsonl';
@@ -44,7 +46,7 @@ interface HellaSwagExample {
   label: number;
 }
 
-async function* loadExamples(limit = 100): AsyncGenerator<HellaSwagExample> {
+export async function* loadExamples(limit = 100): AsyncGenerator<HellaSwagExample> {
   const fileStream = fs.createReadStream(LOCAL_FILE, 'utf-8');
   const rl = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
 
@@ -55,7 +57,7 @@ async function* loadExamples(limit = 100): AsyncGenerator<HellaSwagExample> {
       const data = JSON.parse(line.trim());
       yield { ctx: data.ctx, endings: data.endings, label: data.label };
     } catch (e) {
-      console.error(`❌ Failed to parse line ${count}:`, line);
+      console.error(`Failed to parse line ${count}:`, line);
       throw e;
     }
   }
@@ -77,30 +79,91 @@ async function computeLogLikelihood(gpt: GPT, inputIds: number[], ctxLength: num
   });
 }
 
-export async function evaluate(gpt: GPT, tokenizer: PreTrainedTokenizer): Promise<number> {
+async function computeONNXLogLikelihood(model: ONNXModel, inputIds: number[], ctxLength: number): Promise<number> {
+  const batchInput = List([List(inputIds)]); // [1, seq_len]
+
+  const logitsTensor = await model.getLogits(batchInput);
+  const logits = logitsTensor.data as number[]; // flattened
+  const [B, T, V] = logitsTensor.dims;
+
+  const reshaped: number[][] = Array.from({ length: T }, (_, t) =>
+    logits.slice(t * V, (t + 1) * V)
+  );
+
+  const targets = inputIds.slice(1);
+  const logitsShifted = reshaped.slice(0, T - 1);
+
+  const losses = logitsShifted.map((logit, i) => {
+    const maxLogit = Math.max(...logit);
+    const exp = logit.map(x => Math.exp(x - maxLogit));
+    const sumExp = exp.reduce((a, b) => a + b, 0);
+    const probs = exp.map(e => e / sumExp);
+    return -Math.log(probs[targets[i]]);
+  });
+
+  const mask = inputIds.map((_, i) => (i >= ctxLength ? 1 : 0)).slice(1);
+  const maskedLosses = losses.map((l, i) => l * mask[i]);
+
+  const totalLoss = maskedLosses.reduce((a, b) => a + b, 0);
+  const sum = mask.reduce((a, b) => a + b, 0 as number);
+
+  return totalLoss / (sum || 1);
+}
+
+
+type Tokenizer = PreTrainedTokenizer;
+type ModelType = GPT | ONNXModel;
+
+export async function evaluate(
+  model: ModelType,
+  tokenizer: Tokenizer,
+  limit = 50
+): Promise<number> {
   await downloadHellaSwag();
 
   let correct = 0;
   let total = 0;
 
-  for await (const example of loadExamples()) {
+  for await (const example of loadExamples(limit)) {
     const ctxTokens = tokenize(tokenizer, example.ctx).toArray();
-    const endingTokens = example.endings.map(e => tokenize(tokenizer, ' ' + e).toArray());
-    const losses = await Promise.all(endingTokens.map(e => computeLogLikelihood(gpt, ctxTokens.concat(e), ctxTokens.length)));
-    const pred = losses.indexOf(Math.min(...losses));
+    const endingTokens = example.endings.map(e =>
+      tokenize(tokenizer, ' ' + e).toArray()
+    );
 
+    let losses: number[] = [];
+
+    if (model instanceof GPT) {
+      losses = await Promise.all(
+        endingTokens.map(e =>
+          computeLogLikelihood(model, ctxTokens.concat(e), ctxTokens.length)
+        )
+      );
+    } else {
+      // Assuming model is ONNXModel
+      // Use computeONNXLogLikelihood for ONNXModel
+      losses = await Promise.all(
+        endingTokens.map(e =>
+          computeONNXLogLikelihood(model, ctxTokens.concat(e), ctxTokens.length)
+        )
+      );
+      
+    }
+
+    const pred = losses.indexOf(Math.min(...losses));
     if (pred === example.label) correct++;
     total++;
 
-    if (total <= 10) {
+    if (total <= 50) {
       console.log(`\nExample #${total}`);
       console.log(`Context: ${example.ctx}`);
       example.endings.forEach((end, i) => {
-        console.log(`  ${i}: ${end}  (loss: ${losses[i].toFixed(4)})${i === example.label ? ' <-- correct' : ''}${i === pred ? ' <-- picked' : ''}`);
+        console.log(
+          `  ${i}: ${end}  (loss: ${losses[i].toFixed(4)})${i === example.label ? ' <-- correct' : ''}${i === pred ? ' <-- picked' : ''}`
+        );
       });
     }
   }
-  
+
   const accuracy = correct / total;
   console.log(`\nFinal accuracy on ${total} examples: ${(accuracy * 100).toFixed(2)}%`);
   return accuracy;
