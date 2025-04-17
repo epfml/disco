@@ -64,7 +64,7 @@ export async function* loadExamples(limit = 100): AsyncGenerator<HellaSwagExampl
 }
 
 async function computeLogLikelihood(gpt: GPT, inputIds: number[], ctxLength: number): Promise<number> {
-  return tf.tidy(() => {
+  const lossTensor =  tf.tidy(() => {
     const inputTensor = tf.tensor2d([inputIds], [1, inputIds.length], 'int32');
     const logits3D = gpt.extract().predict(inputTensor) as tf.Tensor3D; // [1, seq_len, vocab_size]
     const shiftedLogits = logits3D.slice([0, 0, 0], [1, inputIds.length - 1, -1]);
@@ -75,8 +75,13 @@ async function computeLogLikelihood(gpt: GPT, inputIds: number[], ctxLength: num
     const mask = tf.tensor1d(inputIds.map((_, i) => (i >= ctxLength ? 1 : 0)), 'float32').slice(1);
     const masked = logProbs.mul(mask);
     const loss = masked.sum().div(mask.sum());
-    return loss.arraySync() as number;
+    return loss;
   });
+  const lossNumber = await lossTensor.array();
+  if (typeof lossNumber !== 'number') {
+    throw new Error('got multiple loss')
+  }
+  return lossNumber;
 }
 
 async function computeONNXLogLikelihood(model: ONNXModel, inputIds: number[], ctxLength: number): Promise<number> {
