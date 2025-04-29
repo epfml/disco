@@ -3,28 +3,10 @@ import { expect } from "chai";
 import { tokenize } from "./text.js";
 import { AutoTokenizer } from "@xenova/transformers";
 import { Repeat } from "immutable";
-import { PreTrainedTokenizer } from "@xenova/transformers";
-
 
 interface TokenizerOutput {
   input_ids: number[];
 }
-
-/**
- * Encodes the text into token IDs and then decodes them back to text
- * Special tokens are skipped during decoding
- *
- * @param tokenizer - An instance of a PreTrainedTokenizer
- * @param text - The text to process
- * @returns The decoded text obtained after encoding and then decoding
- */
-export function encodeDecode(tokenizer: PreTrainedTokenizer, text: string): string {
-  // Encode the text using the tokenizer.
-  const encoding = tokenizer(text, { return_tensor: false }) as TokenizerOutput;
-  // Decode the token IDs back into text while skipping special tokens.
-  return tokenizer.decode(encoding.input_ids, { skip_special_tokens: true });
-}
-
 
 describe("text processing", () => {
   const text = [
@@ -139,15 +121,18 @@ describe("Multi-Tokenizer Tests", function () {
 describe("Encode-Decode tokenization", function () {
   this.timeout(20000);
 
-  it("should return text close to the original after encode-decode tokenization using GPT2 tokenizer", async function () {
+  it("should return text equal to the original after encode-decode tokenization using GPT2 tokenizer", async function () {
     // Load the GPT2 tokenizer
     const tokenizer = await AutoTokenizer.from_pretrained("Xenova/gpt2");
     const originalText = "Hello, world! This is a test for encode-decode tokenization.";
     
     // Perform round-trip tokenization
-    const decodedText = encodeDecode(tokenizer, originalText);
+    const encoding = tokenizer(originalText, { return_tensor: false }) as TokenizerOutput;
+
+    // Decode the token IDs back into text while skipping special tokens.
+    const decodedText = tokenizer.decode(encoding.input_ids, { skip_special_tokens: true });
     
-    // Check that the decoded text is almost equal to the original text
+    // Check that the decoded text is equal to the original text
     expect(decodedText).to.equal(originalText);
   });
 });
