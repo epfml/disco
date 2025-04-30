@@ -42,7 +42,7 @@ export class ByzantineRobustAggregator extends Aggregator {
      * If 0 then only accept contributions from the current round, 
      * if 1 then the current round and the previous one, etc.
      */
-    constructor(roundCutoff = 0, threshold = 1, thresholdType?: ThresholdType, clippingRadius: number = 1.0, maxIterations: number = 10) {
+    constructor(roundCutoff = 0, threshold = 1, thresholdType?: ThresholdType, clippingRadius = 1.0, maxIterations = 10) {
 
         if (threshold <= 0) throw new Error("threshold must be strictly positive");
         if (threshold > 1 && (!Number.isInteger(threshold)))
@@ -113,13 +113,13 @@ export class ByzantineRobustAggregator extends Aggregator {
 
         // Apply worker-side momentum
 
-        const prevMomentum: WeightsContainer = this.contributions.getIn([0, nodeId]) as WeightsContainer;
+        const prevMomentum = this.contributions.getIn([0, nodeId]) as WeightsContainer | undefined;
         let momentum: WeightsContainer;
 
         if (prevMomentum) {
             // m_t = (1 - beta) * grad + beta * m_{t-1}
-            momentum = contribution.map((g, i) =>
-                g.mul(1 - beta).add(prevMomentum.weights[i].mul(beta))
+            momentum = contribution.mapWith(prevMomentum, (g, prev) =>
+                g.mul(1 - beta).add(prev.mul(beta))
             );
         } else {
             momentum = contribution.map(g => g.mul(1 - beta));
