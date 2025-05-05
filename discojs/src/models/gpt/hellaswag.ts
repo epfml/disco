@@ -158,7 +158,7 @@ export async function evaluate(
     if (pred === example.label) correct++;
     total++;
 
-    if (total <= 50) {
+    if (total < 5) {
       console.log(`\nExample #${total}`);
       console.log(`Context: ${example.ctx}`);
       example.endings.forEach((end, i) => {
@@ -166,6 +166,8 @@ export async function evaluate(
           `  ${i}: ${end}  (loss: ${losses[i].toFixed(4)})${i === example.label ? ' <-- correct' : ''}${i === pred ? ' <-- picked' : ''}`
         );
       });
+      const accuracy_temp = correct / total;
+      console.log(`\n Accuracy on ${total} examples: ${(accuracy_temp * 100).toFixed(2)}%`);
     }
   }
 

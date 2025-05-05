@@ -20,7 +20,10 @@ export class ONNXModel extends Model<'text'> {
     return new ONNXModel(model);
   }
 
-  
+  getConfig(): any {
+    return this.model.config;
+  } 
+
   async predict(batch: List<List<number>>): Promise<List<number>> {
     const input_ids_array: number[][] = batch.toArray().map(seq => seq.toArray());
   
