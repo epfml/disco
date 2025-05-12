@@ -54,7 +54,7 @@ export async function* loadExamples(limit = 100): AsyncGenerator<HellaSwagExampl
   for await (const line of rl) {
     if (count++ >= limit) break;
     try {
-      const data = JSON.parse(line.trim());
+      const data = JSON.parse(line.trim()) as HellaSwagExample;
       yield { ctx: data.ctx, endings: data.endings, label: data.label };
     } catch (e) {
       console.error(`Failed to parse line ${count}:`, line);
@@ -89,7 +89,7 @@ async function computeONNXLogLikelihood(model: ONNXModel, inputIds: number[], ct
 
   const logitsTensor = await model.getLogits(batchInput);
   const logits = logitsTensor.data as number[]; // flattened
-  const [B, T, V] = logitsTensor.dims;
+  const [_B, T, V] = logitsTensor.dims;
 
   const reshaped: number[][] = Array.from({ length: T }, (_, t) =>
     logits.slice(t * V, (t + 1) * V)
