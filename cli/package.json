@@ -8,6 +8,7 @@
     "start": "npm run build && node dist/cli.js",
     "benchmark_gpt": "npm run build && node dist/benchmark_gpt.js",
     "train_gpt": "npm run build && node dist/train_gpt.js",
+    "hellaswag_gpt": "npm run build && node dist/hellaswag_gpt.js",
     "build": "tsc",
     "lint": "npx eslint .",
     "test": ": nothing"
