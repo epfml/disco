@@ -8,7 +8,7 @@ async function evaluateTFJS(tokenizer: PreTrainedTokenizer) {
     log('Evaluating TFJS GPT on HellaSwag...');
     console.time('TFJS GPT Evaluation Time');
 
-    const accuracy = await models.evaluate(model, tokenizer);
+    const accuracy = await models.evaluate_hellaswag(model, tokenizer);
 
     console.timeEnd('TFJS GPT Evaluation Time');
     log(`TFJS GPT Accuracy: ${(accuracy * 100).toFixed(2)}%`);
@@ -19,7 +19,7 @@ async function evaluateXenova(tokenizer: PreTrainedTokenizer) {
     log('Evaluating Xenova GPT-2 (ONNX) on HellaSwag...');
     console.time('Xenova GPT-2 Evaluation Time');
 
-    const accuracy = await models.evaluate(model, tokenizer);
+    const accuracy = await models.evaluate_hellaswag(model, tokenizer);
 
     console.timeEnd('Xenova GPT-2 Evaluation Time');
     log(`Xenova GPT-2 Accuracy: ${(accuracy * 100).toFixed(2)}%`);

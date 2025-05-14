@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import { evaluate } from './hellaswag.js';
 import { PreTrainedTokenizer } from '@xenova/transformers';
-import { GPT } from '../index.js';
-import { ONNXModel } from '../onnx.js';
+import { GPT } from './index.js';
+import { ONNXModel } from './onnx.js';
 
 describe('HellaSwag Evaluator', () => {
   it('evaluates tfjs GPT model', async () => {

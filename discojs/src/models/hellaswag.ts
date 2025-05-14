@@ -2,14 +2,14 @@ import fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import fetch from 'node-fetch';
 import * as tf from '@tensorflow/tfjs';
-import { GPT } from './index.js';
-import { tokenize } from '../../processing/text.js';
+import { GPT } from './gpt/index.js';
+import { tokenize } from '../processing/text.js';
 import { PreTrainedTokenizer } from '@xenova/transformers';
 import * as readline from 'readline';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { List } from 'immutable';
-import { ONNXModel } from '../onnx.js';
+import { ONNXModel } from './onnx.js';
 
 
 const HELLASWAG_URL = 'https://raw.githubusercontent.com/rowanz/hellaswag/master/data/hellaswag_val.jsonl';
