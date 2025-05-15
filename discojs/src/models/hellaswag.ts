@@ -1,4 +1,3 @@
-import fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import fetch from 'node-fetch';
 import * as tf from '@tensorflow/tfjs';
@@ -8,6 +7,7 @@ import { PreTrainedTokenizer } from '@xenova/transformers';
 import * as readline from 'readline';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import fs from 'fs';
 import { List } from 'immutable';
 import { ONNXModel } from './onnx.js';
 
@@ -15,11 +15,12 @@ import { ONNXModel } from './onnx.js';
 const HELLASWAG_URL = 'https://raw.githubusercontent.com/rowanz/hellaswag/master/data/hellaswag_val.jsonl';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const LOCAL_FILE = path.resolve(__dirname, '../../../../datasets/hellaswag_val.jsonl');
+const LOCAL_FILE = path.resolve(__dirname, '../../../datasets/hellaswag_val.jsonl');
 
-async function fileExists(path: string): Promise<boolean> {
+
+async function fileExists(path_: string = LOCAL_FILE): Promise<boolean> {
   try {
-    await fsPromises.access(path);
+    await fsPromises.access(path_);
     return true;
   } catch {
     return false;
@@ -27,11 +28,11 @@ async function fileExists(path: string): Promise<boolean> {
 }
 
 // Download the HellaSwag dataset if it doesn't exist locally
-async function downloadHellaSwag(): Promise<void> {
-  if (await fileExists(LOCAL_FILE)) return;
+async function downloadHellaSwag(path_: string = LOCAL_FILE): Promise<void> {
+  if (await fileExists(path_)) return;
 
   const res = await fetch(HELLASWAG_URL);
-  const fileStream = fs.createWriteStream(LOCAL_FILE);
+  const fileStream = fs.createWriteStream(path_);
 
   await new Promise<void>((resolve, reject) => {
     res.body?.pipe(fileStream);
@@ -54,15 +55,11 @@ interface HellaSwagExample {
   label: number;
 }
 
-async function* loadExamples(limit = 100, loadAll = false): AsyncGenerator<HellaSwagExample> {
+async function* loadExamples(limit = 100): AsyncGenerator<HellaSwagExample> {
+  
   // Read the dataset line by line
   const fileStream = fs.createReadStream(LOCAL_FILE, 'utf-8');
   const rl = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
-
-  // If loadAll is true, override the limit to include all dataset entries
-  if (loadAll) {
-    limit = 10042; // Total number of examples in HellaSwag validation set
-  }
 
   let count = 0;
   for await (const line of rl) {
@@ -183,20 +180,20 @@ type ModelType = GPT | ONNXModel;
 export async function evaluate(
   model: ModelType,
   tokenizer: Tokenizer,
-  limit = 50,
-  print = true 
+  limit = 50, // Number of examples to evaluate on (set to 10042 for all examples)
+  print = true,
+  dataset_path: string = LOCAL_FILE
 ): Promise<number> {
-  await downloadHellaSwag();
+  await downloadHellaSwag(dataset_path);
 
   let correct = 0;
   let total = 0;
 
   for await (const example of loadExamples(limit)) {
-    const ctxTokens = tokenize(tokenizer, example.ctx).toArray();
+    const ctxTokens = tokenize(tokenizer, example.ctx, {truncation: true, max_length: 128}).toArray();
     const endingTokens = example.endings.map(e =>
-      tokenize(tokenizer, ' ' + e).toArray()
+      tokenize(tokenizer, ' ' + e, {truncation: true, max_length: 128}).toArray()
     );
-
     let losses: number[] = [];
 
     if (model instanceof GPT) {
@@ -222,7 +219,7 @@ export async function evaluate(
 
     // Print the results 
     if (print) {
-      if (total < limit) {
+      // if (total < limit) {
         console.log(`\nExample #${total}`);
         console.log(`Context: ${example.ctx}`);
         example.endings.forEach((end, i) => {
@@ -232,7 +229,7 @@ export async function evaluate(
         });
         const accuracy_temp = correct / total;
         console.log(`\n Accuracy on ${total} examples: ${(accuracy_temp * 100).toFixed(2)}%`);
-      }
+      // }
     }
   }
 
