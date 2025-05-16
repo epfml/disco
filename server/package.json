@@ -8,7 +8,7 @@
     "start": "npm run build && node dist/main.js",
     "build": "tsc",
     "lint": "npx eslint .",
-    "test": "mocha"
+    "test": "mocha --exit"
   },
   "author": "",
   "license": "ISC",
