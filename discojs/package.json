@@ -8,7 +8,7 @@
     "watch": "nodemon --ext ts --ignore dist --exec npm run",
     "build": "tsc",
     "lint": "npx eslint .",
-    "test": "mocha"
+    "test": "mocha --exit"
   },
   "repository": {
     "type": "git",
