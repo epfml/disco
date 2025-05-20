@@ -76,6 +76,32 @@ async function* loadExamples(limit = 100): AsyncGenerator<HellaSwagExample> {
   }
 }
 
+
+// DEBUGGING FUNCTION LOADS A SINGLE EXAMPLE
+async function* loadExample(limit = 1, lineNumber?: number): AsyncGenerator<HellaSwagExample> {
+  const fileStream = fs.createReadStream(LOCAL_FILE, 'utf-8');
+  const rl = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
+
+  let count = 0;
+  for await (const line of rl) {
+    if (!line.trim()) continue;
+
+    if (lineNumber !== undefined) {
+      if (count === lineNumber) {
+        const data = JSON.parse(line.trim()) as HellaSwagExample;
+        yield { ctx: data.ctx, endings: data.endings, label: data.label };
+        break; // only one line
+      }
+    } else {
+      if (count >= limit) break;
+      const data = JSON.parse(line.trim()) as HellaSwagExample;
+      yield { ctx: data.ctx, endings: data.endings, label: data.label };
+    }
+
+    count++;
+  }
+}
+
 // Computes the log likelihood of the input sequence using the tfjs model
 // The input sequence is expected to be a concatenation of the context and the ending
 // The function computes the log likelihood of each ending and returns the one with the loss of each ending
@@ -182,54 +208,58 @@ export async function evaluate(
   tokenizer: Tokenizer,
   limit = 50, // Number of examples to evaluate on (set to 10042 for all examples)
   print = true,
-  dataset_path: string = LOCAL_FILE
+  dataset_path: string = LOCAL_FILE,
+  line_number: number = -1
 ): Promise<number> {
   await downloadHellaSwag(dataset_path);
 
   let correct = 0;
   let total = 0;
 
-  for await (const example of loadExamples(limit)) {
-    const ctxTokens = tokenize(tokenizer, example.ctx, {truncation: true, max_length: 128}).toArray();
+for await (const example of loadExamples(limit)) {
     const endingTokens = example.endings.map(e =>
-      tokenize(tokenizer, ' ' + e, {truncation: true, max_length: 128}).toArray()
+      tokenize(tokenizer, example.ctx + ' ' + e, {
+        truncation: true,
+        max_length: 128
+      }).toArray()
     );
+  
+    const ctxTokens = tokenize(tokenizer, example.ctx, {
+      truncation: true,
+      max_length: 128
+    }).toArray();
+  
     let losses: number[] = [];
-
+  
     if (model instanceof GPT) {
       losses = await Promise.all(
         endingTokens.map(e =>
-          computeLogLikelihood(model, ctxTokens.concat(e), ctxTokens.length)
+          computeLogLikelihood(model, e, ctxTokens.length)
         )
       );
     } else {
-      // Assuming model is ONNXModel
-      // Use computeONNXLogLikelihood for ONNXModel
       losses = await Promise.all(
         endingTokens.map(e =>
-          computeONNXLogLikelihood(model, ctxTokens.concat(e), ctxTokens.length)
+          computeONNXLogLikelihood(model, e, ctxTokens.length)
         )
       );
-      
     }
-
+  
     const pred = losses.indexOf(Math.min(...losses));
     if (pred === example.label) correct++;
     total++;
-
+  
     // Print the results 
     if (print) {
-      // if (total < limit) {
-        console.log(`\nExample #${total}`);
-        console.log(`Context: ${example.ctx}`);
-        example.endings.forEach((end, i) => {
-          console.log(
-            `  ${i}: ${end}  (loss: ${losses[i].toFixed(4)})${i === example.label ? ' <-- correct' : ''}${i === pred ? ' <-- picked' : ''}`
-          );
-        });
-        const accuracy_temp = correct / total;
-        console.log(`\n Accuracy on ${total} examples: ${(accuracy_temp * 100).toFixed(2)}%`);
-      // }
+      console.log(`\nExample #${total}`);
+      console.log(`Context: ${example.ctx}`);
+      example.endings.forEach((end, i) => {
+        console.log(
+          `  ${i}: ${end}  (loss: ${losses[i].toFixed(4)})${i === example.label ? ' <-- correct' : ''}${i === pred ? ' <-- picked' : ''}`
+        );
+      });
+      const accuracy_temp = correct / total;
+      console.log(`\n Accuracy on ${total} examples: ${(accuracy_temp * 100).toFixed(2)}%`);
     }
   }
 
