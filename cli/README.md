@@ -52,3 +52,26 @@ CLI options can be listed with `npm -w cli run benchmark_gpt -- -h`.
 To benchmark model training, you can run `npm -w cli run benchmark_gpt -- --modelType gpt-nano --contextLength 128 --batchSize 8`.
 
 For inference run `npm -w cli run benchmark_gpt -- --inference --modelPath <path to trained model json file>`. You can use the `docs/example/wikitext` example script to train a model. The model needs to be trained on the wikitext default task to ensure that model parameters such as vocab size, tokenizer, max sequence length are the same between training and inference.
+
+## Evaluating GPT Models on HellaSwag
+
+The CLI includes a script to evaluate GPT models on the [HellaSwag](https://rowanzellers.com/hellaswag/) dataset, a common benchmark for evaluating commonsense reasoning in language models.
+
+To run the evaluation: `npm run build && node dist/hellaswag_gpt.js`
+
+The script benchmarks the following models:
+- A TensorFlow.js implementation of GPT (`gpt-tfjs`)
+- A pre-trained ONNX model (`Xenova/gpt2`)
+
+Both models are evaluated using a shared tokenizer (`Xenova/gpt2`), and the script reports:
+- Accuracy (proportion of correct multiple-choice predictions)
+- Total evaluation time (in seconds)
+
+### Output
+
+Results are printed to the console and saved to a log file: `../datasets/logFile_hellaswag.txt`
+
+
+This allows for a direct comparison between the inference performance and accuracy of the two architectures.
+
+The TFJS implementation is generally slower and more memory-intensive than ONNX, but offers compatibility with browser-based environments and custom training workflows. See the [Benchmarking GPT-TF.js](#benchmarking-gpt-tfjs) section for more details on performance tradeoffs.
