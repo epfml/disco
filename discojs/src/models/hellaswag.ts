@@ -76,32 +76,6 @@ async function* loadExamples(limit = 100): AsyncGenerator<HellaSwagExample> {
   }
 }
 
-
-// DEBUGGING FUNCTION LOADS A SINGLE EXAMPLE
-async function* loadExample(limit = 1, lineNumber?: number): AsyncGenerator<HellaSwagExample> {
-  const fileStream = fs.createReadStream(LOCAL_FILE, 'utf-8');
-  const rl = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
-
-  let count = 0;
-  for await (const line of rl) {
-    if (!line.trim()) continue;
-
-    if (lineNumber !== undefined) {
-      if (count === lineNumber) {
-        const data = JSON.parse(line.trim()) as HellaSwagExample;
-        yield { ctx: data.ctx, endings: data.endings, label: data.label };
-        break; // only one line
-      }
-    } else {
-      if (count >= limit) break;
-      const data = JSON.parse(line.trim()) as HellaSwagExample;
-      yield { ctx: data.ctx, endings: data.endings, label: data.label };
-    }
-
-    count++;
-  }
-}
-
 // Computes the log likelihood of the input sequence using the tfjs model
 // The input sequence is expected to be a concatenation of the context and the ending
 // The function computes the log likelihood of each ending and returns the one with the loss of each ending
