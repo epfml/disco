@@ -18,7 +18,7 @@ async function evaluateTFJS(tokenizer: PreTrainedTokenizer) {
     log('Evaluating TFJS GPT on HellaSwag...');
 
     const start = Date.now();
-    const accuracy = await models.evaluate_hellaswag(model, tokenizer, 10042, false, hellaswag_path);
+    const accuracy = await models.evaluate_hellaswag(model, tokenizer, -1, false, hellaswag_path);
     const duration = ((Date.now() - start) / 1000).toFixed(2);
 
     log(`TFJS GPT Accuracy: ${(accuracy * 100).toFixed(2)}%`);
@@ -30,7 +30,7 @@ async function evaluateXenova(tokenizer: PreTrainedTokenizer) {
     log('Evaluating Xenova GPT-2 (ONNX) on HellaSwag...');
 
     const start = Date.now();
-    const accuracy = await models.evaluate_hellaswag(model, tokenizer, 10042, false, hellaswag_path);
+    const accuracy = await models.evaluate_hellaswag(model, tokenizer, -1, false, hellaswag_path);
     const duration = ((Date.now() - start) / 1000).toFixed(2);
 
     log(`Xenova GPT-2 Accuracy: ${(accuracy * 100).toFixed(2)}%`);

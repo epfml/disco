@@ -57,7 +57,7 @@ For inference run `npm -w cli run benchmark_gpt -- --inference --modelPath <path
 
 The CLI includes a script to evaluate GPT models on the [HellaSwag](https://rowanzellers.com/hellaswag/) dataset, a common benchmark for evaluating commonsense reasoning in language models.
 
-To run the evaluation: `npm run build && node dist/hellaswag_gpt.js`
+To run the evaluation: `npm -w cli run hellaswag_gpt`
 
 The script benchmarks the following models:
 - A TensorFlow.js implementation of GPT (`gpt-tfjs`)
