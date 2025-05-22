@@ -1,10 +1,11 @@
 import { AutoModelForCausalLM, PreTrainedModel, Tensor } from '@xenova/transformers';
 import { Model } from './index.js';
-import type {
-  WeightsContainer
-} from '../index.js';
+import type { WeightsContainer } from '../index.js';
 import { List } from 'immutable';
-import type { CausalLMOutput, DataArray } from '@xenova/transformers';
+import type { CausalLMOutput} from '@xenova/transformers';
+import type { GenerationConfig as TFJSGenerationConfig } from './gpt/config.js';
+import { DefaultGenerationConfig } from './gpt/config.js';
+import type { Batched, DataFormat } from "../index.js";
 
 
 export class ONNXModel extends Model<'text'> {
@@ -24,55 +25,50 @@ export class ONNXModel extends Model<'text'> {
     return this.model.config as Record<string, unknown>;
   }
 
-
-  async predict(batch: List<List<number>>): Promise<List<number>> {
-    const input_ids_array: number[][] = batch.toArray().map(seq => seq.toArray());
+  override async predict(
+    batch: Batched<DataFormat.ModelEncoded["text"][0]>,
+    options?: Partial<TFJSGenerationConfig>
+  ): Promise<Batched<DataFormat.ModelEncoded["text"][1]>> {
+    const config = Object.assign({}, DefaultGenerationConfig, options);
   
-    // Pad all sequences to same length
-    const maxLen = Math.max(...input_ids_array.map(seq => seq.length));
-    const padded_input_ids = input_ids_array.map(seq =>
-      seq.concat(Array(maxLen - seq.length).fill(0)) // pad with 0s
+    return List(
+      await Promise.all(
+        batch.map(tokens => this.#predictSingle(tokens, config))
+      )
     );
-    const input_shape = [padded_input_ids.length, maxLen];
-  
-    // Create BigInt versions for int64
-    const input_ids_flat = padded_input_ids.flat().map(x => BigInt(x));
-    const input_ids = new Tensor('int64', input_ids_flat, input_shape);
-  
-    const attention_mask_array: number[][] = input_ids_array.map(
-      (seq): number[] => new Array<number>(seq.length).fill(1)
-    );    
-    const attention_mask_flat = attention_mask_array.flat().map(x => BigInt(x));
-    const attention_mask = new Tensor('int64', attention_mask_flat, input_shape);
-  
-    // run model forward
-    const outputs = await this.model.forward({ input_ids, attention_mask }) as CausalLMOutput;
-  
-    // get logits and return predictions
-    const logitsTensor = outputs.logits;
-    const logitsData: DataArray = logitsTensor.data; // note parentheses
-    const [batchSize, seqLen, vocabSize] = logitsTensor.dims;
-    
-    // reshape to [batch][seq][vocab]
-    const logits: number[][][] = [];
-    for (let b = 0; b < batchSize; b++) {
-      const seq: number[][] = [];
-      for (let t = 0; t < seqLen; t++) {
-        const start = b * seqLen * vocabSize + t * vocabSize;
-        const end = start + vocabSize;
-        const tokenLogits = Array.from(logitsData.slice(start, end)) as number[];
-        seq.push(tokenLogits);        
-      }
-      logits.push(seq);
-    }
-
-    const predictions: number[] = logits.map(sequence => {
-      const lastLogits = sequence[sequence.length - 1];
-      return lastLogits.indexOf(Math.max(...lastLogits));
-    });
-    
-    return List(predictions);
   }
+  
+
+  async #predictSingle(
+    tokens: DataFormat.ModelEncoded["text"][0],
+    config: TFJSGenerationConfig
+  ): Promise<DataFormat.ModelEncoded["text"][1]> {
+    const contextLength = (this.model.config as { max_position_embeddings?: number }).max_position_embeddings ?? 1024;
+    const truncated = tokens.slice(-contextLength).toArray();
+  
+    if (truncated.length === 0) {
+      throw new Error('Token list is empty. Cannot run generate().');
+    }
+  
+    const input_ids = new Tensor('int64', truncated.map(BigInt), [1, truncated.length]);
+  
+    const output = await this.model.generate(input_ids, {
+      max_new_tokens: 1,
+      temperature: config.temperature,
+      do_sample: config.doSample,
+      top_k: config.topk,
+    }) as number[][];
+  
+    if (!Array.isArray(output) || output.length === 0 || !Array.isArray(output[0])) {
+      throw new Error('ONNX model.generate() did not return valid sequences.');
+    }   
+  
+    const predicted_id = output[0].at(-1) as number;
+    return Number(predicted_id);
+
+  }
+  
+
 
   async getLogits(batch: List<List<number>>): Promise<Tensor> {
     const input_ids_array: number[][] = batch.toArray().map(seq => seq.toArray());

@@ -55,16 +55,15 @@ interface HellaSwagExample {
   label: number;
 }
 
-async function* loadExamples(limit = 100): AsyncGenerator<HellaSwagExample> {
-  
+async function* loadExamples(limit = -1): AsyncGenerator<HellaSwagExample> {
   // Read the dataset line by line
   const fileStream = fs.createReadStream(LOCAL_FILE, 'utf-8');
   const rl = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
 
   let count = 0;
   for await (const line of rl) {
-    // Stop if the desired number of examples has been reached
-    if (count++ >= limit) break;
+    // If limit is -1, skip the limit check (load the entire dataset)
+    if (limit !== -1 && count++ >= limit) break;
 
     try {
       const data = JSON.parse(line.trim()) as HellaSwagExample;
@@ -180,10 +179,9 @@ type ModelType = GPT | ONNXModel;
 export async function evaluate(
   model: ModelType,
   tokenizer: Tokenizer,
-  limit = 50, // Number of examples to evaluate on (set to 10042 for all examples)
+  limit = -1, // Number of examples to evaluate on (if limit == -1, evaluate on all examples)
   print = true,
   dataset_path: string = LOCAL_FILE,
-  line_number: number = -1
 ): Promise<number> {
   await downloadHellaSwag(dataset_path);
 

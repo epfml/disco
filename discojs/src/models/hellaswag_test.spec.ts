@@ -32,20 +32,8 @@ describe('Deterministic evaluation with tfjs GPT-2', () => {
     const tokenizer = await PreTrainedTokenizer.from_pretrained('Xenova/gpt2');
     const gpt = new GPT({seed: 42,});
 
-    const accuracy1 = await evaluate(gpt, tokenizer, 25);
-    const accuracy2 = await evaluate(gpt, tokenizer, 25);
-
-    expect(accuracy1).to.equal(accuracy2);
-  }).timeout(60000);
-});
-
-describe('Deterministic evaluation with Xenova GPT-2', () => {
-  it('returns the same accuracy across runs', async () => {
-    const tokenizer = await PreTrainedTokenizer.from_pretrained('Xenova/gpt2');
-    const model = await ONNXModel.init_pretrained('Xenova/gpt2');
-
-    const accuracy1 = await evaluate(model, tokenizer, 25, false);
-    const accuracy2 = await evaluate(model, tokenizer, 25, false);
+    const accuracy1 = await evaluate(gpt, tokenizer, 25, false);
+    const accuracy2 = await evaluate(gpt, tokenizer, 25, false);
 
     expect(accuracy1).to.equal(accuracy2);
   }).timeout(60000);
