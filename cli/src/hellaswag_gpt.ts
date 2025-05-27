@@ -6,7 +6,7 @@ import path from 'node:path';
 
 const hellaswag_path = path.join('..', 'datasets', 'hellaswag_val.jsonl');
 const logFile = path.join('..', 'datasets', 'logFile_hellaswag.txt');
-let logLines: string[] = [];
+const logLines: string[] = [];
 
 function log(message: string) {
     console.log(message);
