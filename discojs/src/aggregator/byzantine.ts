@@ -1,185 +1,110 @@
-import createDebug from "debug";
-import { List, Map } from "immutable";
-
-import { AggregationStep, Aggregator } from "./aggregator.js";
-import { WeightsContainer, client } from "../index.js";
+import { Map } from "immutable";
+import * as tf from '@tensorflow/tfjs';
+import { AggregationStep } from "./aggregator.js";
+import { MultiRoundAggregator, ThresholdType } from "./multiround.js";
+import type { WeightsContainer, client } from "../index.js";
 import { aggregation } from "../index.js";
-import * as tf from '@tensorflow/tfjs'
 
-
-const debug = createDebug("discojs:aggregator:mean");
-
-type ThresholdType = 'relative' | 'absolute'
-
-/** 
- * Mean aggregator whose aggregation step consists in computing the mean of the received weights. 
+/**
+ * Byzantine-robust aggregator using Centered Clipping (CC), based on the
+ * "Learning from History for Byzantine Robust Optimization" paper: https://arxiv.org/abs/2012.10333
  * 
+ * This class implements a gradient aggregation rule that clips updates
+ * in an iterative fashion to mitigate the influence of Byzantine nodes, as well as momentum calculations.
  */
-export class ByzantineRobustAggregator extends Aggregator {
-    readonly #threshold: number;
-    readonly #thresholdType: ThresholdType;
-    private readonly clippingRadius: number;
-    private readonly maxIterations: number;
-    #minNbOfParticipants: number | undefined;
-    private momentumHistory: Map<client.NodeID, WeightsContainer> = Map()
+export class ByzantineRobustAggregator extends MultiRoundAggregator {
+  private readonly clippingRadius: number;
+  private readonly maxIterations: number;
+  private readonly beta: number;
+  private momentums: Map<client.NodeID, WeightsContainer> = Map();
 
-    /**
-     * Create a mean aggregator that averages all weight updates received when a specified threshold is met.
-     * By default, initializes an aggregator that waits for 100% of the nodes' contributions and that
-     * only accepts contributions from the current round (drops contributions from previous rounds).
-     * 
-     * @param threshold - how many contributions trigger an aggregation step.
-     * It can be relative (a proportion): 0 < t <= 1, requiring t * |nodes| contributions. 
-     * Important: to specify 100% of the nodes, set `threshold = 1` and `thresholdType = 'relative'`.
-     * It can be an absolute number, if t >=1 (then t has to be an integer), the aggregator waits fot t contributions
-     * Note, to specify waiting for a single contribution (such as a federated client only waiting for the server weight update),
-     * set `threshold = 1` and `thresholdType = 'absolute'`
-     * @param thresholdType 'relative' or 'absolute', defaults to 'relative'. Is only used to clarify the case when threshold = 1, 
-     * If `threshold != 1` then the specified thresholdType is ignored and overwritten
-     * If `thresholdType = 'absolute'` then `threshold = 1` means waiting for 1 contribution
-     * if `thresholdType = 'relative'` then `threshold = 1`` means 100% of this.nodes' contributions, 
-     * @param roundCutoff - from how many past rounds do we still accept contributions. 
-     * If 0 then only accept contributions from the current round, 
-     * if 1 then the current round and the previous one, etc.
-     */
-    constructor(roundCutoff = 0, threshold = 1, thresholdType?: ThresholdType, clippingRadius = 1.0, maxIterations = 10) {
+  /** 
+  @property clippingRadius The clipping threshold (λ) used to limit the influence of outlier updates.
+ *   - Type: `number`
+ *   - Determines the maximum norm allowed for the difference between a client update and the current estimate.
+ *   - Used in the Centered Clipping step to compute a scaling factor for updates.
+ *   - Smaller values clip more aggressively.
+ *   - Default value is 1.0.
+ *
+ * @property maxIterations The number of iterations (L) to run the Centered Clipping update loop.
+ *   - Type: `number`
+ *   - Controls how many refinement steps are used to compute the final aggregate `v`.
+ *   - Default value is 1.
+ * * @property beta The momentum coefficient used to smooth the aggregation over multiple rounds.
+ *   - Type: `number`
+ *   - Must be between 0 and 1.
+ *   - Used to compute the exponential moving average of past aggregates (i.e., momentum vector).
+ *     The update typically looks like: `v_t = beta * v_{t-1} + (1 - beta) * g_t`, where `g_t` is the current clipped average.
+ *   - A higher beta gives more weight to past rounds (more smoothing), while a lower beta makes the aggregator more responsive to new updates.
+ */
 
-        if (threshold <= 0) throw new Error("threshold must be strictly positive");
-        if (threshold > 1 && (!Number.isInteger(threshold)))
-            throw new Error("absolute thresholds must be integral");
 
-        super(roundCutoff, 1);
-        this.#threshold = threshold;
-        this.clippingRadius = clippingRadius
-        this.maxIterations = maxIterations
+  constructor(roundCutoff = 0, threshold = 1, thresholdType?: ThresholdType, clippingRadius = 1.0, maxIterations = 1, beta = 0.9) {
+    super(roundCutoff, threshold, thresholdType);
+    if (clippingRadius <= 0) throw new Error("Clipping radius needs to be positive number > 0.");
+    if (maxIterations < 1) throw new Error("There must be at least one iteration for clipping.");
+    if (!Number.isInteger(maxIterations)) throw new Error("Number of iterations must be intiger value.");
+    if ((beta < 0) || (beta > 1)) throw new Error("Beta must be between 0 and 1, since it is coeficient.");
+    this.clippingRadius = clippingRadius;
+    this.maxIterations = maxIterations;
+    this.beta = beta;
+  }
 
-        if (threshold < 1) {
-            // Throw exception if threshold and thresholdType are conflicting
-            if (thresholdType === 'absolute') {
-                throw new Error(`thresholdType has been set to 'absolute' but choosing threshold=${threshold} implies that thresholdType should be 'relative'.`)
-            }
-            this.#thresholdType = 'relative'
-        }
-        else if (threshold > 1) {
-            // Throw exception if threshold and thresholdType are conflicting
-            if (thresholdType === 'relative') {
-                throw new Error(`thresholdType has been set to 'relative' but choosing threshold=${threshold} implies that thresholdType should be 'absolute'.`)
-            }
-            this.#thresholdType = 'absolute'
-        }
-        // remaining case: threshold == 1
-        else {
-            // Print a warning regarding the default behavior when thresholdType is not specified
-            if (thresholdType === undefined) {
-                // TODO enforce validity by splitting the different threshold types into separate classes instead of warning
-                debug(
-                    "[WARN] Setting the aggregator's threshold to 100% of the nodes' contributions by default. " +
-                    "To instead wait for a single contribution, set thresholdType = 'absolute'"
-                )
-                this.#thresholdType = 'relative'
-            } else {
-                this.#thresholdType = thresholdType
-            }
-        }
+  override _add(nodeId: client.NodeID, contribution: WeightsContainer): void {
+    this.log(
+      this.contributions.hasIn([0, nodeId]) ? AggregationStep.UPDATE : AggregationStep.ADD,
+      nodeId,
+    );
+
+    const prevMomentum = this.momentums.get(nodeId);
+    const momentum = prevMomentum
+      ? contribution.mapWith(prevMomentum, (g, m) => g.mul(1 - this.beta).add(m.mul(this.beta)))
+      : contribution.map(g => g.mul(1 - this.beta));
+
+    this.momentums = this.momentums.set(nodeId, momentum);
+    this.contributions = this.contributions.setIn([0, nodeId], momentum);
+  }
+
+  override aggregate(): WeightsContainer {
+    const currentContributions = this.contributions.get(0);
+    if (!currentContributions) throw new Error("aggregating without any contribution");
+
+    this.log(AggregationStep.AGGREGATE);
+
+    // Step 1: initialize v to average of momentum
+    let v = aggregation.avg(currentContributions.values());
+
+    // Step 2: Iterate Centered Clipping 
+    for (let l = 0; l < this.maxIterations; l++) {
+      const clippedDiffs = Array.from(currentContributions.values()).map(m => {
+        const diff = m.sub(v);
+        const norm = euclideanNorm(diff);
+        const scale = tf.tidy(() => tf.minimum(tf.scalar(1), tf.div(tf.scalar(this.clippingRadius), norm)));
+        return diff.mul(scale);
+      });
+
+      const avgClip = aggregation.avg(clippedDiffs);
+      v = v.add(avgClip.mul(1 / currentContributions.size));
     }
 
-    /** Checks whether the contributions buffer is full. */
-    override isFull(): boolean {
-        // Make sure that we are over the minimum number of participants
-        // if specified
-        if (this.#minNbOfParticipants !== undefined &&
-            this.nodes.size < this.#minNbOfParticipants) return false
+    return v;
+  }
 
-        const thresholdValue =
-            this.#thresholdType == 'relative'
-                ? this.#threshold * this.nodes.size
-                : this.#threshold;
+  override makePayloads(weights: WeightsContainer): Map<client.NodeID, WeightsContainer> {
+    // Communicate our local weights to every other node, be it a peer or a server
+    return this.nodes.toMap().map(() => weights);
+  }
+}
 
-        return (this.contributions.get(0)?.size ?? 0) >= thresholdValue;
+function euclideanNorm(w: WeightsContainer): tf.Scalar {
+  // Computes the Euclidean (L2) norm of all tensors in a WeightsContainer by summing the squares of their elements and taking the square root.
+  return tf.tidy(() => {
+    let sumSquares = tf.scalar(0);
+    for (const tensor of w.weights) {
+      const squared = tf.square(tensor);
+      const summed = tf.sum(squared);
+      sumSquares = tf.add(sumSquares, summed.asScalar());
     }
-
-    set minNbOfParticipants(minNbOfParticipants: number) {
-        this.#minNbOfParticipants = minNbOfParticipants
-    }
-
-    override _add(nodeId: client.NodeID, contribution: WeightsContainer): void {
-
-        this.log(
-            this.contributions.hasIn([0, nodeId]) ? AggregationStep.UPDATE : AggregationStep.ADD,
-            nodeId,
-        );
-
-        const beta: number = 0.9; // Momentum parameter
-
-        // Apply worker-side momentum
-
-        const prevMomentum = this.contributions.getIn([0, nodeId]) as WeightsContainer | undefined;
-        let momentum: WeightsContainer;
-
-        if (prevMomentum) {
-            // m_t = (1 - beta) * grad + beta * m_{t-1}
-            momentum = contribution.mapWith(prevMomentum, (g, prev) =>
-                g.mul(1 - beta).add(prev.mul(beta))
-            );
-        } else {
-            momentum = contribution.map(g => g.mul(1 - beta));
-        }
-
-        this.contributions = this.contributions.setIn([0, nodeId], momentum);
-    }
-
-    override aggregate(): WeightsContainer {
-        const currentContributions = this.contributions.get(0);
-
-        if (currentContributions === undefined)
-            throw new Error("aggregating without any contribution");
-
-        this.log(AggregationStep.AGGREGATE);
-
-        let v = aggregation.avg(currentContributions.values());
-
-        for (let iter = 0; iter < this.maxIterations; iter++) {
-            const updated = currentContributions.map(m => {
-                const diff = m.sub(v)
-                const norm = this.euclideanNorm(diff)
-                const scale = tf.tidy(() =>
-                    tf.minimum(tf.scalar(1), tf.div(tf.scalar(this.clippingRadius), norm))
-                )
-                return diff.mul(scale).add(v)
-            })
-
-            v = aggregation.avg(updated.values());
-        }
-
-        return v
-    }
-
-    private euclideanNorm(w: WeightsContainer): tf.Scalar {
-        return tf.tidy(() => {
-            // Start with a scalar value of 0
-            let sumSquares = tf.scalar(0);
-            
-            // Iterate through weights and accumulate sum of squares
-            for (const tensor of w.weights) {
-                // Square each tensor
-                const squared = tf.square(tensor);
-                
-                // Sum the squared values - convert the result to a scalar
-                const summed = tf.sum(squared);
-                
-                // Ensure we're adding scalars
-                sumSquares = tf.add(sumSquares, summed.asScalar());
-            }
-            
-            // Take the square root to get the norm
-            return tf.sqrt(sumSquares);
-        });
-    }
-
-    override makePayloads(
-        weights: WeightsContainer,
-    ): Map<client.NodeID, WeightsContainer> {
-        // Communicate our local weights to every other node, be it a peer or a server
-        return this.nodes.toMap().map(() => weights);
-    }
+    return tf.sqrt(sumSquares);
+  });
 }
