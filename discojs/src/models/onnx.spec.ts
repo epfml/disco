@@ -13,7 +13,7 @@ describe('ONNXModel.predict', () => {
     // Tokenize input text
     const prompt = 'Disco is the greatest framework for'
     const tokenized = tokenizer(prompt, { return_tensor: false }) as { input_ids: number[] };
-    
+
     // Prepare batch input (List<List<number>>)
     const inputIds = List(tokenized.input_ids);
     const batch = List([inputIds]);
@@ -29,5 +29,9 @@ describe('ONNXModel.predict', () => {
 
     console.log(`Prompt: "${prompt}"`);
     console.log('Predicted token ID:', nextTokenId);
+
+    if (nextTokenId === undefined) throw new Error("empty prediction");
+    const output = tokenizer.decode([nextTokenId]);
+    console.log('Predicted text:', output);
   }).timeout(10000);
 });
