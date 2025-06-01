@@ -1,32 +1,14 @@
 import { models } from "@epfml/discojs";
 
 /**
- * Loads the HellaSwag dataset from a .jsonl file as a Blob (browser version).
+ * Loads the HellaSwag dataset from a .jsonl file as a Blob
  *
  * @param file - A Blob representing the HellaSwag dataset (.jsonl format)
  * @returns A fully loaded HellaSwagDataset
  */
-/**
- * Loads the HellaSwag dataset from a .jsonl file as a Blob or Buffer.
- *
- * @param file - A Blob or Buffer representing the HellaSwag dataset (.jsonl format)
- * @returns A fully loaded HellaSwagDataset
- */
-export async function load(file: Blob | Buffer): Promise<models.HellaSwagDataset> {
-  console.log("loader got file:", file);
-  console.log("Has .text() method?", typeof (file as any).text);
-
-  let text: string;
-
-  if (typeof (file as Blob).text === 'function') {
-    // Browser Blob
-    text = await (file as Blob).text();
-  } else if (file instanceof Buffer) {
-    // Node.js Buffer
-    text = file.toString('utf-8');
-  } else {
-    throw new Error("Unsupported file type provided to load() function");
-  }
+export async function load(file: Blob): Promise<models.HellaSwagDataset> {
+  // Read the file as text
+  const text = await file.text();
 
   const lines = text.split('\n');
   const dataset: models.HellaSwagDataset = [];

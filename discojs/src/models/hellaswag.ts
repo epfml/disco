@@ -4,7 +4,6 @@ import * as tf from '@tensorflow/tfjs';
 import { GPT } from './index.js';
 import { tokenize } from '../processing/text.js';
 import { PreTrainedTokenizer } from '@xenova/transformers';
-import * as readline from 'readline';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
