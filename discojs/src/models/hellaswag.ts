@@ -10,13 +10,13 @@ import path from 'path';
 import fs from 'fs';
 import { List } from 'immutable';
 import { ONNXModel } from './onnx.js';
+import { loadHellaSwag } from '@epfml/discojs-node';
 
 
 const HELLASWAG_URL = 'https://raw.githubusercontent.com/rowanz/hellaswag/master/data/hellaswag_val.jsonl';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const LOCAL_FILE = path.resolve(__dirname, '../../../datasets/hellaswag_val.jsonl');
-
 
 async function fileExists(path_: string = LOCAL_FILE): Promise<boolean> {
   try {
@@ -49,31 +49,13 @@ async function downloadHellaSwag(path_: string = LOCAL_FILE): Promise<void> {
  * endings - An array of four possible continuations of the context.
  * label - The index (0–3) of the correct ending in the `endings` array.
  */
-interface HellaSwagExample {
+export interface HellaSwagExample {
   ctx: string;
   endings: string[];
   label: number;
 }
 
-async function* loadExamples(limit = -1): AsyncGenerator<HellaSwagExample> {
-  // Read the dataset line by line
-  const fileStream = fs.createReadStream(LOCAL_FILE, 'utf-8');
-  const rl = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
-
-  let count = 0;
-  for await (const line of rl) {
-    // If limit is -1, skip the limit check (load the entire dataset)
-    if (limit !== -1 && count++ >= limit) break;
-
-    try {
-      const data = JSON.parse(line.trim()) as HellaSwagExample;
-      yield { ctx: data.ctx, endings: data.endings, label: data.label };
-    } catch (e) {
-      console.error(`Failed to parse line ${count}:`, line);
-      throw e;
-    }
-  }
-}
+export type HellaSwagDataset = HellaSwagExample[];
 
 // Computes the log likelihood of the input sequence using the tfjs model
 // The input sequence is expected to be a concatenation of the context and the ending
@@ -181,28 +163,31 @@ export async function evaluate(
   tokenizer: Tokenizer,
   limit = -1, // Number of examples to evaluate on (if limit == -1, evaluate on all examples)
   print = true,
-  dataset_path: string = LOCAL_FILE,
 ): Promise<number> {
-  await downloadHellaSwag(dataset_path);
+  await downloadHellaSwag(LOCAL_FILE);
 
   let correct = 0;
   let total = 0;
 
-for await (const example of loadExamples(limit)) {
+  const hellaswagDataset: HellaSwagDataset = await loadHellaSwag(LOCAL_FILE);
+
+  for (const example of hellaswagDataset) {
+    if (limit !== -1 && total >= limit) break;
+
     const endingTokens = example.endings.map(e =>
       tokenize(tokenizer, example.ctx + ' ' + e, {
         truncation: true,
         max_length: 128
       }).toArray()
     );
-  
+    
     const ctxTokens = tokenize(tokenizer, example.ctx, {
       truncation: true,
       max_length: 128
     }).toArray();
-  
+
     let losses: number[] = [];
-  
+
     if (model instanceof GPT) {
       losses = await Promise.all(
         endingTokens.map(e =>
@@ -216,11 +201,11 @@ for await (const example of loadExamples(limit)) {
         )
       );
     }
-  
+
     const pred = losses.indexOf(Math.min(...losses));
     if (pred === example.label) correct++;
     total++;
-  
+
     // Print the results 
     if (print) {
       console.log(`\nExample #${total}`);
