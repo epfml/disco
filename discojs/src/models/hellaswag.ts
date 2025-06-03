@@ -9,8 +9,6 @@ import path from 'path';
 import fs from 'fs';
 import { List } from 'immutable';
 import { ONNXModel } from './onnx.js';
-import { loadHellaSwag } from '@epfml/discojs-node';
-
 
 const HELLASWAG_URL = 'https://raw.githubusercontent.com/rowanz/hellaswag/master/data/hellaswag_val.jsonl';
 const __filename = fileURLToPath(import.meta.url);
@@ -150,27 +148,27 @@ type Tokenizer = PreTrainedTokenizer;
 type ModelType = GPT | ONNXModel;
 
 /**
- * Evaluates the model on the HellaSwag dataset.
- * model - The model to evaluate (either GPT or ONNXModel)
- * tokenizer - The tokenizer to use for tokenizing the input text
- * limit - The number of examples to evaluate on (default: 50)
- * print - Whether to print the results (default: true)
+ * Evaluates the model on a given HellaSwag dataset.
+ *
+ * @param model - The model to evaluate (GPT or ONNXModel)
+ * @param tokenizer - The tokenizer to use
+ * @param dataset - An array of HellaSwagExample to evaluate on
+ * @param limit - Number of examples to evaluate (default: all)
+ * @param print - Whether to print results (default: true)
  * @returns The accuracy of the model on the dataset
  */
 export async function evaluate(
   model: ModelType,
   tokenizer: Tokenizer,
-  limit = -1, // Number of examples to evaluate on (if limit == -1, evaluate on all examples)
-  print = true,
+  dataset: HellaSwagExample[],
+  limit = -1,
+  print = true
 ): Promise<number> {
-  await downloadHellaSwag(LOCAL_FILE);
-
+  downloadHellaSwag(HELLASWAG_URL);
   let correct = 0;
   let total = 0;
 
-  const hellaswagDataset: HellaSwagDataset = await loadHellaSwag(LOCAL_FILE);
-
-  for (const example of hellaswagDataset) {
+  for (const example of dataset) {
     if (limit !== -1 && total >= limit) break;
 
     const endingTokens = example.endings.map(e =>
@@ -179,7 +177,7 @@ export async function evaluate(
         max_length: 128
       }).toArray()
     );
-    
+
     const ctxTokens = tokenize(tokenizer, example.ctx, {
       truncation: true,
       max_length: 128
@@ -205,7 +203,6 @@ export async function evaluate(
     if (pred === example.label) correct++;
     total++;
 
-    // Print the results 
     if (print) {
       console.log(`\nExample #${total}`);
       console.log(`Context: ${example.ctx}`);
