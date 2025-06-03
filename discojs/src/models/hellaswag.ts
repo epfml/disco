@@ -164,7 +164,7 @@ export async function evaluate(
   limit = -1,
   print = true
 ): Promise<number> {
-  downloadHellaSwag(HELLASWAG_URL);
+  await downloadHellaSwag(HELLASWAG_URL);
   let correct = 0;
   let total = 0;
 
