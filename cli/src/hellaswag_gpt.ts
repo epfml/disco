@@ -5,7 +5,6 @@ import { AutoTokenizer, PreTrainedTokenizer } from '@xenova/transformers';
 import fs from 'fs';
 import path from 'node:path';
 
-const hellaswag_path = path.join('..', 'datasets', 'hellaswag_val.jsonl');
 const logFile = path.join('..', 'datasets', 'LogFile_hellaswag.txt');
 const logLines: string[] = [];
 
@@ -14,14 +13,14 @@ function log(message: string) {
     logLines.push(message);
 }
 
-const hellaswagDataset: models.HellaSwagDataset = await loadHellaSwag(hellaswag_path)
+const hellaswagDataset: models.HellaSwagDataset = await loadHellaSwag(-1)
 
 async function evaluateTFJS(tokenizer: PreTrainedTokenizer) {
     const model = new models.GPT({ seed: 42 });
     log('Evaluating TFJS GPT on HellaSwag...');
 
     const start = Date.now();
-    const accuracy = await models.evaluate_hellaswag(model, tokenizer, hellaswagDataset, -1, false);
+    const accuracy = await models.evaluate_hellaswag(model, tokenizer, hellaswagDataset, false);
     const duration = ((Date.now() - start) / 1000).toFixed(2);
 
     log(`TFJS GPT Accuracy: ${(accuracy * 100).toFixed(2)}%`);
@@ -33,7 +32,7 @@ async function evaluateXenova(tokenizer: PreTrainedTokenizer) {
     log('Evaluating Xenova GPT-2 (ONNX) on HellaSwag...');
 
     const start = Date.now();
-    const accuracy = await models.evaluate_hellaswag(model, tokenizer, hellaswagDataset, -1, false);
+    const accuracy = await models.evaluate_hellaswag(model, tokenizer, hellaswagDataset, false);
     const duration = ((Date.now() - start) / 1000).toFixed(2);
 
     log(`Xenova GPT-2 Accuracy: ${(accuracy * 100).toFixed(2)}%`);

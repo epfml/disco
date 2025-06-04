@@ -1,43 +1,11 @@
-import { promises as fsPromises } from 'fs';
-import fetch from 'node-fetch';
 import * as tf from '@tensorflow/tfjs';
 import { GPT } from './index.js';
 import { tokenize } from '../processing/text.js';
 import { PreTrainedTokenizer } from '@xenova/transformers';
-import { fileURLToPath } from 'url';
-import path from 'path';
-import fs from 'fs';
 import { List } from 'immutable';
 import { ONNXModel } from './onnx.js';
 
-const HELLASWAG_URL = 'https://raw.githubusercontent.com/rowanz/hellaswag/master/data/hellaswag_val.jsonl';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const LOCAL_FILE = path.resolve(__dirname, '../../../datasets/hellaswag_val.jsonl');
-
-async function fileExists(path_: string = LOCAL_FILE): Promise<boolean> {
-  try {
-    await fsPromises.access(path_);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-// Download the HellaSwag dataset if it doesn't exist locally
-async function downloadHellaSwag(path_: string = LOCAL_FILE): Promise<void> {
-  if (await fileExists(path_)) return;
-
-  const res = await fetch(HELLASWAG_URL);
-  const fileStream = fs.createWriteStream(path_);
-
-  await new Promise<void>((resolve, reject) => {
-    res.body?.pipe(fileStream);
-    res.body?.on('error', reject);
-    fileStream.on('error', reject);
-    fileStream.on('finish', () => resolve());
-  });
-}
+export const HELLASWAG_URL = 'https://raw.githubusercontent.com/rowanz/hellaswag/master/data/hellaswag_val.jsonl';
 
 /**
  * Represents a single example from the HellaSwag dataset.
@@ -161,16 +129,12 @@ export async function evaluate(
   model: ModelType,
   tokenizer: Tokenizer,
   dataset: HellaSwagExample[],
-  limit = -1,
   print = true
 ): Promise<number> {
-  await downloadHellaSwag(HELLASWAG_URL);
   let correct = 0;
   let total = 0;
 
   for (const example of dataset) {
-    if (limit !== -1 && total >= limit) break;
-
     const endingTokens = example.endings.map(e =>
       tokenize(tokenizer, example.ctx + ' ' + e, {
         truncation: true,

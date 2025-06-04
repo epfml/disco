@@ -1,13 +1,9 @@
 import { expect } from 'chai';
 import { load as loadHellaSwag } from './hellaswag.js';
-import fs from 'fs';
 
 describe('HellaSwag parser', () => {
   it('should load all examples and return them as an array', async () => {
-    const filename: string = "../datasets/hellaswag_val.jsonl"
-    expect(fs.existsSync(filename)).to.be.true;
-
-    const dataset = await loadHellaSwag(filename);
+    const dataset = await loadHellaSwag(10);
 
     expect(dataset).to.be.an('array');
     expect(dataset.length).to.be.greaterThan(0);

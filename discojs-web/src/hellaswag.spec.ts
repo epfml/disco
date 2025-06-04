@@ -4,25 +4,7 @@ import { models } from '@epfml/discojs';
 
 describe('hellaswag parser', () => {
   it('loads the whole hellaswag dataset', async () => {
-    // small dataset as a string, in HellaSwag format
-    const exampleLines = [
-      JSON.stringify({
-        ctx: "Test context sentence.",
-        endings: ["Ending 1.", "Ending 2.", "Ending 3.", "Ending 4."],
-        label: 2
-      }),
-      JSON.stringify({
-        ctx: "Another context.",
-        endings: ["Option 1.", "Option 2.", "Option 3.", "Option 4."],
-        label: 1
-      })
-    ].join('\n');
-
-    // jsdom doesn't implement .text on File/Blob
-    // trick from https://github.com/jsdom/jsdom/issues/2555
-    const blob = await (await fetch("data:," + encodeURIComponent(exampleLines))).blob();
-
-    const dataset: models.HellaSwagDataset = await loadHellaSwag(blob);
+    const dataset: models.HellaSwagDataset = await loadHellaSwag(2);
 
     // basic assertions
     expect(dataset).to.be.an('array');

@@ -3,7 +3,7 @@ import { evaluate } from './hellaswag.js';
 import { PreTrainedTokenizer } from '@xenova/transformers';
 import { GPT } from './index.js';
 import { ONNXModel } from './onnx.js';
-import type { HellaSwagExample } from './hellaswag.js'; // adjust path if needed
+import type { HellaSwagExample } from './hellaswag.js';
 
 export const exampleDataset: HellaSwagExample[] = [
   {
@@ -33,22 +33,21 @@ describe('HellaSwag Evaluator', () => {
     const tokenizer = await PreTrainedTokenizer.from_pretrained('Xenova/gpt2');
     const gpt = new GPT({seed: 42,}); // seed for reproducibility
 
-    const accuracy = await evaluate(gpt, tokenizer, exampleDataset, 2, true);
+    const accuracy = await evaluate(gpt, tokenizer, exampleDataset, true);
     expect(accuracy).to.be.gte(0);
     expect(accuracy).to.be.lte(1);
-  }).timeout(20000);
+  }).timeout(6000);
 });
 
 describe('HellaSwag Evaluator with Xenova GPT-2', () => {
   it('evaluates the pretrained GPT-2 model', async () => {
     const tokenizer = await PreTrainedTokenizer.from_pretrained('Xenova/gpt2');
     const model = await ONNXModel.init_pretrained('Xenova/gpt2');
-    // console.log(await model.getConfig());
 
-    const accuracy = await evaluate(model, tokenizer, exampleDataset, 2, true);
+    const accuracy = await evaluate(model, tokenizer, exampleDataset, true);
     expect(accuracy).to.be.gte(0);
     expect(accuracy).to.be.lte(1);
-  }).timeout(60000);
+  }).timeout(10000);
 });
 
 describe('Deterministic evaluation with tfjs GPT-2', () => {
@@ -56,9 +55,9 @@ describe('Deterministic evaluation with tfjs GPT-2', () => {
     const tokenizer = await PreTrainedTokenizer.from_pretrained('Xenova/gpt2');
     const gpt = new GPT({seed: 42,});
 
-    const accuracy1 = await evaluate(gpt, tokenizer, exampleDataset, 25, false);
-    const accuracy2 = await evaluate(gpt, tokenizer, exampleDataset, 25, false);
+    const accuracy1 = await evaluate(gpt, tokenizer, exampleDataset, false);
+    const accuracy2 = await evaluate(gpt, tokenizer, exampleDataset, false);
 
     expect(accuracy1).to.equal(accuracy2);
-  }).timeout(60000);
+  }).timeout(10000);
 });
