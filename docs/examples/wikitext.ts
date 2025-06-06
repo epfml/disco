@@ -1,6 +1,6 @@
 import "@tensorflow/tfjs-node"
 
-import { Disco, fetchTasks, models, processing, Task } from '@epfml/discojs'
+import { Disco, fetchTasks, models, Task } from "@epfml/discojs";
 import { saveModelToDisk, loadModelFromDisk, loadText } from '@epfml/discojs-node'
 import { List } from "immutable"
 
@@ -40,7 +40,7 @@ async function main(): Promise<void> {
     model = await loadModelFromDisk(`${modelFolder}/${modelFileName}`) as models.GPT
   }
   const prompt = 'The game began development in 2010 , carrying over a large portion'
-  let tokens = processing.tokenize(tokenizer, prompt)
+  let tokens = tokenizer.tokenize(prompt);
 
   // Predict a few tokens
   const numberOfTokens = 10;

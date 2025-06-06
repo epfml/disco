@@ -1,6 +1,5 @@
 import "@tensorflow/tfjs-node"
-import { AutoTokenizer } from "@xenova/transformers";
-import { models, processing, Dataset } from "@epfml/discojs";
+import { models, Dataset, Tokenizer } from "@epfml/discojs";
 import { List } from "immutable";
 
 async function main(): Promise<void> { 
@@ -17,10 +16,10 @@ async function main(): Promise<void> {
     seed
   }
 
-  const tokenizer = await AutoTokenizer.from_pretrained('Xenova/gpt2')
+  const tokenizer = await Tokenizer.from_pretrained('Xenova/gpt2')
 
   const tokenDataset = new Dataset([data])
-    .map((text: string) => processing.tokenize(tokenizer, text))
+    .map((text) => tokenizer.tokenize(text))
     .flatten()
     .batch(config.contextLength + 1, 1)
     .map((tokens) => [tokens.pop(), tokens.last()] as [List<number>, number])
@@ -32,7 +31,7 @@ async function main(): Promise<void> {
     console.log(logs)
   }
 
-  let tokens = processing.tokenize(tokenizer, "Lorem");
+  let tokens = tokenizer.tokenize("Lorem");
 
   const maxNewTokens = 14
   for (let n = 0; n < maxNewTokens; n++) {
@@ -40,7 +39,7 @@ async function main(): Promise<void> {
 		if (next === undefined) throw new Error("empty prediction");
     tokens = tokens.push(next)
   }
-  const generation = tokenizer.decode(tokens.toArray(), { skip_special_tokens: true })
+  const generation = tokenizer.decode(tokens.toArray())
   console.log(generation)
 }
 

@@ -1,9 +1,8 @@
 import '@tensorflow/tfjs-node';
-import { loadHellaSwag } from '@epfml/discojs-node';
-import { models } from '@epfml/discojs';
-import { AutoTokenizer, PreTrainedTokenizer } from '@xenova/transformers';
-import fs from 'fs';
+import fs from 'node:fs';
 import path from 'node:path';
+import { Tokenizer, models } from '@epfml/discojs';
+import { loadHellaSwag } from '@epfml/discojs-node';
 
 const logFile = path.join('..', 'datasets', 'LogFile_hellaswag.txt');
 const logLines: string[] = [];
@@ -15,7 +14,7 @@ function log(message: string) {
 
 const hellaswagDataset: models.HellaSwagDataset = await loadHellaSwag(-1)
 
-async function evaluateTFJS(tokenizer: PreTrainedTokenizer) {
+async function evaluateTFJS(tokenizer: Tokenizer) {
     const model = new models.GPT({ seed: 42 });
     log('Evaluating TFJS GPT on HellaSwag...');
 
@@ -27,7 +26,7 @@ async function evaluateTFJS(tokenizer: PreTrainedTokenizer) {
     log(`TFJS GPT Evaluation Time: ${duration} seconds`);
 }
 
-async function evaluateXenova(tokenizer: PreTrainedTokenizer) {
+async function evaluateXenova(tokenizer: Tokenizer) {
     const model = await models.ONNXModel.init_pretrained('Xenova/gpt2');
     log('Evaluating Xenova GPT-2 (ONNX) on HellaSwag...');
 
@@ -42,7 +41,7 @@ async function evaluateXenova(tokenizer: PreTrainedTokenizer) {
 async function main(): Promise<void> {
     fs.writeFileSync(logFile, '', 'utf-8'); // Clear old log file
 
-    const tokenizer = await AutoTokenizer.from_pretrained('Xenova/gpt2');
+    const tokenizer = await Tokenizer.from_pretrained('Xenova/gpt2');
     await evaluateTFJS(tokenizer);
     log('\n---\n');
     await evaluateXenova(tokenizer);

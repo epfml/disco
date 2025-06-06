@@ -1,11 +1,10 @@
 import { expect } from 'chai';
 import { evaluate } from './hellaswag.js';
-import { PreTrainedTokenizer } from '@xenova/transformers';
-import { GPT } from './index.js';
+import { GPT, Tokenizer } from './index.js';
 import { ONNXModel } from './onnx.js';
 import type { HellaSwagExample } from './hellaswag.js';
 
-export const exampleDataset: HellaSwagExample[] = [
+const exampleDataset: HellaSwagExample[] = [
   {
     ctx: "A man is sitting on a roof. he",
     endings: [
@@ -30,7 +29,7 @@ export const exampleDataset: HellaSwagExample[] = [
 
 describe('HellaSwag Evaluator', () => {
   it('evaluates tfjs GPT model', async () => {
-    const tokenizer = await PreTrainedTokenizer.from_pretrained('Xenova/gpt2');
+    const tokenizer = await Tokenizer.from_pretrained('Xenova/gpt2');
     const gpt = new GPT({seed: 42,}); // seed for reproducibility
 
     const accuracy = await evaluate(gpt, tokenizer, exampleDataset, true);
@@ -41,7 +40,7 @@ describe('HellaSwag Evaluator', () => {
 
 describe('HellaSwag Evaluator with Xenova GPT-2', () => {
   it('evaluates the pretrained GPT-2 model', async () => {
-    const tokenizer = await PreTrainedTokenizer.from_pretrained('Xenova/gpt2');
+    const tokenizer = await Tokenizer.from_pretrained('Xenova/gpt2');
     const model = await ONNXModel.init_pretrained('Xenova/gpt2');
 
     const accuracy = await evaluate(model, tokenizer, exampleDataset, true);
@@ -52,7 +51,7 @@ describe('HellaSwag Evaluator with Xenova GPT-2', () => {
 
 describe('Deterministic evaluation with tfjs GPT-2', () => {
   it('returns the same accuracy across runs', async () => {
-    const tokenizer = await PreTrainedTokenizer.from_pretrained('Xenova/gpt2');
+    const tokenizer = await Tokenizer.from_pretrained('Xenova/gpt2');
     const gpt = new GPT({seed: 42,});
 
     const accuracy1 = await evaluate(gpt, tokenizer, exampleDataset, false);

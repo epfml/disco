@@ -1,9 +1,15 @@
 import '@tensorflow/tfjs-node';
 import { List } from "immutable";
 import { parse } from "ts-command-line-args";
-import { AutoTokenizer } from "@xenova/transformers";
 
-import { fetchTasks, models, async_iterator, defaultTasks, processing, Task } from "@epfml/discojs";
+import {
+  Task,
+  Tokenizer,
+  async_iterator,
+  defaultTasks,
+  fetchTasks,
+  models,
+} from "@epfml/discojs";
 import { loadModelFromDisk, loadText } from '@epfml/discojs-node'
 
 import { Server } from "server";
@@ -57,7 +63,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
 
   const tokenizerName = task.trainingInformation.tokenizer
   if (typeof tokenizerName !== 'string') throw Error('no tokenizer name specified in the task training information')
-  const tokenizer = await AutoTokenizer.from_pretrained(tokenizerName)
+  const tokenizer = await Tokenizer.from_pretrained(tokenizerName)
 
   /**
    * Training benchmark
@@ -79,7 +85,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     task.trainingInformation.batchSize = batchSize
     task.trainingInformation.contextLength = contextLength
     const dataset = loadText('../datasets/wikitext/wiki.train.tokens')
-      .map(text => processing.tokenize(tokenizer, text))
+      .map((text) => tokenizer.tokenize(text))
       .flatten()
       .batch(config.contextLength + 1, 1)
 
@@ -114,7 +120,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     const iterations = 10
     console.log("Generating", maxNewTokens, "new tokens")
 
-    let tokens = processing.tokenize(tokenizer, prompt);
+    let tokens = tokenizer.tokenize(prompt);
 
     let inferenceTime = 0
     for (let i = 0; i < iterations; i++) {

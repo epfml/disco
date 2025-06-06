@@ -11,7 +11,13 @@ export { Logger, ConsoleLogger } from './logging/index.js'
 export { Disco, RoundLogs, RoundStatus } from './training/index.js'
 export { Validator } from './validator.js'
 
-export { Model, BatchLogs, EpochLogs, ValidationMetrics } from './models/index.js'
+export {
+  Model,
+  BatchLogs,
+  EpochLogs,
+  Tokenizer,
+  ValidationMetrics,
+} from "./models/index.js";
 export * as models from './models/index.js'
 
 export * from './task/index.js'

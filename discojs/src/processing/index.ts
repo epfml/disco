@@ -16,7 +16,6 @@ import * as processing from "./index.js";
 
 export * from "./image.js";
 export * from "./tabular.js";
-export * from "./text.js";
 
 export async function preprocess<D extends DataType>(
   task: Task<D>,
@@ -57,10 +56,11 @@ export async function preprocess<D extends DataType>(
       const d = dataset as Dataset<DataFormat.Raw["text"]>;
       const t = task as Task<"text">;
 
-      const contextLength = t.trainingInformation.contextLength
+      const { contextLength } = t.trainingInformation;
       const tokenizer = await models.getTaskTokenizer(t);
 
-      return d.map(text => processing.tokenize(tokenizer, text))
+      return d
+        .map((text) => tokenizer.tokenize(text))
         .flatten()
         .batch(contextLength + 1, 1)
         .map((tokens) => [tokens.pop(), tokens.last()]) as
@@ -105,9 +105,10 @@ export async function preprocessWithoutLabel<D extends DataType>(
       const contextLength = t.trainingInformation.contextLength
       const tokenizer = await models.getTaskTokenizer(t);
 
-      return d.map(text => processing.tokenize(tokenizer, text))
+      return d
+        .map((text) => tokenizer.tokenize(text))
         .flatten()
-        .batch(contextLength)
+        .batch(contextLength);
     }
   }
 
