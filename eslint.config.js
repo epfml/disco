@@ -28,7 +28,9 @@ export default tseslint.config(
           varsIgnorePattern: '^_',
           ignoreRestSiblings: true
         }
-      ]
+      ],
+      // allow biome formatting
+      "no-mixed-spaces-and-tabs": "off",
     }
   },
   { ignores: ['**/dist/*'] },

@@ -1,6 +1,4 @@
-import { PreTrainedTokenizer } from "@xenova/transformers";
-
-import { DataType } from "../index.js";
+import { DataType, Tokenizer } from "../index.js";
 
 interface Privacy {
   // maximum weights difference between each round
@@ -57,7 +55,7 @@ interface DataTypeToTrainingInformation {
   text: {
     // tokenizer (string | PreTrainedTokenizer). This field should be initialized with the name of a Transformers.js pre-trained tokenizer, e.g., 'Xenova/gpt2'.
     // When the tokenizer is first called, the actual object will be initialized and loaded into this field for the subsequent tokenizations.
-    tokenizer: string | PreTrainedTokenizer;
+    tokenizer: string | Tokenizer;
 
     // contextLength: the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
     // truncate strings to a maximum length. The default value is tokenizer.model_max_length
@@ -224,7 +222,7 @@ export function isTrainingInformation<D extends DataType>(
 
       if (
         (typeof tokenizer !== "string" &&
-          !(tokenizer instanceof PreTrainedTokenizer)) ||
+          !(tokenizer instanceof Tokenizer)) ||
         (typeof contextLength !== "number")
       )
         return false;

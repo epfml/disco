@@ -1,9 +1,8 @@
 import * as tf from '@tensorflow/tfjs';
-import { GPT } from './index.js';
-import { tokenize } from '../processing/text.js';
-import { PreTrainedTokenizer } from '@xenova/transformers';
 import { List } from 'immutable';
-import { ONNXModel } from './onnx.js';
+import type { Tokenizer } from './index.js';
+import { GPT } from './index.js';
+import type { ONNXModel } from './onnx.js';
 
 export const HELLASWAG_URL = 'https://raw.githubusercontent.com/rowanz/hellaswag/master/data/hellaswag_val.jsonl';
 
@@ -112,7 +111,6 @@ async function computeONNXLogLikelihood(model: ONNXModel, inputIds: number[], ct
 }
 
 
-type Tokenizer = PreTrainedTokenizer;
 type ModelType = GPT | ONNXModel;
 
 /**
@@ -136,13 +134,13 @@ export async function evaluate(
 
   for (const example of dataset) {
     const endingTokens = example.endings.map(e =>
-      tokenize(tokenizer, example.ctx + ' ' + e, {
+      tokenizer.tokenize(`${example.ctx} ${e}`, {
         truncation: true,
         max_length: 128
       }).toArray()
     );
 
-    const ctxTokens = tokenize(tokenizer, example.ctx, {
+    const ctxTokens = tokenizer.tokenize(example.ctx, {
       truncation: true,
       max_length: 128
     }).toArray();

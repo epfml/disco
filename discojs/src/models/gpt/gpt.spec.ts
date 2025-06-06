@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import "@tensorflow/tfjs-node"; // speed up
-import { AutoTokenizer } from "@xenova/transformers";
 
-import { Dataset, DataFormat, processing } from "../../index.js";
+import type { DataFormat } from "../../index.js";
+import { Dataset, Tokenizer } from "../../index.js";
 
 import { GPT } from "./index.js";
 import { List } from "immutable";
@@ -10,10 +10,10 @@ import { List } from "immutable";
 describe("gpt-tfjs", function () {
   it("can overfit one sentence", async function () {
     this.timeout("1m");
-    const tokenizer = await AutoTokenizer.from_pretrained("Xenova/gpt2");
+    const tokenizer = await Tokenizer.from_pretrained("Xenova/gpt2");
 
     const data = "Lorem ipsum dolor sit";
-    const dataTokens = processing.tokenize(tokenizer, data);
+    const dataTokens = tokenizer.tokenize(data);
 		const lastToken = dataTokens.last();
 		if (lastToken === undefined) throw new Error("no token generated");
     const seed = 42
@@ -36,7 +36,7 @@ describe("gpt-tfjs", function () {
       for await (const _ of model.train(dataset, undefined));
 
     const input = "Lorem ipsum dolor";
-    const inputTokens = processing.tokenize(tokenizer, data);
+    const inputTokens = tokenizer.tokenize(data);
     
 		const outputToken = (
 			await model.predict(List.of(inputTokens), { seed })

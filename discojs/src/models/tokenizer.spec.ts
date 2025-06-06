@@ -1,12 +1,7 @@
 import { expect } from "chai";
-
-import { tokenize } from "./text.js";
-import { AutoTokenizer } from "@xenova/transformers";
 import { Repeat } from "immutable";
 
-interface TokenizerOutput {
-  input_ids: number[];
-}
+import { Tokenizer } from "./tokenizer.js"
 
 describe("text processing", () => {
   const text = [
@@ -26,6 +21,7 @@ describe("text processing", () => {
   ];
 
   const shortText = 'import { AutoTokenizer } from "@xenova/transformers";' 
+  const paddingToken = 50256;
   // with GPT 2 tokenizer
   const shortExpectedTokens = [
     11748, 1391, 11160, 30642, 7509, 1782, 422,
@@ -33,7 +29,7 @@ describe("text processing", () => {
   ]
 
   it("can tokenize text with the Llama 3 tokenizer", async () => {
-    const tokenizer = await AutoTokenizer.from_pretrained("Xenova/llama-3-tokenizer");
+    const tokenizer = await Tokenizer.from_pretrained("Xenova/llama-3-tokenizer");
     // Tokenizer playgrounds aren't consistent: https://github.com/huggingface/transformers.js/issues/1019
     // Tokenization with python:
     // from transformers import AutoTokenizer
@@ -47,41 +43,41 @@ describe("text processing", () => {
       16, 11, 27685, 374, 21685, 555, 279, 90940, 5114, 11, 459, 3778, 33184, 7471,
       430, 51242, 264, 5687, 315, 927, 220, 7007, 1274, 8032, 22, 60
     ]
-    const tokens = tokenize(tokenizer, text);
+    const tokens = tokenizer.tokenize(text);
     expect(tokens.toArray()).to.be.deep.equal(expectedTokens);
   }).timeout(3000);
 
   it("can tokenize text with the GPT2 tokenizer", async () => {
-    const tokenizer = await AutoTokenizer.from_pretrained("Xenova/gpt2");
+    const tokenizer = await Tokenizer.from_pretrained("Xenova/gpt2");
 
-    const tokens = tokenize(tokenizer, text);
+    const tokens = tokenizer.tokenize(text);
     expect(tokens.toArray()).to.be.deep.equal(expectedTokens);
   });
 
   it("truncates until expected length", async () => {
-    const tokenizer = await AutoTokenizer.from_pretrained("Xenova/gpt2");
+    const tokenizer = await Tokenizer.from_pretrained("Xenova/gpt2");
 
-    const tokens = tokenize(tokenizer, text, {truncation: true, max_length: 10});
+    const tokens = tokenizer.tokenize(text, {truncation: true, max_length: 10});
     expect(tokens.toArray()).to.be.deep.equal(expectedTokens.slice(0, 10));
   });
 
   it("pads sequence until enough token are generated", async () => {
-    const tokenizer = await AutoTokenizer.from_pretrained("Xenova/gpt2");
+    const tokenizer = await Tokenizer.from_pretrained("Xenova/gpt2");
     const max_length = 20
 
-    const tokens = tokenize(tokenizer, shortText, {padding: true, max_length});
-    const paddedSequence = Repeat(tokenizer.pad_token_id, max_length - shortExpectedTokens.length)
+    const tokens = tokenizer.tokenize(shortText, {padding: "left", max_length});
+    const paddedSequence = Repeat(paddingToken, max_length - shortExpectedTokens.length)
       .concat(shortExpectedTokens).toArray();
     expect(tokens.toArray()).to.be.deep.equal(paddedSequence);
   });
     
   it("can pad on right side", async () => {
-    const tokenizer = await AutoTokenizer.from_pretrained("Xenova/gpt2");
+    const tokenizer = await Tokenizer.from_pretrained("Xenova/gpt2");
     const max_length = 20
     
-    const tokens = tokenize(tokenizer, shortText, {padding: true, padding_side: 'right', max_length});
+    const tokens = tokenizer.tokenize(shortText, {padding: 'right', max_length});
     const paddedSequence = shortExpectedTokens.concat(
-      Repeat(tokenizer.pad_token_id, max_length - shortExpectedTokens.length).toArray()
+      Repeat(paddingToken, max_length - shortExpectedTokens.length).toArray()
     );
     expect(tokens.toArray()).to.be.deep.equal(paddedSequence);
   });
@@ -104,8 +100,8 @@ describe("Multi-Tokenizer Tests", function () {
 
   tokenizerNames.forEach((name) => {
     it(`should tokenize text using tokenizer "${name}"`, async () => {
-      const tokenizer = await AutoTokenizer.from_pretrained(name);
-      const tokens = tokenize(tokenizer, sampleText);
+      const tokenizer = await Tokenizer.from_pretrained(name);
+      const tokens = tokenizer.tokenize(sampleText);
       const tokenArray = tokens.toArray();
 
       // Checks that we got a non-empty array of tokens and that each token is a number.
@@ -121,18 +117,34 @@ describe("Multi-Tokenizer Tests", function () {
 describe("Encode-Decode tokenization", function () {
   this.timeout(20000);
 
-  it("should return text equal to the original after encode-decode tokenization using GPT2 tokenizer", async function () {
+  it("should return text equal to the original after encode-decode tokenization using GPT2 tokenizer", async () => {
     // Load the GPT2 tokenizer
-    const tokenizer = await AutoTokenizer.from_pretrained("Xenova/gpt2");
+    const tokenizer = await Tokenizer.from_pretrained("Xenova/gpt2");
     const originalText = "Hello, world! This is a test for encode-decode tokenization.";
     
     // Perform round-trip tokenization
-    const encoding = tokenizer(originalText, { return_tensor: false }) as TokenizerOutput;
+    const encoding = tokenizer.tokenize(originalText);
 
     // Decode the token IDs back into text while skipping special tokens.
-    const decodedText = tokenizer.decode(encoding.input_ids, { skip_special_tokens: true });
+    const decodedText = tokenizer.decode(encoding.toArray());
     
     // Check that the decoded text is equal to the original text
     expect(decodedText).to.equal(originalText);
   });
 });
+
+// type tests
+declare const tokenizer: Tokenizer;
+function _() {
+  tokenizer.tokenize("", { padding: "left", max_length: 0 });
+  tokenizer.tokenize("", { padding: "left", truncation: true, max_length: 0 });
+
+  // @ts-expect-error require max_length
+  tokenizer.tokenize("", { padding: "left" });
+  // @ts-expect-error require max_length
+  tokenizer.tokenize("", { truncation: true });
+
+  tokenizer.tokenize("", { padding: "left", truncation: true, max_length: 0 });
+  // @ts-expect-error padding implies truncation == true
+  tokenizer.tokenize("", { padding: "left", truncation: false, max_length: 0 });
+}
