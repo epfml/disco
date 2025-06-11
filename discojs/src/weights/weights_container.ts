@@ -16,12 +16,12 @@ export class WeightsContainer {
    * The iterable's elements can either be regular TF.js tensors or number arrays.
    * @param weights The weights iterable to build the weights container from
    */
-  constructor (weights: Iterable<TensorLike>) {
+  constructor(weights: Iterable<TensorLike>) {
     this._weights = List(weights).map((w) =>
       w instanceof tf.Tensor ? w : tf.tensor(w))
   }
 
-  get weights (): Weights {
+  get weights(): Weights {
     return this._weights.toArray()
   }
 
@@ -31,7 +31,7 @@ export class WeightsContainer {
    * @param other The other weights container
    * @returns A new subtracted weights container
    */
-  add (other: WeightsContainer): WeightsContainer {
+  add(other: WeightsContainer): WeightsContainer {
     return this.mapWith(other, tf.add)
   }
 
@@ -41,7 +41,7 @@ export class WeightsContainer {
    * @param other The other weights container
    * @returns A new subtracted weights container
    */
-  sub (other: WeightsContainer): WeightsContainer {
+  sub(other: WeightsContainer): WeightsContainer {
     return this.mapWith(other, tf.sub)
   }
 
@@ -51,7 +51,7 @@ export class WeightsContainer {
    * @param other The other weights container
    * @returns A new multiplied weights container
    */
-  mul (other: TensorLike | number): WeightsContainer {
+  mul(other: TensorLike | number): WeightsContainer {
     return new WeightsContainer(
       this._weights
         .map(w => w.mul(other))
@@ -65,7 +65,7 @@ export class WeightsContainer {
    * @param fn The binary operator
    * @returns The mapping's result
    */
-  mapWith (other: WeightsContainer, fn: (a: tf.Tensor, b: tf.Tensor) => tf.Tensor): WeightsContainer {
+  mapWith(other: WeightsContainer, fn: (a: tf.Tensor, b: tf.Tensor) => tf.Tensor): WeightsContainer {
     return new WeightsContainer(
       this._weights
         .zip(other._weights)
@@ -73,13 +73,13 @@ export class WeightsContainer {
     )
   }
 
-  map (fn: (t: tf.Tensor, i: number) => tf.Tensor): WeightsContainer
-  map (fn: (t: tf.Tensor) => tf.Tensor): WeightsContainer
-  map (fn: ((t: tf.Tensor) => tf.Tensor) | ((t: tf.Tensor, i: number) => tf.Tensor)): WeightsContainer {
+  map(fn: (t: tf.Tensor, i: number) => tf.Tensor): WeightsContainer
+  map(fn: (t: tf.Tensor) => tf.Tensor): WeightsContainer
+  map(fn: ((t: tf.Tensor) => tf.Tensor) | ((t: tf.Tensor, i: number) => tf.Tensor)): WeightsContainer {
     return new WeightsContainer(this._weights.map(fn))
   }
 
-  reduce (fn: (acc: tf.Tensor, t: tf.Tensor) => tf.Tensor): tf.Tensor {
+  reduce(fn: (acc: tf.Tensor, t: tf.Tensor) => tf.Tensor): tf.Tensor {
     return this._weights.reduce(fn)
   }
 
@@ -88,21 +88,25 @@ export class WeightsContainer {
    * @param index The tensor's index
    * @returns The tensor located at the index
    */
-  get (index: number): tf.Tensor | undefined {
+  get(index: number): tf.Tensor | undefined {
     return this._weights.get(index)
   }
 
-  concat (other: WeightsContainer): WeightsContainer {
+  concat(other: WeightsContainer): WeightsContainer {
     return WeightsContainer.of(
       ...this.weights,
       ...other.weights
     )
   }
 
-  equals (other: WeightsContainer, margin = 0): boolean {
+  equals(other: WeightsContainer, margin = 0): boolean {
     return this._weights
       .zip(other._weights)
       .every(([w1, w2]) => w1.sub(w2).abs().lessEqual(margin).all().dataSync()[0] === 1)
+  }
+  
+  dispose(): void {
+    this._weights.forEach(w => w.dispose());
   }
 
   /**
@@ -110,7 +114,7 @@ export class WeightsContainer {
    * @param weights The tensors or number arrays
    * @returns The instantiated weights container
    */
-  static of (...weights: TensorLike[]): WeightsContainer {
+  static of(...weights: TensorLike[]): WeightsContainer {
     return new this(weights)
   }
 }

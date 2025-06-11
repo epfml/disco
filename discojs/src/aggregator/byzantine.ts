@@ -65,30 +65,82 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
     this.contributions = this.contributions.setIn([0, nodeId], momentum);
   }
 
+  // override aggregate(): WeightsContainer {
+  //   const currentContributions = this.contributions.get(0);
+  //   if (!currentContributions) throw new Error("aggregating without any contribution");
+
+  //   this.log(AggregationStep.AGGREGATE);
+
+  //   if (!isFinite(this.clippingRadius)) {
+  //     return aggregation.avg(currentContributions.values()); // Identity fallback for large radius
+  //   }
+
+  //   // Step 1: initialize v to average of momentum
+  //   let v = aggregation.avg(currentContributions.values());
+
+  //   // Step 2: Iterate Centered Clipping 
+  //   // for (let l = 0; l < this.maxIterations; l++) {
+  //   //   const clippedDiffs = Array.from(currentContributions.values()).map(m => {
+  //   //     const diff = m.sub(v);
+  //   //     const norm = euclideanNorm(diff);
+  //   //     const scale = tf.tidy(() => tf.minimum(tf.scalar(1), tf.div(tf.scalar(this.clippingRadius), norm)));
+  //   //     return diff.mul(scale);
+  //   //   });
+
+  //   //   const avgClip = aggregation.avg(clippedDiffs);
+  //   //   v = v.add(avgClip.mul(1 / currentContributions.size));
+  //   // }
+
+  //   for (let l = 0; l < this.maxIterations; l++) {
+  //     const clippedDiffs = Array.from(currentContributions.values()).map(m => tf.tidy(() => {
+  //       const diff = m.sub(v);
+  //       const norm = euclideanNorm(diff);
+  //       const scale = tf.minimum(tf.scalar(1), tf.div(tf.scalar(this.clippingRadius), norm));
+  //       return diff.mul(scale);
+  //     }));
+
+  //     const avgClip = aggregation.avg(clippedDiffs);
+  //     v = tf.tidy(() => v.add(avgClip));
+  //     clippedDiffs.forEach(d => d.dispose());
+  //   }
+
+  //   return v;
+  // }
+
   override aggregate(): WeightsContainer {
     const currentContributions = this.contributions.get(0);
     if (!currentContributions) throw new Error("aggregating without any contribution");
 
     this.log(AggregationStep.AGGREGATE);
 
-    // Step 1: initialize v to average of momentum
+    // If clipping radius is infinite, fall back to simple mean
+    if (!isFinite(this.clippingRadius)) {
+      return aggregation.avg(currentContributions.values());
+    }
+
+    // Step 1: Initialize v to average of momentums
     let v = aggregation.avg(currentContributions.values());
 
-    // Step 2: Iterate Centered Clipping 
+    // Step 2: Iterative Centered ClippingF
     for (let l = 0; l < this.maxIterations; l++) {
       const clippedDiffs = Array.from(currentContributions.values()).map(m => {
         const diff = m.sub(v);
-        const norm = euclideanNorm(diff);
+        const norm = tf.tidy(() => euclideanNorm(diff));
         const scale = tf.tidy(() => tf.minimum(tf.scalar(1), tf.div(tf.scalar(this.clippingRadius), norm)));
-        return diff.mul(scale);
+        const clipped = diff.mul(scale);
+        norm.dispose(); scale.dispose();
+        return clipped;
       });
 
       const avgClip = aggregation.avg(clippedDiffs);
-      v = v.add(avgClip.mul(1 / currentContributions.size));
+      const newV = v.add(avgClip);
+      clippedDiffs.forEach(d => d.dispose());
+      v.dispose(); // Safe if v is no longer needed
+      v = newV;
     }
-
     return v;
   }
+
 
   override makePayloads(weights: WeightsContainer): Map<client.NodeID, WeightsContainer> {
     // Communicate our local weights to every other node, be it a peer or a server
@@ -99,12 +151,8 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
 function euclideanNorm(w: WeightsContainer): tf.Scalar {
   // Computes the Euclidean (L2) norm of all tensors in a WeightsContainer by summing the squares of their elements and taking the square root.
   return tf.tidy(() => {
-    let sumSquares = tf.scalar(0);
-    for (const tensor of w.weights) {
-      const squared = tf.square(tensor);
-      const summed = tf.sum(squared);
-      sumSquares = tf.add(sumSquares, summed.asScalar());
-    }
-    return tf.sqrt(sumSquares);
+    const norms = w.weights.map(t => tf.sum(tf.square(t)) as tf.Scalar);
+    const total = norms.reduce((a, b) => tf.add(a, b)) as tf.Scalar;
+    return tf.sqrt(total);
   });
 }
