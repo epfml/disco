@@ -1,4 +1,5 @@
-import { expect } from 'chai';
+import { describe, expect, it } from "vitest";
+
 import { load as loadHellaSwag } from './hellaswag.js';
 
 describe('HellaSwag parser', () => {

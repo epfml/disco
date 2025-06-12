@@ -1,8 +1,6 @@
-import { expect } from "chai";
 import { Repeat, Seq } from "immutable";
-
+import { describe, expect, it } from "vitest";
 import { Image } from "../index.js";
-
 import { removeAlpha, resize } from "./image.js";
 
 describe("resize", () => {

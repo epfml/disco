@@ -1,13 +1,12 @@
-import { expect } from "chai";
-import { Map, Range, Set, List } from "immutable";
-
-import { WeightsContainer } from "./index.js";
+import { List, Map, Range, Set } from "immutable";
+import { describe, expect, it } from "vitest";
 import {
-  Aggregator,
+  type Aggregator,
   MeanAggregator,
   SecureAggregator,
 } from "./aggregator/index.js";
-import { NodeID } from "./client/types.js";
+import type { NodeID } from "./client/types.js";
+import { WeightsContainer } from "./index.js";
 
 const AGGREGATORS: Set<[name: string, new () => Aggregator]> = Set.of<
   new () => Aggregator
@@ -17,7 +16,7 @@ const AGGREGATORS: Set<[name: string, new () => Aggregator]> = Set.of<
   Aggregator,
 ]);
 
-AGGREGATORS.forEach(([name, Aggregator]) =>
+for (const [name, Aggregator] of AGGREGATORS) {
   describe(`${name} implements Aggregator contract`, () => {
     it("starts at round zero", () => {
       const aggregator = new Aggregator();
@@ -74,8 +73,8 @@ AGGREGATORS.forEach(([name, Aggregator]) =>
         return first;
       });
     });
-  }),
-);
+  })
+}
 
 export async function wsIntoArrays(ws: WeightsContainer): Promise<number[][]> {
   return (await Promise.all(ws.weights.map(async (w) => await w.data()))).map(
@@ -89,7 +88,7 @@ export function setupNetwork<A extends Aggregator>(
   const ret = Map(
     Range(0, 3).map((i) => [`client ${i}`, new Aggregator()] as [NodeID, A]),
   );
-  ret.forEach((secure) => secure.setNodes(ret.keySeq().toSet()));
+	for (const secure of ret.values()) secure.setNodes(ret.keySeq().toSet());
 
   return ret;
 }
@@ -117,20 +116,14 @@ export async function communicate<A extends Aggregator>(
       ])
       .toArray();
 
-    network
-      .entrySeq()
-      .map<[NodeID, A, WeightsContainer]>(([id, agg]) => {
-        const contribution = contributions.get(id);
-        if (contribution === undefined)
-          throw new Error(`no contribution for ${id}`);
-        return [id, agg, contribution];
-      })
-      .forEach(([id, agg, contrib]) =>
-        agg
-          .makePayloads(contrib)
-          .entrySeq()
-          .forEach(([to, payload]) => network.get(to)?.add(id, payload, aggregationRound, r)),
-      );
+		for (const [id, agg] of network) {
+			const contribution = contributions.get(id);
+			if (contribution === undefined)
+				throw new Error(`no contribution for ${id}`);
+
+			for (const [to, payload] of agg.makePayloads(contribution))
+				network.get(to)?.add(id, payload, aggregationRound, r);
+		}
 
     contributions = Map(await Promise.all(nextContributions));
   }

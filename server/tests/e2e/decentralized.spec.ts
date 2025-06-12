@@ -1,7 +1,4 @@
-import type * as http from 'node:http'
-import { expect } from 'chai'
-import { List } from 'immutable'
-
+import type * as http from "node:http";
 import type { DataType, RoundStatus, Task, TaskProvider } from "@epfml/discojs";
 import {
 	Disco,
@@ -10,9 +7,10 @@ import {
 	client as clients,
 	defaultTasks,
 } from "@epfml/discojs";
-
-import { Server } from '../../src/index.js'
-import { Queue, datasets } from '../utils.js'
+import { List } from "immutable";
+import { afterEach, describe, expect, it } from "vitest";
+import { Server } from "../../src/index.js";
+import { Queue, datasets } from "../utils.js";
 
 async function WSIntoList(ws: WeightsContainer): Promise<List<List<number>>> {
   return List((await Promise.all(ws.weights.map(async (w) => await w.data()))).map(
@@ -29,9 +27,7 @@ async function expectWSToBeClose(
 			expect(l).to.be.closeTo(r, 1e-4);
 }
 
-describe('end-to-end decentralized', function () {
-  this.timeout(30_000)
-
+describe("end-to-end decentralized", { timeout: 50_000 }, () => {
   let handle: http.Server | undefined;
 	async function startServer(
 		task: TaskProvider<DataType, "decentralized">,
@@ -138,7 +134,7 @@ describe('end-to-end decentralized', function () {
     await reachConsensus(url, "secure", 3);
   });
 
-  it("peers emit expected events", async () => {
+  it("peers emit expected events", { timeout: 100_000 }, async () => {
 		const baseTask = await defaultTasks.lusCovid.getTask();
 		const task: Task<"image", "decentralized"> = {
 			...baseTask,
@@ -328,5 +324,5 @@ describe('end-to-end decentralized', function () {
     expect(await nbParticipantsUser3.next()).equal(1)
 
     await discoUser3.close()
-  }).timeout("2m");
+  });
 })

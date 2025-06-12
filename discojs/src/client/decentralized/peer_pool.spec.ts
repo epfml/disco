@@ -1,15 +1,14 @@
-import { assert } from 'chai'
 import { Map, Range } from 'immutable'
-import type { messages } from './index.js'
-import { type } from '../messages.js'
-import type { PeerConnection, EventConnection } from '../event_connection.js'
+import { assert, afterEach, beforeEach, describe, it } from "vitest";
 
-import { PeerPool } from './peer_pool.js'
+import type { EventConnection, PeerConnection } from '../event_connection.js'
+import { type } from '../messages.js'
 import type { NodeID } from '../types.js'
 
-describe('peer pool', function () {
-  this.timeout(10_000)
+import type { messages } from './index.js'
+import { PeerPool } from './peer_pool.js'
 
+describe("peer pool", { timeout: 10_000 }, () => {
   let pools: Map<NodeID, PeerPool>
 
   beforeEach(() => {
@@ -34,8 +33,8 @@ describe('peer pool', function () {
         }
         otherPool.signal(poolId, signal.signal)
       },
-      on: (): void => {},
-      once: (): void => {},
+      on: (): void => { /* nothing */ },
+      once: (): void => { /* nothing */ },
       disconnect: (): Promise<void> => Promise.resolve()
     }
   }
@@ -54,17 +53,28 @@ describe('peer pool', function () {
   Promise<Map<NodeID, Map<NodeID, PeerConnection>>> {
     const ids = pools.keySeq().toSet()
 
-    return Map(await Promise.all(pools
-      .map(async (pool, poolID) =>
-        await pool.getPeers(ids.remove(poolID), mockServer(poolID), () => {})
-      )
-      .entrySeq()
-      .map(async ([id, p]) =>
-        [id, await p] as [NodeID, Map<NodeID, PeerConnection>]
-      )
-      .toArray()
-    ))
-  }
+		return Map(
+			await Promise.all(
+				pools
+					.map(
+						async (pool, poolID) =>
+							await pool.getPeers(
+								ids.remove(poolID),
+								mockServer(poolID),
+								() => {
+									// empty
+								},
+							),
+					)
+					.entrySeq()
+					.map(
+						async ([id, p]) =>
+							[id, await p] as [NodeID, Map<NodeID, PeerConnection>],
+					)
+					.toArray(),
+			),
+		);
+	}
 
   async function assertCanSendMessagesToEach (
     peersSets: Map<NodeID, Map<NodeID, PeerConnection>>
@@ -79,10 +89,8 @@ describe('peer pool', function () {
         .toArray()
         .flat()
 
-    peersSets
-      .entrySeq()
-      .forEach(([poolID, peers]) =>
-        peers.forEach((peer) => { peer.send(mockWeights(poolID)) }))
+		for (const [poolID, peers] of peersSets)
+			for (const peer of peers.values()) peer.send(mockWeights(poolID));
 
     const exchanged = (await Promise.all(
       peersSets

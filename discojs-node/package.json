@@ -8,7 +8,7 @@
     "watch": "nodemon --ext ts --ignore dist --watch ../discojs/dist --watch . --exec npm run",
     "build": "tsc",
     "lint": "npx eslint .",
-    "test": "mocha"
+    "test": "cd .. && vitest --run --project=discojs-node"
   },
   "repository": {
     "type": "git",

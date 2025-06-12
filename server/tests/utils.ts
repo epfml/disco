@@ -1,9 +1,8 @@
 import path from "node:path";
 import { List, Repeat } from "immutable";
-
 import { loadCSV, loadImagesInDir, loadText } from "@epfml/discojs-node";
 
-const DATASET_DIR = path.join("..", "datasets");
+const DATASET_DIR = path.join(__dirname, "..", "..", "datasets");
 export const datasets = {
 	async loadCifar10() {
 		// TODO single label means model can't be wrong
@@ -21,6 +20,17 @@ export const datasets = {
 			).zip(Repeat("COVID-Negative")),
 		];
 		return positive.chain(negative);
+	},
+	async loadSimpleFace() {
+		const [adult, child] = [
+			(
+				await loadImagesInDir(path.join(DATASET_DIR, "simple_face", "adult"))
+			).zip(Repeat("adult")),
+			(
+				await loadImagesInDir(path.join(DATASET_DIR, "simple_face", "child"))
+			).zip(Repeat("child")),
+		];
+		return adult.chain(child);
 	},
 	loadTitanic: () => loadCSV(path.join(DATASET_DIR, "titanic_train.csv")),
 	loadWikitext: () =>

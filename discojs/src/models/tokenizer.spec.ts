@@ -1,7 +1,6 @@
-import { expect } from "chai";
 import { Repeat } from "immutable";
-
-import { Tokenizer } from "./tokenizer.js"
+import { describe, expect, it } from "vitest";
+import { Tokenizer } from "./tokenizer.js";
 
 describe("text processing", () => {
   const text = [
@@ -20,7 +19,7 @@ describe("text processing", () => {
     257, 3085, 286, 625, 13037, 661, 3693, 22, 60,
   ];
 
-  const shortText = 'import { AutoTokenizer } from "@xenova/transformers";' 
+  const shortText = 'import { AutoTokenizer } from "@xenova/transformers";'
   const paddingToken = 50256;
   // with GPT 2 tokenizer
   const shortExpectedTokens = [
@@ -28,7 +27,7 @@ describe("text processing", () => {
     44212, 87, 268, 10071, 14, 35636, 364, 8172
   ]
 
-  it("can tokenize text with the Llama 3 tokenizer", async () => {
+  it("can tokenize text with the Llama 3 tokenizer", { timeout: 5_000 }, async () => {
     const tokenizer = await Tokenizer.from_pretrained("Xenova/llama-3-tokenizer");
     // Tokenizer playgrounds aren't consistent: https://github.com/huggingface/transformers.js/issues/1019
     // Tokenization with python:
@@ -45,7 +44,7 @@ describe("text processing", () => {
     ]
     const tokens = tokenizer.tokenize(text);
     expect(tokens.toArray()).to.be.deep.equal(expectedTokens);
-  }).timeout(3000);
+  });
 
   it("can tokenize text with the GPT2 tokenizer", async () => {
     const tokenizer = await Tokenizer.from_pretrained("Xenova/gpt2");
@@ -70,11 +69,11 @@ describe("text processing", () => {
       .concat(shortExpectedTokens).toArray();
     expect(tokens.toArray()).to.be.deep.equal(paddedSequence);
   });
-    
+
   it("can pad on right side", async () => {
     const tokenizer = await Tokenizer.from_pretrained("Xenova/gpt2");
     const max_length = 20
-    
+
     const tokens = tokenizer.tokenize(shortText, {padding: 'right', max_length});
     const paddedSequence = shortExpectedTokens.concat(
       Repeat(paddingToken, max_length - shortExpectedTokens.length).toArray()
@@ -84,9 +83,7 @@ describe("text processing", () => {
 });
 
 
-describe("Multi-Tokenizer Tests", function () {
-  this.timeout(20000);
-
+describe("Multi-Tokenizer Tests", { timeout: 20_000 }, () => {
   const sampleText = "Hello, world! This is a test string to check tokenization.";
 
   // List of tokenizer names to test
@@ -98,7 +95,7 @@ describe("Multi-Tokenizer Tests", function () {
     "Xenova/distilbert-base-uncased"
   ];
 
-  tokenizerNames.forEach((name) => {
+  for (const name of tokenizerNames)
     it(`should tokenize text using tokenizer "${name}"`, async () => {
       const tokenizer = await Tokenizer.from_pretrained(name);
       const tokens = tokenizer.tokenize(sampleText);
@@ -106,28 +103,24 @@ describe("Multi-Tokenizer Tests", function () {
 
       // Checks that we got a non-empty array of tokens and that each token is a number.
       expect(tokenArray).to.be.an("array").that.is.not.empty;
-      tokenArray.forEach((token) => {
+      for (const token of tokenArray)
         expect(token).to.be.a("number");
-      });
     });
-  });
 });
 
 
-describe("Encode-Decode tokenization", function () {
-  this.timeout(20000);
-
+describe("Encode-Decode tokenization", { timeout: 20_000 }, () => {
   it("should return text equal to the original after encode-decode tokenization using GPT2 tokenizer", async () => {
     // Load the GPT2 tokenizer
     const tokenizer = await Tokenizer.from_pretrained("Xenova/gpt2");
     const originalText = "Hello, world! This is a test for encode-decode tokenization.";
-    
+
     // Perform round-trip tokenization
     const encoding = tokenizer.tokenize(originalText);
 
     // Decode the token IDs back into text while skipping special tokens.
     const decodedText = tokenizer.decode(encoding.toArray());
-    
+
     // Check that the decoded text is equal to the original text
     expect(decodedText).to.equal(originalText);
   });

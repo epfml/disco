@@ -1,24 +1,11 @@
-import { expect } from "chai";
-import { Repeat } from "immutable";
-
 import { Validator, defaultTasks } from "@epfml/discojs";
-import { loadCSV, loadImagesInDir } from "@epfml/discojs-node";
-
+import { describe, expect, it } from "vitest";
 import { datasets } from "./utils.js";
 
 describe("validator", () => {
-  it("can read and predict randomly on simple_face", async () => {
+  it("can read and predict randomly on simple_face", { timeout: 20_000 }, async () => {
     const provider = defaultTasks.simpleFace;
-
-    const [adult, child] = [
-      (await loadImagesInDir("../datasets/simple_face/adult")).zip(
-        Repeat("adult"),
-      ),
-      (await loadImagesInDir("../datasets/simple_face/child")).zip(
-        Repeat("child"),
-      ),
-    ];
-    const dataset = adult.chain(child);
+    const dataset = await datasets.loadSimpleFace();
 
     const validator = new Validator(
       await provider.getTask(),
@@ -33,12 +20,11 @@ describe("validator", () => {
     }
 
     expect(hits / size).to.be.greaterThan(0.3);
-  }).timeout("20s");
+  });
 
-  it("can read and predict randomly on titanic", async () => {
+  it("can read and predict randomly on titanic", { timeout: 10_000 }, async () => {
     const provider = defaultTasks.titanic;
-
-    const dataset = loadCSV("../datasets/titanic_train.csv");
+    const dataset = datasets.loadTitanic();
 
     const validator = new Validator(
       await provider.getTask(),
@@ -53,9 +39,9 @@ describe("validator", () => {
     }
 
     expect(hits / size).to.be.greaterThan(0.3);
-  }).timeout("10s");
+  });
 
-  it("can read and predict randomly on lus_covid", async () => {
+  it("can read and predict randomly on lus_covid", { timeout: 20_000 }, async () => {
 		const task = await defaultTasks.lusCovid.getTask();
 		task.trainingInformation = {
 			...task.trainingInformation,
@@ -77,5 +63,5 @@ describe("validator", () => {
     }
 
     expect(hits / size).to.be.greaterThan(0.3);
-  }).timeout("20s");
+  });
 });

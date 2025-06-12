@@ -1,6 +1,5 @@
-import { expect } from "chai";
 import { Set } from "immutable";
-
+import { describe, expect, it } from "vitest";
 import { WeightsContainer } from "../index.js";
 import { MeanAggregator } from "./mean.js";
 

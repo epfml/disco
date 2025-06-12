@@ -1,6 +1,7 @@
-import { expect } from "chai";
+import { describe, expect, it } from "vitest";
 
-import { Dataset, Task } from "../index.js";
+import type { Task } from "../index.js";
+import { Dataset } from "../index.js";
 
 import { preprocess } from "./index.js";
 

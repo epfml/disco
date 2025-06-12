@@ -1,15 +1,13 @@
-import { expect } from "chai";
-import "@tensorflow/tfjs-node"; // speed up
+import { List } from "immutable";
+import { describe, expect, it } from "vitest";
 
 import type { DataFormat } from "../../index.js";
 import { Dataset, Tokenizer } from "../../index.js";
 
 import { GPT } from "./index.js";
-import { List } from "immutable";
 
-describe("gpt-tfjs", function () {
-  it("can overfit one sentence", async function () {
-    this.timeout("1m");
+describe("gpt-tfjs", () => {
+  it("can overfit one sentence", { timeout: 50_000 }, async () => {
     const tokenizer = await Tokenizer.from_pretrained("Xenova/gpt2");
 
     const data = "Lorem ipsum dolor sit";

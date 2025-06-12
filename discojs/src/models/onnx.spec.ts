@@ -1,10 +1,11 @@
-import { expect } from 'chai';
+import { describe, expect, it } from "vitest";
+
 import { List } from 'immutable';
 import { AutoTokenizer } from '@xenova/transformers';
 import { ONNXModel } from './onnx.js';
 import { DefaultGenerationConfig } from './gpt/config.js';
 
-describe('ONNXModel.predict', () => {
+describe('ONNXModel.predict', { timeout: 20_000 }, () => {
   it('should generate the next token ID from a prompt', async () => {
     // Load tokenizer and model
     const tokenizer = await AutoTokenizer.from_pretrained('Xenova/gpt2');
@@ -33,5 +34,5 @@ describe('ONNXModel.predict', () => {
     if (nextTokenId === undefined) throw new Error("empty prediction");
     const output = tokenizer.decode([nextTokenId]);
     console.log('Predicted text:', output);
-  }).timeout(10000);
+  });
 });
