@@ -1,6 +1,5 @@
-import { assert } from 'chai'
-
-import { WeightsContainer, aggregation } from './index.js'
+import { assert, describe, it } from "vitest";
+import { WeightsContainer, aggregation } from "./index.js";
 
 describe('weights aggregation', () => {
   it('avg of weights with two operands', () => {

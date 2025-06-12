@@ -1,13 +1,13 @@
-import { assert, expect } from 'chai'
 import * as tf from '@tensorflow/tfjs'
+import { assert, describe, expect, it } from "vitest";
 
 import type { DataType, Model } from "../index.js";
+import { models, serialization } from '../index.js'
 import type { GPTConfig } from '../models/index.js'
-import { serialization, models } from '../index.js'
 
 async function getRawWeights(
   model: Model<DataType>,
-): Promise<Array<[number, Float32Array]>> {
+): Promise<[number, Float32Array][]> {
   return Array.from(
     (await Promise.all(
       model.weights.weights.map(async (w) => await w.data<'float32'>()))
@@ -16,7 +16,7 @@ async function getRawWeights(
 }
 
 describe('serialization', () => {
-  it('can encode & decode a TFJS model', async function () {
+  it('can encode & decode a TFJS model', async () => {
     const rawModel = tf.sequential({
       layers: [
         tf.layers.conv2d({
@@ -44,7 +44,7 @@ describe('serialization', () => {
     )
   })
 
-  it("can encode & decode a gpt-tfjs model", async () => {
+  it("can encode & decode a gpt-tfjs model", { timeout: 20_000 }, async () => {
     const config: GPTConfig = {
       modelType: 'gpt-nano',
       lr: 0.01,
@@ -69,5 +69,5 @@ describe('serialization', () => {
       model.config,
       (decoded as models.GPT).config
     )
-  }).timeout("20s")
+  })
 })

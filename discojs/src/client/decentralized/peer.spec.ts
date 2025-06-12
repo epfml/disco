@@ -1,9 +1,8 @@
-import { assert } from 'chai'
-import { List, Range, Set } from 'immutable'
+import { List, Range, Set } from "immutable";
+import { assert, afterEach, beforeEach, describe, it } from "vitest";
+import { Peer } from "./peer.js";
 
-import { Peer } from './peer.js'
-
-describe('peer', function () {
+describe('peer', () => {
   let peer1: Peer
   let peer2: Peer
 
@@ -37,9 +36,7 @@ describe('peer', function () {
       Range(0, 5)
         .map((i) => `message ${i}`)
 
-    messages
-      .map((m) => Buffer.from(m))
-      .forEach((m) => { peer1.send(m) })
+		for (const m of messages) peer1.send(Buffer.from(m));
 
     const receiveds: List<string> = await new Promise((resolve) => {
       let buffer = List<string>()

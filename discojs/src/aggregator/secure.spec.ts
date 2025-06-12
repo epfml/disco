@@ -1,18 +1,15 @@
-import { List, Set, Range, Map } from "immutable";
-import { assert, expect } from "chai";
-
+import { List, Map, Range, Set } from "immutable";
+import { assert, describe, expect, it } from "vitest";
+import { communicate, setupNetwork, wsIntoArrays } from "../aggregator.spec.js";
 import {
-  aggregator as aggregators,
-  aggregation,
   WeightsContainer,
+  aggregation,
+  aggregator as aggregators,
 } from "../index.js";
-
 import { MeanAggregator } from "./mean.js";
 import { SecureAggregator } from "./secure.js";
 
-import { wsIntoArrays, communicate, setupNetwork } from "../aggregator.spec.js";
-
-describe("secret shares test", function () {
+describe("secret shares test", () => {
   const epsilon = 1e-4;
 
   const expected = WeightsContainer.of([2, 2, 5, 1], [-10, 10]);
@@ -77,14 +74,18 @@ describe("secure aggregator", () => {
       ), 0
     );
 
-    List(await Promise.all(secureResults.sort().valueSeq().map(wsIntoArrays)))
-      .flatMap((x) => x) // .flatten convert to Collection instead of List and zipAll is picky
-      .flatMap((x) => x)
-      .zipAll(
-        List(await Promise.all(meanResults.sort().valueSeq().map(wsIntoArrays)))
-          .flatMap((x) => x)
-          .flatMap((x) => x),
-      )
-      .forEach(([secure, mean]) => expect(secure).to.be.closeTo(mean, 0.001));
+		// biome-ignore lint/correctness/noFlatMapIdentity: .flatten convert to Collection and zipAll is picky
+		for (const [secure, mean] of List(
+			await Promise.all(secureResults.sort().valueSeq().map(wsIntoArrays)),
+		)
+			.flatMap((x) => x)
+			.flatMap((x) => x)
+			.zipAll(
+				// biome-ignore lint/correctness/noFlatMapIdentity: .flatten convert to Collection and zipAll is picky
+				List(await Promise.all(meanResults.sort().valueSeq().map(wsIntoArrays)))
+					.flatMap((x) => x)
+					.flatMap((x) => x),
+			))
+			expect(secure).to.be.closeTo(mean, 0.001);
   });
 });

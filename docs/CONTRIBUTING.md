@@ -61,7 +61,7 @@ You can test the server with:
 npm -w server test
 ```
 
-Make sure you are not running a server at the same time as the test suite will launch its own instance. We use [mocha](https://mochajs.org/), [chai](https://www.chaijs.com/) and [supertest](https://github.com/visionmedia/supertest) for testing; respectively they are libraries for unit tests, assertions, and http testing.
+Make sure you are not running a server at the same time as the test suite will launch its own instance. We use [vitest](https://vitest.dev/) and [Cypress](https://www.cypress.io/) for testing; respectively they are libraries for unit tests and browser testing.
 
 Server tests live in the `server/tests/` folder. All files ending with the `.spec.ts` extension written in this folder will be run as tests. Simply write a new `your_own_test.spec.ts` file to include it in the testing pipeline.
 

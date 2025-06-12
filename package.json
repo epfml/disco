@@ -1,24 +1,25 @@
 {
-  "name": "disco",
-  "type": "module",
-  "workspaces": [
-    "discojs",
-    "discojs-node",
-    "discojs-web",
-    "server",
-    "cli",
-    "webapp"
-  ],
-  "dependencies": {
-    "debug": "4",
-    "immutable": "5",
-    "zod": "3"
-  },
-  "devDependencies": {
-    "@types/debug": "4",
-    "@typescript-eslint/eslint-plugin": "7",
-    "eslint": "8",
-    "typescript": "<5.6.0",
-    "typescript-eslint": "7"
-  }
+	"name": "disco",
+	"type": "module",
+	"workspaces": [
+		"discojs",
+		"discojs-node",
+		"discojs-web",
+		"server",
+		"cli",
+		"webapp"
+	],
+	"dependencies": {
+		"debug": "4",
+		"immutable": "5",
+		"vitest": "3",
+		"zod": "3"
+	},
+	"devDependencies": {
+		"@types/debug": "4",
+		"@typescript-eslint/eslint-plugin": "7",
+		"eslint": "8",
+		"typescript": "<5.6.0",
+		"typescript-eslint": "7"
+	}
 }

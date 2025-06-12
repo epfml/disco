@@ -1,15 +1,12 @@
-import { afterEach, expect, it, vi } from "vitest";
-import { directive as Tippy } from "vue-tippy";
-import { mount } from "@vue/test-utils";
-import { createTestingPinia } from "@pinia/testing";
 import * as fs from "node:fs/promises";
-
+import { CONFIG } from "@/config";
 import { defaultTasks, serialization } from "@epfml/discojs";
 import { loadCSV } from "@epfml/discojs-web";
-
+import { createTestingPinia } from "@pinia/testing";
+import { mount } from "@vue/test-utils";
+import { afterEach, expect, it, vi } from "vitest";
+import { directive as Tippy } from "vue-tippy";
 import TrainerDashboard from "../TrainerDashboard.vue";
-import { CONFIG } from "@/config";
-
 import TrainingInformation from "../TrainingInformation.vue";
 
 async function setupForTask() {
@@ -48,7 +45,7 @@ async function setupForTask() {
   });
 }
 
-it("increases accuracy when training alone", async () => {
+it("increases accuracy when training alone", { timeout: 20_000 }, async () => {
   const wrapper = await setupForTask();
   await wrapper.get("#train-locally-bttn").trigger("click");
   await wrapper.get("#start-training-bttn").trigger("click");

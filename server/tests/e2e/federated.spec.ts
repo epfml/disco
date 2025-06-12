@@ -1,11 +1,8 @@
-import { assert, expect } from "chai";
-import { List } from "immutable";
 import type * as http from "node:http";
-
 import type {
 	DataFormat,
-	Dataset,
 	DataType,
+	Dataset,
 	EpochLogs,
 	RoundStatus,
 	Task,
@@ -13,9 +10,9 @@ import type {
 	WeightsContainer,
 } from "@epfml/discojs";
 import { Disco, defaultTasks } from "@epfml/discojs";
-
+import { List } from "immutable";
+import { assert, afterEach, describe, expect, it } from "vitest";
 import { Server } from "../../src/index.js";
-
 import { Queue, datasets } from "../utils.js";
 
 // Array.fromAsync not yet widely used (2024)
@@ -74,7 +71,7 @@ describe("end-to-end federated", () => {
 		return [disco.trainer.model.weights, lastEpoch];
 	}
 
-	it("three cifar10 users reach consensus", async () => {
+	it("three cifar10 users reach consensus", { timeout: 100_000 }, async () => {
 		const task = await defaultTasks.cifar10.getTask();
 		const cifar10Task: Task<"image", "federated"> = {
 			...task,
@@ -102,9 +99,9 @@ describe("end-to-end federated", () => {
 			expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.5);
 		}
 		assert.isTrue(m1.equals(m2) && m2.equals(m3));
-	}).timeout("2m");
+	});
 
-	it("two titanic users reach consensus", async () => {
+	it("two titanic users reach consensus", { timeout: 50_000 }, async () => {
 		const task = await defaultTasks.titanic.getTask();
 		task.trainingInformation = {
 			...task.trainingInformation,
@@ -126,9 +123,9 @@ describe("end-to-end federated", () => {
 			expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.5);
 		}
 		assert.isTrue(m1.equals(m2));
-	}).timeout("30s");
+	});
 
-	it("two lus_covid users reach consensus", async () => {
+	it("two lus_covid users reach consensus", { timeout: 100_000 }, async () => {
 		const task = await defaultTasks.lusCovid.getTask();
 		task.trainingInformation = {
 			...task.trainingInformation,
@@ -152,9 +149,9 @@ describe("end-to-end federated", () => {
 			expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.5);
 		}
 		assert.isTrue(m1.equals(m2));
-	}).timeout("2m");
+	});
 
-	it("two wikitext reach consensus", async () => {
+	it("two wikitext reach consensus", { timeout: 500_000 }, async () => {
 		const task = await defaultTasks.wikitext.getTask();
 		task.trainingInformation = {
 			...task.trainingInformation,
@@ -173,9 +170,9 @@ describe("end-to-end federated", () => {
 			runUser(url, task, dataset, false),
 		]);
 		assert.isTrue(r1[0].equals(r2[0]));
-	}).timeout("5m");
+	});
 
-	it("clients emit expected events", async () => {
+	it("clients emit expected events", { timeout: 100_000 }, async () => {
 		const task = await defaultTasks.lusCovid.getTask();
 		task.trainingInformation = {
 			...task.trainingInformation,
@@ -316,5 +313,5 @@ describe("end-to-end federated", () => {
 		expect(await nbParticipantsUser3.next()).equal(1);
 
 		await discoUser3.close();
-	}).timeout("2m");
+	});
 });

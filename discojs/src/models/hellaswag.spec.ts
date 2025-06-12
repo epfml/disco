@@ -1,4 +1,5 @@
-import { expect } from 'chai';
+import { describe, expect, it } from "vitest";
+
 import { evaluate } from './hellaswag.js';
 import { GPT, Tokenizer } from './index.js';
 import { ONNXModel } from './onnx.js';
@@ -27,7 +28,7 @@ const exampleDataset: HellaSwagExample[] = [
   }
 ];
 
-describe('HellaSwag Evaluator', () => {
+describe('HellaSwag Evaluator', { timeout: 10_000 }, () => {
   it('evaluates tfjs GPT model', async () => {
     const tokenizer = await Tokenizer.from_pretrained('Xenova/gpt2');
     const gpt = new GPT({seed: 42,}); // seed for reproducibility
@@ -35,10 +36,10 @@ describe('HellaSwag Evaluator', () => {
     const accuracy = await evaluate(gpt, tokenizer, exampleDataset, true);
     expect(accuracy).to.be.gte(0);
     expect(accuracy).to.be.lte(1);
-  }).timeout(6000);
+  });
 });
 
-describe('HellaSwag Evaluator with Xenova GPT-2', () => {
+describe('HellaSwag Evaluator with Xenova GPT-2', { timeout: 20_000 }, () => {
   it('evaluates the pretrained GPT-2 model', async () => {
     const tokenizer = await Tokenizer.from_pretrained('Xenova/gpt2');
     const model = await ONNXModel.init_pretrained('Xenova/gpt2');
@@ -46,10 +47,10 @@ describe('HellaSwag Evaluator with Xenova GPT-2', () => {
     const accuracy = await evaluate(model, tokenizer, exampleDataset, true);
     expect(accuracy).to.be.gte(0);
     expect(accuracy).to.be.lte(1);
-  }).timeout(10000);
+  });
 });
 
-describe('Deterministic evaluation with tfjs GPT-2', () => {
+describe('Deterministic evaluation with tfjs GPT-2', { timeout: 10_000 }, () => {
   it('returns the same accuracy across runs', async () => {
     const tokenizer = await Tokenizer.from_pretrained('Xenova/gpt2');
     const gpt = new GPT({seed: 42,});
@@ -58,5 +59,5 @@ describe('Deterministic evaluation with tfjs GPT-2', () => {
     const accuracy2 = await evaluate(gpt, tokenizer, exampleDataset, false);
 
     expect(accuracy1).to.equal(accuracy2);
-  }).timeout(10000);
+  });
 });

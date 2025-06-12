@@ -1,18 +1,26 @@
-import * as tf from '@tensorflow/tfjs';
-import { expect } from 'chai';
-import { GELU, LMEmbedding, Range, MLP, MLPConfig, CausalSelfAttention, CausalSelfAttentionConfig } from './layers.js';
+import * as tf from "@tensorflow/tfjs";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+
+import type { CausalSelfAttentionConfig, MLPConfig } from "./layers.js";
+import {
+	CausalSelfAttention,
+	GELU,
+	LMEmbedding,
+	MLP,
+	Range,
+} from "./layers.js";
 
 
-describe('GPT Layers', function () {
+describe('GPT Layers', () => {
   // GELU Layer tests
-  describe('GELU Layer', function () {
+  describe('GELU Layer', () => {
 
     afterEach(() => {
       // Dispose of variables to avoid name collisions in subsequent tests.
       tf.disposeVariables();
     });
 
-    it('should compute GELU activation correctly for known inputs', async function () {
+    it('should compute GELU activation correctly for known inputs', async () => {
       const geluLayer = new GELU();
 
       const input = tf.tensor1d([0, 1, -1, 2, -2]);
@@ -30,9 +38,9 @@ describe('GPT Layers', function () {
   });
 
   // LMEmbedding Layer tests
-  describe('LMEmbedding Layer', function () {
+  describe('LMEmbedding Layer', () => {
 
-    it('should return token embeddings with shape [batch_size, sequence_length, nEmbd] for 2D input', function () {
+    it('should return token embeddings with shape [batch_size, sequence_length, nEmbd] for 2D input', () => {
       const vocabSize = 100;
       const nEmbd = 16;
       const seed = 42;
@@ -64,7 +72,7 @@ describe('GPT Layers', function () {
       expect(outputForEmbedding.shape).to.deep.equal([2, 5, vocabSize]);  
     });  
 
-    it('should throw appropriate errors for invalid input shapes', function () {
+    it('should throw appropriate errors for invalid input shapes', () => {
       const vocabSize = 100;
       const nEmbd = 16;
       const seed = 42;
@@ -80,7 +88,7 @@ describe('GPT Layers', function () {
       expect(() => lmEmbedding.apply([input1, input2])).to.throw('expected exactly one tensor');
     });
 
-    it('should compute correct output shape for 2D input using computeOutputShape', function () {
+    it('should compute correct output shape for 2D input using computeOutputShape', () => {
       const vocabSize = 100;
       const nEmbd = 16;
       const seed = 42;
@@ -92,14 +100,14 @@ describe('GPT Layers', function () {
   });
 
   // Range Layer tests
-  describe('Range Layer', function () {  
+  describe('Range Layer', () => {
 
     afterEach(() => {
       // dispose any created tensors/variables
       tf.disposeVariables();
     });
   
-    it('should output a tensor with shape [1, T] for an input of shape [batch, T]', async function () {
+    it('should output a tensor with shape [1, T] for an input of shape [batch, T]', async () => {
       const rangeLayer = new Range();
   
       // dummy input tensor with shape [batch, T]
@@ -118,9 +126,9 @@ describe('GPT Layers', function () {
   });
 
   // MLP Layer tests
-  describe('MLP Layer', function () {  
+  describe('MLP Layer', () => {
 
-    it('should produce deterministic/non-NaN outputs with the same random seed', async function () {
+    it('should produce deterministic/non-NaN outputs with the same random seed', async () => {
       // an MLP config with a fixed seed
       const config: MLPConfig = {
         name: 'testMLP',
@@ -160,7 +168,7 @@ describe('GPT Layers', function () {
   });
 
   // CausalSelfAttention Layer tests
-  describe('CausalSelfAttention Helper Methods', function () {
+  describe('CausalSelfAttention Helper Methods', () => {
   
     const config: CausalSelfAttentionConfig = {
       name: 'testCSA',
@@ -187,8 +195,8 @@ describe('GPT Layers', function () {
     });
 
   
-    describe('splitHeads', function () {
-      it('should reshape and transpose the input correctly', function () {
+    describe('splitHeads', () => {
+      it('should reshape and transpose the input correctly', () => {
         const B = 2;
         const T = 6;
         const totalChannels = config.nEmbd; // 8 channels
@@ -200,8 +208,8 @@ describe('GPT Layers', function () {
       });
     });
   
-    describe('applyCausalMask', function () {
-      it('should produce a causal mask that sets upper-triangular positions to -1e9', async function () {
+    describe('applyCausalMask', () => {
+      it('should produce a causal mask that sets upper-triangular positions to -1e9', async () => {
         const T = config.contextLength;
         // dummy attention logits tensor with shape [1, 1, T, T] filled with zeros
         const att = tf.zeros([1, 1, T, T], 'float32');
@@ -222,8 +230,8 @@ describe('GPT Layers', function () {
       });
     });
   
-    describe('computeAttention', function () {
-      it('should output attention weights that sum to 1 over the last dimension', async function () {
+    describe('computeAttention', () => {
+      it('should output attention weights that sum to 1 over the last dimension', async () => {
         const B = 1;
         const nHead = config.nHead;
         const T = config.contextLength;

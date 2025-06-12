@@ -1,10 +1,13 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "types": ["mocha", "node"],
     "outDir": "dist",
     "declaration": true
   },
-  "include": ["src"],
-  "exclude": ["**/*.spec.ts"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "**/*.spec.ts"
+  ]
 }

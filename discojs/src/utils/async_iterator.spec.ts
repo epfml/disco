@@ -1,4 +1,4 @@
-import { expect } from "chai";
+import { describe, expect, it } from "vitest";
 
 import { split, gather } from "./async_iterator.js";
 

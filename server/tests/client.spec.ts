@@ -1,12 +1,11 @@
 import type * as http from "node:http";
-
 import type { DataType, Network, TaskProvider } from "@epfml/discojs";
 import {
 	aggregator as aggregators,
 	client as clients,
 	defaultTasks,
 } from "@epfml/discojs";
-
+import { afterEach, describe, it } from "vitest";
 import { Server } from "../src/index.js";
 
 describe("decentralized client", () => {

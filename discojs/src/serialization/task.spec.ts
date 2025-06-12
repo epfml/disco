@@ -1,4 +1,4 @@
-import { expect } from "chai";
+import { expect, it } from "vitest";
 
 import { serialization, defaultTasks } from "../index.js";
 

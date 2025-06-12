@@ -1,6 +1,6 @@
-import { expect } from "chai";
-import { Dataset } from "./dataset.js";
 import { List, Range } from "immutable";
+import { describe, expect, it } from "vitest";
+import { Dataset } from "./dataset.js";
 
 // Array.fromAsync not yet widely used (2024)
 async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
@@ -17,10 +17,11 @@ describe("dataset", () => {
   });
 
   it("can be constructed with async generator", async () => {
+    // eslint-disable-next-line @typescript-eslint/require-await
     const dataset = new Dataset(async function* () {
-      yield Promise.resolve(1);
-      yield Promise.resolve(2);
-      yield Promise.resolve(3);
+      yield 1;
+      yield 2;
+      yield 3;
     });
 
     expect(await arrayFromAsync(dataset)).to.have.ordered.members([1, 2, 3]);

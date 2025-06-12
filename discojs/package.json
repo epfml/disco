@@ -8,7 +8,7 @@
     "watch": "nodemon --ext ts --ignore dist --exec npm run",
     "build": "tsc",
     "lint": "npx eslint .",
-    "test": "mocha --exit"
+    "test": "cd .. && vitest --run --project=discojs"
   },
   "repository": {
     "type": "git",
@@ -33,11 +33,7 @@
   },
   "devDependencies": {
     "@tensorflow/tfjs-node": "4",
-    "@types/chai": "5",
-    "@types/mocha": "10",
     "@types/simple-peer": "9",
-    "chai": "5",
-    "mocha": "10",
     "nodemon": "3",
     "ts-node": "10"
   }

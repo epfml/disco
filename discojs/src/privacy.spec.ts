@@ -1,6 +1,6 @@
-import { expect } from "chai";
-import { WeightsContainer } from "./index.js";
+import { describe, expect, it } from "vitest";
 
+import { WeightsContainer } from "./index.js";
 import { addNoise, clipNorm } from "./privacy.js";
 
 async function WSIntoArrays(ws: WeightsContainer): Promise<number[][]> {
