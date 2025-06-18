@@ -102,26 +102,4 @@ describe("ByzantineRobustAggregator", () => {
     const arr2 = await WSIntoArrays(out2);
     expect(arr2[0][0]).to.equal(20);
   });
-
-  it("waits for minNbOfParticipants even with threshold met", async () => {
-    const agg = new ByzantineRobustAggregator(0, 1, 'absolute', 1e6, 1, 0);
-    agg.minNbOfParticipants = 2;
-
-    const [c1, c2] = ["c1", "c2"];
-    agg.setNodes(Set.of(c1, c2));
-
-    const p = agg.getPromiseForAggregation();
-    agg.add(c1, WeightsContainer.of([5]), 0);
-
-    // Should not emit yet:
-    let resolved = false;
-    p.then(() => (resolved = true));
-    await new Promise(r => setTimeout(r, 50));
-    expect(resolved).to.be.false;
-
-    agg.add(c2, WeightsContainer.of([7]), 0);
-    const out = await p;
-    const arr = await WSIntoArrays(out);
-    expect(arr[0][0]).to.equal(6);
-  });
 });

@@ -2,8 +2,9 @@ import { Map } from "immutable";
 import * as tf from '@tensorflow/tfjs';
 import { AggregationStep } from "./aggregator.js";
 import { MultiRoundAggregator, ThresholdType } from "./multiround.js";
-import type { WeightsContainer, client } from "../index.js";
+import { WeightsContainer, client } from "../index.js";
 import { aggregation } from "../index.js";
+import { Repeat } from "immutable";
 
 /**
  * Byzantine-robust aggregator using Centered Clipping (CC), based on the
@@ -16,7 +17,8 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
   private readonly clippingRadius: number;
   private readonly maxIterations: number;
   private readonly beta: number;
-  private momentums: Map<client.NodeID, WeightsContainer> = Map();
+  private historyMomentums: Map<client.NodeID, WeightsContainer> = Map();
+  private prevAggregate: WeightsContainer | null = null;
 
   /** 
   @property clippingRadius The clipping threshold (λ) used to limit the influence of outlier updates.
@@ -56,56 +58,14 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
       nodeId,
     );
 
-    const prevMomentum = this.momentums.get(nodeId);
-    const momentum = prevMomentum
+    const prevMomentum = this.historyMomentums.get(nodeId);
+    const newMomentum = prevMomentum
       ? contribution.mapWith(prevMomentum, (g, m) => g.mul(1 - this.beta).add(m.mul(this.beta)))
-      : contribution.map(g => g.mul(1 - this.beta));
+      : contribution;  // no scaling on first momentum
 
-    this.momentums = this.momentums.set(nodeId, momentum);
-    this.contributions = this.contributions.setIn([0, nodeId], momentum);
+    this.historyMomentums = this.historyMomentums.set(nodeId, newMomentum);
+    this.contributions = this.contributions.setIn([0, nodeId], newMomentum);
   }
-
-  // override aggregate(): WeightsContainer {
-  //   const currentContributions = this.contributions.get(0);
-  //   if (!currentContributions) throw new Error("aggregating without any contribution");
-
-  //   this.log(AggregationStep.AGGREGATE);
-
-  //   if (!isFinite(this.clippingRadius)) {
-  //     return aggregation.avg(currentContributions.values()); // Identity fallback for large radius
-  //   }
-
-  //   // Step 1: initialize v to average of momentum
-  //   let v = aggregation.avg(currentContributions.values());
-
-  //   // Step 2: Iterate Centered Clipping 
-  //   // for (let l = 0; l < this.maxIterations; l++) {
-  //   //   const clippedDiffs = Array.from(currentContributions.values()).map(m => {
-  //   //     const diff = m.sub(v);
-  //   //     const norm = euclideanNorm(diff);
-  //   //     const scale = tf.tidy(() => tf.minimum(tf.scalar(1), tf.div(tf.scalar(this.clippingRadius), norm)));
-  //   //     return diff.mul(scale);
-  //   //   });
-
-  //   //   const avgClip = aggregation.avg(clippedDiffs);
-  //   //   v = v.add(avgClip.mul(1 / currentContributions.size));
-  //   // }
-
-  //   for (let l = 0; l < this.maxIterations; l++) {
-  //     const clippedDiffs = Array.from(currentContributions.values()).map(m => tf.tidy(() => {
-  //       const diff = m.sub(v);
-  //       const norm = euclideanNorm(diff);
-  //       const scale = tf.minimum(tf.scalar(1), tf.div(tf.scalar(this.clippingRadius), norm));
-  //       return diff.mul(scale);
-  //     }));
-
-  //     const avgClip = aggregation.avg(clippedDiffs);
-  //     v = tf.tidy(() => v.add(avgClip));
-  //     clippedDiffs.forEach(d => d.dispose());
-  //   }
-
-  //   return v;
-  // }
 
   override aggregate(): WeightsContainer {
     const currentContributions = this.contributions.get(0);
@@ -118,9 +78,15 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
       return aggregation.avg(currentContributions.values());
     }
 
-    // Step 1: Initialize v to average of momentums
-    let v = aggregation.avg(currentContributions.values());
-
+    // Step 1: Initialize v to average of previous aggregations
+    let v: WeightsContainer;
+    if (this.prevAggregate) {
+      v = this.prevAggregate;
+    } else {
+      // Use shape of the first contribution to create zero vector
+      const sample = currentContributions.values().next().value;
+      v = sample.map((t: any) => tf.zerosLike(t));
+    }
     // Step 2: Iterative Centered ClippingF
     for (let l = 0; l < this.maxIterations; l++) {
       const clippedDiffs = Array.from(currentContributions.values()).map(m => {
@@ -138,6 +104,8 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
       v.dispose(); // Safe if v is no longer needed
       v = newV;
     }
+    // Step 3: Update momentum history
+    this.prevAggregate = v;
     return v;
   }
 
