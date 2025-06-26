@@ -92,6 +92,7 @@ describe("Secure history aggregator", function () {
         const avgPartialSum = aggregation.avg(partialSums);
         expect(sumRound1.equals(avgPartialSum, epsilon)).to.be.true;
 
+        // Now we simulate a second round of aggregation with momentum smoothing
         const dummyPromise = aggregator.getPromiseForAggregation();
         partialSums.forEach((partialSum, idx) => {
             const nodeId = idx.toString();
@@ -105,7 +106,7 @@ describe("Secure history aggregator", function () {
             ws.map((tensor) => tf.mul(tensor, 1.1))
         );
 
-        // Step 3: Add new partial sums to aggregator
+        // Add the modified partial sums to the aggregator
         partialSums2.forEach((partialSum, idx) => {
             const nodeId = idx.toString();
             aggregator.add(nodeId, partialSum, 1);
@@ -117,7 +118,7 @@ describe("Secure history aggregator", function () {
             prev.mul(0.8).add(curr.mul(0.2)) // 0.8 = beta, 0.2 = (1 - beta)
         );
 
-        // Compare the actual result to the expected smoothed result
+        // Compare the actual result to the expected smoothed result using momentum
         expect(sumRound2.equals(expectedSumRound2, 1e-3)).to.be.true;
     });
 
