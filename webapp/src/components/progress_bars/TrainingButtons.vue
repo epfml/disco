@@ -21,6 +21,7 @@
 <script lang="ts" setup>
 import { useRouter, useRoute } from 'vue-router'
 
+import { scrollToTop } from "@/utils";
 import { useTrainingStore } from "@/store";
 import CustomButton from '@/components/simple/CustomButton.vue'
 
@@ -28,18 +29,14 @@ const router = useRouter()
 const trainingStore = useTrainingStore()
 const route = useRoute()
 
-function scrollToTop() {
-  const appElement = document.getElementById('base-container');
-  if (appElement !== null) appElement.scrollTop = 0;
-}
-
 async function prevStepOrList(): Promise<void> {
-    if (trainingStore.step === 1) {
-        await router.push({ path: '/list' });
-    } else {
-      trainingStore.prevStep();
-      scrollToTop(); // scroll manually
-    }
+  if (trainingStore.step === 1) {
+    await router.push({ path: '/list' });
+    trainingStore.prevStep();
+  } else {
+    trainingStore.prevStep();
+    scrollToTop(); // scroll manually
+  }
 }
 
 function nextStep() {

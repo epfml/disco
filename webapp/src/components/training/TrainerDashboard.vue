@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-4 md:space-y-8">
     <!-- Train Button -->
-    <div class="w-full lg:w-1/2 lg:max-w-[640px] mx-auto">
+    <div class="w-full lg:w-1/2 lg:max-w-[640px] mx-auto tuto-train-dash">
       <IconCard title-placement="center">
         <template #title> Control the Training Flow </template>
           <!-- If we are not currently training -->
@@ -9,7 +9,7 @@
             <!-- Toggle buttons between training collaboratively and locally -->
             <div class="flex justify-center">
               <button
-                id="train-collaboratively-bttn"
+                id="train-collab-bttn"
                 class="w-60 py-1 capitalize text-lg font-disco rounded-l-full border-2 border-disco-cyan focus:outline-none"
                 :class="isTrainingAlone ? 'text-disco-cyan bg-transparent' : 'text-white bg-disco-cyan'"
                 @click="isTrainingAlone = false"
@@ -21,7 +21,7 @@
                 collaboratively
               </button>
               <button
-                id="training-locally-bttn"
+                id="train-locally-bttn"
                 class="w-60 py-1 capitalize text-lg font-disco rounded-r-full border-2 border-disco-cyan focus:outline-none"
                 :class="isTrainingAlone ? 'text-white bg-disco-cyan': 'text-disco-cyan bg-transparent'"
                 @click="isTrainingAlone = true"

@@ -19,7 +19,7 @@ describe("tasks page", () => {
     setupServerWith(defaultTasks.titanic);
 
     cy.visit("/#/list").contains("button", "participate");
-
+    cy.get(".driver-popover-close-btn").click();
     cy.get(`div[id="titanic"]`).find("button").click();
     cy.url().should("eq", `${Cypress.config().baseUrl}#/titanic`);
 

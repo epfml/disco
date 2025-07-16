@@ -21,6 +21,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+import { scrollToTop } from "@/utils";
 import { useValidationStore } from "@/store";
 import CustomButton from "@/components/simple/CustomButton.vue";
 
@@ -42,7 +43,6 @@ function setStep(index: number): void {
       throw new Error("step out of range");
   }
 
-  const appElement = document.getElementById("base-container");
-  if (appElement !== null) appElement.scrollTop = 0;
+  scrollToTop();
 }
 </script>

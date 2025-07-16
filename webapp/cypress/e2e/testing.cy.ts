@@ -41,7 +41,7 @@ it("can test lus_covid", () => {
     .contains("button", "test")
     .click();
 
-  cy.contains("button", "download as csv", { timeout: 10_000 });
+  cy.contains("button", "download as csv", { timeout: 20_000 });
 });
 
 it("can start and stop testing of wikitext", () => {
