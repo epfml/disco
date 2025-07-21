@@ -37,7 +37,7 @@
     "@vue/eslint-config-prettier": "9",
     "@vue/eslint-config-typescript": "13",
     "@vue/test-utils": "2",
-    "@vue/tsconfig": "0.5",
+    "@vue/tsconfig": "0.7",
     "autoprefixer": "10",
     "eslint-plugin-cypress": "3",
     "jsdom": "26",
