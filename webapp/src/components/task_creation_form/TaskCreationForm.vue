@@ -269,7 +269,11 @@
 
           <div class="flex flex-col">
             <FormLabel label="Collaborative algorithm" type="required">
-              <FormField name="trainingInformation.scheme" as="select">
+              <FormField
+                name="trainingInformation.scheme"
+                as="select"
+                v-model="scheme"
+              >
                 <option value="federated">Federated</option>
                 <option value="decentralized">Decentralized</option>
                 <option value="local">Local</option>
@@ -280,10 +284,25 @@
               <FormField
                 name="trainingInformation.aggregationStrategy"
                 as="select"
+                v-model="aggregationStrategy"
               >
                 <option value="mean">Mean</option>
-                <option value="secure">Secure</option>
+                <option v-if="scheme === 'decentralized'" value="secure">
+                  Secure
+                </option>
               </FormField>
+
+              <FormLabel
+                label="Maximum value of a single weight"
+                v-show="aggregationStrategy === 'secure'"
+              >
+                <FormField
+                  name="trainingInformation.maxShareValue"
+                  placeholder="100"
+                  as="input"
+                  type="number"
+                />
+              </FormLabel>
             </FormLabel>
 
             <FormLabel
@@ -340,24 +359,6 @@
                   />
                 </FormLabel>
               </div>
-            </FormLabel>
-
-            <FormLabel
-              label="Secure Aggregation"
-              type="checkbox"
-              v-model="secureAggregation"
-            >
-              <FormLabel
-                label="Maximum value of a single weight"
-                v-show="secureAggregation"
-              >
-                <FormField
-                  name="trainingInformation.maxShareValue"
-                  placeholder="100"
-                  as="input"
-                  type="number"
-                />
-              </FormLabel>
             </FormLabel>
           </div>
         </IconCard>
@@ -525,8 +526,9 @@ const toaster = useToaster();
 const { tasks } = storeToRefs(useTasksStore());
 
 const dataType = ref();
+const scheme = ref();
+const aggregationStrategy = ref();
 const differentialPrivacy = ref(false);
-const secureAggregation = ref(false);
 
 const nonLocalNetworkSchema = z.object({
   privacy: z
@@ -573,24 +575,7 @@ const trainingInformationNetworks = z.union([
         }),
         z.object({
           aggregationStrategy: z.literal("secure"),
-          maxShareValue: z
-            .number()
-            .positive()
-            .int()
-            .optional()
-            .transform((arg, ctx) => {
-              if (!secureAggregation.value) return undefined;
-
-              if (arg === undefined) {
-                ctx.addIssue({
-                  code: z.ZodIssueCode.custom,
-                  message: "Required",
-                });
-                return z.NEVER;
-              }
-
-              return arg;
-            }),
+          maxShareValue: z.number().positive().int(),
         }),
       ]),
     ),
