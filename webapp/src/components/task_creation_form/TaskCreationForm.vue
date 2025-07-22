@@ -293,7 +293,7 @@
               </FormField>
 
               <FormLabel
-                label="Maximum value of a single weight"
+                label="Maximum absolute value over all the weights"
                 v-show="aggregationStrategy === 'secure'"
               >
                 <FormField
@@ -336,24 +336,32 @@
             >
               <div class="flex flex-col" v-show="differentialPrivacy">
                 <FormLabel
-                  label="Maximum weights difference between each round"
-                  type="required"
-                >
-                  <FormField
-                    name="trainingInformation.privacy.clippingRadius"
-                    placeholder="40"
-                    as="input"
-                    type="number"
-                  />
-                </FormLabel>
-
-                <FormLabel
-                  label="Size of the noise added to the weights"
+                  label="Standard deviation of the noise"
                   type="required"
                 >
                   <FormField
                     name="trainingInformation.privacy.noiseScale"
                     placeholder="2"
+                    as="input"
+                    type="number"
+                  />
+                </FormLabel>
+              </div>
+            </FormLabel>
+
+            <FormLabel
+              label="Weight clipping"
+              type="checkbox"
+              v-model="weightClipping"
+            >
+              <div class="flex flex-col" v-show="weightClipping">
+                <FormLabel
+                  label="Maximum drift, measured by its norm, that can be made by the aggregated weights each round"
+                  type="required"
+                >
+                  <FormField
+                    name="trainingInformation.privacy.clippingRadius"
+                    placeholder="40"
                     as="input"
                     type="number"
                   />
@@ -402,7 +410,13 @@
             <FormLabel label="Expected data format">
               <FormField
                 name="displayInformation.dataFormatInformation"
-                placeholder="Images with a single object and a clear background"
+                :placeholder="
+                  dataType === 'image'
+                    ? 'Images with a single object and a clear background'
+                    : dataType === 'tabular'
+                      ? 'Rows made by various meteo stations'
+                      : 'Text made of small blog posts'
+                "
                 as="input"
               />
             </FormLabel>
@@ -466,7 +480,7 @@
       </div>
 
       <IconCard>
-        <template #title> How to join after ?</template>
+        <template #title>Joining this task</template>
 
         <div>
           After submitting the form, others will be able to join the task from
@@ -529,6 +543,7 @@ const dataType = ref();
 const scheme = ref();
 const aggregationStrategy = ref();
 const differentialPrivacy = ref(false);
+const weightClipping = ref(false);
 
 const nonLocalNetworkSchema = z.object({
   privacy: z
