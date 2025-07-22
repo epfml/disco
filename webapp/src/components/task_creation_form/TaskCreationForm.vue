@@ -184,6 +184,7 @@
               <FormField
                 name="model.topology"
                 v-slot="{ handleChange, handleBlur }"
+                as="div"
               >
                 <FileSelection
                   type="json"
