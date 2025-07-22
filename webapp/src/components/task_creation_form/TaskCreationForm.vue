@@ -502,6 +502,10 @@
 .elems-gap {
   gap: 0.75rem;
 }
+
+label label {
+  font-size: smaller;
+}
 </style>
 
 <script lang="ts" setup>
