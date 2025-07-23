@@ -28,6 +28,7 @@
       @submit="onSubmit"
       @invalid-submit="onInvalidSubmit"
       :validation-schema="toTypedSchema(schema)"
+      ref="form"
       class="flex flex-col cards-gap"
     >
       <div
@@ -513,7 +514,7 @@ import createDebug from "debug";
 import { storeToRefs } from "pinia";
 import { FieldArray, Form } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
-import { ref } from "vue";
+import { ref, useTemplateRef } from "vue";
 import * as z from "zod";
 
 import { isSet } from "immutable";
@@ -548,6 +549,13 @@ const scheme = ref();
 const aggregationStrategy = ref();
 const differentialPrivacy = ref(false);
 const weightClipping = ref(false);
+
+const form = useTemplateRef("form");
+// warn user on page content loss
+window.onbeforeunload = (event) => {
+  if (form.value === null || form.value.meta.dirty === false) return;
+  event.preventDefault();
+};
 
 const nonLocalNetworkSchema = z.object({
   privacy: z
