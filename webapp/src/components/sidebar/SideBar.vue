@@ -16,26 +16,26 @@
 
       <!-- Mini Sidebar content-->
       <div class="flex flex-col items-center justify-center flex-1 space-y-4">
-        <SidebarButton text="Home" label="Home"  id="tuto-home-bttn"> 
-          <RouterLink to="/">
+        <RouterLink to="/">
+          <SidebarButton text="Home" label="Home"  id="tuto-home-bttn"> 
             <HomeIcon/>
-          </RouterLink>
-        </SidebarButton>
-        <SidebarButton text="Join existing DISCOllaboratives" label="Join"> 
-          <RouterLink to="/list">
+          </SidebarButton>
+        </RouterLink>
+        <RouterLink to="/list">
+          <SidebarButton text="Join existing DISCOllaboratives" label="Join"> 
             <TasksIcon class="w-6 h-6"/>
-          </RouterLink>
-        </SidebarButton>
-        <SidebarButton text="Create a new DISCOllaborative" label="Create" id="tuto-create-bttn"> 
-          <RouterLink to="/create">
+          </SidebarButton>
+        </RouterLink>
+        <RouterLink to="/create">
+          <SidebarButton text="Create a new DISCOllaborative" label="Create" id="tuto-create-bttn"> 
             <CreateIcon/>
-          </RouterLink>
-        </SidebarButton>
-        <SidebarButton text="Evaluate or download a model in the Model Library" label="Models" id="tuto-evaluate-bttn"> 
-          <RouterLink to="/evaluate">
+          </SidebarButton>
+        </RouterLink>
+        <RouterLink to="/evaluate">
+          <SidebarButton text="Evaluate or download a model in the Model Library" label="Models" id="tuto-evaluate-bttn"> 
             <EvaluateIcon/>
-          </RouterLink>
-        </SidebarButton>
+          </SidebarButton>
+        </RouterLink>
       </div>
       <div class="flex flex-col justify-center space-y-4 items-center">
         <SidebarButton
