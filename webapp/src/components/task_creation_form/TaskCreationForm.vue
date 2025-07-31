@@ -182,16 +182,8 @@
             </div>
 
             <FormLabel label="TFJS model.json file" type="required">
-              <FormField
-                name="model.topology"
-                v-slot="{ handleChange, handleBlur }"
-                as="div"
-              >
-                <FileSelection
-                  type="json"
-                  @update:modelValue="handleChange"
-                  @blur="handleBlur"
-                />
+              <FormField name="model.topology" v-slot="{ field }">
+                <FileSelection type="json" v-bind="field" />
               </FormField>
             </FormLabel>
 
@@ -517,7 +509,6 @@ import { toTypedSchema } from "@vee-validate/zod";
 import { ref, useTemplateRef } from "vue";
 import * as z from "zod";
 
-import { isSet } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 
 import {
@@ -651,27 +642,17 @@ const TFJSModelSchema = z.object({
       name: z.enum(modelOptimizerNames),
       learningRate: z.number().positive(),
     }),
-    topology: z.unknown().transform((files, ctx) => {
-      if (files === undefined) {
+    topology: z.unknown().transform((file, ctx) => {
+      // TODO why is it returning a single file instead of a set?
+      if (file === undefined) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Missing JSON file",
         });
         return z.NEVER;
       }
-      if (!isSet(files)) throw new Error("FileSelection didn't return a Set");
-
-      const file = files.first();
-      if (file === undefined) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "No model selected",
-        });
-        return z.NEVER;
-      }
-
       if (!(file instanceof File))
-        throw new Error("FileSelection didn't return Set<File>");
+        throw new Error("FileSelection didn't return a File");
       return file;
     }),
   }),
