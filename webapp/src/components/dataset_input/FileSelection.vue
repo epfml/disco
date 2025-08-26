@@ -60,7 +60,9 @@
         v-if="$slots.default && files === undefined"
         class="flex justify-center mt-5"
       >
-        <p class="text-sm text-font-secondary-light dark:text-font-secondary-dark">
+        <p
+          class="text-sm text-font-secondary-light dark:text-font-secondary-dark"
+        >
           <span><slot /></span>
         </p>
       </div>
@@ -90,7 +92,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Set } from "immutable";
+import { Range, Set } from "immutable";
 import { computed, ref } from "vue";
 
 import CustomButton from "@/components/simple/CustomButton.vue";
@@ -155,20 +157,31 @@ const acceptFilter = computed(() => {
 const dragEventCount = ref(0);
 const isDragHoverActive = computed(() => dragEventCount.value > 0);
 
+function setFiles(fl: FileList): void {
+  const r = Range(0, fl.length)
+    .map((_, i) => fl.item(i))
+    .filter((f) => f !== null)
+    .toSet();
+
+  files.value = r;
+}
+
 async function submitFiles() {
   const inputs = inputFileElement.value?.files;
-  if (inputs === null) return;
+  if (inputs === undefined || inputs === null) return;
 
-  files.value = Set(inputs);
+  setFiles(inputs);
 }
 async function dragFiles(e: DragEvent) {
   dragEventCount.value = 0;
 
   if (e.dataTransfer === null) return;
   e.dataTransfer.dropEffect = "copy";
-  const inputs = e.dataTransfer.files;
 
-  files.value = Set(inputs);
+  const inputs = e.dataTransfer.files;
+  if (inputs === null) return;
+
+  setFiles(inputs);
 }
 function clearFiles() {
   files.value = undefined;
