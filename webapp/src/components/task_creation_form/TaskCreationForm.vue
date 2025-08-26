@@ -303,7 +303,7 @@
               </FormField>
             </FormLabel>
 
-            <FormLabel label="Type of aggregation">
+            <FormLabel label="Type of aggregation" type="required">
               <FormField
                 name="trainingInformation.aggregationStrategy"
                 as="select"
@@ -568,7 +568,7 @@ const { tasks } = storeToRefs(useTasksStore());
 
 const dataType = ref();
 const scheme = ref();
-const aggregationStrategy = ref();
+const aggregationStrategy = ref("mean");
 const differentialPrivacy = ref(false);
 const weightClipping = ref(false);
 
