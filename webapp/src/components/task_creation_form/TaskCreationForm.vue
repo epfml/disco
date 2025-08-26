@@ -47,7 +47,12 @@
           </FormLabel>
 
           <FormLabel label="Data type" type="required">
-            <FormField name="dataType" as="select" v-model="dataType">
+            <FormField
+              name="dataType"
+              as="select"
+              v-model="dataType"
+              supress-error
+            >
               <option value="image">Image</option>
               <option value="tabular">Tabular</option>
               <option value="text">Text</option>
@@ -296,6 +301,7 @@
                 name="trainingInformation.scheme"
                 as="select"
                 v-model="scheme"
+                supress-error
               >
                 <option value="federated">Federated</option>
                 <option value="decentralized">Decentralized</option>
@@ -566,8 +572,8 @@ const debug = createDebug("webapp:TaskForm");
 const toaster = useToaster();
 const { tasks } = storeToRefs(useTasksStore());
 
-const dataType = ref();
-const scheme = ref();
+const dataType = ref("image");
+const scheme = ref("federated");
 const aggregationStrategy = ref("mean");
 const differentialPrivacy = ref(false);
 const weightClipping = ref(false);
@@ -863,8 +869,12 @@ function onInvalidSubmit({
 }: {
   errors: Partial<Record<string, string>>;
 }): void {
+  const relevantErrorNames = Object.entries(errors).flatMap(([name, err]) =>
+    err === "Missing dependant fields" ? [] : [name],
+  );
+
   const field = document.querySelector(
-    `label:has(${Object.keys(errors)
+    `label:has(${relevantErrorNames
       .map((name) => `> [name="${name}"]`)
       .join(",")})`,
   );

@@ -11,14 +11,19 @@
     </template>
   </Field>
 
-  <ErrorMessage class="text-red-600" :name />
+  <ErrorMessage v-if="!supressError" class="text-red-600" :name />
 </template>
 
 <script lang="ts" setup>
 import { ErrorMessage, Field } from "vee-validate";
 
-defineProps<{ name: string }>();
-
+withDefaults(
+  defineProps<{
+    name: string;
+    supressError?: boolean;
+  }>(),
+  { supressError: false },
+);
 const model = defineModel<string>();
 
 // https://vuejs-language-tools.vercel.app/features/slots#how-to-handle-indeterminate-slot-types
