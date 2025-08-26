@@ -189,11 +189,14 @@
 
             <div class="flex flex-row flex-wrap">
               <FormLabel label="TFJS model optimizer" type="required">
-                <FormField
-                  name="model.optimizer.name"
-                  placeholder="sgd"
-                  as="input"
-                />
+                <FormField name="model.optimizer.name" as="select">
+                  <option value="adadelta">adadelta</option>
+                  <option value="adagrad">adagrad</option>
+                  <option value="adam">adam</option>
+                  <option value="adamax">adamax</option>
+                  <option value="rmsprop">rmsprop</option>
+                  <option value="sgd">sgd</option>
+                </FormField>
               </FormLabel>
 
               <FormLabel
@@ -210,7 +213,34 @@
               </FormLabel>
 
               <FormLabel label="TFJS model loss" type="required">
-                <FormField name="model.loss" placeholder="hinge" as="input" />
+                <FormField name="model.loss" as="select">
+                  <option value="binaryCrossentropy">
+                    binary cross-entropy
+                  </option>
+                  <option value="categoricalCrossentropy">
+                    categorical cross-entropy
+                  </option>
+                  <option value="categoricalHinge">categorical hinge</option>
+                  <option value="cosineProximity">cosine proximity</option>
+                  <option value="hinge">hinge</option>
+                  <option value="kullbackLeiblerDivergence">
+                    Kullback-Leibler divergence
+                  </option>
+                  <option value="logcosh">logcosh</option>
+                  <option value="meanAbsoluteError">mean absolute error</option>
+                  <option value="meanAbsolutePercentageError">
+                    mean absolute percentage error
+                  </option>
+                  <option value="meanSquaredError">mean squared error</option>
+                  <option value="meanSquaredLogarithmicError">
+                    mean squared logarithmic error
+                  </option>
+                  <option value="poisson">poisson</option>
+                  <option value="sparseCategoricalCrossentropy">
+                    sparse categorical cross-entropy
+                  </option>
+                  <option value="squaredHinge">squared hinge</option>
+                </FormField>
               </FormLabel>
             </div>
           </div>
