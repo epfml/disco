@@ -533,6 +533,7 @@ label label {
 
 <script lang="ts" setup>
 import createDebug from "debug";
+import * as immutable from "immutable";
 import { storeToRefs } from "pinia";
 import { FieldArray, Form } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
@@ -672,18 +673,32 @@ const TFJSModelSchema = z.object({
       name: z.enum(modelOptimizerNames),
       learningRate: z.number().positive(),
     }),
-    topology: z.unknown().transform((file, ctx) => {
-      // TODO why is it returning a single file instead of a set?
-      if (file === undefined) {
+    topology: z.unknown().transform((fileOrSet, ctx) => {
+      if (fileOrSet === undefined) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Missing JSON file",
         });
         return z.NEVER;
       }
-      if (!(file instanceof File))
-        throw new Error("FileSelection didn't return a File");
-      return file;
+
+      // TODO why is it returning a single file instead of a set?
+      switch (true) {
+        case fileOrSet instanceof File:
+          return fileOrSet;
+        case immutable.isSet(fileOrSet): {
+          const file = fileOrSet.first();
+
+          if (file === undefined || fileOrSet.size !== 1)
+            throw new Error("FileSelection didn't return a single item Set");
+          if (!(file instanceof File))
+            throw new Error("FileSelection didn't return a Set of File");
+
+          return file;
+        }
+        default:
+          throw new Error("FileSelection didn't return a File");
+      }
     }),
   }),
 });
