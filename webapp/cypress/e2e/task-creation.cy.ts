@@ -56,8 +56,8 @@ it("submits with tabular task", () => {
         force: true, // input is hidden
       }),
     );
-  cy.get("input[name='model.loss']").type("hinge");
-  cy.get("input[name='model.optimizer.name']").type("sgd");
+  cy.get("select[name='model.loss']").select("hinge");
+  cy.get("select[name='model.optimizer.name']").select("sgd");
   cy.get("input[name='model.optimizer.learningRate']").type("0.01");
 
   cy.get("button[type='submit']").click();
