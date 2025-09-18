@@ -108,7 +108,11 @@ const props = withDefaults(
     lockIcon: false,
   },
 );
+
 const emit = defineEmits<{
+  // foward some more event to mimick more <file>
+  // needed to better integrate with vee
+  // https://vee-validate.logaretm.com/v4/api/field/#rendering-complex-fields-with-scoped-slots
   blur: [];
 }>();
 
