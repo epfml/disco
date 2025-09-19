@@ -543,7 +543,7 @@ import * as immutable from "immutable";
 import { storeToRefs } from "pinia";
 import { FieldArray, Form } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
-import { ref, useTemplateRef } from "vue";
+import { ref, useTemplateRef, watch } from "vue";
 import * as z from "zod";
 
 import * as tf from "@tensorflow/tfjs";
@@ -554,6 +554,8 @@ import {
   Task,
   Tokenizer,
   TrainingInformation,
+  type DataType,
+  type Network,
 } from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster";
@@ -572,13 +574,27 @@ const debug = createDebug("webapp:TaskForm");
 const toaster = useToaster();
 const { tasks } = storeToRefs(useTasksStore());
 
-const dataType = ref("image");
-const scheme = ref("federated");
+const dataType = ref<DataType>("image");
+const scheme = ref<Network>("federated");
 const aggregationStrategy = ref("mean");
 const differentialPrivacy = ref(false);
 const weightClipping = ref(false);
 
 const form = useTemplateRef("form");
+
+watch([dataType, form], ([dataType, form]) => {
+  if (form === null) return;
+
+  switch (dataType) {
+    case "image":
+      form.setFieldValue("trainingInformation.LABEL_LIST", [""]);
+      break;
+    case "tabular":
+      form.setFieldValue("trainingInformation.inputColumns", [""]);
+      break;
+  }
+});
+
 // warn user on page content loss
 window.onbeforeunload = (event) => {
   if (form.value === null || form.value.meta.dirty === false) return;

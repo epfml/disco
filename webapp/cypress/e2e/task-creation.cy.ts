@@ -32,7 +32,6 @@ it("submits with tabular task", () => {
   cy.get("input[name='trainingInformation.validationSplit']").type("0");
   cy.get("input[name='trainingInformation.minNbOfParticipants']").type("2");
   cy.contains("Input columns names").within(() => {
-    cy.contains("add column").click();
     cy.get("input[name='trainingInformation.inputColumns[0]']").type("input");
   });
   cy.get("input[name='trainingInformation.outputColumn']").type("output");
