@@ -314,11 +314,10 @@
                 name="trainingInformation.aggregationStrategy"
                 as="select"
                 v-model="aggregationStrategy"
+                :disabled="scheme !== 'decentralized'"
               >
                 <option value="mean">Mean</option>
-                <option v-if="scheme === 'decentralized'" value="secure">
-                  Secure
-                </option>
+                <option value="secure">Secure</option>
               </FormField>
 
               <FormLabel
@@ -595,6 +594,13 @@ watch([dataType, form], ([dataType, form]) => {
       form.setFieldValue("trainingInformation.inputColumns", [""]);
       break;
   }
+});
+
+watch([scheme, form], ([scheme, form]) => {
+  if (form === null) return;
+
+  if (scheme !== "decentralized")
+    form.setFieldValue("trainingInformation.aggregationStrategy", "mean");
 });
 
 // warn user on page content loss
