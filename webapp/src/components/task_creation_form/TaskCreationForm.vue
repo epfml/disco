@@ -544,6 +544,7 @@ import { storeToRefs } from "pinia";
 import { FieldArray, Form } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { ref, useTemplateRef, watch } from "vue";
+import { useRouter } from "vue-router";
 import * as z from "zod";
 
 import * as tf from "@tensorflow/tfjs";
@@ -571,6 +572,7 @@ import FormLabel from "./FormLabel.vue";
 import FileSelection from "../dataset_input/FileSelection.vue";
 
 const debug = createDebug("webapp:TaskForm");
+const router = useRouter();
 const toaster = useToaster();
 const { tasks } = storeToRefs(useTasksStore());
 
@@ -871,13 +873,12 @@ async function onSubmit(form: unknown): Promise<void> {
     else toaster.error("An error occured server-side");
     return;
   }
-  toaster.success("Task successfully submitted");
 
-  if (typeof tasks.value === "string") {
+  if (typeof tasks.value === "string")
     debug("tasks store not available, skipping adding task to it");
-    return;
-  }
-  tasks.value = tasks.value.set(task.id, task);
+  else tasks.value = tasks.value.set(task.id, task);
+
+  router.push("/list");
 }
 
 function onInvalidSubmit({
