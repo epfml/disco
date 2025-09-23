@@ -25,7 +25,6 @@ it("submits with tabular task", () => {
   });
 
   cy.get("select[name='trainingInformation.scheme']").select("federated");
-  cy.get("select[name='trainingInformation.aggregationStrategy']").select("mean");
   cy.get("input[name='trainingInformation.epochs']").type("10");
   cy.get("input[name='trainingInformation.batchSize']").type("5");
   cy.get("input[name='trainingInformation.roundDuration']").type("2");
