@@ -13,7 +13,7 @@ Here you will have a first overview of the project, how to install and run an in
 
 > [!TIP]
 > DISCO has also been indexed on DeepWiki, a AI-generated documentation platform based on both our own documentation and the codebase. Feel free to check it out if you have unanswered questions:<br/>
-> https://deepwiki.com/epfml/disco/1-overview
+> https://deepwiki.com/epfml/disco
 
 ## Structure
 
