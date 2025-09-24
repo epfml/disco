@@ -19,13 +19,14 @@
           sticky
           inset-y-0
           z-20
-          flex flex-shrink-0
+          flex shrink-0
           bg-white
           dark:bg-slate-800
           border-r
+          border-gray-200
           dark:border-slate-900
           md:static
-          focus:outline-none
+          focus:outline-hidden
         "
       >
         <SideBar />

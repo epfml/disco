@@ -6,26 +6,25 @@
   font-size: small;
 }
 
-.tippy-box[data-theme~="custom-dark"][data-placement^="top"]
-  > .tippy-arrow::before {
+.tippy-box[data-theme~="custom-dark"][data-placement^="top"]>.tippy-arrow::before {
   border-top-color: #6f7174;
 }
-.tippy-box[data-theme~="custom-dark"][data-placement^="bottom"]
-  > .tippy-arrow::before {
+
+.tippy-box[data-theme~="custom-dark"][data-placement^="bottom"]>.tippy-arrow::before {
   border-bottom-color: #6f7174;
 }
-.tippy-box[data-theme~="custom-dark"][data-placement^="left"]
-  > .tippy-arrow::before {
+
+.tippy-box[data-theme~="custom-dark"][data-placement^="left"]>.tippy-arrow::before {
   border-left-color: #6f7174;
 }
-.tippy-box[data-theme~="custom-dark"][data-placement^="right"]
-  > .tippy-arrow::before {
+
+.tippy-box[data-theme~="custom-dark"][data-placement^="right"]>.tippy-arrow::before {
   border-right-color: #6f7174;
 }
 
 @font-face {
   font-family: AmpleSoftMedium;
-  src: url('../fonts/AmpleSoftMedium.woff2') format('woff2'), 
+  src: url('../fonts/AmpleSoftMedium.woff2') format('woff2'),
     url('../fonts/AmpleSoftMedium.woff') format('woff');
 }
 
@@ -36,6 +35,6 @@
 /* tailwind "md" size */
 @media (min-width: 768px) {
   .cards-gap {
-	  gap: 2rem;
+    gap: 2rem;
   }
 }

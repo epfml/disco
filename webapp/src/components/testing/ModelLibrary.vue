@@ -28,7 +28,7 @@
                     ['predict', () => selectModel(id, 'predict')],
                   )
                 "
-                class="shadow-sm border dark:border-gray-700 dark:shadow-gray-700"
+                class="shadow-xs border border-gray-200 dark:border-gray-700 dark:shadow-gray-700"
               >
                 <template #title> {{ taskTitle(infos.taskID) }} </template>
                 <template #icon>
@@ -106,7 +106,7 @@
               >
                 <ButtonsCard
                   :buttons="List.of(['download', () => downloadModel(task)])"
-                  class="shadow-sm border dark:border-gray-700 dark:shadow-gray-700"
+                  class="shadow-xs border border-gray-200 dark:border-gray-700 dark:shadow-gray-700"
                 >
                   <template #title>
                     {{ task.displayInformation.title }}

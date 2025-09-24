@@ -9,7 +9,7 @@
       <div class="flex justify-center tuto-data-method">
         <button
           id="tuto-group-bttn"
-          class="w-40 py-2 uppercase text-lg rounded-l-lg border-2 border-disco-cyan focus:outline-none"
+          class="w-40 py-2 uppercase text-lg rounded-l-lg border-2 border-disco-cyan focus:outline-hidden"
           :class="
             connectImagesByGroup
               ? 'text-white bg-disco-cyan'
@@ -21,7 +21,7 @@
         </button>
         <button
           id="csv-file-bttn"
-          class="w-40 py-2 uppercase text-lg rounded-r-lg border-2 border-disco-cyan focus:outline-none"
+          class="w-40 py-2 uppercase text-lg rounded-r-lg border-2 border-disco-cyan focus:outline-hidden"
           :class="
             !connectImagesByGroup
               ? 'text-white bg-disco-cyan'

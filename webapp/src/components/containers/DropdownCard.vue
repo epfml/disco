@@ -3,23 +3,20 @@
     <div class="col-span-1 bg-white dark:bg-slate-950 rounded-xl">
       <IconCardHeader>
         <template #title>
-          <button class="focus:outline-none" @click="toggle">
+          <button class="focus:outline-hidden" @click="toggle">
             <slot name="title" />
           </button>
         </template>
 
         <template #icon>
-          <button class="focus:outline-none" @click="toggle">
+          <button class="focus:outline-hidden" @click="toggle">
             <UpArrow v-show="opened" />
             <DownArrow v-show="!opened" />
           </button>
         </template>
       </IconCardHeader>
 
-      <div
-        v-show="opened"
-        class="p-8 border-t"
-      >
+      <div v-show="opened" class="p-8 border-t border-gray-200">
         <slot />
       </div>
     </div>

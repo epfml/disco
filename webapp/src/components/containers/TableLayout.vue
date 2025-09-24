@@ -1,6 +1,6 @@
 <template>
   <table class="text-left w-full">
-    <thead class="border-b-4 flex px-2">
+    <thead class="border-b-4 border-gray-200 flex px-2">
       <tr class="flex w-full py-2">
         <th
           v-for="(column, index) in columns"

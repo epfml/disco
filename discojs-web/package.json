@@ -1,31 +1,31 @@
 {
-  "name": "@epfml/discojs-web",
-  "version": "3.0.0",
-  "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "watch": "nodemon --ext ts --ignore dist --watch ../discojs/dist --watch . --exec npm run",
-    "build": "tsc",
-    "lint": "npx eslint .",
-    "test": "cd .. && vitest --run --project=discojs-web"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/epfml/disco.git"
-  },
-  "bugs": {
-    "url": "https://github.com/epfml/disco/issues"
-  },
-  "homepage": "https://github.com/epfml/disco#readme",
-  "dependencies": {
-    "@epfml/discojs": "*",
-    "@tensorflow/tfjs": "4",
-    "papaparse": "5"
-  },
-  "devDependencies": {
-    "@types/papaparse": "5",
-    "jsdom": "26",
-    "nodemon": "3"
-  }
+	"name": "@epfml/discojs-web",
+	"version": "3.0.0",
+	"type": "module",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"watch": "nodemon --ext ts --ignore dist --watch ../discojs/dist --watch . --exec npm run",
+		"build": "tsc",
+		"lint": "npx eslint .",
+		"test": "cd .. && vitest --run --project=discojs-web"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/epfml/disco.git"
+	},
+	"bugs": {
+		"url": "https://github.com/epfml/disco/issues"
+	},
+	"homepage": "https://github.com/epfml/disco#readme",
+	"dependencies": {
+		"@epfml/discojs": "*",
+		"@tensorflow/tfjs": "4",
+		"papaparse": "5"
+	},
+	"devDependencies": {
+		"@types/papaparse": "5",
+		"jsdom": "27",
+		"nodemon": "3"
+	}
 }

@@ -70,8 +70,7 @@ const toaster = useToaster();
 
 const dataset = defineModel<NamedLabeledImageDataset>();
 watch(dataset, (dataset: NamedLabeledImageDataset | undefined) => {
-  if (dataset === undefined)
-    csvFiles.value = undefined; // trickles down
+  if (dataset === undefined) csvFiles.value = undefined; // trickles down
 });
 
 const csvFiles = ref<Set<File>>();
@@ -94,28 +93,31 @@ watch(csvFiles, async (files) => {
   const text = await file.text();
   const csv = d3.csvParse(text);
 
-  const expectedColumns = Set.of("filename", "label");
-  if (!Set(csv.columns).equals(expectedColumns)) {
-    csvFiles.value = undefined;
-    toaster.error(
-      "The CSV file should have a header with these exact 2 column names: " +
-        expectedColumns.join(", ") +
-        ".",
+  class MalformedCSVError extends Error {}
+
+  try {
+    const updatedFilenameToLabel = Map(
+      csv.map(({ filename, label }) => {
+        if (filename === undefined || label === undefined)
+          throw new MalformedCSVError(
+            "The CSV file should have a header with these exact 2 column names: filename & label.",
+          );
+        return [filename, label];
+      }),
     );
-    return;
-  }
 
-  const updatedFilenameToLabel = Map(
-    csv.map(({ filename, label }) => [filename, label]),
-  );
+    if (updatedFilenameToLabel.size !== csv.length)
+      throw new MalformedCSVError(
+        "The CSV file matches multiple label to the same filename.",
+      );
 
-  if (updatedFilenameToLabel.size !== csv.length) {
+    filenameToLabel.value = updatedFilenameToLabel;
+  } catch (e) {
+    if (!(e instanceof MalformedCSVError)) throw e;
+
     csvFiles.value = undefined;
-    toaster.error("The CSV file matches multiple label to the same filename.");
-    return;
+    toaster.error(e.message);
   }
-
-  filenameToLabel.value = updatedFilenameToLabel;
 });
 
 // match the images to labels via the parsed CSV

@@ -11,7 +11,7 @@ export function isEncoded(raw: unknown): raw is Encoded {
 }
 
 // create a new buffer instead of referencing the backing one
-function copy(arr: Uint8Array): Uint8Array {
+function copy(arr: Uint8Array): Uint8Array<ArrayBuffer> {
   // `Buffer.slice` (subclass of Uint8Array on Node) doesn't copy
   // thus doesn't respect Liskov substitution principle
   // https://nodejs.org/api/buffer.html#bufslicestart-end
@@ -24,6 +24,15 @@ function copy(arr: Uint8Array): Uint8Array {
 // type id are arbitrally taken from msgpack-lite
 // https://www.npmjs.com/package/msgpack-lite#extension-types
 const CODEC = new msgpack.ExtensionCodec();
+// used by encoded weights
+CODEC.register({
+  type: 0x12,
+  encode(obj: unknown): Uint8Array | null {
+    if (!(obj instanceof Uint8Array)) return null;
+    return obj
+  },
+  decode: (raw: Uint8Array): Uint8Array => raw
+});
 // used by TFJS's weights
 CODEC.register({
   type: 0x17,
@@ -45,7 +54,7 @@ CODEC.register({
   },
   decode: (raw: Uint8Array): ArrayBuffer =>
     // need to copy as backing ArrayBuffer might be larger
-    copy(raw),
+    copy(raw).buffer
 });
 
 type Encodable =
@@ -54,6 +63,7 @@ type Encodable =
   | boolean
   | number
   | string
+  | Uint8Array
   | Float32Array
   | ArrayBuffer
   | Encodable[]

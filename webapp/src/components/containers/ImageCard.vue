@@ -1,6 +1,6 @@
 <template>
   <div
-    class="grid grid-cols-1 w-full bg-white dark:bg-slate-800 aspect-square rounded-xl drop-shadow-md hover:drop-shadow-xl transition duration-500 hover:scale-125 shadow hover:shadow-lg hover:z-50"
+    class="grid grid-cols-1 w-full bg-white dark:bg-slate-800 aspect-square rounded-xl drop-shadow-md hover:drop-shadow-xl transition duration-500 hover:scale-125 shadow-sm hover:shadow-lg hover:z-50"
   >
     <div class="grid grid-cols-1 gap-1 text-center content-center pt-2 h-8">
       <slot name="title" />

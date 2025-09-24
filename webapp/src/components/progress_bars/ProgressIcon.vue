@@ -7,7 +7,7 @@
         style="width: calc(100% - 2.5rem - 1rem); top: 50%; transform: translate(-50%, -50%)"
       >
         <div
-          class="rounded transition duration-400"
+          class="rounded-sm transition duration-400"
           :class="props.active ? 'bg-disco-blue dark:bg-disco-light-blue' : 'bg-slate-200 dark:bg-slate-600'" 
         >
           <div class="py-1" />

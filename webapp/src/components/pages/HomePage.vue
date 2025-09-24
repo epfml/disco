@@ -256,7 +256,7 @@
               href="mailto:discolab@listes.epfl.ch"
               target="_blank"
               class="
-              px-6 py-3 min-w-[8rem]
+              px-6 py-3 min-w-32
               text-xl dark:text-white tracking-wide font-disco
               outline outline-1 outline-slate-400 rounded-full
               hover:outline-2"

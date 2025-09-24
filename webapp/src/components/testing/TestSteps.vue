@@ -19,9 +19,7 @@
     </LabeledDatasetInput>
   </div>
 
-  <div 
-    v-show="validationStore.step === 2" 
-  >
+  <div v-show="validationStore.step === 2">
     <!-- Test the model on a data set with labels -->
     <div class="space-y-8 mb-8 w-full lg:max-w-[700px] mx-auto">
       <IconCard>
@@ -85,18 +83,18 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(_, row) in confusionMatrix" :key="row">
+              <tr v-for="([, row], y) in confusionMatrix" :key="y">
                 <td
                   class="p-2 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-gray-200 border-r-gray-600 dark:border-r-gray-400 border-r-2"
                 >
-                  {{ row }}
+                  {{ y }}
                 </td>
                 <td
-                  v-for="(_, col) in confusionMatrix[row]"
-                  :key="col"
+                  v-for="([, col], x) in row"
+                  :key="x"
                   class="p-2 whitespace-nowrap text-sm dark:text-gray-300 text-gray-700"
                 >
-                  {{ confusionMatrix[row][col] }}
+                  {{ col }}
                 </td>
               </tr>
             </tbody>
@@ -110,10 +108,7 @@
       </div>
 
       <!-- Image gallery -->
-      <div
-        v-if="task.dataType === 'image'"
-        class="grid grid-cols-6 gap-6"
-      >
+      <div v-if="task.dataType === 'image'" class="grid grid-cols-6 gap-6">
         <ImageCard
           v-for="(result, key) in tested as Tested['image']"
           :key="key"
@@ -147,9 +142,7 @@
           "
         />
       </div>
-      <div
-        v-else-if="task.dataType === 'text'"
-      >
+      <div v-else-if="task.dataType === 'text'">
         <!-- Display nothing for now -->
       </div>
     </div>
@@ -158,7 +151,7 @@
 <script lang="ts" setup generic="D extends DataType">
 import * as d3 from "d3";
 import createDebug from "debug";
-import { List } from "immutable";
+import { List, Map } from "immutable";
 import { computed, ref, toRaw } from "vue";
 
 import type { DataType, Image, Model, Network, Task } from "@epfml/discojs";
@@ -197,11 +190,16 @@ interface Tested {
   tabular: {
     labels: {
       input: List<string>;
-      output: { truth: string; correct: string, label : string };
+      output: { truth: string; correct: string; label: string };
     };
     results: List<{
       input: List<string>;
-      output: { truth: number; correct: boolean; predicted : number, label : string };
+      output: {
+        truth: number;
+        correct: boolean;
+        predicted: number;
+        label: string;
+      };
     }>;
   };
   // TODO what to show?
@@ -228,59 +226,59 @@ const visitedSamples = computed<number>(() => {
   }
 });
 
-const confusionMatrix = computed<{ [key: string]: { [key: string]: number } } | undefined>(() => {
-  if (tested.value === undefined) return undefined;
+const confusionMatrix = computed<Map<string, Map<string, number>> | undefined>(
+  () => {
+    if (tested.value === undefined) return undefined;
 
-  let labels: string[] = [];
-  switch (props.task.dataType) {
-    case "image":
-      labels = (props.task as Task<"image", Network>).trainingInformation
-        .LABEL_LIST;
-      break;
-    case "tabular":
-      labels = ["0", "1"]; // binary classification
-      break;
-    case "text":
-      return undefined;
-    default: {
-      const _: never = props.task;
-      throw new Error("should never happen");
+    let labels: string[] = [];
+    switch (props.task.dataType) {
+      case "image":
+        labels = (props.task as Task<"image", Network>).trainingInformation
+          .LABEL_LIST;
+        break;
+      case "tabular":
+        labels = ["0", "1"]; // binary classification
+        break;
+      case "text":
+        return undefined;
+      default: {
+        const _: never = props.task;
+        throw new Error("should never happen");
+      }
     }
-  }
 
-  // Initialize the confusion matrix
-  const matrix: { [key: string]: { [key: string]: number } } = {};
+    let matrix = Map(labels.map((l) => [l, Map(labels.map((l) => [l, 0]))]));
+    function incrementMatrix(row: string, col: string): void {
+      const line = matrix.get(row);
+      if (line === undefined) throw new Error("output for unknown label");
+      const elem = line.get(col);
+      if (elem === undefined) throw new Error("predicted of unknown label");
 
-  // Initialize the confusion matrix
-  labels.forEach((label) => {
-    matrix[label] = {};
-    labels.forEach((innerLabel) => {
-      matrix[label][innerLabel] = 0;
-    });
-  });
+      matrix = matrix.set(row, line.set(col, elem + 1));
+    }
 
-  switch (props.task.dataType) {
-    case "image":
-        (tested.value as Tested["image"]).map(
-          ( {output} ) => matrix[output.label][output.predicted] = matrix[output.label][output.predicted] + 1,
+    switch (props.task.dataType) {
+      case "image":
+        (tested.value as Tested["image"]).map(({ output }) =>
+          incrementMatrix(output.label, output.predicted),
         );
         break;
-    case "tabular":
-      (tested.value as Tested["tabular"]).results.map(
-        ({ output }) => matrix[output.truth][output.predicted] = matrix[output.truth][output.predicted] + 1,
-      );
-      break;
-    default: {
-      const _: never = props.task;
-      throw new Error("should never happen");
+      case "tabular":
+        (tested.value as Tested["tabular"]).results.map(({ output }) =>
+          incrementMatrix(output.truth.toString(), output.predicted.toString()),
+        );
+        break;
+      default: {
+        const _: never = props.task;
+        throw new Error("should never happen");
+      }
     }
-  }
 
-  return matrix;
-})
+    return matrix;
+  },
+);
 
 const currentAccuracy = computed<string>(() => {
-
   if (tested.value === undefined) return "0";
   let hits: number | undefined;
   switch (props.task.dataType) {
@@ -347,7 +345,7 @@ async function startImageTest(
 ): Promise<void> {
   const validator = new Validator(task, model);
   let results: Tested["image"] = List();
-  
+
   try {
     controller.value = new AbortController();
 
