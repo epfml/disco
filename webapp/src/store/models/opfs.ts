@@ -40,7 +40,10 @@ export class OPFS implements Storage {
           throw e;
         }
       },
-      async setItem(key: string, value: Uint8Array): Promise<void> {
+      async setItem(
+      	key: string,
+      	value: Uint8Array<ArrayBuffer>,
+      ): Promise<void> {
         const file = await dir
           .then((d) => d.getFileHandle(key, { create: true }))
           .then((handle) => handle.createWritable());

@@ -25,7 +25,7 @@
         </p>
         <label class="mb-6">
           <span
-            class="px-4 py-2 min-w-[8rem] text-lg uppercase text-white bg-disco-cyan rounded duration-200 hover:bg-white hover:dark:bg-slate-950 hover:outline hover:outline-disco-cyan hover:outline-2 hover:text-disco-cyan hover:cursor-pointer"
+            class="px-4 py-2 min-w-32 text-lg uppercase text-white bg-disco-cyan rounded-sm duration-200 hover:bg-white dark:hover:bg-slate-950 hover:outline-solid hover:outline-disco-cyan hover:outline-2 hover:text-disco-cyan hover:cursor-pointer"
           >
             select {{ fileType }}
           </span>

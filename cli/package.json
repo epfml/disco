@@ -16,8 +16,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "server": "*",
     "@epfml/discojs-node": "*",
+    "server": "*",
     "tslib": "2"
   },
   "devDependencies": {

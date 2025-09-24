@@ -19,7 +19,7 @@ async function setupForTask() {
     ) {
       const model = await provider.getModel();
       const encoded = await serialization.model.encode(model);
-      return new Response(encoded);
+      return new Response(new Uint8Array(encoded));
     }
     throw new Error(`unhandled get: ${url}`);
   });
@@ -36,7 +36,7 @@ async function setupForTask() {
       task: await provider.getTask(),
       dataset: loadCSV(
         new File(
-          [await fs.readFile("../datasets/titanic_train.csv")],
+          [new Uint8Array(await fs.readFile("../datasets/titanic_train.csv"))],
           "titanic_train.csv",
         ),
       ),

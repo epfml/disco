@@ -4,9 +4,8 @@
       <slot />
     </main>
 
-    <footer class="
-      flex items-center p-4 bg-white dark:bg-slate-800 border-t dark:border-slate-900 
-      text-body-secondary-light dark:text-body-secondary-dark"
+    <footer
+      class="flex items-center p-4 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-900 text-body-secondary-light dark:text-body-secondary-dark"
     >
       <div class="flex mx-auto space-x-6 items-center">
         <a

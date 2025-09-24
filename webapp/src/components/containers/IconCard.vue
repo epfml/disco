@@ -6,7 +6,9 @@
         <template #icon> <slot name="icon" /> </template>
       </IconCardHeader>
 
-      <div class="text-sm text-slate-500 dark:text-slate-200 p-8 border-t">
+      <div
+        class="text-sm text-slate-500 dark:text-slate-200 p-8 border-t border-gray-200"
+      >
         <slot />
       </div>
     </div>

@@ -1,7 +1,7 @@
 <template>
   <Field
     :name
-    class="p-2 bg-gray-100 dark:bg-slate-700 border rounded-md dark:border-slate-400 text-gray-700 dark:text-gray-200 focus:outline-none focus:border-disco-cyan"
+    class="p-2 bg-gray-100 dark:bg-slate-700 border rounded-md border-gray-200 dark:border-slate-400 text-gray-700 dark:text-gray-200 focus:outline-hidden focus:border-disco-cyan"
     v-model="model"
     v-bind="$attrs"
   >

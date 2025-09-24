@@ -70,10 +70,13 @@ function refreshWatcher() {
       // TODO: rm once dataset supports shuffling
       // shuffle the filenames o.w. they are ordered by labels
       for (let i = 0; i < expanded.length; i++) {
-        const j = Math.floor(Math.random() * i)
-        const swap = expanded[i]
-        expanded[i] = expanded[j]
-        expanded[j] = swap
+        const j = Math.floor(Math.random() * i);
+
+        const swap = expanded[i];
+        if (swap === undefined || expanded[j] === undefined)
+          throw new Error("out of bound shuffling");
+        expanded[i] = expanded[j];
+        expanded[j] = swap;
       }
       dataset.value = new Dataset(expanded).map(async ([label, file]) => ({
         filename: file.name,

@@ -28,9 +28,7 @@ export async function encode(model: Model<DataType>): Promise<Encoded> {
   }
 }
 
-export async function decode(encoded: unknown): Promise<Model<DataType>> {
-  if (!isEncoded(encoded))
-    throw new Error("Invalid encoding, raw encoding isn't an instance of Uint8Array")
+export async function decode(encoded: Encoded): Promise<Model<DataType>> {
   const raw = coder.decode(encoded)
 
   if (!Array.isArray(raw) || raw.length < 2) {

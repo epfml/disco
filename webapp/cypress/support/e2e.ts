@@ -98,10 +98,4 @@ export function basicTask<D extends DataType, N extends Network>(
   } as Task<D, N>;
 }
 
-beforeEach(() =>
-  navigator.storage
-    .getDirectory()
-    .then((root) => root.removeEntry("models", { recursive: true })),
-);
-
 before(() => (localStorage.debug = "discojs*,webapp*"));

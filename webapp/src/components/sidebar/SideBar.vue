@@ -2,10 +2,10 @@
   <div>
     <!-- Mini Sidebar (LHS) -->
     <nav
-      class="flex flex-col flex-shrink-0 h-full sm:px-4 px-2 py-4 border-r dark:border-black"
+      class="flex flex-col shrink-0 h-full sm:px-4 px-2 py-4"
     >
       <!-- Brand -->
-      <div class="hidden sm:flex flex-shrink-0">
+      <div class="hidden sm:flex shrink-0">
         <RouterLink
           to="/"
           class="inline-block text-2xl font-bold font-disco tracking-wider cursor-pointer"

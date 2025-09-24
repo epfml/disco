@@ -13,7 +13,7 @@
             <div class="flex justify-center">
               <button
                 id="train-collab-bttn"
-                class="w-60 py-1 capitalize text-lg font-disco rounded-l-full border-2 border-disco-cyan focus:outline-none"
+                class="w-60 py-1 capitalize text-lg font-disco rounded-l-full border-2 border-disco-cyan focus:outline-hidden"
                 :class="isTrainingAlone ? 'text-disco-cyan bg-transparent' : 'text-white bg-disco-cyan'"
                 @click="isTrainingAlone = false"
                 v-tippy="{
@@ -25,7 +25,7 @@
               </button>
               <button
                 id="train-locally-bttn"
-                class="w-60 py-1 capitalize text-lg font-disco rounded-r-full border-2 border-disco-cyan focus:outline-none"
+                class="w-60 py-1 capitalize text-lg font-disco rounded-r-full border-2 border-disco-cyan focus:outline-hidden"
                 :class="isTrainingAlone ? 'text-white bg-disco-cyan': 'text-disco-cyan bg-transparent'"
                 @click="isTrainingAlone = true"
                 v-tippy="{
@@ -43,10 +43,10 @@
                 type="button"
                 @click="startTraining()"
                 class="
-                mt-4 px-6 py-2 min-w-[8rem]
+                mt-4 px-6 py-2 min-w-32
                 text-xl text-white font-disco
                 bg-disco-orange rounded-full duration-200
-                hover:bg-transparent hover:outline hover:outline-disco-orange hover:outline-2 hover:text-disco-orange"
+                hover:bg-transparent hover:outline-solid hover:outline-disco-orange hover:outline-2 hover:text-disco-orange"
               >
                 Start training
               </button>
