@@ -16,7 +16,7 @@
 		"@msgpack/msgpack": "3",
 		"@vee-validate/zod": "4",
 		"apexcharts": "4",
-		"cypress": "14",
+		"cypress": "15",
 		"d3": "7",
 		"driver.js": "1",
 		"pinia": "<2.2.3",
