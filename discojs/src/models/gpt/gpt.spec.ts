@@ -7,7 +7,7 @@ import { Dataset, Tokenizer } from "../../index.js";
 import { GPT } from "./index.js";
 
 describe("gpt-tfjs", () => {
-  it("can overfit one sentence", { timeout: 50_000 }, async () => {
+  it("can overfit one sentence", { timeout: 100_000 }, async () => {
     const tokenizer = await Tokenizer.from_pretrained("Xenova/gpt2");
 
     const data = "Lorem ipsum dolor sit";

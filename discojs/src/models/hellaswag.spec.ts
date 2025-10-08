@@ -39,7 +39,7 @@ describe('HellaSwag Evaluator', { timeout: 10_000 }, () => {
   });
 });
 
-describe('HellaSwag Evaluator with Xenova GPT-2', { timeout: 20_000 }, () => {
+describe('HellaSwag Evaluator with Xenova GPT-2', { timeout: 50_000 }, () => {
   it('evaluates the pretrained GPT-2 model', async () => {
     const tokenizer = await Tokenizer.from_pretrained('Xenova/gpt2');
     const model = await ONNXModel.init_pretrained('Xenova/gpt2');

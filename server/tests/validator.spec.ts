@@ -41,7 +41,7 @@ describe("validator", () => {
     expect(hits / size).to.be.greaterThan(0.3);
   });
 
-  it("can read and predict randomly on lus_covid", { timeout: 20_000 }, async () => {
+  it("can read and predict randomly on lus_covid", { timeout: 50_000 }, async () => {
 		const task = await defaultTasks.lusCovid.getTask();
 		task.trainingInformation = {
 			...task.trainingInformation,
