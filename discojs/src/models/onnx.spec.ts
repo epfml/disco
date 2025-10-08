@@ -5,7 +5,7 @@ import { AutoTokenizer } from '@xenova/transformers';
 import { ONNXModel } from './onnx.js';
 import { DefaultGenerationConfig } from './gpt/config.js';
 
-describe('ONNXModel.predict', { timeout: 20_000 }, () => {
+describe('ONNXModel.predict', { timeout: 50_000 }, () => {
   it('should generate the next token ID from a prompt', async () => {
     // Load tokenizer and model
     const tokenizer = await AutoTokenizer.from_pretrained('Xenova/gpt2');
