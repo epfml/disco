@@ -30,8 +30,7 @@ async function setupForTask() {
   return mount(TrainerDashboard, {
     global: {
       directives: { Tippy },
-      stubs: { apexchart: true },
-      plugins: [createTestingPinia({ createSpy: vi.fn })],
+      plugins: [createTestingPinia({ createSpy: vi.fn, stubActions: false })],
     },
     props: {
       task: await provider.getTask(),
