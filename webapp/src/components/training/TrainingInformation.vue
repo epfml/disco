@@ -1,9 +1,7 @@
 <template>
   <div class="space-y-4 md:space-y-8">
     <!-- Fancy training statistics -->
-    <div
-      class="flex flex-wrap justify-center 2xl:justify-between cards-gap"
-    >
+    <div class="flex flex-wrap justify-center 2xl:justify-between cards-gap">
       <!-- Hide the communication rounds when training alone -->
       <IconCardSmall
         v-if="!isTrainingAlone"
@@ -68,16 +66,14 @@
           <span class="text-2xl">
             {{ (lastEpoch?.training.loss ?? 0).toFixed(2) }}
           </span>
-          <span class="text-sm">
-            training loss
-          </span>
+          <span class="text-sm"> training loss </span>
 
-          <ApexChart
-            width="100%"
-            height="200"
-            type="area"
+          <Line
             :options="lossChartsOptions"
-            :series="[{ name: 'Training loss', data: lossSeries.training }]"
+            :data="{
+              labels: chartsLabels,
+              datasets: [{ label: 'Training loss', data: lossSeries.training }],
+            }"
           />
         </IconCard>
 
@@ -88,18 +84,16 @@
           <span class="text-2xl">
             {{ percent(lastEpoch?.training.accuracy ?? 0) }}
           </span>
-          <span class="text-sm">
-            % of training accuracy
-          </span>
+          <span class="text-sm"> % of training accuracy </span>
 
-          <ApexChart
-            width="100%"
-            height="200"
-            type="area"
+          <Line
             :options="accuracyChartsOptions"
-            :series="[
-              { name: 'Training accuracy', data: accuracySeries.training },
-            ]"
+            :data="{
+              labels: chartsLabels,
+              datasets: [
+                { label: 'Training accuracy', data: accuracySeries.training },
+              ],
+            }"
           />
         </IconCard>
       </div>
@@ -116,16 +110,16 @@
           <span class="text-2xl">
             {{ (lastEpoch?.validation?.loss ?? 0).toFixed(2) }}
           </span>
-          <span class="text-sm">
-            validation loss
-          </span>
+          <span class="text-sm"> validation loss </span>
 
-          <ApexChart
-            width="100%"
-            height="200"
-            type="area"
+          <Line
             :options="lossChartsOptions"
-            :series="[{ name: 'Validation loss', data: lossSeries.validation }]"
+            :data="{
+              labels: chartsLabels,
+              datasets: [
+                { label: 'Validation loss', data: lossSeries.validation },
+              ],
+            }"
           />
         </IconCard>
         <!-- Validation Accuracy users chart -->
@@ -135,18 +129,19 @@
           <span class="text-2xl">
             {{ percent(lastEpoch?.validation?.accuracy ?? 0) }}
           </span>
-          <span class="text-sm">
-            % of validation accuracy
-          </span>
+          <span class="text-sm"> % of validation accuracy </span>
 
-          <ApexChart
-            width="100%"
-            height="200"
-            type="area"
+          <Line
             :options="accuracyChartsOptions"
-            :series="[
-              { name: 'Validation accuracy', data: accuracySeries.validation },
-            ]"
+            :data="{
+              labels: chartsLabels,
+              datasets: [
+                {
+                  label: 'Validation accuracy',
+                  data: accuracySeries.validation,
+                },
+              ],
+            }"
           />
         </IconCard>
       </div>
@@ -155,9 +150,20 @@
 </template>
 
 <script setup lang="ts">
-import { List } from "immutable";
+import {
+  CategoryScale,
+  Chart as ChartJS,
+  Filler,
+  LineElement,
+  LinearScale,
+  PointElement,
+  Tooltip,
+  type ChartOptions,
+  type TooltipPositionerFunction,
+} from "chart.js";
+import { List, Range } from "immutable";
 import { computed, ref } from "vue";
-import ApexChart from "vue3-apexcharts";
+import { Line } from "vue-chartjs";
 
 import type { BatchLogs, EpochLogs, RoundLogs } from "@epfml/discojs";
 
@@ -168,6 +174,18 @@ import ModelExchangeIcon from "@/assets/svg/ModelExchangeIcon.vue";
 import ModelUpdateIcon from "@/assets/svg/ModelUpdateIcon.vue";
 import PeopleIcon from "@/assets/svg/PeopleIcon.vue";
 import DropdownCard from "../containers/DropdownCard.vue";
+import { useThemeStore } from "@/store";
+
+ChartJS.register(
+  CategoryScale,
+  Filler,
+  LineElement,
+  LinearScale,
+  PointElement,
+  Tooltip,
+);
+
+const theme = useThemeStore();
 
 const initiallyOpen = ref(
   localStorage.getItem("initiallyOpen") === "true" ? true : false,
@@ -232,85 +250,72 @@ const lossSeries = computed(() =>
       },
     ),
 );
-const darkMode = localStorage.getItem("theme") === "dark";
-const commonChartsOptions = {
-  chart: {
-    toolbar: { show: false },
-    zoom: { enabled: false },
-  },
-  dataLabels: { enabled: false },
-  colors: [darkMode ? "#cbd5e1" : "#6096BA"],
-  fill: {
-    colors: [darkMode ? "#1A3A4F" : "#E2E8F0"],
-    type: "solid",
-    opacity: 0.6,
-  },
-  stroke: { curve: "monotoneCubic" },
-  grid: { show: false },
-  xaxis: {
-    type: "numeric",
-    decimalsInFloat: 0,
-    labels: {
-      show: true,
-      style: {
-        colors: darkMode ? "#ffffff" : "#000000",
-      },
-    },
-    axisBorder: {
-      show: true,
-      colors: darkMode ? "#ffffff" : "#000000",
-    },
-    axisTicks: {
-      show: true,
-      color: darkMode ? "#ffffff" : "#000000",
-    },
-  },
-  yaxis: {
-    labels: {
-      show: true,
-      style: {
-        colors: darkMode ? "#ffffff" : "#000000",
-      },
-    },
-    axisBorder: {
-      show: true,
-      color: darkMode ? "#ffffff" : "#000000",
-    },
-    axisTicks: {
-      show: true,
-      color: darkMode ? "#ffffff" : "#000000",
-    },
-  },
-  legend: {
-    show: true,
-    labels: {
-      colors: darkMode ? "#ffffff" : "#000000",
-    },
-  },
-  tooltip: {
-    theme: darkMode ? "dark" : "light",
-    style: {
-      fontSize: "12px",
-      fontFamily: undefined,
-      colors: darkMode ? "#ffffff" : "#000000",
-    },
-  },
-};
 
-const accuracyChartsOptions = {
-  ...commonChartsOptions,
-  yaxis: {
-    ...commonChartsOptions.yaxis,
-    max: 100,
-    min: 0,
-    labels: {
-      ...commonChartsOptions.yaxis.labels,
-      formatter: (value: number) => value.toFixed(0),
+const chartsLabels = computed<string[]>(() =>
+  Range(1, allEpochs.value.size + 1)
+    .map((e) => `${e}`)
+    .toArray(),
+);
+const textColor = theme.selectByTheme("rgb(100, 116, 139)", "rgb(226 232 240)");
+
+Tooltip.positioners.left = function (items, event) {
+  const nearest = Tooltip.positioners.nearest.bind(this)(items, event);
+  if (nearest === false) return false;
+
+  return {
+    x: this.chart.chartArea.left,
+    y: nearest.y,
+  };
+};
+declare module "chart.js" {
+  interface TooltipPositionerMap {
+    left: TooltipPositionerFunction<"line">;
+  }
+}
+
+const commonChartsOptions = computed<ChartOptions<"line">>(() => ({
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      enabled: true,
+      displayColors: false,
+      position: "left",
     },
   },
-};
+  elements: {
+    line: {
+      fill: "start",
+      tension: 0.4,
+      borderColor: theme.selectByTheme("#6096BA", "#cbd5e1").value,
+      backgroundColor: theme.selectByTheme("#E2E8F0", "#1A3A4F").value,
+    },
+    point: {
+      pointStyle: false,
+    },
+  },
+  interaction: {
+    intersect: false,
+    mode: "index",
+  },
+}));
 
-const lossChartsOptions = computed(() => {
+const accuracyChartsOptions = computed<ChartOptions<"line">>(() => ({
+  ...commonChartsOptions.value,
+  scales: {
+    x: {
+      grid: { display: false },
+      ticks: { color: textColor.value },
+    },
+    y: {
+      max: 100,
+      min: 0,
+      grid: { display: false },
+      ticks: { color: textColor.value },
+    },
+  },
+}));
+
+const lossChartsOptions = computed<ChartOptions<"line">>(() => {
   const maxVal = Math.max(
     lossSeries.value.training.reduce((max, e) => Math.max(max, e), 0),
     lossSeries.value.validation.reduce((max, e) => Math.max(max, e), 0),
@@ -319,14 +324,17 @@ const lossChartsOptions = computed(() => {
   const yAxisMax = maxVal > 0 ? maxVal : 10;
 
   return {
-    ...commonChartsOptions,
-    yaxis: {
-      ...commonChartsOptions.yaxis,
-      max: yAxisMax,
-      min: 0,
-      labels: {
-        ...commonChartsOptions.yaxis.labels,
-        formatter: (n: number) => n.toFixed(2),
+    ...commonChartsOptions.value,
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { color: textColor.value },
+      },
+      y: {
+        max: yAxisMax,
+        min: 0,
+        grid: { display: false },
+        ticks: { color: textColor.value },
       },
     },
   };
