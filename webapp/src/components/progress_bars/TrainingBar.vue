@@ -12,7 +12,7 @@
     >
       <DISCOllaboratives />
     </div>
-    <div class="hidden md:inline-block w-full py-6" id="tuto-training-bar">
+    <div id="tuto-training-bar" class="hidden md:inline-block w-full py-6">
       <div class="flex">
         <!-- Step 1 -->
         <ProgressIcon
@@ -151,11 +151,11 @@ const isActive = (step: number): boolean => {
   }
 }
 
-const toStep = (step: number): void => {
+async function toStep(step: number): Promise<void> {
   if (route.fullPath === '/list') {
     toaster.info('Choose a DISCOllaborative first')
   } else if (step === 0) {
-    router.push('/list')
+    await router.push('/list')
     trainingStore.setStep(0)
   } else {
     trainingStore.setStep(step)

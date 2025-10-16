@@ -8,7 +8,6 @@
 		"watch": "nodemon --ext ts --ignore dist --watch ../discojs-node/dist --watch . --exec npm run",
 		"start": "npm run build && node dist/main.js",
 		"build": "tsc --build",
-		"lint": "eslint .",
 		"test": "cd .. && vitest --run --project=server"
 	},
 	"author": "",

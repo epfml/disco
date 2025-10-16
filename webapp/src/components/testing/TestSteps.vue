@@ -3,7 +3,7 @@
     v-show="validationStore.step === 1"
     class="flex flex-col space-y-4 md:space-y-8"
   >
-    <LabeledDatasetInput :task v-model="dataset">
+    <LabeledDatasetInput v-model="dataset" :task>
       <template #header>
         <IconCard class="mx-auto w-full max-w-[700px]">
           <template #title> Model Validation </template>
@@ -462,7 +462,7 @@ async function startTextTest(
   }
 }
 
-async function stopTest(): Promise<void> {
+function stopTest(): void {
   const c = controller.value;
   if (c === undefined) return;
 

@@ -1,16 +1,16 @@
 import type * as http from "node:http";
 import type { DataType, RoundStatus, Task, TaskProvider } from "@epfml/discojs";
 import {
-	Disco,
-	WeightsContainer,
 	aggregator as aggregators,
 	client as clients,
+	Disco,
 	defaultTasks,
+	WeightsContainer,
 } from "@epfml/discojs";
 import { List } from "immutable";
 import { afterEach, describe, expect, it } from "vitest";
 import { Server } from "../../src/index.js";
-import { Queue, datasets } from "../utils.js";
+import { datasets, Queue } from "../utils.js";
 
 async function WSIntoList(ws: WeightsContainer): Promise<List<List<number>>> {
   return List((await Promise.all(ws.weights.map(async (w) => await w.data()))).map(

@@ -10,7 +10,6 @@
 		"train_gpt": "npm run build && node dist/train_gpt.js",
 		"hellaswag_gpt": "npm run build && node dist/hellaswag_gpt.js",
 		"build": "tsc --build",
-		"lint": "eslint .",
 		"test": ": nothing"
 	},
 	"author": "",

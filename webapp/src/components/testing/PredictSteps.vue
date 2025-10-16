@@ -19,7 +19,7 @@
     v-show="validationStore.step === 1"
     class="flex flex-col space-y-4 md:space-y-8"
   >
-    <UnlabeledDatasetInput :task="task" v-model="dataset">
+    <UnlabeledDatasetInput v-model="dataset" :task>
       <template #header> <DataDescription :task /> </template>
     </UnlabeledDatasetInput>
   </div>
@@ -268,7 +268,7 @@ async function stopInference(): Promise<void> {
   if (g === undefined) return;
 
   generator.value = undefined;
-  g.return();
+  await g.return();
 }
 
 function saveCsv() {

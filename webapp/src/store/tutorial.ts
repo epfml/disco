@@ -1,12 +1,10 @@
-import { ref } from "vue";
+import type { Driver, DriveStep } from "driver.js";
+import { driver } from "driver.js";
 import { defineStore } from "pinia";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
-
 import { scrollToTop } from "@/utils";
 import { useTrainingStore } from "./training";
-
-import type { DriveStep, Driver } from "driver.js";
-import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 
 
@@ -33,20 +31,20 @@ export const useTutorialStore = defineStore("guide", () => {
   // Note: The tutorial interacts with the router and the training store
   driverObj.setSteps(getTaskSteps(driverObj));
 
-  function startOnFirstVisit(): void {
+  async function startOnFirstVisit(): Promise<void> {
     // Check if the tutorial has already been shown
     if (hasAlreadyBeenShown.value) return;
-    start(false);
+    await start(false);
   }
 
-  function startFromSidebar(): void {
-    start(true);
+  async function startFromSidebar(): Promise<void> {
+    await start(true);
   }
 
   
-  function start(skipFirstStep: boolean = false): void {
+  async function start(skipFirstStep: boolean = false): Promise<void> {
     if (router.currentRoute.value.path !== "/list") {
-      router.push({path: "/list"});
+      await router.push({path: "/list"});
     }
     scrollToTop();
     driverObj.drive(skipFirstStep ? 1 : 0);
@@ -104,10 +102,8 @@ export const useTutorialStore = defineStore("guide", () => {
           description: "Let's see how to join an existing DISCOllaborative with the LUS COVID task.",
           align: "start",
           side: "right",
-          onNextClick: async () => {
-            await router.push('/lus_covid');
-            driverObj.moveNext();
-          },
+					onNextClick: () =>
+						void router.push("/lus_covid").then(() => driverObj.moveNext()),
         },
       },
       {
@@ -213,12 +209,13 @@ export const useTutorialStore = defineStore("guide", () => {
           description: "If you encounter any issue, feel free to ask questions or share your feedback on our Slack channel!",
           side: "top",
           align: "center",
-          onNextClick: () => {
-            trainingStore.setStep(1);
-            router.push('/list');
-            scrollToTop();
-            driverObj.moveNext();
-          },
+					onNextClick: () => {
+						trainingStore.setStep(1);
+						void router.push("/list").then(() => {
+							scrollToTop();
+							driverObj.moveNext();
+						});
+					},
         }
       },
     ];

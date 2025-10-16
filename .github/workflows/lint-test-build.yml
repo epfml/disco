@@ -18,7 +18,8 @@ jobs:
           key: datasets-${{ hashFiles('datasets/**') }}
       - run: datasets/populate
 
-  lint-lib:
+  lint-most:
+    needs: [build-cli, build-lib, build-lib-node, build-lib-web, build-server, build-webapp]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,97 +33,8 @@ jobs:
             ~/.cache/Cypress
           key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm ci
-      - run: npm --workspace=discojs run lint
-
-  lint-lib-node:
-    needs: build-lib
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-      - run: npm --workspace=discojs run build
-      - run: npm --workspace=discojs-node run lint
-
-  lint-lib-web:
-    needs: build-lib
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-      - run: npm --workspace=discojs run build
-      - run: npm --workspace=discojs-web run lint
-
-  lint-server:
-    needs: [build-lib, build-lib-node]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-      - run: npm --workspace={discojs,discojs-node} run build
-      - run: npm --workspace=server run lint
-
-  lint-cli:
-    needs: [build-lib, build-lib-node, build-server]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-      - run: npm --workspace={discojs,discojs-node,server} run build
-      - run: npm --workspace=cli run lint
-
-  lint-webapp:
-    needs: [build-lib, build-lib-web]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-      - run: npm --workspace={discojs,discojs-web} run build
-      - run: npm --workspace=webapp run lint
+      - run: npm --workspaces run build
+      - run: npm run lint
 
   lint-docs-examples:
     needs: [build-lib, build-lib-node, build-server]
@@ -283,8 +195,8 @@ jobs:
       - run: npm run build
         working-directory: docs/examples
 
-  test-lib:
-    needs: [build-lib, download-datasets]
+  test-most:
+    needs: [build-lib, build-lib-node, build-lib-web, build-server, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -302,73 +214,8 @@ jobs:
             ~/.cache/Cypress
           key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm ci
-      - run: npm --workspace=discojs test
-
-  test-lib-node:
-    needs: [build-lib, download-datasets]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
-        with:
-          path: datasets
-          key: datasets-${{ hashFiles('datasets/**') }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-      - run: npm --workspace=discojs run build
-      - run: npm --workspace=discojs-node test
-
-  test-lib-web:
-    needs: [build-lib]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
-        with:
-          path: datasets
-          key: datasets-${{ hashFiles('datasets/**') }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-      - run: npm --workspace=discojs run build
-      - run: npm --workspace=discojs-web test
-
-  test-server:
-    needs: [build-lib, build-lib-node, download-datasets]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
-        with:
-          path: datasets
-          key: datasets-${{ hashFiles('datasets/**') }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-      - run: npm --workspace={discojs,discojs-node} run build
-      - run: npm --workspace=server test
+      - run: npm --workspace={discojs,discojs-{node,web},server} run build
+      - run: npx vitest --run
 
   test-webapp:
     needs: [build-lib, build-lib-web, download-datasets]

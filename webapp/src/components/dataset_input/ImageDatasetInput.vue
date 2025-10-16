@@ -1,6 +1,6 @@
 <template>
   <DatasetInput>
-    <FileSelection type="image" lock-icon v-model="files" multiple />
+    <FileSelection v-model="files" type="image" lock-icon multiple />
   </DatasetInput>
 </template>
 

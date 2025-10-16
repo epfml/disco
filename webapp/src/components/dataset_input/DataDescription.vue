@@ -7,8 +7,8 @@
         <div>
           <!-- Sample dataset link and instructions -->
           <div
-            class="mb-5 tuto-example-data"
             v-if="task.displayInformation.sampleDataset !== undefined"
+            class="mb-5 tuto-example-data"
           >
             <b>Don't have any data?</b> You can download an example dataset
             <a
@@ -64,6 +64,14 @@
   </div>
 </template>
 
+<script setup lang="ts">
+import type { DataType, Network, Task } from "@epfml/discojs";
+
+import DropdownCard from "@/components/containers/DropdownCard.vue";
+
+defineProps<{ task: Task<DataType, Network> }>();
+</script>
+
 <style lang="css" scoped>
 table {
   table-layout: fixed;
@@ -76,11 +84,3 @@ figcaption {
   text-align: center;
 }
 </style>
-
-<script setup lang="ts">
-import type { DataType, Network, Task } from "@epfml/discojs";
-
-import DropdownCard from "@/components/containers/DropdownCard.vue";
-
-defineProps<{ task: Task<DataType, Network> }>();
-</script>

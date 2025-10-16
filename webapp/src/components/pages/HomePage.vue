@@ -61,8 +61,9 @@
     <div class="mb-40 lg:pb-40 lg:mb-0 lg:h-dvh flex flex-col justify-center">
       <div class="flex flex-col items-around justify-start w-full">
         <div class="mb-8 lg:mb-20 w-full text-center lg:text-center">
-          <span class="font-disco text-4xl lg:text-5xl font-bold
-           text-heading-light dark:text-heading-dark">
+          <span
+            class="font-disco text-4xl lg:text-5xl font-bold text-heading-light dark:text-heading-dark"
+          >
             3 steps.
           </span>
         </div>
@@ -79,11 +80,11 @@
           <div class="flex flex-col justify-center items-center text-center w-full">
             <span class="text-2xl font-bold text-heading-light dark:text-heading-dark">
               Join the <span 
-                class="underline hover:cursor-pointer"
                 v-tippy="{
                   content: 'This is how we call collaborative training sessions in DISCO.',
                   placement: 'top'
                 }">
+                class="underline hover:cursor-pointer"
                 <DISCOllaborative/>
               </span>
             </span>

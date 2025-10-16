@@ -9,7 +9,7 @@
       </div>
     </div>
 
-    <canvas class="h-full w-full object-fill rounded-b-lg" ref="canvas" />
+    <canvas ref="canvas" class="h-full w-full object-fill rounded-b-lg" />
   </div>
 </template>
 

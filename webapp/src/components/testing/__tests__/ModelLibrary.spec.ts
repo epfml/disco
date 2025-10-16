@@ -62,7 +62,7 @@ it("shows stored models", async () => {
 });
 
 it("allows to download server's models", async () => {
-  vi.stubGlobal("fetch", async (url: string | URL) => {
+  vi.stubGlobal("fetch", (url: string | URL) => {
     if (url.toString() === new URL("tasks", CONFIG.serverUrl).href)
       return new Response(
         JSON.stringify([serialization.task.serializeToJSON(TASK)]),

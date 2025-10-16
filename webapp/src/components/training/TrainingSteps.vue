@@ -1,12 +1,12 @@
 <template>
   <div v-if="task !== undefined">
-    <TrainingDescription v-show="trainingStore.step === 1" :task="task" />
+    <TrainingDescription v-show="trainingStore.step === 1" :task />
 
     <div
       v-show="trainingStore.step === 2"
       class="flex flex-col space-y-4 md:space-y-8"
     >
-      <LabeledDatasetInput :task v-model="dataset">
+      <LabeledDatasetInput v-model="dataset" :task >
         <template #header>
           <DataDescription :task class="tuto-data-desc"/>
         </template>
@@ -71,7 +71,7 @@ const task = computed<Task<DataType, Network> | undefined>(() => {
   // Redirect to the task list if not loaded yet
   // This happens when refreshing the page, every task are reset when fetched
   if (route.name !== "task-list") {
-    router.replace({ name: "task-list" });
+    void router.replace({ name: "task-list" });
   }
   return undefined;
 });

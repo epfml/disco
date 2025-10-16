@@ -16,7 +16,7 @@
         "
         @dragenter="onDragEnter"
         @dragleave="onDragLeave"
-        @drop="async (e: DragEvent) => await dragFiles(e)"
+        @drop="(e: DragEvent) => dragFiles(e)"
       >
         <p
           class="p-4 text-lg text-disco-blue dark:text-disco-light-blue flex-wrap justify-center"
@@ -35,7 +35,7 @@
             :multiple="multiple"
             :accept="acceptFilter"
             class="hidden"
-            @change="async () => await submitFiles()"
+            @change="() => submitFiles()"
             @blur="() => emit('blur')"
           />
         </label>
@@ -46,10 +46,10 @@
         class="flex justify-end items-center mt-1"
       >
         <span
-          class="hover:cursor-pointer"
           v-tippy="{
             content: 'Data always stays on your device and is never shared.',
           }"
+          class="hover:cursor-pointer"
         >
           <i class="fa fa-lock mr-1" />
         </span>
@@ -170,13 +170,13 @@ function setFiles(fl: FileList): void {
   files.value = r;
 }
 
-async function submitFiles() {
+function submitFiles() {
   const inputs = inputFileElement.value?.files;
   if (inputs === undefined || inputs === null) return;
 
   setFiles(inputs);
 }
-async function dragFiles(e: DragEvent) {
+function dragFiles(e: DragEvent) {
   dragEventCount.value = 0;
 
   if (e.dataTransfer === null) return;
