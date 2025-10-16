@@ -17,7 +17,7 @@
       <!-- Mini Sidebar content-->
       <div class="flex flex-col items-center justify-center flex-1 space-y-4">
         <RouterLink to="/">
-          <SidebarButton text="Home" label="Home"  id="tuto-home-bttn"> 
+          <SidebarButton id="tuto-home-bttn" text="Home" label="Home">
             <HomeIcon/>
           </SidebarButton>
         </RouterLink>
@@ -27,12 +27,12 @@
           </SidebarButton>
         </RouterLink>
         <RouterLink to="/create">
-          <SidebarButton text="Create a new DISCOllaborative" label="Create" id="tuto-create-bttn"> 
+          <SidebarButton id="tuto-create-bttn" text="Create a new DISCOllaborative" label="Create"> 
             <CreateIcon/>
           </SidebarButton>
         </RouterLink>
         <RouterLink to="/evaluate">
-          <SidebarButton text="Evaluate or download a model in the Model Library" label="Models" id="tuto-evaluate-bttn"> 
+          <SidebarButton id="tuto-evaluate-bttn" text="Evaluate or download a model in the Model Library" label="Models"> 
             <EvaluateIcon/>
           </SidebarButton>
         </RouterLink>
@@ -51,10 +51,10 @@
           <SunIcon v-else/>
         </SidebarButton>
         <SidebarButton 
+          id="tuto-help-bttn" 
           text="Check out the tutorial"
           label="Tutorial"
           @click="tutorialStore.startFromSidebar"
-          id="tuto-help-bttn" 
         >
           <QuestionMarkIcon/>
         </SidebarButton>

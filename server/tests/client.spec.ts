@@ -5,7 +5,7 @@ import {
 	client as clients,
 	defaultTasks,
 } from "@epfml/discojs";
-import { afterEach, describe, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { Server } from "../src/index.js";
 
 describe("decentralized client", () => {
@@ -51,13 +51,7 @@ describe("decentralized client", () => {
 			new aggregators.MeanAggregator(),
 		);
 
-		try {
-			await client.connect();
-		} catch {
-			return; // fail as expected
-		}
-
-		throw new Error("connect didn't fail");
+		await expect(client.connect()).rejects.toThrow();
 	});
 });
 
@@ -104,12 +98,6 @@ describe("federated client", () => {
 			new aggregators.MeanAggregator(),
 		);
 
-		try {
-			await client.connect();
-		} catch {
-			return; // fail as expected
-		}
-
-		throw new Error("connect didn't fail");
+		await expect(client.connect()).rejects.toThrow();
 	});
 });

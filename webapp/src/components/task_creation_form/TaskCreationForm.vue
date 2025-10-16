@@ -25,11 +25,11 @@
     </IconCard>
 
     <Form
+      ref="form"
+      :validation-schema="toTypedSchema(schema)"
+      class="flex flex-col cards-gap"
       @submit="onSubmit"
       @invalid-submit="onInvalidSubmit"
-      :validation-schema="toTypedSchema(schema)"
-      ref="form"
-      class="flex flex-col cards-gap"
     >
       <div
         class="grid grid-flow-row-dense grid-cols-1 md:grid-cols-2 xl:grid-cols-3 cards-gap"
@@ -48,9 +48,9 @@
 
           <FormLabel label="Data type" type="required">
             <FormField
+              v-model="dataType"
               name="dataType"
               as="select"
-              v-model="dataType"
               supress-error
             >
               <option value="image">Image</option>
@@ -70,8 +70,8 @@
               type="required"
             >
               <FieldArray
-                name="trainingInformation.LABEL_LIST"
                 v-slot="{ fields, push, remove }"
+                name="trainingInformation.LABEL_LIST"
               >
                 <div class="flex flex-row flex-wrap elems-gap">
                   <div
@@ -123,8 +123,8 @@
               type="required"
             >
               <FieldArray
-                name="trainingInformation.inputColumns"
                 v-slot="{ fields, push, remove }"
+                name="trainingInformation.inputColumns"
               >
                 <div class="flex flex-row flex-wrap elems-gap">
                   <div
@@ -187,7 +187,7 @@
             </div>
 
             <FormLabel label="TFJS model.json file" type="required">
-              <FormField name="model.topology" v-slot="{ field }">
+              <FormField v-slot="{ field }" name="model.topology">
                 <FileSelection type="json" v-bind="field" />
               </FormField>
             </FormLabel>
@@ -298,9 +298,9 @@
           <div class="flex flex-col">
             <FormLabel label="Collaborative algorithm" type="required">
               <FormField
+                v-model="scheme"
                 name="trainingInformation.scheme"
                 as="select"
-                v-model="scheme"
                 supress-error
               >
                 <option value="federated">Federated</option>
@@ -311,9 +311,9 @@
 
             <FormLabel label="Type of aggregation" type="required">
               <FormField
+                v-model="aggregationStrategy"
                 name="trainingInformation.aggregationStrategy"
                 as="select"
-                v-model="aggregationStrategy"
                 :disabled="scheme !== 'decentralized'"
               >
                 <option value="mean">Mean</option>
@@ -321,8 +321,8 @@
               </FormField>
 
               <FormLabel
-                label="Maximum absolute value over all the weights"
                 v-show="aggregationStrategy === 'secure'"
+                label="Maximum absolute value over all the weights"
               >
                 <FormField
                   name="trainingInformation.maxShareValue"
@@ -358,11 +358,11 @@
             </FormLabel>
 
             <FormLabel
+              v-model="differentialPrivacy"
               label="Differential privacy"
               type="checkbox"
-              v-model="differentialPrivacy"
             >
-              <div class="flex flex-col" v-show="differentialPrivacy">
+              <div v-show="differentialPrivacy" class="flex flex-col">
                 <FormLabel
                   label="Standard deviation of the noise"
                   type="required"
@@ -378,11 +378,11 @@
             </FormLabel>
 
             <FormLabel
+              v-model="weightClipping"
               label="Weight clipping"
               type="checkbox"
-              v-model="weightClipping"
             >
-              <div class="flex flex-col" v-show="weightClipping">
+              <div v-show="weightClipping" class="flex flex-col">
                 <FormLabel
                   label="Maximum drift, measured by its norm, that can be made by the aggregated weights each round"
                   type="required"
@@ -463,8 +463,8 @@
 
             <FieldArray
               v-if="dataType === 'tabular'"
-              name="displayInformation.dataExample"
               v-slot="{ fields, push, remove }"
+              name="displayInformation.dataExample"
             >
               <FormLabel label="Example tabular data">
                 <div
@@ -525,16 +525,6 @@
     </Form>
   </div>
 </template>
-
-<style lang="css" scoped>
-.elems-gap {
-  gap: 0.75rem;
-}
-
-label label {
-  font-size: smaller;
-}
-</style>
 
 <script lang="ts" setup>
 import createDebug from "debug";
@@ -833,6 +823,7 @@ async function onSubmit(form: unknown): Promise<void> {
     case modelOptimizerNames[4]:
     case modelOptimizerNames[5]:
       // @ts-expect-error whole array is valid
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       modelOptimizerNames[6];
       break;
     default:
@@ -884,7 +875,7 @@ async function onSubmit(form: unknown): Promise<void> {
     debug("tasks store not available, skipping adding task to it");
   else tasks.value = tasks.value.set(task.id, task);
 
-  router.push("/list");
+  await router.push("/list");
 }
 
 function onInvalidSubmit({
@@ -906,3 +897,13 @@ function onInvalidSubmit({
   field.scrollIntoView({ behavior: "smooth" });
 }
 </script>
+
+<style lang="css" scoped>
+.elems-gap {
+  gap: 0.75rem;
+}
+
+label label {
+  font-size: smaller;
+}
+</style>

@@ -6,7 +6,7 @@
           Connect the CSV file containing a mapping between images and labels
         </template>
 
-        <FileSelection type="tabular" private v-model="csvFiles">
+        <FileSelection v-model="csvFiles" type="tabular" private>
           <b>
             The CSV file must contain a header with only two columns (filename,
             label) </b
@@ -39,7 +39,7 @@
       >
         <template #title> Connect the images </template>
 
-        <FileSelection type="image" multiple private v-model="images">
+        <FileSelection v-model="images" type="image" multiple private>
           Drag and drop or browse for the images referenced in the connected CSV
           file.
           <br />
@@ -121,7 +121,7 @@ watch(csvFiles, async (files) => {
 });
 
 // match the images to labels via the parsed CSV
-watch(images, async (files) => {
+watch(images, (files) => {
   if (files === undefined) {
     dataset.value = undefined;
     return;

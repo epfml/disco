@@ -72,6 +72,6 @@ async function onTestModel() {
   if (saved.value === undefined) return; // error toast already shown
 
   validationStore.modelID = saved.value;
-  router.push({ path: "/evaluate" });
+  await router.push({ path: "/evaluate" });
 }
 </script>

@@ -1,6 +1,9 @@
 {
 	"name": "disco",
 	"type": "module",
+	"scripts": {
+		"lint": "eslint"
+	},
 	"workspaces": [
 		"cli",
 		"discojs",
@@ -18,9 +21,13 @@
 	"devDependencies": {
 		"@types/debug": "4",
 		"@types/node": "22",
-		"@typescript-eslint/eslint-plugin": "7",
-		"eslint": "8",
+		"@vitest/eslint-plugin": "1",
+		"@vue/eslint-config-prettier": "10",
+		"@vue/eslint-config-typescript": "14",
+		"eslint": "9",
+		"eslint-plugin-cypress": "5",
+		"eslint-plugin-vue": "10",
 		"typescript": "5",
-		"typescript-eslint": "7"
+		"typescript-eslint": "8"
 	}
 }

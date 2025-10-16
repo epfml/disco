@@ -56,7 +56,7 @@
     </div>
 
     <!-- Training and validation loss charts -->
-    <DropdownCard :initiallyOpen @click="toggleAdvancedInfo">
+    <DropdownCard :initially-open @click="toggleAdvancedInfo">
       <template #title> Advanced information </template>
       <div class="grid grid-cols-1 md:grid-cols-2 cards-gap">
         <!-- Training loss users chart -->

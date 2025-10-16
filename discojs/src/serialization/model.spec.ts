@@ -65,9 +65,6 @@ describe('serialization', () => {
       await getRawWeights(model),
       await getRawWeights(decoded)
     )
-    assert.deepEqual(
-      model.config,
-      (decoded as models.GPT).config
-    )
+    assert.deepEqual(model.config, decoded.config);
   })
 })

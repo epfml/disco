@@ -12,13 +12,27 @@
         v-else-if="type === 'checkbox'"
         class="text-slate-400 dark:text-slate-400"
       >
-        <input type="checkbox" v-model="model" />
+        <input v-model="model" type="checkbox" />
       </span>
     </span>
 
     <slot />
   </label>
 </template>
+
+<script lang="ts" setup>
+withDefaults(
+  defineProps<{
+    label: string;
+    type?: "required" | "optional" | "checkbox";
+  }>(),
+  {
+    type: "optional",
+  },
+);
+
+const model = defineModel<boolean>();
+</script>
 
 <style lang="css" scoped>
 .root {
@@ -38,17 +52,3 @@
   font-weight: bold;
 }
 </style>
-
-<script lang="ts" setup>
-withDefaults(
-  defineProps<{
-    label: string;
-    type?: "required" | "optional" | "checkbox";
-  }>(),
-  {
-    type: "optional",
-  },
-);
-
-const model = defineModel<boolean>();
-</script>

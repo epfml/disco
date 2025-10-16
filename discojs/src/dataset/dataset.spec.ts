@@ -169,7 +169,7 @@ describe("dataset", () => {
     expect(sequences.last()?.size).to.equal(contextLength + 1)
     sequences = sequences.pop()
     let i = 0
-    for await (const tokens of sequences) {
+    for (const tokens of sequences) {
       // each sequence has length contextLength + 1 (for the label)
       expect(tokens.toArray()).to.deep.equal(
         expectedTokens.slice(i, i + contextLength + 1).toArray()

@@ -5,7 +5,6 @@
 	"scripts": {
 		"start": "vite",
 		"build": "vue-tsc --build && vite build",
-		"lint": "ESLINT_USE_FLAT_CONFIG=false eslint .",
 		"test": "npm run test:unit && npm run test:e2e",
 		"test:unit": "vitest --run",
 		"test:e2e": "VITE_SERVER_URL=http://server start-server-and-test start http://localhost:1351 'cypress run --e2e'"
@@ -37,12 +36,9 @@
 		"@types/d3": "7",
 		"@types/jsdom": "27",
 		"@vitejs/plugin-vue": "6",
-		"@vue/eslint-config-prettier": "9",
-		"@vue/eslint-config-typescript": "13",
 		"@vue/test-utils": "2",
 		"@vue/tsconfig": "0.8",
 		"canvas": "3",
-		"eslint-plugin-cypress": "3",
 		"jsdom": "27",
 		"start-server-and-test": "2",
 		"tailwindcss": "4",

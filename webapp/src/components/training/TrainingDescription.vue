@@ -89,6 +89,16 @@
   </div>
 </template>
 
+<script lang="ts" setup>
+import type { DataType, Network, Task } from "@epfml/discojs";
+
+import IconCard from "@/components/containers/IconCard.vue";
+import DropdownCard from "@/components/containers/DropdownCard.vue";
+import ModelIcon from "@/assets/svg/ModelIcon.vue";
+
+const props = defineProps<{ task: Task<DataType, Network> }>();
+</script>
+
 <style lang="css" scoped>
 th[colspan] {
   font-weight: bold;
@@ -102,13 +112,3 @@ tr:not(:first-child) > * {
   padding-left: 1rem;
 }
 </style>
-
-<script lang="ts" setup>
-import type { DataType, Network, Task } from "@epfml/discojs";
-
-import IconCard from "@/components/containers/IconCard.vue";
-import DropdownCard from "@/components/containers/DropdownCard.vue";
-import ModelIcon from "@/assets/svg/ModelIcon.vue";
-
-const props = defineProps<{ task: Task<DataType, Network> }>();
-</script>

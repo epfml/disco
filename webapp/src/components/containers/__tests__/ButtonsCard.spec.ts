@@ -1,11 +1,9 @@
-import { expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
-
 import { List } from "immutable";
-
+import { expect, it, vi } from "vitest";
 import ButtonsCard from "../ButtonsCard.vue";
 
-it("shows buttons", async () => {
+it("shows buttons", () => {
   const wrapper = mount(ButtonsCard, {
     props: {
       buttons: List.of(
@@ -26,7 +24,7 @@ it("triggers action on click", async () => {
     props: { buttons: List.of(button) },
   });
 
-  wrapper.get("button").trigger("click");
+  await wrapper.get("button").trigger("click");
 
   expect(button[1]).toHaveBeenCalled();
 });

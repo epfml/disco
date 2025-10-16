@@ -22,8 +22,8 @@
       <CustomButton
         v-for="button in buttons"
         :key="button.text"
-        @click="button.action()"
         class="mb-1"
+        @click="button.action()"
       >
         {{ button.text }}
         <template #description>

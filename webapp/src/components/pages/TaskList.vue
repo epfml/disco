@@ -12,8 +12,8 @@
 
       <!-- Tasks could be retrieved, display them alphabetically -->
       <div
-        class="contents"
         v-else
+        class="contents"
       >
         <div class="max-w-[700px] lg:max-w-full mx-auto flex flex-col lg:flex-row justify-center items-start">
         <!-- swap ordering with screen width to ensure text is at the top on narrow screens and on the right on wide ones-->
@@ -27,7 +27,7 @@
               By participating in a task, you can either choose to train a model with your own data only or join a collaborative training session with other users.
               If you want to bring your own collaborative task into <DISCO />, you can do so by creating <button
                 class="text-blue-400 text-left"
-                @click="goToCreateTask()"
+                @click="() => router.push({ path: '/create' })"
               >a new <DISCOllaborative />.</button>
               <br/><br/> <b>The data you connect is only used locally and is never uploaded or shared with anyone. Data always stays on your device.</b>
             </p>
@@ -137,17 +137,13 @@ function getDataTypeColor(task: Task<DataType, Network>): string {
   }
 }
 
-function toTask(task: Task<DataType, Network>): void {
+async function toTask(task: Task<DataType, Network>): Promise<void> {
   trainingStore.setTask(task.id)
   trainingStore.setStep(1)
-  router.push(`/${task.id}`)
-}
-
-const goToCreateTask = (): void => {
-  router.push({ path: '/create' })
+  await router.push(`/${task.id}`)
 }
 
 // Start the tutorial on mount if it has not already been seen
-onMounted(() => { tutorialStore.startOnFirstVisit(); });
+onMounted(() => { void tutorialStore.startOnFirstVisit(); });
 
 </script>

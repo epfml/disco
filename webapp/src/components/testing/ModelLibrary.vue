@@ -33,8 +33,8 @@
                 <template #title> {{ taskTitle(infos.taskID) }} </template>
                 <template #icon>
                   <button
-                    @click="removeModel(id)"
                     class="hover:text-red-500 transition duration-200"
+                    @click="removeModel(id)"
                   >
                     <BinIcon />
                   </button>
@@ -233,7 +233,7 @@ onActivated(() => {
   // handle test after training or from library
   // TODO encode model ID inside the URL instead of relying on store
   if (validationStore.modelID !== undefined)
-    selectModel(validationStore.modelID, "test");
+    void selectModel(validationStore.modelID, "test");
 });
 
 async function downloadModel(task: Task<DataType, Network>): Promise<void> {
@@ -291,7 +291,7 @@ async function selectModel(
   validationStore.step = 1;
 }
 
-async function removeModel(modelID: ModelID): Promise<void> {
+function removeModel(modelID: ModelID): void {
   toaster.default("Click here to confirm the model deletion", {
     onClick: () => models.remove(modelID),
     duration: 10000,

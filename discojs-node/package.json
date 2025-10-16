@@ -7,7 +7,6 @@
 	"scripts": {
 		"watch": "nodemon --ext ts --ignore dist --watch ../discojs/dist --watch . --exec npm run",
 		"build": "tsc --build",
-		"lint": "eslint .",
 		"test": "cd .. && vitest --run --project=discojs-node"
 	},
 	"repository": {

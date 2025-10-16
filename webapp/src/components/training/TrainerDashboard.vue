@@ -13,25 +13,25 @@
             <div class="flex justify-center">
               <button
                 id="train-collab-bttn"
-                class="w-60 py-1 capitalize text-lg font-disco rounded-l-full border-2 border-disco-cyan focus:outline-hidden"
-                :class="isTrainingAlone ? 'text-disco-cyan bg-transparent' : 'text-white bg-disco-cyan'"
-                @click="isTrainingAlone = false"
                 v-tippy="{
                   content: 'Exchange model updates with other participants',
                   placement: 'left'
                 }"
+                class="w-60 py-1 capitalize text-lg font-disco rounded-l-full border-2 border-disco-cyan focus:outline-hidden"
+                :class="isTrainingAlone ? 'text-disco-cyan bg-transparent' : 'text-white bg-disco-cyan'"
+                @click="isTrainingAlone = false"
               >
                 collaboratively
               </button>
               <button
                 id="train-locally-bttn"
-                class="w-60 py-1 capitalize text-lg font-disco rounded-r-full border-2 border-disco-cyan focus:outline-hidden"
-                :class="isTrainingAlone ? 'text-white bg-disco-cyan': 'text-disco-cyan bg-transparent'"
-                @click="isTrainingAlone = true"
                 v-tippy="{
                   content: 'Train by yourself',
                   placement: 'right'
                 }"
+                class="w-60 py-1 capitalize text-lg font-disco rounded-r-full border-2 border-disco-cyan focus:outline-hidden"
+                :class="isTrainingAlone ? 'text-white bg-disco-cyan': 'text-disco-cyan bg-transparent'"
+                @click="isTrainingAlone = true"
               >
                 locally
               </button>
@@ -41,12 +41,12 @@
               <button
                 id="start-training-bttn"
                 type="button"
-                @click="startTraining()"
                 class="
                 mt-4 px-6 py-2 min-w-32
                 text-xl text-white font-disco
                 bg-disco-orange rounded-full duration-200
                 hover:bg-transparent hover:outline-solid hover:outline-disco-orange hover:outline-2 hover:text-disco-orange"
+                @click="startTraining()"
               >
                 Start training
               </button>
@@ -61,7 +61,8 @@
             </div>
             <!-- Display an activity indicator depending on the training status -->
             <div class="min-h-9">
-              <div v-if="roundStatus !== undefined && (roundStatus[0] === 'connecting to peers' ||
+              <div
+                v-if="roundStatus !== undefined && (roundStatus[0] === 'connecting to peers' ||
                 roundStatus[0] === 'not enough participants')"
               >
                 <VueSpinnerPuff size="30" color="#6096BA"/>
@@ -287,13 +288,13 @@ async function cleanupTrainingSession() {
 }
 
 async function stopTraining(): Promise<void> {
-  trainingGenerator.value?.throw(stopper);
+  await trainingGenerator.value?.throw(stopper);
   trainingGenerator.value = undefined;
 
-  roundGenerator.value?.throw(stopper);
+  await roundGenerator.value?.throw(stopper);
   roundGenerator.value = undefined;
 
-  epochGenerator.value?.throw(stopper);
+  await epochGenerator.value?.throw(stopper);
   epochGenerator.value = undefined;
 
   // Cleanup the session, potentially already done if the

@@ -1,9 +1,8 @@
 import createDebug from "debug";
 import WebSocket from "isomorphic-ws";
 import * as msgpack from "@msgpack/msgpack";
-
 import type { Peer, SignalData } from './decentralized/peer.js'
-import { type NodeID } from './types.js'
+import type { NodeID } from './types.js'
 import * as decentralizedMessages from './decentralized/messages.js'
 import { type, type NarrowMessage, type Message } from './messages.js'
 import { timeout } from './utils.js'
@@ -130,7 +129,7 @@ export class WebSocketServer extends EventEmitter<{ [K in type]: NarrowMessage<K
   disconnect(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.socket.onclose = () => resolve()
-      this.socket.onerror = (e) => reject(e.message)
+      this.socket.onerror = (e) => reject(new Error(e.message))
       this.socket.close()
     })
   }
