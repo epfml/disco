@@ -2,11 +2,11 @@
 	"name": "disco",
 	"type": "module",
 	"workspaces": [
+		"cli",
 		"discojs",
 		"discojs-node",
 		"discojs-web",
 		"server",
-		"cli",
 		"webapp"
 	],
 	"dependencies": {

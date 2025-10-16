@@ -2,6 +2,3 @@
 /downloads/
 /screenshots/
 /videos/
-
-# tsc --build state
-/tsconfig.tsbuildinfo

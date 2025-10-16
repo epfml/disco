@@ -2,6 +2,12 @@
   "files": [],
   "references": [
     {
+      "path": "../discojs"
+    },
+    {
+      "path": "../discojs-web"
+    },
+    {
       "path": "./tsconfig.node.json"
     },
     {

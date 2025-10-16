@@ -1,40 +1,40 @@
 {
-  "name": "@epfml/discojs",
-  "version": "3.0.0",
-  "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "watch": "nodemon --ext ts --ignore dist --exec npm run",
-    "build": "tsc",
-    "lint": "npx eslint .",
-    "test": "cd .. && vitest --run --project=discojs"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/epfml/disco.git"
-  },
-  "bugs": {
-    "url": "https://github.com/epfml/disco/issues"
-  },
-  "homepage": "https://github.com/epfml/disco#readme",
-  "dependencies": {
-    "@epfml/isomorphic-wrtc": "1",
-    "@jimp/core": "1",
-    "@jimp/plugin-resize": "1",
-    "@msgpack/msgpack": "3",
-    "@tensorflow/tfjs": "4",
-    "@xenova/transformers": "2",
-    "isomorphic-ws": "5",
-    "simple-peer": "9",
-    "tslib": "2",
-    "ws": "8",
-    "zod": "3"
-  },
-  "devDependencies": {
-    "@tensorflow/tfjs-node": "4",
-    "@types/simple-peer": "9",
-    "nodemon": "3",
-    "ts-node": "10"
-  }
+	"name": "@epfml/discojs",
+	"version": "3.0.0",
+	"type": "module",
+	"exports": "./dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"watch": "nodemon --ext ts --ignore dist --exec npm run",
+		"build": "tsc --build",
+		"lint": "eslint .",
+		"test": "cd .. && vitest --run --project=discojs"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/epfml/disco.git"
+	},
+	"bugs": {
+		"url": "https://github.com/epfml/disco/issues"
+	},
+	"homepage": "https://github.com/epfml/disco#readme",
+	"dependencies": {
+		"@epfml/isomorphic-wrtc": "1",
+		"@jimp/core": "1",
+		"@jimp/plugin-resize": "1",
+		"@msgpack/msgpack": "3",
+		"@tensorflow/tfjs": "4",
+		"@xenova/transformers": "2",
+		"isomorphic-ws": "5",
+		"simple-peer": "9",
+		"tslib": "2",
+		"ws": "8",
+		"zod": "3"
+	},
+	"devDependencies": {
+		"@tensorflow/tfjs-node": "4",
+		"@types/simple-peer": "9",
+		"nodemon": "3",
+		"ts-node": "10"
+	}
 }
