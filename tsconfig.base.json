@@ -1,5 +1,9 @@
 {
+  "composite": true,
   "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+
     "module": "node16",
     "target": "es2022",
 

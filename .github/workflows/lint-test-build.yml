@@ -174,7 +174,6 @@ jobs:
             ~/.cache/Cypress
           key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm ci
-      - run: npm --workspace=discojs run build
       - run: npm --workspace=discojs-node run build
 
   build-lib-web:
@@ -192,7 +191,6 @@ jobs:
             ~/.cache/Cypress
           key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm ci
-      - run: npm run --workspace=discojs build
       - run: npm run --workspace=discojs-web build
 
   build-server:
@@ -210,7 +208,6 @@ jobs:
             ~/.cache/Cypress
           key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm ci
-      - run: npm run --workspace={discojs,discojs-node} build
       - run: npm run --workspace=server build
 
   build-server-docker:
@@ -248,7 +245,6 @@ jobs:
             ~/.cache/Cypress
           key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm ci
-      - run: npm run --workspace={discojs,discojs-node,server} build
       - run: npm run --workspace=cli build
 
   build-webapp:
@@ -266,7 +262,6 @@ jobs:
             ~/.cache/Cypress
           key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm ci
-      - run: npm --workspace={discojs,discojs-web} run build
       - run: npm --workspace=webapp run build
 
   build-docs-examples:

@@ -1,8 +1,20 @@
 {
-  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "declaration": true
+    "composite": true
   },
-  "include": ["src"]
+  "files": [],
+  "references": [
+    {
+      "path": "../discojs"
+    },
+    {
+      "path": "../discojs-node"
+    },
+    {
+      "path": "tsconfig.lib.json"
+    },
+    {
+      "path": "tsconfig.vitest.json"
+    }
+  ]
 }

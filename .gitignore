@@ -1,10 +1,14 @@
 # dependencies
 /node_modules/
+
 # model.json files
 server/models
 cli/models
-# built
+
+# tsc built
 dist/
+# tsc --build state
+*.tsbuildinfo
 
 # system specifics files
 .metals/
