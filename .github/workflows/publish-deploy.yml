@@ -48,7 +48,7 @@ jobs:
           key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm ci
       - run: npm --workspace={discojs,discojs-web,webapp} run build
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: webapp/dist
   deploy-pages:
