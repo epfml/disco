@@ -105,7 +105,7 @@ jobs:
         with:
           project_id: disco-367212
           workload_identity_provider: projects/905419434797/locations/global/workloadIdentityPools/github/providers/disco
-      - uses: google-github-actions/deploy-cloudrun@v2
+      - uses: google-github-actions/deploy-cloudrun@v3
         with:
           service: disco
           region: europe-west6
