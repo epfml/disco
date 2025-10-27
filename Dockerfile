@@ -1,5 +1,5 @@
 # TODO freeze to 22 until tfjs#8425 is merged
-FROM node:22 AS builder
+FROM node:25 AS builder
 
 WORKDIR /disco
 
@@ -17,7 +17,7 @@ RUN npm --workspace=discojs --workspace=discojs-node run build
 COPY server/ server/
 RUN cd server/ && npm run build
 
-FROM node:22-slim AS runner
+FROM node:25-slim AS runner
 
 WORKDIR /disco
 
