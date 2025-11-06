@@ -1,6 +1,5 @@
-import { expect } from "chai";
 import { Set } from "immutable";
-import * as tf from "@tensorflow/tfjs";
+import { describe, expect, it } from "vitest";
 
 import { WeightsContainer } from "../index.js";
 import { ByzantineRobustAggregator } from "./byzantine.js";
@@ -88,7 +87,6 @@ describe("ByzantineRobustAggregator", () => {
     const id = "c1";
     agg.setNodes(Set.of(id));
 
-    // Round 0
     const p0 = agg.getPromiseForAggregation();
     agg.add(id, WeightsContainer.of([10]), 0);
     const out0 = await p0;

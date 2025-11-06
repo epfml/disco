@@ -1,9 +1,9 @@
 import { List, Set, Range, Map } from "immutable";
-import { assert, expect } from "chai";
+import { describe, expect, it, assert } from "vitest";
+
 import * as tf from "@tensorflow/tfjs";
 
 import {
-    aggregator as aggregators,
     aggregation,
     WeightsContainer,
 } from "../index.js";
@@ -16,7 +16,6 @@ import { wsIntoArrays, communicate, setupNetwork } from "../aggregator.spec.js";
 describe("Secure history aggregator", function () {
     const epsilon = 1e-4;
 
-    const expected = WeightsContainer.of([2, 2, 5, 1], [-10, 10]);
     const secrets = List.of(
         WeightsContainer.of([1, 2, 3, -1], [-5, 6]),
         WeightsContainer.of([2, 3, 7, 1], [-10, 5]),
@@ -30,15 +29,6 @@ describe("Secure history aggregator", function () {
             aggregator.setNodes(nodes);
             return aggregator.generateAllShares(secret);
         });
-    }
-
-    function buildPartialSums(
-        allShares: List<List<WeightsContainer>>,
-    ): List<WeightsContainer> {
-        return Range(0, secrets.size)
-            .map((idx) => allShares.map((shares) => shares.get(idx)))
-            .map((shares) => aggregation.sum(shares as List<WeightsContainer>))
-            .toList();
     }
 
     it("recovers secrets from shares", () => {
@@ -60,9 +50,9 @@ describe("Secure history aggregator", function () {
 
         const sharesRound0 = buildShares();
 
-        let partialSums = Range(0, nodes.size).map((receiverIdx) => {
+        const partialSums = Range(0, nodes.size).map((receiverIdx) => {
             const receivedShares = sharesRound0.map(shares => shares.get(receiverIdx)!);
-            return aggregation.sum(receivedShares as List<WeightsContainer>);
+            return aggregation.sum(receivedShares);
         }).toList();
 
         // Add one total contribution per node

@@ -3,10 +3,6 @@ import { AggregationStep } from "./aggregator.js";
 import { MultiRoundAggregator, ThresholdType } from "./multiround.js";
 import type { WeightsContainer, client } from "../index.js";
 import { aggregation } from "../index.js";
-import createDebug from "debug"
-
-const debug = createDebug("discojs:aggregator:mean");
-
 
 /** 
  * Mean aggregator whose aggregation step consists in computing the mean of the received weights. 

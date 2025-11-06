@@ -1,6 +1,5 @@
-import type { WeightsContainer, client } from "../index.js";
+import type { WeightsContainer } from "../index.js";
 import { SecureAggregator } from "./secure.js"; 
-import * as tf from "@tensorflow/tfjs";
 import { aggregation } from "../index.js";
 
 /**

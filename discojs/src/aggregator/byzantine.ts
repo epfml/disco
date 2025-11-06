@@ -4,7 +4,6 @@ import { AggregationStep } from "./aggregator.js";
 import { MultiRoundAggregator, ThresholdType } from "./multiround.js";
 import { WeightsContainer, client } from "../index.js";
 import { aggregation } from "../index.js";
-import { Repeat } from "immutable";
 
 /**
  * Byzantine-robust aggregator using Centered Clipping (CC), based on the
@@ -84,8 +83,8 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
       v = this.prevAggregate;
     } else {
       // Use shape of the first contribution to create zero vector
-      const sample = currentContributions.values().next().value;
-      v = sample.map((t: any) => tf.zerosLike(t));
+      const sample = currentContributions.values().next().value as WeightsContainer;
+      v = sample.map((t: tf.Tensor) => tf.zerosLike(t));
     }
     // Step 2: Iterative Centered ClippingF
     for (let l = 0; l < this.maxIterations; l++) {
@@ -119,8 +118,8 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
 function euclideanNorm(w: WeightsContainer): tf.Scalar {
   // Computes the Euclidean (L2) norm of all tensors in a WeightsContainer by summing the squares of their elements and taking the square root.
   return tf.tidy(() => {
-    const norms = w.weights.map(t => tf.sum(tf.square(t)) as tf.Scalar);
-    const total = norms.reduce((a, b) => tf.add(a, b)) as tf.Scalar;
+    const norms: tf.Scalar[] = w.weights.map(t => tf.sum(tf.square(t)));
+    const total = norms.reduce((a, b) => tf.add(a, b));
     return tf.sqrt(total);
   });
 }
