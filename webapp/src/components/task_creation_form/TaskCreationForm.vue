@@ -26,7 +26,7 @@
 
     <Form
       ref="form"
-      :validation-schema="toTypedSchema(schema)"
+      :validation-schema="schema"
       class="flex flex-col cards-gap"
       @submit="onSubmit"
       @invalid-submit="onInvalidSubmit"
@@ -531,7 +531,6 @@ import createDebug from "debug";
 import * as immutable from "immutable";
 import { storeToRefs } from "pinia";
 import { FieldArray, Form } from "vee-validate";
-import { toTypedSchema } from "@vee-validate/zod";
 import { ref, useTemplateRef, watch } from "vue";
 import { useRouter } from "vue-router";
 import * as z from "zod";
@@ -599,7 +598,7 @@ window.onbeforeunload = (event) => {
   event.preventDefault();
 };
 
-const nonLocalNetworkSchema = z.object({
+const nonLocalNetwork = {
   privacy: z
     .object({
       clippingRadius: z.number().optional(),
@@ -609,14 +608,14 @@ const nonLocalNetworkSchema = z.object({
     .transform((arg, ctx) => {
       if (!differentialPrivacy.value) return undefined;
 
-      const addUndefIssue = (field?: string) => {
+      function addUndefIssue(field?: string): void {
         const path = field !== undefined ? [field] : undefined;
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message: "Required",
           path,
         });
-      };
+      }
 
       if (arg === undefined) {
         addUndefIssue();
@@ -630,13 +629,13 @@ const nonLocalNetworkSchema = z.object({
       return arg;
     }),
   minNbOfParticipants: z.number().positive().int(),
-});
+};
 const trainingInformationNetworks = z.union([
   z
     .object({
       scheme: z.literal("decentralized"),
+      ...nonLocalNetwork,
     })
-    .merge(nonLocalNetworkSchema)
     .and(
       z.union([
         z.object({
@@ -648,12 +647,11 @@ const trainingInformationNetworks = z.union([
         }),
       ]),
     ),
-  z
-    .object({
-      scheme: z.literal("federated"),
-      aggregationStrategy: z.literal("mean"),
-    })
-    .merge(nonLocalNetworkSchema),
+  z.object({
+    scheme: z.literal("federated"),
+    aggregationStrategy: z.literal("mean"),
+    ...nonLocalNetwork,
+  }),
   z.object({
     scheme: z.literal("local"),
     aggregationStrategy: z.literal("mean"),
@@ -670,7 +668,7 @@ const modelOptimizerNames = [
   "rmsprop",
   "sgd",
 ] as const;
-const TFJSModelSchema = z.object({
+const TFJSModelSchema = {
   model: z.object({
     // from https://github.com/tensorflow/tfjs/blob/master/tfjs-layers/src/losses.ts#L242
     loss: z.enum([
@@ -696,7 +694,7 @@ const TFJSModelSchema = z.object({
     topology: z.unknown().transform((fileOrSet, ctx) => {
       if (fileOrSet === undefined) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message: "Missing JSON file",
         });
         return z.NEVER;
@@ -721,73 +719,54 @@ const TFJSModelSchema = z.object({
       }
     }),
   }),
-});
+};
 
-const trainingInformationSchema = TrainingInformation.baseSchema.extend({
-  tensorBackend: z.literal("tfjs").default("tfjs"),
-});
-const schema = Task.baseSchema
-  .extend({
-    trainingInformation: trainingInformationSchema,
+const schema = z
+  .object({
+    ...Task.baseSchema.shape,
+    trainingInformation: z.object({
+      ...TrainingInformation.baseSchema.shape,
+      tensorBackend: z.literal("tfjs").default("tfjs"),
+    }),
   })
   .and(
     z.union([
-      Task.dataTypeToSchema.image
-        .merge(
-          z.object({
-            trainingInformation: trainingInformationSchema
-              .merge(TrainingInformation.dataTypeToSchema.image)
-              .and(trainingInformationNetworks),
-          }),
-        )
-        .merge(TFJSModelSchema),
-      Task.dataTypeToSchema.tabular
-        .merge(
-          z.object({
-            trainingInformation: trainingInformationSchema
-              .merge(TrainingInformation.dataTypeToSchema.tabular)
-              .and(trainingInformationNetworks),
-          }),
-        )
-        .merge(TFJSModelSchema),
-      Task.dataTypeToSchema.text
-        .merge(
-          z.object({
-            trainingInformation: trainingInformationSchema
-              .merge(TrainingInformation.dataTypeToSchema.text)
-              .extend({
-                tokenizer: z.string().transform(async (name, ctx) => {
-                  try {
-                    return await Tokenizer.from_pretrained(name);
-                  } catch {
-                    ctx.addIssue({
-                      code: z.ZodIssueCode.custom,
-                      message: "Unable to load tokenizer from HuggingFace",
-                    });
-                    return z.NEVER;
-                  }
-                }),
-              })
-              .and(trainingInformationNetworks),
-          }),
-        )
-        .merge(TFJSModelSchema),
+      z.object({
+        ...Task.dataTypeToSchema.image.shape,
+        ...TFJSModelSchema,
+        trainingInformation: TrainingInformation.dataTypeToSchema.image.and(
+          trainingInformationNetworks,
+        ),
+      }),
+      z.object({
+        ...Task.dataTypeToSchema.tabular.shape,
+        ...TFJSModelSchema,
+        trainingInformation: TrainingInformation.dataTypeToSchema.tabular.and(
+          trainingInformationNetworks,
+        ),
+      }),
+      z.object({
+        ...Task.dataTypeToSchema.text.shape,
+        ...TFJSModelSchema,
+        trainingInformation: z
+          .object({
+            ...TrainingInformation.dataTypeToSchema.text.shape,
+            tokenizer: z.string().transform(async (name, ctx) => {
+              try {
+                return await Tokenizer.from_pretrained(name);
+              } catch {
+                ctx.addIssue({
+                  code: "custom",
+                  message: "Unable to load tokenizer from HuggingFace",
+                });
+                return z.NEVER;
+              }
+            }),
+          })
+          .and(trainingInformationNetworks),
+      }),
     ]),
   );
-
-// TODO avoid modifying global state
-z.setErrorMap((issue, ctx) => {
-  switch (issue.code) {
-    case "invalid_enum_value":
-      return {
-        message: `Invalid choice, choose one from: ${issue.options.join(", ")}`,
-      };
-    case "invalid_literal":
-      return { message: "Missing dependant fields" };
-  }
-
-  return { message: ctx.defaultError };
-});
 
 async function onSubmit(form: unknown): Promise<void> {
   // TODO double check as @submit isn't generic vee-validate#4845
@@ -883,12 +862,8 @@ function onInvalidSubmit({
 }: {
   errors: Partial<Record<string, string>>;
 }): void {
-  const relevantErrorNames = Object.entries(errors).flatMap(([name, err]) =>
-    err === "Missing dependant fields" ? [] : [name],
-  );
-
   const field = document.querySelector(
-    `label:has(${relevantErrorNames
+    `label:has(${Object.keys(errors)
       .map((name) => `> [name="${name}"]`)
       .join(",")})`,
   );

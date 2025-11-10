@@ -16,7 +16,7 @@
 		"debug": "4",
 		"immutable": "5",
 		"vitest": "3",
-		"zod": "3"
+		"zod": "4"
 	},
 	"devDependencies": {
 		"@types/debug": "4",

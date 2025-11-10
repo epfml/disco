@@ -28,7 +28,7 @@
 		"simple-peer": "9",
 		"tslib": "2",
 		"ws": "8",
-		"zod": "3"
+		"zod": "4"
 	},
 	"devDependencies": {
 		"@tensorflow/tfjs-node": "4",
