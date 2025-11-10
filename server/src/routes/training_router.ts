@@ -45,7 +45,7 @@ export class TrainingRouter<N extends Exclude<Network, "local">> {
     // The controller handles the actual logic of collaborative training
     // in its `handle` method. Each task has a dedicated controller which
     // handles the training logic of this task only
-		let taskController: TrainingController<D, N>;
+		let taskController: TrainingController<D, "federated" | "decentralized">;
 		if (task.trainingInformation.scheme === "federated") {
 			const t = task as Task<D, "federated">
 

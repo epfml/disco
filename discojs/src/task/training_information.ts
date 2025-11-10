@@ -67,8 +67,8 @@ export namespace TrainingInformation {
 		decentralized: z
 			.object({
 				scheme: z.literal("decentralized"),
+				...nonLocalNetworkSchema.shape,
 			})
-			.merge(nonLocalNetworkSchema)
 			.and(
 				z.union([
 					z.object({
@@ -82,12 +82,11 @@ export namespace TrainingInformation {
 					}),
 				]),
 			),
-		federated: z
-			.object({
-				scheme: z.literal("federated"),
-				aggregationStrategy: z.literal("mean"),
-			})
-			.merge(nonLocalNetworkSchema),
+		federated: z.object({
+			scheme: z.literal("federated"),
+			aggregationStrategy: z.literal("mean"),
+			...nonLocalNetworkSchema.shape,
+		}),
 		local: z.object({
 			scheme: z.literal("local"),
 			aggregationStrategy: z.literal("mean"),
