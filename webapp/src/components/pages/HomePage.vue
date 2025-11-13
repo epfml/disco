@@ -211,7 +211,7 @@
         <span class="mt-4 text-3xl font-bold text-heading-light dark:text-heading-dark">
           Supported by
         </span>
-        <div class="w-3/4 grid grid-cols-3 place-items-center">
+        <div class="w-3/4 grid grid-cols-2 place-items-center">
           <a
             class="flex justify-center ml-4" 
             href="https://www.epfl.ch/en/" target="_blank"
@@ -223,12 +223,6 @@
             href="https://www.ariadnelabs.org/" target="_blank"
           >
             <AriadneLabsLogo class="w-full"/>
-          </a>
-          <a
-            class="flex justify-center ml-4" 
-            href="https://www.africa.engineering.cmu.edu/" target="_blank"
-          >
-            <CMUAfricaLogo class="w-full max-h-[100px]"/>
           </a>
         </div>
       </div>
@@ -278,7 +272,6 @@ import ONNXLogo from "@/assets/logos/ONNXLogo.vue";
 import LightLogo from "@/assets/logos/LightLogo.vue";
 import MLOLogo from "@/assets/logos/MLOLogo.vue";
 import AriadneLabsLogo from "@/assets/logos/AriadneLabsLogo.vue";
-import CMUAfricaLogo from "@/assets/logos/CMUAfricaLogo.vue";
 
 import FederatedGIF from "@/assets/gif/FederatedGIF.vue";
 import DecentralizedGIF from "@/assets/gif/DecentralizedGIF.vue";
