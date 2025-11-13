@@ -80,11 +80,11 @@
           <div class="flex flex-col justify-center items-center text-center w-full">
             <span class="text-2xl font-bold text-heading-light dark:text-heading-dark">
               Join the <span 
+                class="underline hover:cursor-pointer"
                 v-tippy="{
                   content: 'This is how we call collaborative training sessions in DISCO.',
                   placement: 'top'
                 }">
-                class="underline hover:cursor-pointer"
                 <DISCOllaborative/>
               </span>
             </span>
