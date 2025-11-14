@@ -41,3 +41,12 @@ which should output something similar to `arm64`. Then, `npm i @tensorflow/tfjs`
 ### VSCode can't resolve imports
 
 You may not be able to open the editor from the repo root level without VSCode raising imports errors. If that is the case, you should start VSCode from inside the module you are working such that the editor can resolve the imports. In practice, that is any folder level that contains a package.json such as `server`, `webapp`, etc. For example, if you are working on the CLI, you should start VSCode with the command `code cli` from the root level (or `cd cli`, `code .`)
+
+### npm failing to download or install packages
+
+Firewall settings can sometimes block npm's network requests, preventing it from downloading packages.  
+
+**Troubleshooting:**
+1. Temporarily disable the firewall. If npm works, the firewall is the cause.  
+2. Identify the specific firewall rule that is blocking npm and adjust it.  
+3. Make sure your firewall allows outbound HTTPS (port 443) connections to `registry.npmjs.org`.
