@@ -49,8 +49,10 @@ flowchart LR
 The following instructions will install the required dependencies, build Disco.js and launch a DISCO server and a web client. If you run into any sort of trouble check our [FAQ](./docs/FAQ.md); otherwise please create a new issue.
 
 **1.** Clone the repository
+(if using WSL or you are cloning the repository from Windows, make sure there is no file ending conversion to CRLF by running first of the following commands)
 
 ```
+git config --global core.autocrlf input
 git clone git@github.com:epfml/disco.git
 cd disco
 ```
