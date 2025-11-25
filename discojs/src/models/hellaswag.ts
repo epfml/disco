@@ -126,7 +126,7 @@ type ModelType = GPT | ONNXModel;
 export async function evaluate(
   model: ModelType,
   tokenizer: Tokenizer,
-  dataset: HellaSwagExample[],
+  dataset: HellaSwagDataset,
   print = true
 ): Promise<number> {
   let correct = 0;
