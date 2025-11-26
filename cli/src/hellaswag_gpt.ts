@@ -49,7 +49,7 @@ async function main(): Promise<void> {
     const args = parse<HellaSwagArgs>({
         model: {
             type: (raw: string) => raw as ModelType,
-            description: `Model type, one of ${ModelTypes}`,
+            description: `Model type, one of ${ModelTypes.toString()}`,
             defaultValue: 'onnx'
         },
         numDataPoints: {
@@ -77,7 +77,7 @@ async function main(): Promise<void> {
     const logFile = path.join(__dirname, args.logFile);
     fs.writeFileSync(logFile, '', 'utf-8'); // Clear the log file
 
-    let model: | models.GPT | models.ONNXModel | undefined;
+    let model: models.GPT | models.ONNXModel | undefined;
     switch (args.model) {
         case 'onnx':
             log("Using ONNX pretrained model Xenova/gpt2")
@@ -95,8 +95,6 @@ async function main(): Promise<void> {
             const encodedModel = await fsPromise.readFile(args.pretrainedModelPath);
             model = await serialization.model.decode(encodedModel) as models.GPT;
             break;
-        default:
-            throw new Error(`Unrecognized model type: ${model}`);
     } 
     await evaluateModel(model, args.numDataPoints);
 
