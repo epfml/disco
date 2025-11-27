@@ -44,7 +44,7 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
     super(roundCutoff, threshold, thresholdType);
     if (clippingRadius <= 0) throw new Error("Clipping radius needs to be positive number > 0.");
     if (maxIterations < 1) throw new Error("There must be at least one iteration for clipping.");
-    if (!Number.isInteger(maxIterations)) throw new Error("Number of iterations must be intiger value.");
+    if (!Number.isInteger(maxIterations)) throw new Error("Number of iterations must be an integer.");
     if ((beta < 0) || (beta > 1)) throw new Error("Beta must be between 0 and 1, since it is coeficient.");
     this.clippingRadius = clippingRadius;
     this.maxIterations = maxIterations;
@@ -83,10 +83,11 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
       v = this.prevAggregate;
     } else {
       // Use shape of the first contribution to create zero vector
-      const sample = currentContributions.values().next().value as WeightsContainer;
-      v = sample.map((t: tf.Tensor) => tf.zerosLike(t));
+      const first = currentContributions.values().next();
+      if (first.done) throw new Error("zero sized contribution")
+      v = first.value.map((t: tf.Tensor) => tf.zerosLike(t));
     }
-    // Step 2: Iterative Centered ClippingF
+    // Step 2: Iterative Centered Clipping
     for (let l = 0; l < this.maxIterations; l++) {
       const clippedDiffs = Array.from(currentContributions.values()).map(m => {
         const diff = m.sub(v);
