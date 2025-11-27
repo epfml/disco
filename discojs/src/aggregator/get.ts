@@ -1,5 +1,6 @@
 import type { DataType, Network, Task } from '../index.js'
 import { aggregator } from '../index.js'
+import { ByzantineRobustAggregator } from './byzantine.js';   
 
 type AggregatorOptions = Partial<{
   scheme: Task<DataType, Network>["trainingInformation"]["scheme"]; // if undefined, fallback on task.trainingInformation.scheme
@@ -33,6 +34,38 @@ export function getAggregator(
   const scheme = options.scheme ?? task.trainingInformation.scheme
   
   switch (task.trainingInformation.aggregationStrategy) {
+    case 'byzantine': {
+        const {
+          clippingRadius = 1.0,
+          maxIterations = 1,
+          beta = 0.9,
+        } = task.trainingInformation as any;
+
+        if (scheme === "decentralized") {
+          options = {
+            roundCutOff: undefined,
+            threshold: 1,
+            thresholdType: "relative",
+            ...options,
+          };
+        } else {
+          options = {
+            roundCutOff: undefined,
+            threshold: 1,
+            thresholdType: "absolute",
+            ...options,
+          };
+        }
+
+        return new ByzantineRobustAggregator(
+          options.roundCutOff ?? 0,
+          options.threshold ?? 1,
+          options.thresholdType,
+          clippingRadius,
+          maxIterations,
+          beta
+        );
+      }
     case 'mean':
       if (scheme === 'decentralized') {
         // If options are not specified, we default to expecting a contribution from all peers, so we set the threshold to 100%

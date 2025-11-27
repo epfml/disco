@@ -75,6 +75,12 @@ export namespace TrainingInformation {
 						aggregationStrategy: z.literal("mean"),
 					}),
 					z.object({
+						aggregationStrategy: z.literal("byzantine"),
+						clippingRadius: z.number().positive().optional().default(1.0),
+						maxIterations: z.number().int().positive().optional().default(1),
+						beta: z.number().min(0).max(1).optional().default(0.9),
+					}),
+					z.object({
 						aggregationStrategy: z.literal("secure"),
 						// Secure Aggregation: maximum absolute value of a number in a randomly generated share
 						// default is 100, must be a positive number, check the docs/PRIVACY.md file for more information on significance of maxShareValue selection
@@ -85,9 +91,21 @@ export namespace TrainingInformation {
 		federated: z
 			.object({
 				scheme: z.literal("federated"),
-				aggregationStrategy: z.literal("mean"),
 			})
-			.merge(nonLocalNetworkSchema),
+			.merge(nonLocalNetworkSchema)
+			.and(
+				z.union([
+					z.object({
+						aggregationStrategy: z.literal("mean"),
+					}),
+					z.object({
+						aggregationStrategy: z.literal("byzantine"),
+						clippingRadius: z.number().positive().optional().default(1.0),
+						maxIterations: z.number().int().positive().optional().default(1),
+						beta: z.number().min(0).max(1).optional().default(0.9),
+					}),
+				]),
+			),
 		local: z.object({
 			scheme: z.literal("local"),
 			aggregationStrategy: z.literal("mean"),
