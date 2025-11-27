@@ -678,8 +678,8 @@ const trainingInformationNetworks = z.union([
   z
     .object({
       scheme: z.literal("federated"),
+      ...nonLocalNetwork,
     })
-    .merge(nonLocalNetworkSchema)
     .and(
       z.union([
         z.object({
