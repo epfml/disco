@@ -39,7 +39,11 @@ export function getAggregator(
           clippingRadius = 1.0,
           maxIterations = 1,
           beta = 0.9,
-        } = task.trainingInformation as any;
+        }:{
+            clippingRadius?: number;
+            maxIterations?: number;
+            beta?: number;
+          } = task.trainingInformation;
 
         if (scheme === "decentralized") {
           options = {

@@ -593,7 +593,6 @@ const dataType = ref<DataType>("image");
 const scheme = ref<Network>("federated");
 const aggregationStrategy = ref("mean");
 const differentialPrivacy = ref(false);
-const weightClipping = ref(false);
 
 const form = useTemplateRef("form");
 
