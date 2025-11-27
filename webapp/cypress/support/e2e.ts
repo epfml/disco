@@ -66,36 +66,31 @@ type BasicKeys =
   | "scheme"
   | "aggregationStrategy";
 
-export function basicTask<D extends DataType, N extends Network>(
+export function basicTask<D extends DataType>(
 	dataType: D,
-	info: {
-		[K in DataType]: Omit<TrainingInformation<K, N>, BasicKeys> &
-			Partial<Pick<TrainingInformation<K, N>, BasicKeys>>;
-	}[D],
-): Task<D, N> {
-  const trainingInformation = {
-    epochs: 1,
-    batchSize: 1,
-    roundDuration: 1,
-    validationSplit: 1,
-    tensorBackend: "tfjs",
-    scheme: "local",
-    minNbOfParticipants: 1,
-    aggregationStrategy: "mean",
-    ...info,
-    // cast as typescript doesn't work well w/ generics
-  } as TrainingInformation<D, N>;
-
-  return {
-    id: "task",
-    dataType,
-    trainingInformation,
-    displayInformation: {
-      title: "task",
-      summary: { preview: "preview", overview: "overview" },
-    },
-    // cast as typescript doesn't work well w/ generics
-  } as Task<D, N>;
+	info: Omit<TrainingInformation<D, "local">, BasicKeys>,
+): Task<D, "local"> {
+	return {
+		id: "task",
+		dataType,
+		trainingInformation: {
+			epochs: 1,
+			batchSize: 1,
+			roundDuration: 1,
+			validationSplit: 1,
+			tensorBackend: "tfjs",
+			scheme: "local",
+			aggregationStrategy: "mean",
+			...info,
+		},
+		displayInformation: {
+			title: "task",
+			summary: { preview: "preview", overview: "overview" },
+		},
+		// cast as typescript doesn't work well w/ generics
+	} as Task<D, "local">;
 }
 
-before(() => (localStorage.debug = "discojs*,webapp*"));
+before(() => {
+	localStorage.debug = "discojs*,webapp*";
+});

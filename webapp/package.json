@@ -13,21 +13,20 @@
 		"@epfml/discojs": "*",
 		"@epfml/discojs-web": "*",
 		"@msgpack/msgpack": "3",
-		"@vee-validate/zod": "4",
 		"chart.js": "4",
 		"cypress": "15",
 		"d3": "7",
 		"driver.js": "1",
 		"pinia": "3",
 		"pinia-plugin-persistedstate-2": "2",
-		"vee-validate": "4",
+		"vee-validate": "5.0.0-beta.0",
 		"vue": "3",
 		"vue-chartjs": "5",
 		"vue-router": "4",
 		"vue-tippy": "6",
 		"vue-toast-notification": "3",
 		"yup": "1",
-		"zod": "3"
+		"zod": "4"
 	},
 	"devDependencies": {
 		"@pinia/testing": "1",

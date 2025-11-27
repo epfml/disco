@@ -67,8 +67,8 @@ export namespace TrainingInformation {
 		decentralized: z
 			.object({
 				scheme: z.literal("decentralized"),
+				...nonLocalNetworkSchema.shape,
 			})
-			.merge(nonLocalNetworkSchema)
 			.and(
 				z.union([
 					z.object({
