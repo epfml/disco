@@ -141,6 +141,7 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
 			trainingInformation: {
 				...baseTask.trainingInformation,
 				scheme: "decentralized",
+				aggregationStrategy: "mean",
 				roundDuration: 1,
 				minNbOfParticipants: 2,
 			},

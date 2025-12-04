@@ -33,7 +33,14 @@ export const mnist: TaskProvider<"image", "decentralized"> = {
         IMAGE_W: 28,
         LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
         scheme: 'decentralized',
-        aggregationStrategy: 'mean',
+				aggregationStrategy: "byzantine",
+				privacy: {
+					byzantineFaultTolerance: {
+						clippingRadius: 10,
+						maxIterations: 1,
+						beta: 0.9,
+					},
+				},
         minNbOfParticipants: 3,
         maxShareValue: 100,
         tensorBackend: 'tfjs'

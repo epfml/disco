@@ -48,19 +48,22 @@ export function getAggregator(
   };
   
   switch (task.trainingInformation.aggregationStrategy) {
-    case 'byzantine': {
-        const {byzantineClippingRadius = 1.0, maxIterations = 1, beta = 0.9,
-        } = task.trainingInformation;
+		case "byzantine": {
+			const {
+				clippingRadius = 1.0,
+				maxIterations = 1,
+				beta = 0.9,
+			} = task.trainingInformation.privacy.byzantineFaultTolerance;
 
-        return new ByzantineRobustAggregator(
-          networkOptions.roundCutOff,
-          networkOptions.threshold,
-          networkOptions.thresholdType,
-          byzantineClippingRadius,
-          maxIterations,
-          beta
-        );
-      }
+			return new ByzantineRobustAggregator(
+				networkOptions.roundCutOff,
+				networkOptions.threshold,
+				networkOptions.thresholdType,
+				clippingRadius,
+				maxIterations,
+				beta,
+			);
+		}
     case 'mean':
       return new aggregator.MeanAggregator(
         networkOptions.roundCutOff, 

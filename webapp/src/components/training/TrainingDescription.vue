@@ -70,13 +70,33 @@
           <tr>
             <th>Differential Privacy: Noise Scale</th>
             <td>
-              {{ task.trainingInformation.privacy?.noiseScale ?? "Unused" }}
+              {{ task.trainingInformation.privacy?.differentialPrivacy?.epsilon ?? "Unused" }}
             </td>
           </tr>
           <tr>
-            <th>Differential Privacy: Clipping Radius</th>
+            <th>Differential Privacy: Delta</th>
             <td>
-              {{ task.trainingInformation.privacy?.clippingRadius ?? "Unused" }}
+              {{ task.trainingInformation.privacy?.differentialPrivacy?.delta ?? "Unused" }}
+            </td>
+          </tr>
+          <tr>
+            <th>Differential Privacy: Default Clipping Radius</th>
+            <td>
+              {{ task.trainingInformation.privacy?.differentialPrivacy?.clippingRadius ?? "Unused" }}
+            </td>
+          </tr>
+          <tr>
+            <th>Byzantine Fault Tolerance: Clipping Radius</th>
+            <td>
+              {{
+                (task.trainingInformation.privacy === undefined
+                  ? undefined
+                  : "byzantineFaultTolerance" in
+                      task.trainingInformation.privacy
+                    ? task.trainingInformation.privacy.byzantineFaultTolerance
+                        ?.clippingRadius
+                    : undefined) ?? "Unused"
+              }}
             </td>
           </tr>
           <tr v-if="task.trainingInformation.aggregationStrategy === 'secure'">

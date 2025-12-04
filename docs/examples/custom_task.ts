@@ -30,8 +30,7 @@ const customTask: TaskProvider<"tabular", "federated"> = {
         aggregationStrategy: "mean",
         minNbOfParticipants: 2,
         tensorBackend: 'tfjs',
-        noiseScale: undefined,
-        clippingRadius: undefined
+        privacy: undefined,
       }
     });
   },
