@@ -318,11 +318,19 @@
               >
                 <!-- Federated supports mean & byzantine -->
                 <option v-if="scheme === 'federated'" value="mean">Mean</option>
-                <option v-if="scheme === 'federated'" value="byzantine">Byzantine</option>
+                <option v-if="scheme === 'federated'" value="byzantine">
+                  Byzantine
+                </option>
                 <!-- Decentralized supports mean, byzantine & secure -->
-                <option v-if="scheme === 'decentralized'" value="mean">Mean</option>
-                <option v-if="scheme === 'decentralized'" value="byzantine">Byzantine</option>
-                <option v-if="scheme === 'decentralized'" value="secure">Secure</option>
+                <option v-if="scheme === 'decentralized'" value="mean">
+                  Mean
+                </option>
+                <option v-if="scheme === 'decentralized'" value="byzantine">
+                  Byzantine
+                </option>
+                <option v-if="scheme === 'decentralized'" value="secure">
+                  Secure
+                </option>
                 <!-- Local supports only mean -->
                 <option v-if="scheme === 'local'" value="mean">Mean</option>
               </FormField>
@@ -383,7 +391,6 @@
               />
             </FormLabel>
 
-
             <FormLabel
               label="Number of epochs before aggregating weights"
               type="required"
@@ -413,14 +420,35 @@
               label="Differential privacy"
               type="checkbox"
             >
-              <div v-show="differentialPrivacy" class="flex flex-col">
+              <div v-if="differentialPrivacy" class="flex flex-col">
                 <FormLabel
-                  label="Standard deviation of the noise"
+                  label="Privacy budget (ε): Controls how much noise is added for differential privacy, smaller ε means stronger privacy but more noise added to the weight update"
                   type="required"
                 >
                   <FormField
-                    name="trainingInformation.privacy.noiseScale"
-                    placeholder="2"
+                    name="trainingInformation.privacy.differentialPrivacy.epsilon"
+                    placeholder="1"
+                    as="input"
+                    type="number"
+                  />
+                </FormLabel>
+                <FormLabel
+                  label="Error parameter (δ): Small probability that the privacy guarantee may not hold"
+                  type="required"
+                >
+                  <FormField
+                    name="trainingInformation.privacy.differentialPrivacy.delta"
+                    placeholder="0.00005"
+                    as="input"
+                    type="number"
+                  />
+                </FormLabel>
+                <FormLabel
+                  label="Default clipping norm (default: 1): Initial limit on weight update size for differential privacy"
+                >
+                  <FormField
+                    name="trainingInformation.privacy.differentialPrivacy.clippingRadius"
+                    placeholder="1"
                     as="input"
                     type="number"
                   />
@@ -428,22 +456,22 @@
               </div>
             </FormLabel>
             <FormLabel
-            v-model="weightClipping"
-            label="Weight clipping"
-            type="checkbox"
-          >
-            <div v-show="weightClipping" class="flex flex-col">
-              <FormLabel
-                label="Maximum drift, measured by its norm, that can be made by the aggregated weights each round"
-                type="required"
-              >
-                <FormField
-                  name="trainingInformation.privacy.clippingRadius"
-                  placeholder="40"
-                  as="input"
-                  type="number"
-                />
-              </FormLabel>
+              v-model="weightClipping"
+              label="Weight clipping"
+              type="checkbox"
+            >
+              <div v-show="weightClipping" class="flex flex-col">
+                <FormLabel
+                  label="Maximum drift, measured by its norm, that can be made by the aggregated weights each round"
+                  type="required"
+                >
+                  <FormField
+                    name="trainingInformation.privacy.byzantineFaultTolerance.clippingRadius"
+                    placeholder="40"
+                    as="input"
+                    type="number"
+                  />
+                </FormLabel>
               </div>
             </FormLabel>
           </div>
@@ -648,95 +676,96 @@ window.onbeforeunload = (event) => {
   event.preventDefault();
 };
 
-const byzantineParams = z.object({
-  byzantineClippingRadius: z
-    .number()
-    .positive("Clipping radius must be positive")
-    .optional()
-    .default(1.0),
-  maxIterations: z
-    .number()
-    .int("Max iterations must be an integer")
-    .positive("Max iterations must be > 0")
-    .optional()
-    .default(1),
-  beta: z
-    .number()
-    .min(0, "Momentum β must be ≥ 0")
-    .max(1, "Momentum β must be ≤ 1")
-    .optional()
-    .default(0.9),
-});
-
-const nonLocalNetwork = {
-  privacy: z
+const privacySchema = z.object({
+  differentialPrivacy: z
     .object({
-      clippingRadius: z.number().optional(),
-      noiseScale: z.number().optional(),
+      // optional on input, default value is 1 when missing
+      clippingRadius: z.number().positive().default(1),
+      // privacy budget epsilon
+      epsilon: z.number().positive(),
+      // DP delta is a small probability
+      delta: z.number().gt(0).lt(1),
     })
-    .optional()
-    .transform((arg, ctx) => {
+    .transform((arg) => {
       if (!differentialPrivacy.value) return undefined;
 
-      function addUndefIssue(field?: string): void {
-        const path = field !== undefined ? [field] : undefined;
-        ctx.addIssue({
-          code: "custom",
-          message: "Required",
-          path,
-        });
-      }
-
-      if (arg === undefined) {
-        addUndefIssue();
-        return z.NEVER;
-      }
-      if (arg.clippingRadius === undefined) addUndefIssue("clippingRadius");
-      if (arg.noiseScale === undefined) addUndefIssue("noiseScale");
-      if (arg.clippingRadius === undefined || arg.noiseScale === undefined)
-        return z.NEVER;
-
       return arg;
-    }),
-  minNbOfParticipants: z.number().positive().int(),
-};
+    })
+    .optional(),
+});
+
+const nonLocalNetworkSchema = z
+  .object({
+    privacy: privacySchema
+      .optional()
+      .transform((o) => (o?.differentialPrivacy === undefined ? undefined : o)),
+    minNbOfParticipants: z.number().positive().int(),
+  })
+  .and(
+    z.union([
+      z.object({
+        aggregationStrategy: z.literal("mean"),
+      }),
+      z.object({
+        aggregationStrategy: z.literal("byzantine"),
+        privacy: privacySchema.and(
+          z
+            .object({
+              byzantineFaultTolerance: z
+                .object({
+                  clippingRadius: z.number().positive().default(1.0),
+                  maxIterations: z.number().int().positive().default(1),
+                  beta: z.number().min(0).max(1).default(0.9),
+                })
+                .optional(),
+            })
+            .transform((arg, ctx) => {
+              if (!weightClipping.value) return undefined;
+
+              function addUndefIssue(field?: string[]): void {
+                const path = field !== undefined ? field : undefined;
+                ctx.addIssue({
+                  code: "custom",
+                  message: "Required",
+                  path,
+                });
+              }
+
+              if (arg === undefined) {
+                addUndefIssue();
+                return z.NEVER;
+              }
+              const { byzantineFaultTolerance } = arg;
+              if (byzantineFaultTolerance === undefined) {
+                addUndefIssue(["byzantineFaultTolerance"]);
+                return z.NEVER;
+              }
+
+              return { byzantineFaultTolerance };
+            })
+            .optional(),
+        ),
+      }),
+      z.object({
+        aggregationStrategy: z.literal("secure"),
+        maxShareValue: z.number().positive().int(),
+      }),
+    ]),
+  );
+
 const trainingInformationNetworks = z.union([
   z
     .object({
       scheme: z.literal("decentralized"),
-      ...nonLocalNetwork,
+      aggregationStrategy: z.literal(["byzantine", "mean"]),
     })
-    .and(
-      z.union([
-        z.object({
-          aggregationStrategy: z.literal("mean"),
-        }),
-        z.object({
-          aggregationStrategy: z.literal("byzantine"),
-          ...byzantineParams.shape,
-        }),
-        z.object({
-          aggregationStrategy: z.literal("secure"),
-          maxShareValue: z.number().positive().int(),
-        }),
-      ]),
-    ),
+    .and(nonLocalNetworkSchema),
   z
     .object({
       scheme: z.literal("federated"),
-      ...nonLocalNetwork,
+      aggregationStrategy: z.literal(["byzantine", "mean", "secure"]),
     })
-    .and(
-      z.union([
-        z.object({
-          aggregationStrategy: z.literal("mean"),
-        }),
-        z.object({
-          aggregationStrategy: z.literal("byzantine"),
-          ...byzantineParams.shape,
-        }),
-      ]),
-    ),
+    .and(nonLocalNetworkSchema),
   z.object({
     scheme: z.literal("local"),
     aggregationStrategy: z.literal("mean"),

@@ -1,7 +1,7 @@
 import * as tf from "@tensorflow/tfjs";
-import { List } from "immutable";
+import { List, Repeat } from "immutable";
 
-import type {
+import {
   Batched,
   BatchLogs,
   Dataset,
@@ -22,6 +22,16 @@ export interface RoundLogs {
   participants: number;
 }
 
+/** List of weight update norms */
+export type WeightNormHistory = List<List<number>>;
+
+function appendWeightHistory(weightNormHistory: WeightNormHistory, wc: number[]){
+  return wc.reduce((hist, t, i) => {
+    const arr = hist.get(i, List<number>());
+    return hist.set(i, arr.push(t));
+  }, weightNormHistory);
+}
+
 /** Train a model and exchange with others **/
 export class Trainer<D extends DataType, N extends Network> {
   readonly #client: Client<N>;
@@ -38,6 +48,9 @@ export class Trainer<D extends DataType, N extends Network> {
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
     void
   >;
+  // Map of weight Index and weight update
+  #weightNormHistory : WeightNormHistory = List();
+  #previousRoundWeights?: WeightsContainer;
 
   public get model(): Model<D> {
     if (this.#model === undefined)
@@ -94,24 +107,38 @@ export class Trainer<D extends DataType, N extends Network> {
     void
   > {
     const totalRound = Math.trunc(this.#epochs / this.#roundDuration);
-    let previousRoundWeights: WeightsContainer | undefined;
     for (let round = 0; round < totalRound; round++) {
+
       await this.#client.onRoundBeginCommunication();
+
+      // Store the clean weight before starting the communication
+      this.#previousRoundWeights = new WeightsContainer(this.model.weights.weights.map(t => t.clone()));
 
       yield this.#runRound(dataset, validationDataset);
 
-      let localWeights = this.model.weights;
-      if (this.#privacy !== undefined)
-        localWeights = await applyPrivacy(
-          previousRoundWeights,
-          localWeights,
-          this.#privacy,
+      let roundWeights = this.model.weights;
+
+      // Apply differential privacy before sharing the weight updates with other nodes
+      if (this.#privacy !== undefined){
+        const roundUpdate = roundWeights.sub(this.#previousRoundWeights);
+        const updateNorm = await Promise.all(
+          roundUpdate.weights.map(privacy.frobeniusNorm)
         );
-
-      const networkWeights =
-        await this.#client.onRoundEndCommunication(localWeights);
-
-      this.model.weights = previousRoundWeights = networkWeights;
+        this.#weightNormHistory = appendWeightHistory(this.#weightNormHistory, updateNorm);
+        
+        roundWeights = await applyOptimalPrivacy(
+          this.#previousRoundWeights,
+          roundWeights,
+          this.#privacy,
+          this.#weightNormHistory,
+          totalRound,
+        )
+      }
+      // Get the updated weights
+      const networkWeights = await this.#client.onRoundEndCommunication(roundWeights);
+      
+      // Update the local weights
+      this.model.weights = networkWeights;
     }
   }
 
@@ -125,10 +152,10 @@ export class Trainer<D extends DataType, N extends Network> {
         this.model.train(dataset, validationDataset),
       );
 
-      yield gen;
+      yield gen; // batchLogs
       epochsLogs = epochsLogs.push(await epochLogs);
     }
-
+      
     return {
       epochs: epochsLogs,
       participants: this.#client.nbOfParticipants,
@@ -136,9 +163,10 @@ export class Trainer<D extends DataType, N extends Network> {
   }
 }
 
-async function applyPrivacy(
-  previous: WeightsContainer | undefined,
-  current: WeightsContainer,
+/** ALDP-FL implementation */
+async function applyOptimalPrivacy(
+	previous: WeightsContainer | undefined,
+	current: WeightsContainer,
 	options: Exclude<
 		Task<
 			DataType,
@@ -146,20 +174,61 @@ async function applyPrivacy(
 		>["trainingInformation"]["privacy"],
 		undefined
 	>,
+	weightNormHistory: WeightNormHistory,
+	totalRound: number,
 ): Promise<WeightsContainer> {
-  let ret = current;
+	let ret = current;
 
-  if (options.clippingRadius !== undefined) {
-    const previousRoundWeights =
-      previous ?? current.map((w) => tf.zerosLike(w));
-    const weightsProgress = current.sub(previousRoundWeights);
-    ret = previousRoundWeights.add(
-      await privacy.clipNorm(weightsProgress, options.clippingRadius),
-    );
-  }
+	// Clipping radius for BFT
+	if ("byzantineFaultTolerance" in options) {
+		// might need to change the variable name
+		const previousRoundWeights =
+			previous ?? current.map((w) => tf.zerosLike(w));
+		const weightsProgress = current.sub(previousRoundWeights);
+		ret = previousRoundWeights.add(
+			await privacy.clipNorm(
+				weightsProgress,
+				Repeat(options.byzantineFaultTolerance.clippingRadius)
+					.take(weightsProgress.weights.length)
+					.toArray(),
+			),
+		);
+	}
 
-  if (options.noiseScale !== undefined)
-    ret = privacy.addNoise(ret, options.noiseScale);
+	// Adding Gaussian noise for DP
+	const dpOptions = options.differentialPrivacy;
+	if (dpOptions !== undefined) {
+		const dpDefaultRadius = dpOptions.clippingRadius; // options.dpDefaultClippingRadius should be a number
 
-  return ret;
+		// Divide privacy budget across all rounds (conservative composition)
+		const delta = dpOptions.delta / totalRound;
+		const epsilon = dpOptions.epsilon / totalRound;
+
+		const dpClippingRadius = privacy.getClippingRadius(
+			weightNormHistory,
+			dpDefaultRadius,
+		);
+
+		const previousEpochWeights =
+			previous ?? current.map((w) => tf.zerosLike(w));
+		const weightsProgress = current.sub(previousEpochWeights);
+
+		/** Need to use tighter clipping radius for noise calibration */
+		const effectiveRadius =
+			"byzantineFaultTolerance" in options
+				? dpClippingRadius.map((r) =>
+						Math.min(r, options.byzantineFaultTolerance.clippingRadius),
+					)
+				: dpClippingRadius;
+
+		ret = previousEpochWeights.add(
+			await privacy.addOptimalNoise(
+				weightsProgress,
+				epsilon,
+				delta,
+				effectiveRadius,
+			),
+		);
+	}
+	return ret;
 }

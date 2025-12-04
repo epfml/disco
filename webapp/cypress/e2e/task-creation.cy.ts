@@ -10,6 +10,8 @@ it("submits with tabular task", () => {
 
   cy.visit("/#/create");
 
+  cy.get('form').should('be.visible'); // Wait for the form to be fully loaded
+
   cy.get("input[name='id']").type("id");
   cy.get("select[name='dataType']").select("tabular");
 

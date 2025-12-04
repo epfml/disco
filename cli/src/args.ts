@@ -10,6 +10,10 @@ interface BenchmarkArguments {
   epochs: number
   roundDuration: number
   batchSize: number
+  validationSplit: number
+  epsilon?: number
+  delta?: number
+  dpDefaultClippingRadius?: number
   save: boolean
   host: URL
 }
@@ -28,6 +32,10 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     epochs: { type: Number, alias: 'e', description: 'Number of epochs', defaultValue: 10 },
     roundDuration: { type: Number, alias: 'r', description: 'Round duration (in epochs)', defaultValue: 2 },
     batchSize: { type: Number, alias: 'b', description: 'Training batch size', defaultValue: 10 },
+    validationSplit : { type: Number, alias: 'v', description: 'Validation dataset ratio', defaultValue: 0.2 },
+    epsilon: { type: Number, alias: 'n', description: 'Privacy budget', optional: true, defaultValue: undefined},
+    delta: { type: Number, alias: 'd', description: 'Probability of failure, slack parameter', optional: true, defaultValue: undefined},
+    dpDefaultClippingRadius: {type: Number, alias: 'f', description: 'Default clipping radius for DP', optional: true, defaultValue: undefined},
     save: { type: Boolean, alias: 's', description: 'Save logs of benchmark', defaultValue: false },
     host: {
       type: (raw: string) => new URL(raw),
@@ -52,6 +60,7 @@ const supportedTasks = Map(
       defaultTasks.simpleFace,
       defaultTasks.titanic,
       defaultTasks.tinderDog,
+      defaultTasks.mnist,
     ).map(
       async (t) =>
         [(await t.getTask()).id, t] as [
@@ -77,10 +86,29 @@ export const args: BenchmarkArguments = {
       task.trainingInformation.batchSize = unsafeArgs.batchSize;
       task.trainingInformation.roundDuration = unsafeArgs.roundDuration;
       task.trainingInformation.epochs = unsafeArgs.epochs;
+      task.trainingInformation.validationSplit = unsafeArgs.validationSplit;
 
       // For DP
-      // TASK.trainingInformation.clippingRadius = 10000000
-      // TASK.trainingInformation.noiseScale = 0
+      const {dpDefaultClippingRadius, epsilon, delta} = unsafeArgs;
+
+      if (
+        // dpDefaultClippingRadius !== undefined &&
+        epsilon !== undefined &&
+        delta !== undefined
+      ){
+        if (task.trainingInformation.scheme === "local")
+          throw new Error("Can't have differential privacy for local training");
+
+        const defaultRadius = dpDefaultClippingRadius ? dpDefaultClippingRadius : 1;
+          
+        // for the case where privacy parameters are not defined in the default tasks
+        task.trainingInformation.privacy ??= {}
+        task.trainingInformation.privacy.differentialPrivacy = {
+          clippingRadius: defaultRadius,
+          epsilon: epsilon,
+          delta: delta,
+        };
+      }
 
       return task;
     },

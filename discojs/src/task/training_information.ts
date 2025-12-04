@@ -3,33 +3,57 @@ import { z } from "zod";
 import type { DataType, Network } from "../index.js";
 import { Tokenizer } from "../index.js";
 
-const nonLocalNetworkSchema = z.object({
+const privacySchema = z.object({
 	// reduce training accuracy and improve privacy.
-	privacy: z
+	differentialPrivacy: z
 		.object({
-			// maximum weights difference between each round
-			clippingRadius: z.number().optional(),
-			// variance of the Gaussian noise added to the shared weights.
-			noiseScale: z.number().optional(),
+			// maximum weights difference between each epoch, used for differential privacy
+			clippingRadius: z.number().positive().default(1),
+			// privacy budget, used to compute the variance of Gaussian noise
+			epsilon: z.number().positive(),
+			// small probability that the privacy guarantee may not hold
+			delta: z.number().gt(0).lt(1),
 		})
-		.transform((o) =>
-			o.clippingRadius === undefined && o.noiseScale === undefined
-				? undefined
-				: o,
-		)
 		.optional(),
-	// minimum number of participants required to train collaboratively
-	// In decentralized Learning the default is 3, in federated learning it is 2
-	minNbOfParticipants: z.number().positive().int(),
 });
 
-const byzantineSchema = z.object({
-		aggregationStrategy: z.literal("byzantine"),
-		byzantineClippingRadius: z.number().positive().optional().default(1.0),
-		maxIterations: z.number().int().positive().optional().default(1),
-		beta: z.number().min(0).max(1).optional().default(0.9),
-	});
-
+const nonLocalNetworkSchema = z
+	.object({
+		// minimum number of participants required to train collaboratively
+		// In decentralized Learning the default is 3, in federated learning it is 2
+		minNbOfParticipants: z.number().positive().int(),
+	})
+	.and(
+		z.union([
+			z.object({
+				aggregationStrategy: z.literal("mean"),
+				privacy: privacySchema
+					.transform((o) => (o.differentialPrivacy === undefined ? undefined : o))
+					.optional(),
+			}),
+			z.object({
+				aggregationStrategy: z.literal("byzantine"),
+				privacy: z.object({
+					...privacySchema.shape,
+					byzantineFaultTolerance: z.object({
+						// maximum weights difference between each round
+						clippingRadius: z.number().positive(),
+						maxIterations: z.number().int().positive().default(1),
+						beta: z.number().min(0).max(1).default(0.9),
+					}),
+				}),
+			}),
+			z.object({
+				aggregationStrategy: z.literal("secure"),
+				privacy: privacySchema
+					.transform((o) => (o.differentialPrivacy === undefined ? undefined : o))
+					.optional(),
+				// Secure Aggregation: maximum absolute value of a number in a randomly generated share
+				// default is 100, must be a positive number, check the docs/PRIVACY.md file for more information on significance of maxShareValue selection
+				maxShareValue: z.number().positive().int().optional().default(100),
+			}),
+		]),
+	);
 
 export namespace TrainingInformation {
 	export const baseSchema = z.object({
@@ -45,8 +69,6 @@ export namespace TrainingInformation {
 		// Tensor framework used by the model
 		tensorBackend: z.enum(["gpt", "tfjs"]),
 	});
-
-	
 
 	export const dataTypeToSchema = {
 		image: z.object({
@@ -77,35 +99,15 @@ export namespace TrainingInformation {
 		decentralized: z
 			.object({
 				scheme: z.literal("decentralized"),
-				...nonLocalNetworkSchema.shape,
+				aggregationStrategy: z.literal(["byzantine", "mean"]),
 			})
-			.and(
-				z.union([
-					z.object({
-						aggregationStrategy: z.literal("mean"),
-					}),
-					byzantineSchema,
-					z.object({
-						aggregationStrategy: z.literal("secure"),
-						// Secure Aggregation: maximum absolute value of a number in a randomly generated share
-						// default is 100, must be a positive number, check the docs/PRIVACY.md file for more information on significance of maxShareValue selection
-						maxShareValue: z.number().positive().int().optional().default(100),
-					}),
-				]),
-			),
+			.and(nonLocalNetworkSchema),
 		federated: z
 			.object({
 				scheme: z.literal("federated"),
+				aggregationStrategy: z.literal(["byzantine", "mean", "secure"]),
 			})
-			.merge(nonLocalNetworkSchema)
-			.and(
-				z.union([
-					z.object({
-						aggregationStrategy: z.literal("mean"),
-					}),
-					byzantineSchema,
-				]),
-			),
+			.and(nonLocalNetworkSchema),
 		local: z.object({
 			scheme: z.literal("local"),
 			aggregationStrategy: z.literal("mean"),

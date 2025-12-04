@@ -51,7 +51,7 @@ async function main<D extends DataType, N extends Network>(
   console.log({ args })
 
   const dataSplits = await Promise.all(
-    Range(0, numberOfUsers).map(async i => getTaskData(task.id, i))
+    Range(0, numberOfUsers).map(async i => getTaskData(task.id, i, numberOfUsers))
   )
   const logs = await Promise.all(
     dataSplits.map(async data => await runUser(task, args.host, data as Dataset<DataFormat.Raw[D]>))

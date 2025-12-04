@@ -12,7 +12,55 @@ In addition to the intrinsic security of federated and decentralized learning, D
 
 Differential privacy methods protect any dataset(s) used in the training of a machine learning (ML) model, from inference attacks based on the weights of the resulting ML model.
 
-The respective parameters `noiseScale` and `clippingRadius` are available in the [task configuration](TASK.md).
+The respective parameters `epsilon`, `delta`, and `clippingRadius` are available in the [task configuration](TASK.md).
+
+### What is Differential Privacy?
+Differential privacy (DP) is a rigorous privacy framework that provides a privacy guarantee by ensuring that an algorithm's output does not significantly change when a single data point in the dataset is modified. This protection is achieved by adding carefully calibrated random values (called "noise") to the data or model updates.
+
+In DISCO, differential privacy ensures privacy by making sure that the weight updates produced by one client do not significantly change when a single data point in that client's dataset is modified. This is called local differential privacy (LDP). Before sharing weight updates with the server, random noise is added to these updates. By examining only the weight updates that each client sends to the server, no party, including the server, can infer who generated a specific update or which datasets particular clients have.
+
+Differntial privacy has an important parameter, epsilon($\epsilon$), which indicates the privacy level applied to the learning process. It is also called the "privacy budget."
+
+### Parameter Explanations
+Differential privacy is achieved by adding noise. To guarantee your desired privacy level, you need to specify several parameters:
+
+`epsilon`
+- This is the privacy budget. The smaller the $\epsilon$ value, the stronger the privacy protection. In DISCO, this $\epsilon$ value indicates the privacy guarantee for a single client.
+
+`delta` 
+- This parameter indicates the failure pobability of the privacy guarantee. It is used in approximate differential privacy, which DISCO implemented.
+
+`clipping radius`
+- This parameter sets the maximum bound for the adaptive clipping radius.
+
+### Privacy-utility trade-off
+The utility degradation that follows from improving privacy is an inherent feature of differential privacy, so you must consider this when choosing your $\epsilon$ value. When $\epsilon$ equals 0, this guarantees perfect privacy but zero utility. As $\epsilon$ approaches infinity, privacy becomes zero and full utility is recovered. As $\epsilon$ decreases, utility degrades gradually.
+
+When we repetitively run the same private algorithm, the privacy budget accumulates, resulting in a larger final privacy budget that indicates a weaker privacy guarantee. This is called "composition" of privacy budget. This applies to DP in DISCO: since we add noise to weight updates at every epoch, the privacy budget accumulates with each epoch. The accumulation rate is determined by the total number of epochs defined in the task configuration.
+
+### What is the best $\epsilon$ value?
+Choosing an appropriate $\epsilon$ value depends on your specific use case and requires careful consideration of the privacy-utility trade-off.
+
+- For local differential privacy (LDP), which DISCO implements, meaningful utility typically requires larger $\epsilon$ values compared to central differential privacy. In practice, LDP implementations often use $\epsilon$ values ranging from 5 to 20. Some implementations may use higher values, though this comes with weaker privacy guarantee.
+- Lower $\epsilon$ values (closer to 1) provide stronger privacy guarantees but may significantly reduce model accuracy or utility, which can make the final result meaningless.
+- Higher $\epsilon$ values (above 20) may provide better model performance but offer weaker privacy protection.
+
+- The approapriate $\epsilon$ value for your task depends on several factors as below.
+   - Your acceptable level of model accuracy degradation
+   - The number of rounds (due to privacy budget composition over rounds)
+
+- To provide context, here are examples of $\epsilon$ values used in real-world deployments:
+   - Apple's local differential privacy implementation for iOS and macOS uses $\epsilon$ = 16 for QuickType suggestions, with a privacy unit of user per day ([Apple Differential Privacy Overview](https://www.apple.com/privacy/docs/Differential_Privacy_Overview.pdf))
+   - Microsoft's Windows telemetry collection uses local differential privacy with $\epsilon$ = 1.672, with a privacy unit of user per 6 hours ([Ding et al., 2017](https://www.microsoft.com/en-us/research/publication/collecting-telemetry-data-privately/))
+
+### DISCO's Differential Privacy Implementation
+Since model weights are shared for aggregation to converge to a final model in DISCO, we add DP noise to weight updates before sharing them with server or other clients. This noise is calibrated with an interaction between $\epsilon$, $\delta$, and `clipping_radius`. 
+
+
+To carefully calibrate the smallest possible noise for a given privacy guarantee, we implement window-based adaptive local differential privacy(ALDP). The ALDP process works as follows.
+   1. Each round, before sharing the weight update with the server, we calibrate the noise using $\epsilon$, $\delta$, and a new adaptive clipping radius, which is the mean value of the three previous weight updates. This helps us find the optimal clipping radius that avoids over-calibrating the noise needed for the privacy guarantee. 
+   2. We add the calibrated noise to the current weight update and share it with the server.
+   3. We store the weight update before noise addition to use for calibrating the clipping radius in the next round.
 
 ## Secure aggregation through MPC
 

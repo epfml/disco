@@ -237,6 +237,60 @@ export class Dataset<T> implements AsyncIterable<T> {
   cached(): Dataset<T> {
     return new CachingDataset(this.#content);
   }
+
+  /** Shuffles the Dataset instance within certain window size */
+  shuffle(windowSize: number){
+    if (!Number.isInteger(windowSize) || windowSize < 1){
+      throw new Error("Shuffle window size should be a positive integer");
+    }
+
+    return new Dataset(
+      async function*(this: Dataset<T>){
+        const iter = this[Symbol.asyncIterator]();
+        const buffer: T[] = [];
+
+        // 1. Construct the initial buffer
+        while (buffer.length < windowSize){
+          const n = await iter.next();
+          if (n.done) break;
+          buffer.push(n.value);
+        }
+
+        // 2. Shuffle
+        while (buffer.length > 0){
+          const pick = Math.floor(Math.random() * buffer.length);
+          const chosen = buffer[pick];
+
+          const n = await iter.next();
+
+          if (n.done){
+            // move the last element to the pick position
+            buffer[pick] = buffer.pop() as T;
+          }else{
+            buffer[pick] = n.value;
+          }
+
+          yield chosen;
+        }
+      }.bind(this)
+    );
+  }
+
+  /** filter the indices according to the splitting condition */
+  filter(
+    condition: (value: T, index: number) => boolean | Promise<boolean>
+  ): Dataset<T>{
+    return new Dataset<T>(async function* (this: Dataset<T>): AsyncGenerator<T, void, unknown>{
+      let i = 0;
+      for await(const v of this){
+        if (await condition(v, i)){
+          yield v;
+        }
+        i += 1
+      }
+    }.bind(this));
+  }
+
 }
 
 /**

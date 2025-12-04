@@ -27,7 +27,7 @@ export const cifar10: TaskProvider<"image", "decentralized"> = {
         },
       },
       trainingInformation: {
-        epochs: 10,
+        epochs: 20,
         roundDuration: 10,
         validationSplit: 0.2,
         batchSize: 10,
@@ -35,11 +35,16 @@ export const cifar10: TaskProvider<"image", "decentralized"> = {
         IMAGE_W: 224,
         LABEL_LIST: ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'],
         scheme: 'decentralized',
-        aggregationStrategy: 'byzantine',
-        byzantineClippingRadius: 10.0,      
         maxIterations: 1,         
         beta: 0.9,                
-        privacy: { clippingRadius: 20, noiseScale: 1 },
+        aggregationStrategy: 'mean',
+        privacy: {
+          differentialPrivacy: {
+            clippingRadius: 1,
+            epsilon: 50,
+            delta: 1e-5,
+          },
+        },
         minNbOfParticipants: 3,
         maxShareValue: 100,
         tensorBackend: 'tfjs'
@@ -66,7 +71,7 @@ export const cifar10: TaskProvider<"image", "decentralized"> = {
     model.compile({
       optimizer: 'sgd',
       loss: 'categoricalCrossentropy',
-      metrics: ['accuracy']
+      metrics: ['accuracy'],
     })
 
     return new models.TFJS('image', model)
