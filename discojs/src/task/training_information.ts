@@ -23,6 +23,14 @@ const nonLocalNetworkSchema = z.object({
 	minNbOfParticipants: z.number().positive().int(),
 });
 
+const byzantineSchema = z.object({
+		aggregationStrategy: z.literal("byzantine"),
+		clippingRadius: z.number().positive().optional().default(1.0),
+		maxIterations: z.number().int().positive().optional().default(1),
+		beta: z.number().min(0).max(1).optional().default(0.9),
+	});
+
+
 export namespace TrainingInformation {
 	export const baseSchema = z.object({
 		// number of epochs to run training for
@@ -37,6 +45,8 @@ export namespace TrainingInformation {
 		// Tensor framework used by the model
 		tensorBackend: z.enum(["gpt", "tfjs"]),
 	});
+
+	
 
 	export const dataTypeToSchema = {
 		image: z.object({
@@ -74,12 +84,7 @@ export namespace TrainingInformation {
 					z.object({
 						aggregationStrategy: z.literal("mean"),
 					}),
-					z.object({
-						aggregationStrategy: z.literal("byzantine"),
-						clippingRadius: z.number().positive().optional().default(1.0),
-						maxIterations: z.number().int().positive().optional().default(1),
-						beta: z.number().min(0).max(1).optional().default(0.9),
-					}),
+					byzantineSchema,
 					z.object({
 						aggregationStrategy: z.literal("secure"),
 						// Secure Aggregation: maximum absolute value of a number in a randomly generated share
@@ -98,12 +103,7 @@ export namespace TrainingInformation {
 					z.object({
 						aggregationStrategy: z.literal("mean"),
 					}),
-					z.object({
-						aggregationStrategy: z.literal("byzantine"),
-						clippingRadius: z.number().positive().optional().default(1.0),
-						maxIterations: z.number().int().positive().optional().default(1),
-						beta: z.number().min(0).max(1).optional().default(0.9),
-					}),
+					byzantineSchema,
 				]),
 			),
 		local: z.object({

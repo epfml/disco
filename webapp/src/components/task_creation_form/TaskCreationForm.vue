@@ -314,11 +314,17 @@
                 v-model="aggregationStrategy"
                 name="trainingInformation.aggregationStrategy"
                 as="select"
-                :disabled="scheme !== 'decentralized'"
+                :disabled="scheme == 'local'"
               >
-                <option value="mean">Mean</option>
-                <option value="secure">Secure</option>
-                <option value="byzantine">Byzantine</option>
+                <!-- Federated supports mean & byzantine -->
+                <option v-if="scheme === 'federated'" value="mean">Mean</option>
+                <option v-if="scheme === 'federated'" value="byzantine">Byzantine</option>
+                <!-- Decentralized supports mean, byzantine & secure -->
+                <option v-if="scheme === 'decentralized'" value="mean">Mean</option>
+                <option v-if="scheme === 'decentralized'" value="byzantine">Byzantine</option>
+                <option v-if="scheme === 'decentralized'" value="secure">Secure</option>
+                <!-- Local supports only mean -->
+                <option v-if="scheme === 'local'" value="mean">Mean</option>
               </FormField>
 
               <FormLabel
@@ -338,33 +344,33 @@
             <FormLabel
               v-show="aggregationStrategy === 'byzantine'"
               label="Clipping radius (λ) for Centered Clipping"
-              type="required"
             >
               <FormField
                 name="trainingInformation.clippingRadius"
                 placeholder="1.0"
                 as="input"
                 type="number"
+                min="0"
+                step="0.01"
               />
             </FormLabel>
 
             <FormLabel
               v-show="aggregationStrategy === 'byzantine'"
               label="Max Centered Clipping iterations (L)"
-              type="required"
             >
               <FormField
                 name="trainingInformation.maxIterations"
                 placeholder="1"
                 as="input"
                 type="number"
+                min="1"
               />
             </FormLabel>
 
             <FormLabel
               v-show="aggregationStrategy === 'byzantine'"
               label="Momentum coefficient (β) to smooth the aggregation over multiple rounds"
-              type="required"
             >
               <FormField
                 name="trainingInformation.beta"
@@ -622,6 +628,20 @@ window.onbeforeunload = (event) => {
   event.preventDefault();
 };
 
+const byzantineParams = z.object({
+  clippingRadius: z
+    .number()
+    .positive("Clipping radius must be positive"),
+  maxIterations: z
+    .number()
+    .int("Max iterations must be an integer")
+    .positive("Max iterations must be > 0"),
+  beta: z
+    .number()
+    .min(0, "Momentum β must be ≥ 0")
+    .max(1, "Momentum β must be ≤ 1"),
+});
+
 const nonLocalNetwork = {
   privacy: z
     .object({
@@ -667,6 +687,7 @@ const trainingInformationNetworks = z.union([
         }),
         z.object({
           aggregationStrategy: z.literal("byzantine"),
+          ...byzantineParams.shape,
         }),
         z.object({
           aggregationStrategy: z.literal("secure"),
@@ -686,6 +707,7 @@ const trainingInformationNetworks = z.union([
         }),
         z.object({
           aggregationStrategy: z.literal("byzantine"),
+          ...byzantineParams.shape,
         }),
       ]),
     ),

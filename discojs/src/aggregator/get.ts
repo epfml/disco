@@ -32,61 +32,47 @@ export function getAggregator(
   options: AggregatorOptions = {},
 ): aggregator.Aggregator {
   const scheme = options.scheme ?? task.trainingInformation.scheme
+
+  // If options are not specified, we default to expecting a contribution from all peers, so we set the threshold to 100%
+
+  // If scheme == 'federated' then we only expect the server's contribution at each round 
+  // so we set the aggregation threshold to 1 contribution
+  // If scheme == 'local' then we only expect our own contribution
+
+  const networkOptions: Required<AggregatorOptions> = {
+    scheme,
+    roundCutOff: 0,
+    threshold: 1, 
+    thresholdType: scheme === "decentralized" ? "relative" : "absolute",
+    ...options, // user overrides defaults
+  };
   
   switch (task.trainingInformation.aggregationStrategy) {
     case 'byzantine': {
-        const {
-          clippingRadius = 1.0,
-          maxIterations = 1,
-          beta = 0.9,
+        const {clippingRadius = 1.0, maxIterations = 1, beta = 0.9,
         } = task.trainingInformation;
 
-        if (scheme === "decentralized") {
-          options = {
-            roundCutOff: undefined,
-            threshold: 1,
-            thresholdType: "relative",
-            ...options,
-          };
-        } else {
-          options = {
-            roundCutOff: undefined,
-            threshold: 1,
-            thresholdType: "absolute",
-            ...options,
-          };
-        }
-
         return new ByzantineRobustAggregator(
-          options.roundCutOff ?? 0,
-          options.threshold ?? 1,
-          options.thresholdType,
+          networkOptions.roundCutOff ?? 0,
+          networkOptions.threshold ?? 1,
+          networkOptions.thresholdType,
           clippingRadius,
           maxIterations,
           beta
         );
       }
     case 'mean':
-      if (scheme === 'decentralized') {
-        // If options are not specified, we default to expecting a contribution from all peers, so we set the threshold to 100%
-        options = {
-          roundCutOff: undefined, threshold: 1, thresholdType: 'relative',
-          ...options
-        }
-      } else {
-        // If scheme == 'federated' then we only expect the server's contribution at each round 
-        // so we set the aggregation threshold to 1 contribution
-        // If scheme == 'local' then we only expect our own contribution
-        options = {
-          roundCutOff: undefined, threshold: 1, thresholdType: 'absolute',
-          ...options
-        }
-      }
-      return new aggregator.MeanAggregator(options.roundCutOff, options.threshold, options.thresholdType)
+      return new aggregator.MeanAggregator(
+        networkOptions.roundCutOff, 
+        networkOptions.threshold, 
+        networkOptions.thresholdType
+      )
     case 'secure':
       if (scheme !== 'decentralized') {
         throw new Error('secure aggregation is currently supported for decentralized only')
       }
-      return new aggregator.SecureAggregator(task.trainingInformation.maxShareValue)
+      return new aggregator.SecureAggregator(
+        task.trainingInformation.maxShareValue
+      )
   }
 }
