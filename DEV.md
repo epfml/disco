@@ -115,9 +115,9 @@ The server should be listening on `http://localhost:8080/`.
 npm -w webapp start # from another terminal
 ```
 
-The web client should be running on `http://localhost:8081`, if not first restart the server and then the web client.
+The web client should be running on `http://localhost:1351`, if not first restart the server and then the web client.
 
-**You can now access DISCO at http://localhost:8081/**
+**You can now access DISCO at http://localhost:1351/**
 
 ## How to use DISCO
 
