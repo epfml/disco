@@ -16,7 +16,7 @@ jobs:
           node-version-file: .nvmrc
           registry-url: "https://registry.npmjs.org"
           scope: "@epfml"
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: |
             ~/.npm
@@ -40,7 +40,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: |
             ~/.npm
