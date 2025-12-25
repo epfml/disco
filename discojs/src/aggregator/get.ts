@@ -53,8 +53,8 @@ export function getAggregator(
         } = task.trainingInformation;
 
         return new ByzantineRobustAggregator(
-          networkOptions.roundCutOff ?? 0,
-          networkOptions.threshold ?? 1,
+          networkOptions.roundCutOff,
+          networkOptions.threshold,
           networkOptions.thresholdType,
           clippingRadius,
           maxIterations,
