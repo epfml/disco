@@ -36,7 +36,7 @@ export const cifar10: TaskProvider<"image", "decentralized"> = {
         LABEL_LIST: ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'],
         scheme: 'decentralized',
         aggregationStrategy: 'byzantine',
-        clippingRadius: 1.0,      
+        byzantineClippingRadius: 10.0,      
         maxIterations: 1,         
         beta: 0.9,                
         privacy: { clippingRadius: 20, noiseScale: 1 },

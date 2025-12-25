@@ -346,7 +346,7 @@
               label="Clipping radius (λ) for Centered Clipping"
             >
               <FormField
-                name="trainingInformation.clippingRadius"
+                name="trainingInformation.byzantineClippingRadius"
                 placeholder="1.0"
                 as="input"
                 type="number"
@@ -425,6 +425,25 @@
                     type="number"
                   />
                 </FormLabel>
+              </div>
+            </FormLabel>
+            <FormLabel
+            v-model="weightClipping"
+            label="Weight clipping"
+            type="checkbox"
+          >
+            <div v-show="weightClipping" class="flex flex-col">
+              <FormLabel
+                label="Maximum drift, measured by its norm, that can be made by the aggregated weights each round"
+                type="required"
+              >
+                <FormField
+                  name="trainingInformation.privacy.clippingRadius"
+                  placeholder="40"
+                  as="input"
+                  type="number"
+                />
+              </FormLabel>
               </div>
             </FormLabel>
           </div>
@@ -599,6 +618,7 @@ const dataType = ref<DataType>("image");
 const scheme = ref<Network>("federated");
 const aggregationStrategy = ref("mean");
 const differentialPrivacy = ref(false);
+const weightClipping = ref(false);
 
 const form = useTemplateRef("form");
 
@@ -629,17 +649,23 @@ window.onbeforeunload = (event) => {
 };
 
 const byzantineParams = z.object({
-  clippingRadius: z
+  byzantineClippingRadius: z
     .number()
-    .positive("Clipping radius must be positive"),
+    .positive("Clipping radius must be positive")
+    .optional()
+    .default(1.0),
   maxIterations: z
     .number()
     .int("Max iterations must be an integer")
-    .positive("Max iterations must be > 0"),
+    .positive("Max iterations must be > 0")
+    .optional()
+    .default(1),
   beta: z
     .number()
     .min(0, "Momentum β must be ≥ 0")
-    .max(1, "Momentum β must be ≤ 1"),
+    .max(1, "Momentum β must be ≤ 1")
+    .optional()
+    .default(0.9),
 });
 
 const nonLocalNetwork = {

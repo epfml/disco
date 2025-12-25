@@ -49,14 +49,14 @@ export function getAggregator(
   
   switch (task.trainingInformation.aggregationStrategy) {
     case 'byzantine': {
-        const {clippingRadius = 1.0, maxIterations = 1, beta = 0.9,
+        const {byzantineClippingRadius = 1.0, maxIterations = 1, beta = 0.9,
         } = task.trainingInformation;
 
         return new ByzantineRobustAggregator(
           networkOptions.roundCutOff,
           networkOptions.threshold,
           networkOptions.thresholdType,
-          clippingRadius,
+          byzantineClippingRadius,
           maxIterations,
           beta
         );

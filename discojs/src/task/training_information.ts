@@ -25,7 +25,7 @@ const nonLocalNetworkSchema = z.object({
 
 const byzantineSchema = z.object({
 		aggregationStrategy: z.literal("byzantine"),
-		clippingRadius: z.number().positive().optional().default(1.0),
+		byzantineClippingRadius: z.number().positive().optional().default(1.0),
 		maxIterations: z.number().int().positive().optional().default(1),
 		beta: z.number().min(0).max(1).optional().default(0.9),
 	});
