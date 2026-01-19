@@ -1,5 +1,15 @@
-import { models } from '@epfml/discojs';
+import path from "node:path";
 import fetch from 'node-fetch';
+import fs from 'node:fs/promises';
+
+import { models } from '@epfml/discojs';
+
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const DATASET_DIR = path.join(__dirname, "..", "..", "datasets");
+const hellaswag_filepath = path.join(DATASET_DIR, "hellaswag_val.jsonl")
 
 /**
  * Loads the HellaSwag dataset from the remote URL in Node.js
@@ -8,12 +18,23 @@ import fetch from 'node-fetch';
  * @returns A HellaSwagDataset containing the examples.
  */
 export async function load(limit = -1): Promise<models.HellaSwagDataset> {
-  const response = await fetch(models.HELLASWAG_URL);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch dataset from ${models.HELLASWAG_URL}: ${response.statusText}`);
+  let text: string;
+  try {
+    // Reads the file if it exists locally
+    text = (await fs.readFile(hellaswag_filepath)).toString();
+  } catch {
+    console.log("Downloading the Hellaswag benchmark")
+    // Otherwise fetch it
+    const response = await fetch(models.HELLASWAG_URL);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch dataset from ${models.HELLASWAG_URL}: ${response.statusText}`);
+    }
+  
+    text = await response.text();
+    // Save the file locally
+    await fs.writeFile(hellaswag_filepath, text);
   }
-
-  const text = await response.text();
+  
   const lines = text.split('\n');
 
   const dataset: models.HellaSwagDataset = [];
