@@ -10,7 +10,8 @@
 		"discojs-node",
 		"discojs-web",
 		"server",
-		"webapp"
+		"webapp",
+		"onnx-converter"
 	],
 	"dependencies": {
 		"debug": "4",

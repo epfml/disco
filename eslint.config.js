@@ -65,6 +65,8 @@ export default defineConfigWithVueTs(
 	},
 	{ ignores: ["**/dist/*"] },
 	{ ignores: ["docs/examples/**"] },
+	{ ignores: ["**/src/protobuf/"] },
+	
 	// don't use linter for formatting
 	skipFormatting,
 );

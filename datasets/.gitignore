@@ -20,3 +20,6 @@
 
 # GDHF demo
 /tinder_dog/
+
+# HellaSwag benchmark
+hellaswag*

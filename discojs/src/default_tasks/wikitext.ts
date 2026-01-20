@@ -10,7 +10,7 @@ export const wikitext: TaskProvider<"text", "federated"> = {
 				title: "GPT Language Modeling",
         summary: {
           preview: 'Train a language model (L)LM in your browser, collaboratively and from scratch.',
-          overview: "You can train a GPT-2 model in your browser and in a collaborative manner on any textual dataset. As an example, you can try the Wikitext-103 dataset, composed of Wikipedia articles, widely used in natural language modeling, which you can download <a class='underline text-blue-400' target='_blank' href='https://dax-cdn.cdn.appdomain.cloud/dax-wikitext-103/1.0.1/wikitext-103.tar.gz'>here</a>. More information on how to connect the dataset at the next step."
+          overview: "You can train a GPT-2 model in your browser and in a collaborative manner on any textual dataset. As an example, you can try the Wikitext-103 dataset, composed of Wikipedia articles, widely used in natural language modeling. More information on how to connect the dataset at the next step."
         },
         model: [
           "The model follows the exact GPT-2 architecture and is implemented in TensorFlow.js.",

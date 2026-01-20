@@ -5,15 +5,15 @@
         {{ props.task.displayInformation.title }}
       </template>
 
-      <div v-html="props.task.displayInformation.summary.preview" />
-      <div v-html="props.task.displayInformation.summary.overview" />
+      <div>{{ props.task.displayInformation.summary.preview }}</div>
+      <div>{{ props.task.displayInformation.summary.overview }}</div>
     </IconCard>
 
     <IconCard v-if="task.displayInformation.model !== undefined">
       <template #title> The Model </template>
       <template #icon> <ModelIcon /> </template>
 
-      <div v-html="task.displayInformation.model" />
+      <div>{{ task.displayInformation.model }}</div>
     </IconCard>
 
     <DropdownCard>

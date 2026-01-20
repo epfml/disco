@@ -12,7 +12,6 @@ export type GPTConfig = {
   contextLength: number
   vocabSize?: number
   modelType: GPTModelType
-  name?: string,
   evaluate?: boolean
   maxEvalBatches?: number
   evaluateEvery?: number
@@ -20,7 +19,7 @@ export type GPTConfig = {
   weightDecay?: number
   verbose?: 0 | 1
   debug?: boolean
-  dropout?: number
+  attnDrop?: number
   residDrop?: number
   embdDrop?: number
   nLayer?: number
@@ -30,7 +29,6 @@ export type GPTConfig = {
 }
 // for a benchmark of performance, see https://github.com/epfml/disco/pull/659
 export const DefaultGPTConfig: Required<GPTConfig> = {
-  name: 'transformer', // prefix for the model layer names
   lr: 0.001,
   weightDecay: 0,
   maxIter: 10,
@@ -42,9 +40,9 @@ export const DefaultGPTConfig: Required<GPTConfig> = {
   contextLength: 128,
   vocabSize: 50257,
   debug: false,
-  dropout: 0.2,
-  residDrop: 0.2,
-  embdDrop: 0.2,
+  attnDrop: 0.1,
+  residDrop: 0.1,
+  embdDrop: 0.1,
   nLayer: 3,
   nHead: 3,
   nEmbd: 48,

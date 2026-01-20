@@ -5,6 +5,7 @@ import type { ModelSize } from './config.js'
 
 const debug = createDebug("discojs:models:gpt:layers");
 
+const INITIALIZER_STD = 0.02
 /**
  * Defines a range, from 0 to T, that is used to create positional embeddings
  */
@@ -67,7 +68,7 @@ tf.serialization.registerClass(LogLayer)
 
 export type CausalSelfAttentionConfig =
     ConstructorParameters<typeof tf.layers.Layer>[0]
-    & Record<'contextLength' | 'nHead' | 'nEmbd' | 'dropout' | 'nLayer' | 'seed', number>
+    & Record<'contextLength' | 'nHead' | 'nEmbd' | 'attnDrop' | 'residDrop' | 'nLayer' | 'seed', number>
 
 export class CausalSelfAttention extends tf.layers.Layer {
   static readonly className = 'CausalSelfAttention';
@@ -75,12 +76,13 @@ export class CausalSelfAttention extends tf.layers.Layer {
   private readonly nHead: number;
   private readonly nEmbd: number;
   private readonly nLayer: number;
-  private readonly dropout: number;
+  private readonly attnDrop: number;
+  private readonly residDrop: number;
   private readonly seed: number;
   private readonly mask: tf.Tensor2D;
-  cAttnKernel?: tf.LayerVariable;
+  cAttnWeight?: tf.LayerVariable;
   cAttnBias?: tf.LayerVariable;
-  cProjKernel?: tf.LayerVariable;
+  cProjWeight?: tf.LayerVariable;
   cProjBias?: tf.LayerVariable;
 
   constructor(private readonly config: CausalSelfAttentionConfig) {
@@ -91,7 +93,8 @@ export class CausalSelfAttention extends tf.layers.Layer {
     this.nEmbd = config.nEmbd;
     this.nHead = config.nHead;
     this.nLayer = config.nLayer;
-    this.dropout = config.dropout;
+    this.attnDrop = config.attnDrop;
+    this.residDrop = config.residDrop;
     this.seed = config.seed;
 
     // mask is a lower triangular matrix filled with 1
@@ -102,36 +105,37 @@ export class CausalSelfAttention extends tf.layers.Layer {
 
   override build(): void {
     // key, query, value projections for all heads, but in a batch
-    this.cAttnKernel = this.addWeight(
-      'c_attn.weight',
+    this.cAttnWeight = this.addWeight(
+      'c_attn/kernel',
       [this.nEmbd, 3 * this.nEmbd],
       'float32',
-      tf.initializers.randomNormal({ mean: 0, stddev: 0.02, seed: this.seed })
+      tf.initializers.randomNormal({ mean: 0, stddev: INITIALIZER_STD, seed: this.seed })
     );
     this.cAttnBias = this.addWeight(
-      'c_attn.bias',
+      'c_attn/bias',
       [3 * this.nEmbd],
       'float32',
       tf.initializers.zeros()
     );
     // output projection
-    this.cProjKernel = this.addWeight(
-      'c_proj.kernel',
+    this.cProjWeight = this.addWeight(
+      'c_proj/kernel',
       [this.nEmbd, this.nEmbd],
       'float32',
       // the input keeps accumulating through the residual stream so we
       // scale the initialization with the nb of layers to keep a unit std
       // Sources:
+      // https://github.com/huggingface/transformers/blob/cd74917ffc3e8f84e4a886052c5ab32b7ac623cc/src/transformers/models/gpt2/modeling_gpt2.py#L606
       // https://github.com/karpathy/build-nanogpt/blob/6104ab1b53920f6e2159749676073ff7d815c1fa/train_gpt2.py#L103
       // https://youtu.be/l8pRSuU81PU?si=5GcKfi_kPgLgvtg2&t=4640
       tf.initializers.randomNormal({
         mean: 0,
-        stddev: 0.02 * Math.sqrt(2 * this.nLayer),
+        stddev: INITIALIZER_STD / Math.sqrt(2 * this.nLayer),
         seed: this.seed
       })
     );
     this.cProjBias = this.addWeight(
-      'c_proj.bias',
+      'c_proj/bias',
       [this.nEmbd],
       'float32',
       tf.initializers.zeros()
@@ -149,9 +153,9 @@ export class CausalSelfAttention extends tf.layers.Layer {
 
   override call(input: tf.Tensor | tf.Tensor[], kwargs: Record<string, unknown>): tf.Tensor {
     return tf.tidy(() => {
-      if (this.cAttnKernel === undefined ||
+      if (this.cAttnWeight === undefined ||
           this.cAttnBias === undefined ||
-          this.cProjKernel === undefined ||
+          this.cProjWeight === undefined ||
           this.cProjBias === undefined) { 
         throw new Error('not built'); 
       }
@@ -166,8 +170,8 @@ export class CausalSelfAttention extends tf.layers.Layer {
       // Apply attention weights to inputs as one big matrix which is then split into the
       // query, key and value submatrices
       // nHead is "number of heads", hs is "head size", and C (number of channels) = n_embd = nHead * hs
-      // e.g. in GPT-2 (124M), nHead = 12, hs = 64, so nHead * hs = C = 768 channels in the Transformer      const cAttn = dense(input, this.cAttnKernel, this.cAttnBias);
-      const cAttn = this.dense(input, this.cAttnKernel, this.cAttnBias)
+      // e.g. in GPT-2 (124M), nHead = 12, hs = 64, so nHead * hs = C = 768 channels in the Transformer      const cAttn = dense(input, this.cAttnWeight, this.cAttnBias);
+      const cAttn = this.dense(input, this.cAttnWeight, this.cAttnBias)
       let [q, k, v] = tf.split(cAttn, 3, -1) as [tf.Tensor, tf.Tensor, tf.Tensor];
       
       // Follow naming conventions in https://github.com/karpathy/build-nanogpt/
@@ -186,16 +190,16 @@ export class CausalSelfAttention extends tf.layers.Layer {
       let y = tf.matMul(att, v) // (B, nHead, T, T) x (B, nHead, T, hs) -> (B, nHead, T, hs)
       y = tf.transpose(y, [0, 2, 1, 3]) // (B, T, nHead, hs)
       y = tf.reshape(y, [B, T, C]) // (B, T, C = nHead * hs)
-      y = this.dense(y, this.cProjKernel, this.cProjBias) // output projection (B, T, C)
-      y = kwargs.training === true ? tf.dropout(y, this.dropout, undefined, this.seed) : y
+      y = this.dense(y, this.cProjWeight, this.cProjBias) // output projection (B, T, C)
+      y = kwargs.training === true ? tf.dropout(y, this.residDrop, undefined, this.seed) : y
       return y;
     });
   }
 
   // --- Helper Methods ---
 
-  public dense(x: tf.Tensor, kernel: tf.LayerVariable, bias: tf.LayerVariable): tf.Tensor {
-    const k = kernel.read().expandDims(0).tile([x.shape[0], 1, 1]);
+  public dense(x: tf.Tensor, weight: tf.LayerVariable, bias: tf.LayerVariable): tf.Tensor {
+    const k = weight.read().expandDims(0).tile([x.shape[0], 1, 1]);
     const m = x.matMul(k);
     return tf.add(m, bias.read());
   }
@@ -237,7 +241,7 @@ export class CausalSelfAttention extends tf.layers.Layer {
     // that the attention weights of past tokens for a particular token sum to one
     att = tf.softmax(att, -1);
     if (training) {
-      att = tf.dropout(att, this.dropout, undefined, this.seed);
+      att = tf.dropout(att, this.attnDrop, undefined, this.seed);
     }
     return att;
   }
@@ -294,26 +298,27 @@ export type MLPConfig = ConstructorParameters<typeof tf.layers.Layer>[0] &
 export function MLP(config: MLPConfig): tf.LayersModel {
   return tf.sequential({ layers: [
     tf.layers.dense({
-      name: config.name + `.mlp.c_fc`,
+      name: config.name + '/c_fc',
       units: 4 * config.nEmbd,
       inputDim: config.nEmbd,
       inputShape: [config.contextLength, config.nEmbd],
       kernelInitializer: tf.initializers.randomNormal({
-        mean: 0, stddev: 0.02, seed: config.seed
+        mean: 0, stddev: INITIALIZER_STD, seed: config.seed
       }),
     }),
     new GELU(),
     tf.layers.dense({
-      name: config.name + '.mlp.c_proj',
+      name: config.name + '/c_proj',
       units: config.nEmbd,
       inputDim: 4 * config.nEmbd,
       inputShape: [config.contextLength, 4 * config.nEmbd],
       kernelInitializer: tf.initializers.randomNormal({
-        mean: 0, stddev: 0.02 * Math.sqrt(2 * config.nLayer), seed: config.seed
+        mean: 0, stddev: INITIALIZER_STD / Math.sqrt(2 * config.nLayer), seed: config.seed
       }),
     }),
+    // dropout is disabled at inference when calling .predict()
     tf.layers.dropout({
-      name: config.name + '.mlp.drop',
+      name: config.name + '/drop',
       rate: config.residDrop,
       seed: config.seed
     }),
@@ -327,55 +332,54 @@ type BlockConfig = CausalSelfAttentionConfig & MLPConfig & { debug: boolean }
  * x1 = input + mlp(layernorm_1(input))
  * output = x1 + mlp(layernorm_2(x1))
  */
-function TransformerBlock (conf: BlockConfig): tf.LayersModel {
-  const config = Object.assign({ name: '.h' }, conf)
+function TransformerBlock (config: BlockConfig): tf.LayersModel {
   const inputs = tf.input({ shape: [config.contextLength, config.nEmbd] })
   let x1, x2
   // input normalization
   x1 = tf.layers.layerNormalization({
-    name: config.name + '.ln_1',
+    name: config.name + '/ln_1',
     epsilon: 1e-5,
     gammaInitializer: 'ones', // already the default but make it explicit
     betaInitializer: 'zeros',
   }).apply(inputs)
 
   if (config.debug) {
-    x1 = new LogLayer({ name: config.name + '.ln_1_log' }).apply(x1)
+    x1 = new LogLayer({ name: config.name + '/ln_1_log' }).apply(x1)
   }
   // self attention layer
   x1 = new CausalSelfAttention(
-    Object.assign({}, config, { name: config.name + '.attn' }),
+    Object.assign({}, config, { name: config.name + '/attn' }),
   ).apply(x1)
 
   if (config.debug) {
-    x1 = new LogLayer({ name: config.name + '.attn_log' }).apply(x1)
+    x1 = new LogLayer({ name: config.name + '/attn_log' }).apply(x1)
   }
 
   // Residual connection
   x1 = tf.layers.add().apply([inputs, x1 as tf.SymbolicTensor])
   if (config.debug) {
-    x1 = new LogLayer({ name: config.name + '.residual_log' }).apply(x1)
+    x1 = new LogLayer({ name: config.name + '/residual_log' }).apply(x1)
   }
   // normalization 
   x2 = tf.layers.layerNormalization({
-      name: config.name + '.ln_2',
+      name: config.name + '/ln_2',
       epsilon: 1e-5,
       gammaInitializer: 'ones',
       betaInitializer: 'zeros',
   }).apply(x1)
   if (config.debug) {
-    x2 = new LogLayer({ name: config.name + '.ln_2_log' }).apply(x2)
+    x2 = new LogLayer({ name: config.name + '/ln_2_log' }).apply(x2)
   }
   
   // MLP 
-  x2 = MLP(Object.assign({}, config, { name: config.name + '.mlp' })).apply(x2)
+  x2 = MLP(Object.assign({}, config, { name: config.name + '/mlp' })).apply(x2)
   if (config.debug) {
-    x2 = new LogLayer({ name: config.name + '.mlp_log' }).apply(x2)
+    x2 = new LogLayer({ name: config.name + '/mlp_log' }).apply(x2)
   }
   // add attention output to mlp output
   x2 = tf.layers.add().apply([x1 as tf.SymbolicTensor, x2 as tf.SymbolicTensor])
   if (config.debug) {
-    x2 = new LogLayer({ name: config.name + '.add_log' }).apply(x2)
+    x2 = new LogLayer({ name: config.name + '/add_log' }).apply(x2)
   }
 
   return tf.model({ name: config.name, inputs, outputs: x2 as tf.SymbolicTensor })
@@ -397,14 +401,14 @@ export class LMEmbedding extends tf.layers.Layer {
 
   constructor(private readonly vocabSize: number,
     private readonly nEmbd: number, private readonly seed: number) {
-    super({})
+    super({name: 'transformer'})
   }
   override build(): void {
     this.embeddings = this.addWeight(
-      'wte', //use same name as GPT2
+      'wte/embedding',
       [this.vocabSize, this.nEmbd],
       'float32',
-      tf.initializers.randomNormal({ mean:0, stddev:0.02, seed: this.seed })
+      tf.initializers.randomNormal({ mean:0, stddev:INITIALIZER_STD, seed: this.seed })
     )
   }
 
@@ -453,15 +457,15 @@ export class LMEmbedding extends tf.layers.Layer {
       // If the input is a 3D tensor, it is a sequence of embeddings
       // so we apply a dense layer to project the embeddings back into the vocabulary space
       else if (input.shape.length === 3 && input.shape[2] === this.nEmbd) {
-        // Replicate the kernel for each batch element
-        const kernel = this.embeddings.read().expandDims(0).tile([input.shape[0], 1, 1])
+        // Replicate the weights for each batch element
+        const weights = this.embeddings.read().expandDims(0).tile([input.shape[0], 1, 1])
         // TODO: rely on broadcasting when tfjs will support backpropagating through broadcasting
         // Remove the tile, or use tf.einsum('BTE,VE->BTV', input, this.embeddings.read())
         // to prevent tensor duplication but tensorflow.js fails to backpropagate einsum
         // https://github.com/tensorflow/tfjs/issues/5690
 
         // (batch_size, sequence_length, nEmbd) x (vocabSize, nEmbd)^T -> (batch_size, sequence_length, vocabSize)
-        return tf.matMul(input, kernel, false, true)
+        return tf.matMul(input, weights, false, true)
       } else {
         throw new Error('unexpected input shape for token embeddings')
       }
@@ -479,6 +483,7 @@ tf.serialization.registerClass(LMEmbedding)
  * @returns model, tf.LayersModel, which supports model(inputs), model.predict and model.apply
  */
 export function GPTArchitecture(config: Required<GPTConfig>): tf.LayersModel {
+  const name = 'transformer'
   const inputs = tf.input({ shape: [null] })
 
   // token embedding
@@ -491,11 +496,11 @@ export function GPTArchitecture(config: Required<GPTConfig>): tf.LayersModel {
   // Positional embedding
   const range = new Range({}).apply(inputs)
   let posEmb = tf.layers.embedding({
-    name: config.name + '.wpe',
+    name: name + '/wpe',
     inputDim: config.contextLength,
     outputDim: config.nEmbd,
     embeddingsInitializer: tf.initializers.randomNormal({
-      mean: 0, stddev: 0.02, seed: config.seed
+      mean: 0, stddev: INITIALIZER_STD, seed: config.seed
     }),
   }).apply(range) as tf.SymbolicTensor
   
@@ -516,26 +521,26 @@ export function GPTArchitecture(config: Required<GPTConfig>): tf.LayersModel {
   // apply successively transformer blocks, attention and dense layers
   for (let i = 0; i < config.nLayer; i++) {
     x = TransformerBlock(
-      Object.assign({}, config, { name: config.name + '.h' + i }),
+      Object.assign({}, config, { name: name + '/h' + i }),
     ).apply(x)
   }
   // Normalization
   x = tf.layers.layerNormalization({
-    name: config.name + '.ln_f',
+    name: name + '/ln_f',
     epsilon: 1e-5,
     gammaInitializer: 'ones',
     betaInitializer: 'zeros',
   })
     .apply(x)
   if (config.debug) {
-    x = new LogLayer({ name: 'ln_f_log' }).apply(x)
+    x = new LogLayer({ name: '/ln_f_log' }).apply(x)
   }
 
   // language modeling head
   // GPT2 uses the same matrix for the token embedding and the modeling head
   x = wte.apply(x)
   if (config.debug) {
-    x = new LogLayer({ name: 'lm_head_log' }).apply(x)
+    x = new LogLayer({ name: '/lm_head_log' }).apply(x)
   }
 
   return tf.model({ inputs, outputs: x as tf.SymbolicTensor })

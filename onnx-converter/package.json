@@ -1,0 +1,18 @@
+{
+  "name": "onnx-converter",
+  "private": true,
+  "type": "module",
+  "main": "dist/gpt2_from_onnx.js",
+  "scripts": {
+    "convert_onnx": "npm run build && node dist/convert_onnx.js",
+		"watch": "nodemon --ext ts --ignore dist --exec npm run",
+    "build": "tsc --build && cp -r src/protobuf dist",
+    "lint": "npx eslint .",
+    "test": ": nothing"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "3"
+  }
+}

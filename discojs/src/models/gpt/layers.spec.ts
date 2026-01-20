@@ -174,8 +174,9 @@ describe('GPT Layers', () => {
       name: 'testCSA',
       contextLength: 5,
       nHead: 2,
-      nEmbd: 8,          // divisible by nHead, so head size = 4
-      dropout: 0.0,      // no dropout for deterministic tests
+      nEmbd: 8,      // divisible by nHead, so head size = 4
+      attnDrop: 0.0, // no dropout for deterministic tests
+      residDrop: 0.0,
       nLayer: 2,
       seed: 42
     };

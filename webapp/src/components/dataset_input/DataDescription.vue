@@ -16,17 +16,14 @@
               class="underline text-blue-400"
               :href="task.displayInformation.sampleDataset.link"
               >here</a
-            >. <br /><span
-              v-html="task.displayInformation.sampleDataset.instructions"
-            /><br />
+            >. <br />
+            <span>
+              {{task.displayInformation.sampleDataset.instructions}}
+            </span>
           </div>
-
           <!-- Sample dataset link and instructions -->
-          <div
-            v-if="task.displayInformation.dataFormatInformation !== undefined"
-          >
-            <div v-html="task.displayInformation.dataFormatInformation" />
-            <br />
+          <div>
+            {{ task.displayInformation.dataFormatInformation }}
           </div>
         </div>
 
