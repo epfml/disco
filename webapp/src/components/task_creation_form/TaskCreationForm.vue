@@ -314,10 +314,17 @@
                 v-model="aggregationStrategy"
                 name="trainingInformation.aggregationStrategy"
                 as="select"
-                :disabled="scheme !== 'decentralized'"
+                :disabled="scheme == 'local'"
               >
-                <option value="mean">Mean</option>
-                <option value="secure">Secure</option>
+                <!-- Federated supports mean & byzantine -->
+                <option v-if="scheme === 'federated'" value="mean">Mean</option>
+                <option v-if="scheme === 'federated'" value="byzantine">Byzantine</option>
+                <!-- Decentralized supports mean, byzantine & secure -->
+                <option v-if="scheme === 'decentralized'" value="mean">Mean</option>
+                <option v-if="scheme === 'decentralized'" value="byzantine">Byzantine</option>
+                <option v-if="scheme === 'decentralized'" value="secure">Secure</option>
+                <!-- Local supports only mean -->
+                <option v-if="scheme === 'local'" value="mean">Mean</option>
               </FormField>
 
               <FormLabel
@@ -332,6 +339,50 @@
                 />
               </FormLabel>
             </FormLabel>
+
+            <!-- Byzantine Robust Aggregator Parameters -->
+            <FormLabel
+              v-show="aggregationStrategy === 'byzantine'"
+              label="Clipping radius (λ) for Centered Clipping"
+            >
+              <FormField
+                name="trainingInformation.byzantineClippingRadius"
+                placeholder="1.0"
+                as="input"
+                type="number"
+                min="0"
+                step="0.01"
+              />
+            </FormLabel>
+
+            <FormLabel
+              v-show="aggregationStrategy === 'byzantine'"
+              label="Max Centered Clipping iterations (L)"
+            >
+              <FormField
+                name="trainingInformation.maxIterations"
+                placeholder="1"
+                as="input"
+                type="number"
+                min="1"
+              />
+            </FormLabel>
+
+            <FormLabel
+              v-show="aggregationStrategy === 'byzantine'"
+              label="Momentum coefficient (β) to smooth the aggregation over multiple rounds"
+            >
+              <FormField
+                name="trainingInformation.beta"
+                placeholder="0.9"
+                as="input"
+                type="number"
+                min="0"
+                max="1"
+                step="0.01"
+              />
+            </FormLabel>
+
 
             <FormLabel
               label="Number of epochs before aggregating weights"
@@ -376,24 +427,23 @@
                 </FormLabel>
               </div>
             </FormLabel>
-
             <FormLabel
-              v-model="weightClipping"
-              label="Weight clipping"
-              type="checkbox"
-            >
-              <div v-show="weightClipping" class="flex flex-col">
-                <FormLabel
-                  label="Maximum drift, measured by its norm, that can be made by the aggregated weights each round"
-                  type="required"
-                >
-                  <FormField
-                    name="trainingInformation.privacy.clippingRadius"
-                    placeholder="40"
-                    as="input"
-                    type="number"
-                  />
-                </FormLabel>
+            v-model="weightClipping"
+            label="Weight clipping"
+            type="checkbox"
+          >
+            <div v-show="weightClipping" class="flex flex-col">
+              <FormLabel
+                label="Maximum drift, measured by its norm, that can be made by the aggregated weights each round"
+                type="required"
+              >
+                <FormField
+                  name="trainingInformation.privacy.clippingRadius"
+                  placeholder="40"
+                  as="input"
+                  type="number"
+                />
+              </FormLabel>
               </div>
             </FormLabel>
           </div>
@@ -598,6 +648,26 @@ window.onbeforeunload = (event) => {
   event.preventDefault();
 };
 
+const byzantineParams = z.object({
+  byzantineClippingRadius: z
+    .number()
+    .positive("Clipping radius must be positive")
+    .optional()
+    .default(1.0),
+  maxIterations: z
+    .number()
+    .int("Max iterations must be an integer")
+    .positive("Max iterations must be > 0")
+    .optional()
+    .default(1),
+  beta: z
+    .number()
+    .min(0, "Momentum β must be ≥ 0")
+    .max(1, "Momentum β must be ≤ 1")
+    .optional()
+    .default(0.9),
+});
+
 const nonLocalNetwork = {
   privacy: z
     .object({
@@ -642,16 +712,31 @@ const trainingInformationNetworks = z.union([
           aggregationStrategy: z.literal("mean"),
         }),
         z.object({
+          aggregationStrategy: z.literal("byzantine"),
+          ...byzantineParams.shape,
+        }),
+        z.object({
           aggregationStrategy: z.literal("secure"),
           maxShareValue: z.number().positive().int(),
         }),
       ]),
     ),
-  z.object({
-    scheme: z.literal("federated"),
-    aggregationStrategy: z.literal("mean"),
-    ...nonLocalNetwork,
-  }),
+  z
+    .object({
+      scheme: z.literal("federated"),
+      ...nonLocalNetwork,
+    })
+    .and(
+      z.union([
+        z.object({
+          aggregationStrategy: z.literal("mean"),
+        }),
+        z.object({
+          aggregationStrategy: z.literal("byzantine"),
+          ...byzantineParams.shape,
+        }),
+      ]),
+    ),
   z.object({
     scheme: z.literal("local"),
     aggregationStrategy: z.literal("mean"),

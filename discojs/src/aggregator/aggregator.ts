@@ -89,7 +89,7 @@ export abstract class Aggregator extends EventEmitter<{'aggregation': WeightsCon
       throw new Error("Tried adding an invalid contribution. Handle this case before calling add.")
     
     // call the abstract method _add, implemented by subclasses
-    this._add(nodeId, contribution, communicationRound)
+    this._add(nodeId, contribution, communicationRound ?? this.communicationRound)
     // If the aggregator has enough contributions then aggregate the weights
     // and emit the 'aggregation' event
     if (this.isFull()) {

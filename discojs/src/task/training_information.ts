@@ -23,6 +23,14 @@ const nonLocalNetworkSchema = z.object({
 	minNbOfParticipants: z.number().positive().int(),
 });
 
+const byzantineSchema = z.object({
+		aggregationStrategy: z.literal("byzantine"),
+		byzantineClippingRadius: z.number().positive().optional().default(1.0),
+		maxIterations: z.number().int().positive().optional().default(1),
+		beta: z.number().min(0).max(1).optional().default(0.9),
+	});
+
+
 export namespace TrainingInformation {
 	export const baseSchema = z.object({
 		// number of epochs to run training for
@@ -37,6 +45,8 @@ export namespace TrainingInformation {
 		// Tensor framework used by the model
 		tensorBackend: z.enum(["gpt", "tfjs"]),
 	});
+
+	
 
 	export const dataTypeToSchema = {
 		image: z.object({
@@ -74,6 +84,7 @@ export namespace TrainingInformation {
 					z.object({
 						aggregationStrategy: z.literal("mean"),
 					}),
+					byzantineSchema,
 					z.object({
 						aggregationStrategy: z.literal("secure"),
 						// Secure Aggregation: maximum absolute value of a number in a randomly generated share
@@ -82,11 +93,19 @@ export namespace TrainingInformation {
 					}),
 				]),
 			),
-		federated: z.object({
-			scheme: z.literal("federated"),
-			aggregationStrategy: z.literal("mean"),
-			...nonLocalNetworkSchema.shape,
-		}),
+		federated: z
+			.object({
+				scheme: z.literal("federated"),
+			})
+			.merge(nonLocalNetworkSchema)
+			.and(
+				z.union([
+					z.object({
+						aggregationStrategy: z.literal("mean"),
+					}),
+					byzantineSchema,
+				]),
+			),
 		local: z.object({
 			scheme: z.literal("local"),
 			aggregationStrategy: z.literal("mean"),
