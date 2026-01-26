@@ -238,7 +238,7 @@ jobs:
       - run: npm ci
       - run: npm --workspace={discojs,discojs-web} run build
       - run: npm --workspace=webapp run test:unit
-      - uses: cypress-io/github-action@v6
+      - uses: cypress-io/github-action@v7
         with:
           working-directory: webapp
           install: false
