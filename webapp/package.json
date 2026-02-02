@@ -43,7 +43,7 @@
 		"tailwindcss": "4",
 		"typescript": "5",
 		"vite": "7",
-		"vite-plugin-node-polyfills": "0.24",
+		"vite-plugin-node-polyfills": "0.25",
 		"vue-tsc": "3",
 		"vue3-spinners": "1"
 	}
