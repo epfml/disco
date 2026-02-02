@@ -1,9 +1,8 @@
 # dependencies
 /node_modules/
 
-# model.json files
-server/models
-cli/models
+# stored trained models
+models/
 
 # tsc built
 dist/
