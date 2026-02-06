@@ -34,6 +34,7 @@
 		"@tensorflow/tfjs-node": "4",
 		"@types/simple-peer": "9",
 		"nodemon": "3",
-		"ts-node": "10"
+		"ts-node": "10",
+		"fast-check": "^3"
 	}
 }

@@ -28,6 +28,7 @@
 		"eslint": "9",
 		"eslint-plugin-cypress": "5",
 		"eslint-plugin-vue": "10",
+		"fast-check": "^4.5.3",
 		"typescript": "5",
 		"typescript-eslint": "8"
 	}
