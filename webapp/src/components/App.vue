@@ -56,14 +56,25 @@
 </template>
 
 <script lang="ts" setup>
-import { RouterView, useRoute } from "vue-router";
+import { onMounted } from "vue";
+import { RouterView, useRoute, useRouter } from "vue-router";
 
 import { useThemeStore } from "@/store";
 import BaseLayout from "./containers/BaseLayout.vue";
 import SideBar from "@/components/sidebar/SideBar.vue";
 
 const route = useRoute();
+const router = useRouter();
 
 const themeStore = useThemeStore();
 const themeClass = themeStore.selectByTheme("", "dark");
+
+// Handle GitHub Pages SPA redirect - navigate to pending route if it exists
+onMounted(() => {
+  const pendingRoute = sessionStorage.pendingRoute;
+  if (pendingRoute) {
+    delete sessionStorage.pendingRoute;
+    void router.push(pendingRoute);
+  }
+});
 </script>

@@ -1,5 +1,5 @@
 import createDebug from "debug";
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import { scrollToTop } from "@/utils";
 
 import TrainingBar from '@/components/progress_bars/TrainingBar.vue'
@@ -15,7 +15,7 @@ import AboutUs from '@/components/pages/AboutUs.vue'
 const debug = createDebug("webapp:router");
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   scrollBehavior(_to, _from, _savedPosition) {
     // Always scroll to top when navigating to a new page
     // Because router is wrapped in a BaseLayout, returning { top: 0 } doesn't do anything
