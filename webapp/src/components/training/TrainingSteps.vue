@@ -1,5 +1,18 @@
 <template>
-  <div v-if="task !== undefined">
+  <!-- Show loading indicator while tasks are being fetched -->
+  <div
+    v-if="isLoading"
+    class="my-10 flex flex-col justify-center items-center w-full"
+  >
+    <VueSpinner size="50" color="#6096BA" />
+    <div class="mt-10 flex flex-col justify-center items-center">
+      <p class="text-disco-blue">Loading the <DISCOllaborative /></p>
+      <p class="text-disco-blue text-xs">This can take a few seconds</p>
+    </div>
+  </div>
+
+  <!-- Show task content once loaded -->
+  <div v-else-if="task !== undefined">
     <TrainingDescription v-show="trainingStore.step === 1" :task />
 
     <div
@@ -29,6 +42,7 @@
 import { storeToRefs } from "pinia";
 import { computed, onMounted, ref, toRaw, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import { VueSpinner } from "vue3-spinners";
 
 import type {
   Dataset,
@@ -42,6 +56,7 @@ import type {
 import type { LabeledDataset } from "@/components/dataset_input/types.js";
 import DataDescription from "@/components/dataset_input/DataDescription.vue";
 import LabeledDatasetInput from "@/components/dataset_input/LabeledDatasetInput.vue";
+import DISCOllaborative from "@/components/simple/DISCOllaborative.vue";
 import TrainingButtons from "@/components/progress_bars/TrainingButtons.vue";
 import TrainingDescription from "@/components/training/TrainingDescription.vue";
 import TrainingFinished from "@/components/training/TrainingFinished.vue";
@@ -63,17 +78,28 @@ function setupTrainingStore() {
   trainingStore.setTask(route.params.id as string); // more reliable than props.id
   trainingStore.setStep(1);
 }
-// Init the task once the taskStore has been loaded successfully
-// If it is not we redirect to the task list
-const task = computed<Task<DataType, Network> | undefined>(() => {
-  if (typeof tasks.value !== "string") return tasks.value.get(props.id);
 
-  // Redirect to the task list if not loaded yet
-  // This happens when refreshing the page, every task are reset when fetched
-  if (route.name !== "task-list") {
-    void router.replace({ name: "task-list" });
+// Check if tasks are still loading
+const isLoading = computed<boolean>(() => {
+  return typeof tasks.value === "string";
+});
+
+// Init the task once the taskStore has been loaded successfully
+// If it is not available we redirect to not-found
+const task = computed<Task<DataType, Network> | undefined>(() => {
+  if (typeof tasks.value === "string") {
+    // Tasks are still loading, return undefined to show loading indicator
+    return undefined;
   }
-  return undefined;
+
+  const foundTask = tasks.value.get(props.id);
+
+  // Redirect to not-found if tasks have loaded but this specific task doesn't exist
+  if (foundTask === undefined) {
+    void router.replace({ name: "not-found" });
+  }
+
+  return foundTask;
 });
 
 // Addresses the case when users enter a url manually
