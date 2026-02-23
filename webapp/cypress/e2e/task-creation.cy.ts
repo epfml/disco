@@ -8,7 +8,7 @@ it("submits with tabular task", () => {
     { statusCode: 200 },
   ).as("posted");
 
-  cy.visit("/#/create");
+  cy.visit("/create");
 
   cy.get('form').should('be.visible'); // Wait for the form to be fully loaded
 
