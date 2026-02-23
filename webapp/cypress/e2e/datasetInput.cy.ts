@@ -4,7 +4,7 @@ import { basicTask, setupServerWith } from "../support/e2e";
 // upstream doesn't yet allow that vuejs/test-utils#2468
 
 function goToDatasetInputStep() {
-  cy.visit("/#/list");
+  cy.visit("/list");
   cy.get(".driver-popover-close-btn").click();
   cy.get("button").contains("participate").click();
   cy.get("button").contains("next").click();

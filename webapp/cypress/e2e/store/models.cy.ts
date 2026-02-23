@@ -18,7 +18,7 @@ it("stores models",
   () => {
   setupServerWith(defaultTasks.titanic);
 
-  cy.visit("/#/evaluate");
+  cy.visit("/evaluate");
   cy.contains("button", "download").click();
   cy.contains("button", "test").should("exist");
 
@@ -31,7 +31,7 @@ it("stores larger models",
   () => {
   setupServerWith(defaultTasks.wikitext);
 
-  cy.visit("/#/evaluate");
+  cy.visit("/evaluate");
   cy.contains("button", "download").click();
   cy.contains("button", "test")
     .should("exist")

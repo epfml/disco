@@ -5,7 +5,7 @@ import { setupServerWith } from "../support/e2e";
 it("can test titanic", () => {
   setupServerWith(defaultTasks.titanic);
 
-  cy.visit("/#/evaluate");
+  cy.visit("/evaluate");
   cy.contains("button", "download").click();
   cy.contains("button", "test").click();
 
@@ -26,7 +26,7 @@ it("can test titanic", () => {
 it("can test lus_covid", () => {
   setupServerWith(defaultTasks.lusCovid);
 
-  cy.visit("/#/evaluate");
+  cy.visit("/evaluate");
   cy.contains("button", "download").click();
   cy.contains("button", "test").click();
 
@@ -47,7 +47,7 @@ it("can test lus_covid", () => {
 it("can start and stop testing of wikitext", () => {
   setupServerWith(defaultTasks.wikitext);
 
-  cy.visit("/#/evaluate");
+  cy.visit("/evaluate");
   cy.contains("button", "download").click();
   cy.contains("button", "test").click();
 

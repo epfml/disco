@@ -11,14 +11,14 @@ describe("tasks page", () => {
       defaultTasks.wikitext,
     );
 
-    cy.visit("/#/list").contains("button", "participate");
+    cy.visit("/list").contains("button", "participate");
     cy.get('div[id="tasks"]').children().should("have.length", 4);
   });
 
   it("redirects to training", () => {
     setupServerWith(defaultTasks.titanic);
 
-    cy.visit("/#/list").contains("button", "participate");
+    cy.visit("/list").contains("button", "participate");
     cy.get(".driver-popover-close-btn").click();
     cy.get(`div[id="titanic"]`).find("button").click();
     cy.url().should("eq", `${Cypress.config().baseUrl}#/titanic`);
@@ -33,7 +33,7 @@ describe("tasks page", () => {
       { statusCode: 404 },
     );
 
-    cy.visit("/#/list");
+    cy.visit("/list");
     cy.contains("button", "reload page");
   });
 });
