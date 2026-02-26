@@ -152,7 +152,7 @@ export class Trainer<D extends DataType, N extends Network> {
         this.model.train(dataset, validationDataset),
       );
 
-      yield gen; // batchLogs
+      yield gen;
       epochsLogs = epochsLogs.push(await epochLogs);
     }
       

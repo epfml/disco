@@ -20,7 +20,9 @@ async function loadSimpleFaceData(userIdx: number, totalClient: number): Promise
 
   const combinded = adults.chain(childs);
 
-  return combinded.filter((_, i) => i % totalClient === userIdx);
+  const sharded = combinded.filter((_, i) => i % totalClient === userIdx);
+
+  return sharded;
 }
 
 async function loadLusCovidData(userIdx: number, totalClient: number): Promise<Dataset<DataFormat.Raw["image"]>> {

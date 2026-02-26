@@ -57,6 +57,7 @@ export class GPT extends Model<"text"> {
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded["text"]>>,
   ): AsyncGenerator<BatchLogs, EpochLogs> {
     let batchesLogs = List<BatchLogs>();
+    let epochTime = performance.now();
 
     for await (const [batch, _] of trainingDataset.zip(
       Range(0, this.#maxBatchCount),
@@ -69,8 +70,9 @@ export class GPT extends Model<"text"> {
 
     const validation =
       validationDataset && (await this.#evaluate(validationDataset));
+    epochTime = performance.now() - epochTime;
 
-    return new EpochLogs(batchesLogs, validation);
+    return new EpochLogs(batchesLogs, epochTime, validation);
   }
 
   async #runBatch(

@@ -37,10 +37,34 @@ interface DiscoConfig<N extends Network> {
   preprocessOnce: boolean;
 }
 
+export type SummaryLogs = {
+  round: number,
+  epoch: number,
+  trainingLoss: number,
+  trainingAccuracy: number,
+  peakMemory: number,
+  epochTime: number,
+  validationLoss?: number,
+  validationAccuracy?: number
+}
+
 export type RoundStatus = 'not enough participants' | // Server notification to wait for more participants
   'updating model' | // fetching/aggregating local updates into a global model
   'local training' | // Training the model locally
   'connecting to peers' // for decentralized only, fetch the server's list of participating peers
+
+function buildSummaryLog(roundNum: number, epochNum: number, epochLogs: EpochLogs): SummaryLogs {
+  return {
+      round: roundNum,
+      epoch: epochNum,
+      trainingLoss: epochLogs.training.loss,
+      trainingAccuracy: epochLogs.training.accuracy,
+      peakMemory: epochLogs.peakMemory,
+      epochTime: epochLogs.epochTime,
+      validationLoss: epochLogs.validation?.loss,
+      validationAccuracy: epochLogs.validation?.accuracy,
+    }
+}
 
 /**
  * Top-level class handling distributed training from a client's perspective. It is meant to be
@@ -134,6 +158,21 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   ): AsyncGenerator<BatchLogs> {
     for await (const round of this.train(dataset))
       for await (const epoch of round) yield* epoch;
+  }
+
+  /** Train on dataset, yielding summary logs */  
+  async *trainSummary(
+    dataset: Dataset<DataFormat.Raw[D]>,
+  ): AsyncGenerator<SummaryLogs> {
+    for await (const [roundNum, round] of enumerate(this.train(dataset))) {
+      for await (const [epochNum, epoch] of enumerate(round)) {
+        const [epochGen, epochLogs] = async_iterator.split(epoch);
+        for await (const _ of epochGen);
+        const baseLog = await epochLogs;
+        const summaryLog = buildSummaryLog(roundNum, epochNum, baseLog);
+        yield summaryLog;
+      }
+    }
   }
 
   /** Run whole train on dataset. */

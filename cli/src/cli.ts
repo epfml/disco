@@ -8,7 +8,7 @@ import type {
   Dataset,
   DataFormat,
   DataType,
-  RoundLogs,
+  SummaryLogs,
   Task,
   TaskProvider,
   Network,
@@ -29,16 +29,24 @@ async function runUser<D extends DataType, N extends Network>(
 	task: Task<D, N>,
 	url: URL,
 	data: Dataset<DataFormat.Raw[D]>,
-): Promise<List<RoundLogs>> {
+): Promise<List<SummaryLogs>> {
   // cast as typescript isn't good with generics
   const trainingScheme = task.trainingInformation.scheme as N
   const aggregator = aggregators.getAggregator(task)
   const client = clients.getClient(trainingScheme, url, task, aggregator)
   const disco = new Disco(task, client, { scheme: trainingScheme });
 
-  const logs = List(await arrayFromAsync(disco.trainByRound(data)));
+  const logs = List(await arrayFromAsync(disco.trainSummary(data)));
   await new Promise((res, _) => setTimeout(() => res('timeout'), 1000)) // Wait for other peers to finish
+
+  // saving per-user logs
+  if (args.save) {
+    const fileName = `${task.id}_${client.ownId}_local_log.json`;
+    await fs.writeFile(fileName, JSON.stringify(logs, null, 2));
+  }
+
   await disco.close();
+
   return logs;
 }
 
@@ -58,7 +66,7 @@ async function main<D extends DataType, N extends Network>(
   )
 
   if (args.save) {
-    const fileName = `${task.id}_${numberOfUsers}users.csv`;
+    const fileName = `${task.id}_${numberOfUsers}users.json`;
     await fs.writeFile(fileName, JSON.stringify(logs, null, 2));
   }
 }
