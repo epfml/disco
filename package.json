@@ -26,7 +26,7 @@
 		"@vue/eslint-config-prettier": "10",
 		"@vue/eslint-config-typescript": "14",
 		"eslint": "9",
-		"eslint-plugin-cypress": "5",
+		"eslint-plugin-cypress": "6",
 		"eslint-plugin-vue": "10",
 		"typescript": "5",
 		"typescript-eslint": "8"
