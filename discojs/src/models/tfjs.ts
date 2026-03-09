@@ -57,7 +57,7 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
       batchesLogs = batchesLogs.push(batchLogs);
     }
     epochTime = performance.now() - epochTime;
-    const validation = validationDataset && (await this.#evaluate(validationDataset));
+    const validation = validationDataset && (await this.evaluate(validationDataset));
     return new EpochLogs(batchesLogs, epochTime, validation);
   }
 
@@ -89,7 +89,7 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     };
   }
 
-  async #evaluate(
+  override async evaluate(
     dataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
   ): Promise<Record<"accuracy" | "loss", number>> {
     const evaluation = await this.model.evaluateDataset(

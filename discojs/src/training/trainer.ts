@@ -12,6 +12,7 @@ import {
   Task,
   WeightsContainer,
   Network,
+  ValidationMetrics,
 } from "../index.js";
 import { privacy } from "../index.js";
 import { Client } from "../client/index.js";
@@ -20,6 +21,7 @@ import * as async_iterator from "../utils/async_iterator.js";
 export interface RoundLogs {
   epochs: List<EpochLogs>;
   participants: number;
+  preRoundValidation?: ValidationMetrics;
 }
 
 /** List of weight update norms */
@@ -147,6 +149,10 @@ export class Trainer<D extends DataType, N extends Network> {
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
   ): AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs> {
     let epochsLogs = List<EpochLogs>();
+
+    // Before starting the training, get the validation of global model
+    const validation = validationDataset !== undefined ? await this.model.evaluate(validationDataset) : undefined;
+
     for (let epoch = 0; epoch < this.#roundDuration; epoch++) {
       const [gen, epochLogs] = async_iterator.split(
         this.model.train(dataset, validationDataset),
@@ -159,6 +165,7 @@ export class Trainer<D extends DataType, N extends Network> {
     return {
       epochs: epochsLogs,
       participants: this.#client.nbOfParticipants,
+      preRoundValidation: validation,
     };
   }
 }
