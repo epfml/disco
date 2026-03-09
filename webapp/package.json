@@ -36,7 +36,7 @@
 		"@types/jsdom": "27",
 		"@vitejs/plugin-vue": "6",
 		"@vue/test-utils": "2",
-		"@vue/tsconfig": "0.8",
+		"@vue/tsconfig": "0.9",
 		"canvas": "3",
 		"jsdom": "28",
 		"start-server-and-test": "2",
