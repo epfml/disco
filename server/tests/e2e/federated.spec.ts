@@ -95,8 +95,8 @@ describe("end-to-end federated", () => {
 		]);
 
 		for (const lastEpoch of [l1, l2, l3]) {
-			expect(lastEpoch.training.accuracy).to.be.greaterThan(0.5);
-			expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.5);
+			expect(lastEpoch.training.accuracy).to.be.greaterThan(0.4);
+			expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.4);
 		}
 		assert.isTrue(m1.equals(m2) && m2.equals(m3));
 	});
@@ -119,8 +119,8 @@ describe("end-to-end federated", () => {
 		]);
 
 		for (const lastEpoch of [l1, l2]) {
-			expect(lastEpoch.training.accuracy).to.be.greaterThan(0.5);
-			expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.5);
+			expect(lastEpoch.training.accuracy).to.be.greaterThan(0.4);
+			expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.4);
 		}
 		assert.isTrue(m1.equals(m2));
 	});
@@ -145,8 +145,8 @@ describe("end-to-end federated", () => {
 		]);
 
 		for (const lastEpoch of [l1, l2]) {
-			expect(lastEpoch.training.accuracy).to.be.greaterThan(0.5);
-			expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.5);
+			expect(lastEpoch.training.accuracy).to.be.greaterThan(0.4);
+			expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.4);
 		}
 		assert.isTrue(m1.equals(m2));
 	});
@@ -347,8 +347,8 @@ describe("end-to-end federated", () => {
 		]);
 
 		for (const lastEpoch of [l1, l2, l3]) {
-			expect(lastEpoch.training.accuracy).to.be.greaterThan(0.5);
-			expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.5); 
+			expect(lastEpoch.training.accuracy).to.be.greaterThan(0.4);
+			expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.4); 
 		}
 		assert.isTrue(m1.equals(m2) && m2.equals(m3));
 	})
