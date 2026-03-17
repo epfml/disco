@@ -69,7 +69,7 @@ export class GPT extends Model<"text"> {
     }
 
     const validation =
-      validationDataset && (await this.#evaluate(validationDataset));
+      validationDataset && (await this.evaluate(validationDataset));
     epochTime = performance.now() - epochTime;
 
     return new EpochLogs(batchesLogs, epochTime, validation);
@@ -104,7 +104,7 @@ export class GPT extends Model<"text"> {
     };
   }
 
-  async #evaluate(
+  override async evaluate(
     dataset: Dataset<Batched<DataFormat.ModelEncoded["text"]>>,
   ): Promise<Record<"accuracy" | "loss", number>> {
     const evaluation = await evaluate(

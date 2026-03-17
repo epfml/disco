@@ -3,6 +3,7 @@ import "@tensorflow/tfjs-node"
 
 import { List, Range } from 'immutable'
 import fs from 'node:fs/promises'
+import path from "node:path";
 
 import type {
   Dataset,
@@ -41,8 +42,11 @@ async function runUser<D extends DataType, N extends Network>(
 
   // saving per-user logs
   if (args.save) {
-    const fileName = `${task.id}_${client.ownId}_local_log.json`;
-    await fs.writeFile(fileName, JSON.stringify(logs, null, 2));
+    const dir = path.join(".", `${args.testID}`, `${task.id}`);
+    await fs.mkdir(dir, { recursive: true });
+
+    const filePath = path.join(dir, `${client.ownId}_local_log.json`);
+    await fs.writeFile(filePath, JSON.stringify(logs, null, 2));
   }
 
   await disco.close();
@@ -55,6 +59,7 @@ async function main<D extends DataType, N extends Network>(
 	numberOfUsers: number,
 ): Promise<void> {
   const task = await provider.getTask();
+  console.log(`Test ID: ${args.testID}`)
   console.log(`Started ${task.trainingInformation.scheme} training of ${task.id}`)
   console.log({ args })
 
@@ -66,8 +71,11 @@ async function main<D extends DataType, N extends Network>(
   )
 
   if (args.save) {
-    const fileName = `${task.id}_${numberOfUsers}users.json`;
-    await fs.writeFile(fileName, JSON.stringify(logs, null, 2));
+    const dir = path.join(".", `${args.testID}`, `${task.id}`);
+    await fs.mkdir(dir, { recursive: true });
+
+    const filePath = path.join(dir, `${task.id}_${numberOfUsers}users.json`);
+    await fs.writeFile(filePath, JSON.stringify(logs, null, 2));
   }
 }
 
