@@ -13,7 +13,7 @@ function parseAggregator(raw: string): AggregationStrategy{
     throw new Error(`Aggregator ${raw} is not supported.`);
 }
 
-interface BenchmarkArguments {
+export interface BenchmarkArguments {
 	provider: TaskProvider<DataType, Network>;
   testID: string
   numberOfUsers: number

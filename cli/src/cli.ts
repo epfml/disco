@@ -18,6 +18,8 @@ import { Disco, aggregator as aggregators, client as clients } from '@epfml/disc
 
 import { getTaskData } from './data.js'
 import { args } from './args.js'
+import { makeUserLogFile } from "./user_log.js";
+import type { UserLogFile } from "./user_log.js";
 
 // Array.fromAsync not yet widely used (2024)
 async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
@@ -30,6 +32,8 @@ async function runUser<D extends DataType, N extends Network>(
 	task: Task<D, N>,
 	url: URL,
 	data: Dataset<DataFormat.Raw[D]>,
+  userIndex: number,
+  numberOfUsers: number,
 ): Promise<List<SummaryLogs>> {
   // cast as typescript isn't good with generics
   const trainingScheme = task.trainingInformation.scheme as N
@@ -45,8 +49,11 @@ async function runUser<D extends DataType, N extends Network>(
     const dir = path.join(".", `${args.testID}`, `${task.id}`);
     await fs.mkdir(dir, { recursive: true });
 
-    const filePath = path.join(dir, `${client.ownId}_local_log.json`);
-    await fs.writeFile(filePath, JSON.stringify(logs, null, 2));
+    const filePath = path.join(dir, `client${userIndex}_local_log.json`);
+
+    const userLog: UserLogFile = makeUserLogFile(task, numberOfUsers, userIndex, client.ownId, logs.toArray());
+
+    await fs.writeFile(filePath, JSON.stringify(userLog, null, 2));
   }
 
   await disco.close();
@@ -67,7 +74,7 @@ async function main<D extends DataType, N extends Network>(
     Range(0, numberOfUsers).map(async i => getTaskData(task.id, i, numberOfUsers))
   )
   const logs = await Promise.all(
-    dataSplits.map(async data => await runUser(task, args.host, data as Dataset<DataFormat.Raw[D]>))
+    dataSplits.map((data, i) => runUser(task, args.host, data as Dataset<DataFormat.Raw[D]>, i, numberOfUsers))
   )
 
   if (args.save) {
