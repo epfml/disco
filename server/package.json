@@ -15,7 +15,7 @@
 	"dependencies": {
 		"@epfml/discojs-node": "*",
 		"@msgpack/msgpack": "3",
-		"@roamhq/wrtc": "0.9",
+		"@roamhq/wrtc": "0.10",
 		"@tensorflow/tfjs": "4",
 		"cors": "2",
 		"express": "5",
