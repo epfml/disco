@@ -128,8 +128,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: docker/setup-buildx-action@v4
-        with:
-          install: true
       - run: docker build .
       - run: |
           docker build --quiet --load . | \
