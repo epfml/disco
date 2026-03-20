@@ -23,10 +23,15 @@
             >
               <ButtonsCard
                 :buttons="
-                  List.of(
-                    ['test', () => selectModel(id, 'test')],
-                    ['predict', () => selectModel(id, 'predict')],
-                  )
+                  infos.taskID === 'llm_task'
+                    ? List.of(
+                        ['to chat', () => goToChat(id)],
+                        ['evaluate', () => goToBenchmarks()],
+                      )
+                    : List.of(
+                        ['test', () => selectModel(id, 'test')],
+                        ['predict', () => selectModel(id, 'predict')],
+                      )
                 "
                 class="shadow-xs border border-gray-200 dark:border-gray-700 dark:shadow-gray-700"
               >
@@ -163,6 +168,7 @@ import type { ModelID } from "@/store";
 import { useModelsStore } from "@/store";
 import { useTasksStore } from "@/store";
 import { useValidationStore } from "@/store";
+import { useRouter } from "vue-router";
 
 import ButtonsCard from "@/components/containers/ButtonsCard.vue";
 import IconCard from "@/components/containers/IconCard.vue";
@@ -172,12 +178,14 @@ import DISCOllaboratives from "@/components/simple/DISCOllaboratives.vue";
 
 import TestSteps from "./TestSteps.vue";
 import PredictSteps from "./PredictSteps.vue";
+import { isDebuggerStatement } from "typescript";
 
 const debug = createDebug("webapp:ModelLibrary");
 const validationStore = useValidationStore();
 const models = useModelsStore();
 const { tasks } = storeToRefs(useTasksStore());
 const toaster = useToaster();
+const router = useRouter();
 
 type Selection<D extends DataType> = {
   mode: "predict" | "test";
@@ -307,4 +315,13 @@ function taskTitle(taskID: string): string | undefined {
 
   return titled.displayInformation.title;
 }
+
+const goToChat = (modelID: ModelID): void => {
+  validationStore.step = 0;
+  router.push({ path: "/chat", query: { modelID } });
+};
+
+const goToBenchmark = (): void => {
+  router.push({ path: "/benchmark" });
+};
 </script>
