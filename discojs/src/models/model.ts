@@ -42,10 +42,10 @@ export abstract class Model<D extends DataType> implements Disposable {
   /**
    * Return validation metrics
    * 
-   * TODO: currently only works for TFJS models
+   * TODO: currently only works for TFJS, gpt models
    */
-  async evaluate(
-    validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>
+  evaluate(
+    dataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>
   ): Promise<ValidationMetrics>{
     throw new Error("Evaluation not supported for this model");
   }
