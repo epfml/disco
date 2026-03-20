@@ -106,7 +106,10 @@ export async function getTaskData<D extends DataType>(
       ) as Dataset<DataFormat.Raw[D]>;
       return titanicData.filter((_, i) => i % totalClient === userIdx);
     case "cifar10":
-      return (await loadData("cifar10-agent", userIdx)) as Dataset<DataFormat.Raw[D]>;
+      return loadData("cifar10-agent", userIdx) as Dataset<DataFormat.Raw[D]>;
+    case "cifar10_federated_simple_model":
+    case "cifar10_simple_model":
+      return loadData("cifar10_ext", userIdx) as Dataset<DataFormat.Raw[D]>;
     case "lus_covid":
     case "lus_covid_decentralized":
       return (await loadLusCovidData(userIdx, totalClient)) as Dataset<DataFormat.Raw[D]>;
