@@ -92,12 +92,9 @@ const supportedTasks = Map(
     Set.of<TaskProvider<"image" | "tabular", Network>>(
       defaultTasks.cifar10,
       defaultTasks.lusCovid,
-      defaultTasks.lusCovidDecentralized,
       defaultTasks.simpleFace,
       defaultTasks.titanic,
-      defaultTasks.titanicDecentralized,
       defaultTasks.tinderDog,
-      defaultTasks.mnistFederated,
       defaultTasks.mnist,
     ).map(
       async (t) =>
