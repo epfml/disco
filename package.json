@@ -22,7 +22,7 @@
 	},
 	"devDependencies": {
 		"@types/debug": "4",
-		"@types/node": "22",
+		"@types/node": "24",
 		"@vitest/eslint-plugin": "1",
 		"@vue/eslint-config-prettier": "10",
 		"@vue/eslint-config-typescript": "14",
