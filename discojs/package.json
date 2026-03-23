@@ -35,6 +35,6 @@
 		"@types/simple-peer": "9",
 		"nodemon": "3",
 		"ts-node": "10",
-		"fast-check": "^3"
+		"fast-check": "3"
 	}
 }
