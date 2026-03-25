@@ -51,7 +51,7 @@ def main():
         cfg = {**defaults, **exp}
         cmd = build_test_command(cfg)
 
-        print(f"Running {cfg["testID"]}...")
+        print(f"Running {cfg['testID']}...")
         print(" ".join(cmd))
 
         subprocess.run(cmd, text=True)
