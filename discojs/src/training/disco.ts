@@ -223,7 +223,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
           tabularStandardization: stats,
         };
 
-        let preprocessed = processing.preprocess(
+        const preprocessed = processing.preprocess(
           this.#task,
           dataset,
           this.trainer.model.metadata,

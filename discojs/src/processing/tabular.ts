@@ -55,7 +55,10 @@ export function computeStandardizationStats(
   const stds: Record<string, number> = {};
 
   for (const col of columns){
-    const values = rows.map((row)=> convertToNumber(extractColumn(row, col)));
+    const values = rows.map((row)=> {
+      const rawValue = extractColumn(row, col);
+      return convertToNumber(rawValue !== "" ? rawValue : "0");
+    });
     const mean = values.reduce((a, b)=> a+b, 0) / values.length;
     const variance = values.reduce((acc, val) => acc + (val-mean)**2, 0) / values.length;
 
@@ -91,7 +94,10 @@ export function standardizeRow(
   stats: StandardizationStats,
 ): Array<number>{
   return columns.map((col) => {
-    const value = convertToNumber(extractColumn(row, col));
+    const rawValue = extractColumn(row, col)
+    // Handle cases where the dataset contains empty strings.
+    // This only occurs in test cases, as empty strings are not allowed in the web app.
+    const value = convertToNumber(rawValue !== "" ? rawValue : "0");
     const mean = stats.means[col];
     const std = stats.stds[col];
     return standardizeValue(value, mean, std);
