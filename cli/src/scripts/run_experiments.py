@@ -21,9 +21,9 @@ def build_test_command(cfg):
     if cfg.get("save", False): # If no "save" argument, default is False
         cmd += ["--save"]
     if "epsilon" in cfg:
-        cmd += ["epsilon", str(cfg["epsilon"])]
+        cmd += ["--epsilon", str(cfg["epsilon"])]
     if "delta" in cfg:
-        cmd += ["delta", str(cfg["delta"])]
+        cmd += ["--delta", str(cfg["delta"])]
     if "dpDefaultClippingRadius" in cfg:
         cmd += ["--dpDefaultClippingRadius", str(cfg["dpDefaultClippingRadius"])]
     if "clippingRadius" in cfg:
