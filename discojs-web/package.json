@@ -24,7 +24,7 @@
 	},
 	"devDependencies": {
 		"@types/papaparse": "5",
-		"jsdom": "28",
+		"jsdom": "29",
 		"nodemon": "3"
 	}
 }
