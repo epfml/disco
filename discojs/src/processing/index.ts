@@ -9,6 +9,7 @@ import type {
 	Tabular,
 	Task,
 	Network,
+  ModelMetadata,
 } from "../index.js";
 
 import * as processing from "./index.js";
@@ -19,6 +20,7 @@ export * from "./tabular.js";
 export function preprocess<D extends DataType, N extends Network>(
   task: Task<D, N>,
   dataset: Dataset<DataFormat.Raw[D]>,
+  metadata?: ModelMetadata,
 ): Dataset<DataFormat.ModelEncoded[D]> {
   switch (task.dataType) {
     case "image": {
@@ -37,12 +39,17 @@ export function preprocess<D extends DataType, N extends Network>(
       // cast as typescript doesn't reduce generic type
       const d = dataset as Dataset<DataFormat.Raw["tabular"]>;
       const { inputColumns, outputColumn } = task.trainingInformation;
+      const stats = metadata?.tabularStandardization;
 
       return d.map((row) => {
         const output = processing.extractColumn(row, outputColumn);
 
+        const inputs = stats
+          ? List(processing.standardizeRow(row, inputColumns, stats))
+          : extractToNumbers(inputColumns, row);
+
         return [
-          extractToNumbers(inputColumns, row),
+          inputs,
           // TODO sanitization doesn't care about column distribution
           output !== "" ? processing.convertToNumber(output) : 0,
         ];
@@ -68,6 +75,7 @@ export function preprocess<D extends DataType, N extends Network>(
 export function preprocessWithoutLabel<D extends DataType>(
   task: Task<D, Network>,
   dataset: Dataset<DataFormat.RawWithoutLabel[D]>,
+  metadata?: ModelMetadata,
 ): Dataset<DataFormat.ModelEncoded[D][0]> {
   switch (task.dataType) {
     case "image": {
@@ -85,8 +93,13 @@ export function preprocessWithoutLabel<D extends DataType>(
       // cast as typescript doesn't reduce generic type
       const d = dataset as Dataset<DataFormat.Raw["tabular"]>;
       const { inputColumns } = task.trainingInformation;
+      const stats = metadata?.tabularStandardization;
 
-      return d.map((row) => extractToNumbers(inputColumns, row));
+      return d.map((row) => 
+        stats
+          ? List(processing.standardizeRow(row, inputColumns, stats))
+          : extractToNumbers(inputColumns, row)
+      );
     }
     case "text": {
       // cast as typescript doesn't reduce generic type

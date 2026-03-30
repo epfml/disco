@@ -12,17 +12,20 @@ import {
 import { BatchLogs } from './index.js'
 import { Model } from './index.js'
 import { EpochLogs } from './logs.js'
+import { ModelMetadata } from "./model.js";
 
-type Serialized<D extends DataType> = [D, tf.io.ModelArtifacts];
+type Serialized<D extends DataType> = [D, tf.io.ModelArtifacts, ModelMetadata?];
 
 /** TensorFlow JavaScript model with standard training */
 export class TFJS<D extends "image" | "tabular"> extends Model<D> {
   /** Wrap the given trainable model */
   constructor (
     public readonly datatype: D,
-    private readonly model: tf.LayersModel
+    private readonly model: tf.LayersModel,
+    metadata?: ModelMetadata,
   ) {
     super()
+    this.metadata = metadata;
 
     if (model.loss === undefined) {
       throw new Error('TFJS models need to be compiled to be used')
@@ -176,12 +179,14 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
   static async deserialize<D extends "image" | "tabular">([
     datatype,
     artifacts,
+    metadata
   ]: Serialized<D>): Promise<TFJS<D>> {
     return new this(
       datatype,
       await tf.loadLayersModel({
         load: () => Promise.resolve(artifacts),
       }),
+      metadata
     );
   }
 
@@ -204,7 +209,7 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
       includeOptimizer: true // keep model compiled
     })
 
-    return [this.datatype, await ret]
+    return [this.datatype, await ret, this.metadata]
   }
 
   [Symbol.dispose](): void{

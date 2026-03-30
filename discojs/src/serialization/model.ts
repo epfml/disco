@@ -1,6 +1,6 @@
 import type tf from '@tensorflow/tfjs'
 
-import type { DataType, Model } from '../index.js'
+import type { DataType, Model, ModelMetadata } from '../index.js'
 import { models, serialization } from '../index.js'
 import { GPTConfig } from '../models/index.js'
 
@@ -41,11 +41,11 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
   const rawModel = raw[1] as unknown
   switch (type) {
     case Type.TFJS: {
-      if (raw.length !== 3)
+      if (raw.length !== 3 && raw.length !== 4)
         throw new Error(
-          "invalid TFJS model encoding: should be an array of length 3",
+          "invalid TFJS model encoding: should be an array of length 3 or 4",
         );
-      const [rawDatatype, rawModel] = raw.slice(1) as unknown[];
+      const [rawDatatype, rawModel, rawMetadata] = raw.slice(1) as unknown[];
 
       let datatype;
       switch (rawDatatype) {
@@ -63,6 +63,8 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
         datatype,
         // TODO totally unsafe casting
         rawModel as tf.io.ModelArtifacts,
+        // metadata for tabular task standardization
+        rawMetadata as ModelMetadata,
       ]);
     }
     case Type.GPT: {  
