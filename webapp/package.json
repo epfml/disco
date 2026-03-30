@@ -38,7 +38,7 @@
 		"@vue/test-utils": "2",
 		"@vue/tsconfig": "0.9",
 		"canvas": "3",
-		"jsdom": "28",
+		"jsdom": "29",
 		"start-server-and-test": "3",
 		"tailwindcss": "4",
 		"typescript": "5",
