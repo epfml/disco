@@ -42,7 +42,7 @@
 		"start-server-and-test": "3",
 		"tailwindcss": "4",
 		"typescript": "5",
-		"vite": "^8.0.3",
+		"vite": "8",
 		"vite-plugin-node-polyfills": "0.25",
 		"vue-tsc": "3",
 		"vue3-spinners": "1"
