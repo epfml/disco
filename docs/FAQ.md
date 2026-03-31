@@ -51,9 +51,9 @@ Firewall settings can sometimes block npm's network requests, preventing it from
 2. Identify the specific firewall rule that is blocking npm and adjust it.  
 3. Make sure your firewall allows outbound HTTPS (port 443) connections to `registry.npmjs.org`.
 
-### Custom `nvm` Setup on Cluster
+### Custom `nvm` setup on EPFL's RCP Cluster
 
-This guide explains how to install and use `nvm` in a cluster environment with persistent storage.
+This guide explains how to install and use `nvm` on EPFL's RCP cluster environment with the MLO lab's persistent storage. We assume that you are following the [lab's workflow](https://github.com/epfml/getting-started) and are using `zsh`.
 
 #### Goals
 
