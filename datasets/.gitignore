@@ -9,6 +9,8 @@
 /simple_face-example.png
 /titanic_test.csv
 /titanic_train.csv
+/titanic_train_with_nan.csv
+/titanic_test_with_nan.csv
 /titanic_wrong_number_columns.csv
 /titanic_wrong_passengerID.csv
 
