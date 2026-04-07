@@ -155,12 +155,12 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   > {
     this.#logger.success("Training started");
 
-    const [trainingDataset, validationDataset] =
-      await this.#preprocessSplitAndBatch(dataset);
-
     // the client fetches the latest weights upon connection
     // TODO unsafe cast
     this.trainer.model = (await this.#client.connect()) as Model<D>;
+
+    const [trainingDataset, validationDataset] =
+      await this.#preprocessSplitAndBatch(dataset);
 
     for await (const [round, epochs] of enumerate(
       this.trainer.train(trainingDataset, validationDataset),
@@ -213,21 +213,78 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   > {
     const { batchSize, validationSplit } = this.#task.trainingInformation;
 
-    let preprocessed = processing.preprocess(this.#task, dataset);
+    if (validationSplit === 0){
+      if (this.#task.dataType === "tabular"){
+        const rows = await arrayFromAsync(dataset as Dataset<DataFormat.Raw["tabular"]>);
+        const inputColumns = this.#task.trainingInformation.inputColumns;
 
-    preprocessed = (
-      this.#preprocessOnce
-        ? new Dataset(await arrayFromAsync(preprocessed))
-        : preprocessed
-    )
-    if (validationSplit === 0) return [preprocessed.batch(batchSize).cached(), undefined];
+        const stats = processing.computeStandardizationStats(rows, inputColumns);
+        this.trainer.model.metadata = {
+          tabularStandardization: stats,
+        };
+
+        const preprocessed = processing.preprocess(
+          this.#task,
+          dataset,
+          this.trainer.model.metadata,
+        );
+        return [preprocessed.batch(batchSize).cached(), undefined];
+      }
+      // If task datatype is not tabular
+      let preprocessed = processing.preprocess(this.#task, dataset);
+
+      preprocessed = (
+        this.#preprocessOnce
+          ? new Dataset(await arrayFromAsync(preprocessed))
+          : preprocessed
+      )
+      return [preprocessed.batch(batchSize).cached(), undefined];
+    }
+
+    // If training/validation splitting ratio is defined
+    const [training, validation] = dataset.split(validationSplit);
+
+    if (this.#task.dataType == "tabular"){
+      const trainingRows = await arrayFromAsync(training as Dataset<DataFormat.Raw["tabular"]>);
+      const inputColumns = this.#task.trainingInformation.inputColumns;
+      const stats = processing.computeStandardizationStats(trainingRows, inputColumns);
+
+      this.trainer.model.metadata = {
+        tabularStandardization: stats,
+      };
+
+      let preprocessedTraining = processing.preprocess(this.#task, training, this.trainer.model.metadata);
+      let preprocessedValidation = processing.preprocess(this.#task, validation, this.trainer.model.metadata);
+      preprocessedTraining = this.#preprocessOnce
+          ? new Dataset(await arrayFromAsync(preprocessedTraining))
+          : preprocessedTraining;
+      
+      preprocessedValidation = this.#preprocessOnce
+          ? new Dataset(await arrayFromAsync(preprocessedValidation))
+          : preprocessedValidation;
+
+      return [
+        preprocessedTraining.batch(batchSize).cached(),
+        preprocessedValidation.batch(batchSize).cached(),
+      ];      
+    }
     
-    const [training, validation] = preprocessed.split(validationSplit);
+    // if task datatype is not tabular
+    let preprocessedTraining = processing.preprocess(this.#task, training);
+    let preprocessedValidation = processing.preprocess(this.#task, validation);
+
+    preprocessedTraining = this.#preprocessOnce
+        ? new Dataset(await arrayFromAsync(preprocessedTraining))
+        : preprocessedTraining;
+    
+    preprocessedValidation = this.#preprocessOnce
+        ? new Dataset(await arrayFromAsync(preprocessedValidation))
+        : preprocessedValidation;
 
     return [
-      training.batch(batchSize).cached(),
-      validation.batch(batchSize).cached(),
-    ];
+      preprocessedTraining.batch(batchSize).cached(),
+      preprocessedValidation.batch(batchSize).cached(),
+    ];    
   }
 }
 

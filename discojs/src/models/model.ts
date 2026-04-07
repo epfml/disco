@@ -7,6 +7,11 @@ import type {
 } from "../index.js";
 
 import type { BatchLogs, EpochLogs } from "./logs.js";
+import type { StandardizationStats } from "../processing/tabular.js";
+
+export type ModelMetadata = {
+  tabularStandardization?: StandardizationStats;
+};
 
 /**
  * Trainable predictor
@@ -20,6 +25,9 @@ export abstract class Model<D extends DataType> implements Disposable {
   abstract get weights(): WeightsContainer;
   /** Set training state */
   abstract set weights(ws: WeightsContainer);
+
+  /** Optional metadata for tabular task data standardization */
+  metadata?: ModelMetadata;
 
   /**
    * Improve predictor

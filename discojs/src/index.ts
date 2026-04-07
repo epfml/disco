@@ -17,6 +17,7 @@ export {
   EpochLogs,
   Tokenizer,
   ValidationMetrics,
+  ModelMetadata,
 } from "./models/index.js";
 export * as models from './models/index.js'
 

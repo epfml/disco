@@ -1,4 +1,4 @@
-export { Model } from './model.js'
+export { Model, ModelMetadata } from './model.js'
 export { BatchLogs, EpochLogs, ValidationMetrics } from "./logs.js";
 export { Tokenizer } from "./tokenizer.js";
 

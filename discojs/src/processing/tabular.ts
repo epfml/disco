@@ -1,5 +1,10 @@
 import { List } from "immutable";
 
+export type StandardizationStats = {
+  means: Record<string, number>;
+  stds: Record<string, number>;
+};
+
 /**
  * Convert a string to a number
  *
@@ -37,4 +42,64 @@ export function indexInList(
   const ret = elements.indexOf(element);
   if (ret === -1) throw new Error(`${element} not found in list`);
   return ret;
+}
+
+/**
+ * Return the mean, std value of each column
+ */
+export function computeStandardizationStats(
+  rows: Array<Partial<Record<string, string>>>,
+  columns: Array<string>,
+): StandardizationStats{
+  const means: Record<string, number> = {};
+  const stds: Record<string, number> = {};
+
+  for (const col of columns){
+    const values = rows.map((row)=> {
+      const rawValue = extractColumn(row, col);
+      return convertToNumber(rawValue !== "" ? rawValue : "0");
+    });
+    const mean = values.reduce((a, b)=> a+b, 0) / values.length;
+    const variance = values.reduce((acc, val) => acc + (val-mean)**2, 0) / values.length;
+
+    const std = Math.sqrt(variance);
+
+    means[col] = mean;
+    stds[col] = std;
+  }
+
+  return {means, stds};
+}
+
+/**
+ * Apply standardization for a single value
+ */
+export function standardizeValue(
+  value: number,
+  mean: number,
+  std: number,
+): number{
+  if (std == 0) return 0; // avoid divide by 0
+  return (value - mean) / std;
+}
+
+/**
+ * Apply standardization for a row
+ * 
+ * standardization function is called for each row in dataset
+ */
+export function standardizeRow(
+  row: Partial<Record<string, string>>,
+  columns: Array<string>,
+  stats: StandardizationStats,
+): Array<number>{
+  return columns.map((col) => {
+    const rawValue = extractColumn(row, col)
+    // Handle cases where the dataset contains empty strings.
+    // This only occurs in test cases, as empty strings are not allowed in the web app.
+    const value = convertToNumber(rawValue !== "" ? rawValue : "0");
+    const mean = stats.means[col];
+    const std = stats.stds[col];
+    return standardizeValue(value, mean, std);
+  })
 }
