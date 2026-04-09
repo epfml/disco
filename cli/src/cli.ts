@@ -22,12 +22,6 @@ import { args } from './args.js'
 import { makeUserLogFile } from "./user_log.js";
 import type { UserLogFile } from "./user_log.js";
 
-// Array.fromAsync not yet widely used (2024)
-async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
-  const ret: T[] = [];
-  for await (const e of iter) ret.push(e);
-  return ret;
-}
 
 async function runUser<D extends DataType, N extends Network>(
 	task: Task<D, N>,
