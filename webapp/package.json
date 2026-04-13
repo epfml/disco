@@ -37,7 +37,7 @@
 		"@vitejs/plugin-vue": "6",
 		"@vue/test-utils": "2",
 		"@vue/tsconfig": "0.9",
-		"canvas": "3",
+		"canvas": "^3.2.3",
 		"jsdom": "29",
 		"start-server-and-test": "3",
 		"tailwindcss": "4",
