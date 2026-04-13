@@ -39,7 +39,12 @@ def build_test_command(cfg):
 
 def main():
     # path of configuration file for experiments
-    config_path = Path(sys.argv[1])
+    # default path is "./experiments/basic_tests.json"
+    default_path = Path("./experiments/basic_tests.json")
+    if len(sys.argv) > 1 and Path(sys.argv[1]).exists():
+        config_path = Path(sys.argv[1])
+    else:
+        config_path = default_path
 
     with config_path.open("r", encoding="utf-8") as f:
         test_suite = json.load(f)

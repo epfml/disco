@@ -1,7 +1,6 @@
 import argparse
 import json
 from pathlib import Path
-from typing import Iterable
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -65,6 +64,7 @@ def plot_metric_per_user(df, metric, output_path, title, ylabel):
 def plot_mean_std(df, metric, output_path, title, ylabel):
     summary = df.groupby("step")[metric].agg(["mean", "std"]).reset_index() 
 
+    # Handle edge cases where only one client's value is available for a step (std becomes NaN)
     summary["std"] = summary["std"].fillna(0)
 
     plt.figure(figsize=(10, 6))

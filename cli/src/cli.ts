@@ -38,22 +38,22 @@ async function runUser<D extends DataType, N extends Network>(
 
   const dir = path.join(".", `${args.testID}`);
   await fs.mkdir(dir, { recursive: true });
-  const streamPath = path.join(dir, `client${userIndex}_local_log.ndjson`);
+  const streamPath = path.join(dir, `client${userIndex}_local_log.jsonl`);
 
   const finalLog: SummaryLogs[] = [];
   // create a write stream that saves learning logs during the train
-  let ndjsonStream: ReturnType<typeof createWriteStream> | null = null;
+  let jsonStream: ReturnType<typeof createWriteStream> | null = null;
 
   if (args.save){
-    ndjsonStream = createWriteStream(streamPath, {flags: "w"});
+    jsonStream = createWriteStream(streamPath, {flags: "w"});
   }
 
   try{
     for await (const log of disco.trainSummary(data)){
       finalLog.push(log);
 
-      if (ndjsonStream){
-        ndjsonStream.write(JSON.stringify(log) + "\n");
+      if (jsonStream){
+        jsonStream.write(JSON.stringify(log) + "\n");
       }
     }
 
@@ -74,12 +74,12 @@ async function runUser<D extends DataType, N extends Network>(
     throw err;
   }finally{
     try{
-      if (ndjsonStream){
-        ndjsonStream.end();
+      if (jsonStream){
+        jsonStream.end();
 
         await new Promise<void>((resolve, reject) => {
-          ndjsonStream.once("finish", resolve);
-          ndjsonStream.once("error", reject);
+          jsonStream.once("finish", resolve);
+          jsonStream.once("error", reject);
         });
       }
     }catch(err){
