@@ -165,11 +165,8 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
 function euclideanNorm(w: WeightsContainer): tf.Scalar {
   // Computes the Euclidean (L2) norm of all tensors in a WeightsContainer by summing the squares of their elements and taking the square root.
   return tf.tidy(() => {
-    const zero = tf.scalar(0);
-
-    const total = w.weights
-      .map(t => tf.sum(tf.square(t)) as tf.Scalar)
-      .reduce((a, b) => tf.add(a, b) as tf.Scalar, zero);
-    return tf.sqrt(total);
+    const squaredSums = w.weights.map(t => tf.sum(tf.square(t)));
+    const total = tf.addN(squaredSums);
+    return tf.sqrt(total) as tf.Scalar;
   });
 }
