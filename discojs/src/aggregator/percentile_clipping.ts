@@ -6,11 +6,16 @@ import { WeightsContainer, client } from "../index.js";
 import { aggregation } from "../index.js";
 
 /**
- * Old Byzantine-robust aggregator using Percentile-based Clipping
+ * Percentile-based clipping aggregator.
  * 
- * This class implements a gradient aggregation rule that clips updates based on a 
- * percentile-computed threshold (tau) to mitigate the influence of Byzantine nodes.
- * Unlike the iterative Centered Clipping approach, this uses a single-pass percentile-based clipping.
+ * This method clips updates using a threshold τ computed as a percentile
+ * of update norms. Unlike Centered Clipping, this is a single-pass heuristic
+ * and does not provide formal Byzantine robustness guarantees.
+ * 
+ * Use Case:
+ * Suitable for mitigating mild outliers or noisy updates when most clients
+ * are honest. Not suitable for adversarial Byzantine settings, as the
+ * percentile threshold can be influenced by malicious clients.
  * 
  * Algorithm:
  * 1. Center all peer weights w.r.t. the previous aggregation
@@ -52,23 +57,20 @@ export class PercentileClippingAggregator extends MultiRoundAggregator {
 
   override aggregate(): WeightsContainer {
     const currentContributions = this.contributions.get(0);
-    if (!currentContributions) throw new Error("aggregating without any contribution");
+    if (!currentContributions || currentContributions.size === 0) throw new Error("aggregating without any contribution");
 
     this.log(AggregationStep.AGGREGATE);
 
-    // Step 1: Get the centering reference (previous aggregation or zero vector)
+    // Step 1: Get the centering reference (previous aggregation or initial avg vector)
     let centerReference: WeightsContainer;
     if (this.prevAggregate) {
-      centerReference = this.prevAggregate;
+      centerReference = this.prevAggregate.map(t => tf.clone(t));
     } else {
-      // Use shape of the first contribution to create zero vector
-      const first = currentContributions.values().next();
-      if (first.done) throw new Error("zero sized contribution");
-      centerReference = first.value.map((t: tf.Tensor) => tf.zerosLike(t));
+      centerReference = aggregation.avg(currentContributions.values()).map(t => tf.clone(t));
     }
 
     // Step 2: Center the weights with respect to the reference
-    const centeredWeights = Array.from(currentContributions.values()).map(w => 
+    const centeredWeights = Array.from(currentContributions.values()).map(w =>
       w.sub(centerReference)
     );
 
@@ -81,19 +83,23 @@ export class PercentileClippingAggregator extends MultiRoundAggregator {
     // Step 5: Clip weights based on tau
     // Each peer gets one scale factor based on their Frobenius norm
     const clippedWeights = centeredWeights.map((w, peerIdx) => {
-      const scaleFactor = Math.min(1, tau / normArray[peerIdx]);
+      //const scaleFactor = Math.min(1, tau / normArray[peerIdx]);
+      const norm = normArray[peerIdx];
+      const safeNorm = Math.max(norm, 1e-12);
+
+      const scaleFactor = Math.min(1, tau / safeNorm);
       return w.map((t: tf.Tensor) => t.mul(scaleFactor));
     });
+
+    centeredWeights.forEach(w => w.dispose());
 
     // Step 6: Average the clipped weights and add back the reference
     const clippedAvg = aggregation.avg(clippedWeights);
     const result = centerReference.add(clippedAvg);
 
+    centerReference.dispose();
     clippedWeights.forEach(w => w.dispose());
     clippedAvg.dispose();
-    if (!this.prevAggregate) {
-      centerReference.dispose();
-    }
 
     // Step 7: Store result for next round
     this.prevAggregate = result;
@@ -102,7 +108,10 @@ export class PercentileClippingAggregator extends MultiRoundAggregator {
 
   private computePercentile(array: number[], percentile: number): number {
     // Linear interpolation for percentile calculation
-    const sorted = [...array].sort((a, b) => a - b);
+    const clean = array.filter(Number.isFinite);
+    if (clean.length === 0) return 0;
+
+    const sorted = [...clean].sort((a, b) => a - b);
     const pos = (sorted.length - 1) * percentile;
     const base = Math.floor(pos);
     const rest = pos - base;
@@ -121,12 +130,11 @@ export class PercentileClippingAggregator extends MultiRoundAggregator {
 
 function frobeniusNorm(w: WeightsContainer): number {
   // Computes the Frobenius (L2) norm of all tensors in a WeightsContainer
-  // sqrt(sum of all squared elements across all tensors)
   return tf.tidy(() => {
-    const norms: tf.Scalar[] = w.weights.map(t => tf.sum(tf.square(t)));
-    const total = norms.reduce((a, b) => tf.add(a, b));
-    const result = tf.sqrt(total);
-    const value = result.dataSync()[0];
-    return value;
+    const total = w.weights
+      .map(t => tf.sum(tf.square(t)))
+      .reduce((a, b) => tf.add(a, b), tf.scalar(0));
+
+    return tf.sqrt(total).dataSync()[0];
   });
 }
