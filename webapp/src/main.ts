@@ -16,6 +16,15 @@ const debug = createDebug("webapp");
 import { plugin as VueTippy } from 'vue-tippy'
 import 'tippy.js/dist/tippy.css' // optional for styling
 
+// Handle GitHub Pages SPA redirect
+const redirect = sessionStorage.redirect;
+if (redirect) {
+  delete sessionStorage.redirect;
+  // Navigate to the original path that triggered the redirect
+  // The router will be pushed to this path after Vue mounts
+  sessionStorage.pendingRoute = redirect;
+}
+
 tf.ready()
   .then(() => debug(`loaded TFJS' ${tf.getBackend()} backend`))
   .catch((e) => debug("while loading TFJS's backend: %o", e))

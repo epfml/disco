@@ -5,8 +5,8 @@
 cd "$(dirname "$0")"
 
 # base
-curl 'http://deai-313515.appspot.com.storage.googleapis.com/example_training_data.tar.gz' |
-	tar --extract --strip-components=1
+curl 'https://storage.googleapis.com/deai-313515.appspot.com/example_training_data.tar.gz' |
+	tar -z --extract --strip-components=1
 
 # lungs ultrasound
 mkdir -p lus_covid

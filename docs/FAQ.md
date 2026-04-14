@@ -50,3 +50,50 @@ Firewall settings can sometimes block npm's network requests, preventing it from
 1. Temporarily disable the firewall. If npm works, the firewall is the cause.  
 2. Identify the specific firewall rule that is blocking npm and adjust it.  
 3. Make sure your firewall allows outbound HTTPS (port 443) connections to `registry.npmjs.org`.
+
+### Custom `nvm` setup on EPFL's RCP Cluster
+
+This guide explains how to install and use `nvm` on EPFL's RCP cluster environment with the MLO lab's persistent storage. We assume that you are following the [lab's workflow](https://github.com/epfml/getting-started) and are using `zsh`.
+
+#### Goals
+
+- Install `nvm` in your persistent home directory
+- Make it work across pods
+- Ensure it is **not globally loaded** for other users
+- Automatically load it for your shell (`zsh`)
+
+---
+
+#### Step 1 — Set install location
+```
+export NVM_DIR="/mloscratch/homes/USERNAME/.nvm"
+```
+#### Step 2 — Install nvm
+```
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+```
+#### Step 3 — Load nvm (test it)
+```
+source "$NVM_DIR/nvm.sh"
+nvm --version
+```
+#### Step 4 — Configure zsh (IMPORTANT)
+Open zsh config file:
+```
+vi /mloscratch/homes/USERNAME/.shell/.zshrc
+```
+Add this near the top or after plugins:
+```
+export NVM_DIR="/mloscratch/homes/USERNAME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+```
+#### Step 5 — Reload shell
+```
+source /mloscratch/homes/USERNAME/.shell/.zshrc
+```
+#### Step 6 — Verify everything
+```
+which node
+nvm ls
+node -v
+```

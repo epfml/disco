@@ -99,13 +99,13 @@ export namespace TrainingInformation {
 		decentralized: z
 			.object({
 				scheme: z.literal("decentralized"),
-				aggregationStrategy: z.literal(["byzantine", "mean"]),
+				aggregationStrategy: z.literal(["byzantine", "mean", "secure"]),
 			})
 			.and(nonLocalNetworkSchema),
 		federated: z
 			.object({
 				scheme: z.literal("federated"),
-				aggregationStrategy: z.literal(["byzantine", "mean", "secure"]),
+				aggregationStrategy: z.literal(["byzantine", "mean"]),
 			})
 			.and(nonLocalNetworkSchema),
 		local: z.object({
