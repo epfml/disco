@@ -72,23 +72,23 @@
             <span class="text-2xl font-bold text-heading-light dark:text-heading-dark">
               Connect your data
             </span>
-            <img 
+            <img
               :src="`https://storage.googleapis.com/deai-313515.appspot.com/gifs/homepage/connect_${themeStore.current}.gif`"
               class="w-[150px] h-[150px] lg:w-[300px] lg:h-[300px]"
             />
           </div>
           <div class="flex flex-col justify-center items-center text-center w-full">
             <span class="text-2xl font-bold text-heading-light dark:text-heading-dark">
-              Join the <span 
-                class="underline hover:cursor-pointer"
+              Join the <span
                 v-tippy="{
                   content: 'This is how we call collaborative training sessions in DISCO.',
                   placement: 'top'
                 }">
+                class="underline hover:cursor-pointer"
                 <DISCOllaborative/>
               </span>
             </span>
-            <img 
+            <img
               :src="`https://storage.googleapis.com/deai-313515.appspot.com/gifs/homepage/join_${themeStore.current}.gif`"
               class="w-[150px] h-[150px] lg:w-[300px] lg:h-[300px]"
             />
@@ -97,7 +97,7 @@
             <span class="text-2xl font-bold text-heading-light dark:text-heading-dark">
               Use the model
             </span>
-            <img 
+            <img
               :src="`https://storage.googleapis.com/deai-313515.appspot.com/gifs/homepage/use_${themeStore.current}.gif`"
               class="w-[150px] h-[150px] lg:w-[300px] lg:h-[300px]"
             />
@@ -162,14 +162,14 @@
         <span class="text-3xl font-bold text-heading-light dark:text-heading-dark">
           Powered by
         </span>
-          <a 
+          <a
             class="flex justify-center"
             href="https://www.tensorflow.org/js" target="_blank"
           >
             <TensorflowLogo class="w-2/3 min-w-[50px]"/>
           </a>
           <a
-            class="flex justify-center" 
+            class="flex justify-center"
             href="https://onnx.ai/" target="_blank"
           >
             <ONNXLogo class="w-4/5 min-w-[50px]"/>
@@ -196,13 +196,13 @@
         </span>
         <div class="w-3/4 grid grid-cols-2 place-items-center">
           <a
-            class="flex justify-center" 
+            class="flex justify-center"
             href="https://www.epfl.ch/labs/mlo/" target="_blank"
           >
             <MLOLogo class="w-3/4"/>
           </a>
           <a
-            class="flex justify-center ml-4" 
+            class="flex justify-center ml-4"
             href="https://www.light-laboratory.org/" target="_blank"
           >
             <LightLogo class="w-3/4"/>
@@ -213,13 +213,13 @@
         </span>
         <div class="w-3/4 grid grid-cols-2 place-items-center">
           <a
-            class="flex justify-center ml-4" 
+            class="flex justify-center ml-4"
             href="https://www.epfl.ch/en/" target="_blank"
           >
             <EPFL class="w-3/4"/>
           </a>
           <a
-            class="flex justify-center ml-4" 
+            class="flex justify-center ml-4"
             href="https://www.ariadnelabs.org/" target="_blank"
           >
             <AriadneLabsLogo class="w-full"/>
@@ -261,7 +261,7 @@
         </div>
       </div>
     </div>
-  </div> 
+  </div>
 </template>
 
 <script lang="ts" setup>

@@ -1,2 +1,2 @@
-import wrtc from "node-datachannel/polyfill"
+import wrtc from "@roamhq/wrtc"
 export default wrtc

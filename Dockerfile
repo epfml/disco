@@ -4,11 +4,13 @@ FROM node:22 AS builder
 WORKDIR /disco
 
 COPY package*.json .
+COPY isomorphic-wrtc/package.json isomorphic-wrtc/
 COPY discojs/package.json discojs/
 COPY discojs-node/package.json discojs-node/
 COPY server/package.json server/
 RUN npm ci
 
+COPY isomorphic-wrtc/ isomorphic-wrtc/
 COPY discojs/ discojs/
 COPY discojs-node/ discojs-node/
 COPY tsconfig.base.json .
@@ -22,11 +24,13 @@ FROM node:22-slim AS runner
 WORKDIR /disco
 
 COPY --link --from=builder /disco/package*.json /disco/
+COPY --link --from=builder /disco/isomorphic-wrtc/package.json isomorphic-wrtc/
 COPY --link --from=builder /disco/discojs/package.json discojs/
 COPY --link --from=builder /disco/discojs-node/package.json discojs-node/
 COPY --link --from=builder /disco/server/package.json server/
 RUN npm --omit=dev ci
 
+COPY --link --from=builder /disco/isomorphic-wrtc/ isomorphic-wrtc/
 COPY --link --from=builder /disco/discojs/dist/ discojs/dist/
 COPY --link --from=builder /disco/discojs-node/dist/ discojs-node/dist/
 COPY --link --from=builder /disco/server/dist/ server/dist/
