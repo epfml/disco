@@ -38,6 +38,17 @@ export interface PeersForRound {
   aggregationRound: number
 }
 
+// peer sends to server to signal all the connections to other peers
+// are established
+export interface ConnectionsReady {
+  type: type.ConnectionsReady
+}
+
+// Server signal each peer to start weight update sharing
+export interface StartWeightSharing {
+  type: type.StartWeightSharing;
+}
+
 /// Phase 1 communication (between peers)
 
 export interface Payload {
@@ -55,13 +66,15 @@ export type MessageFromServer =
   SignalForPeer |
   PeersForRound |
   WaitingForMoreParticipants |
-  EnoughParticipants
+  EnoughParticipants |
+  StartWeightSharing
 
 export type MessageToServer =
   ClientConnected |
   SignalForPeer |
   PeerIsReady |
-  JoinRound
+  JoinRound |
+  ConnectionsReady
 
 export type PeerMessage = Payload
 
@@ -80,6 +93,7 @@ export function isMessageFromServer (o: unknown): o is MessageFromServer {
       return 'peers' in o && Array.isArray(o.peers) && o.peers.every(isNodeID)
     case type.WaitingForMoreParticipants:
     case type.EnoughParticipants:
+    case type.StartWeightSharing:
           return true
   }
 
@@ -97,6 +111,7 @@ export function isMessageToServer (o: unknown): o is MessageToServer {
         'signal' in o // TODO check signal content?
     case type.JoinRound:
     case type.PeerIsReady:
+    case type.ConnectionsReady:
       return true
   }
 

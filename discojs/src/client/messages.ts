@@ -24,6 +24,10 @@ export enum type {
   // Message forwarded by the server from a client to another client
   // to establish a peer-to-peer (WebRTC) connection
   SignalForPeer,
+  // Message sent by nodes to server to signal all connections are established
+  ConnectionsReady,
+  // Sent by the server to signal nodes proceed to weight update sharing
+  StartWeightSharing,
   // The weight update
   Payload,
   

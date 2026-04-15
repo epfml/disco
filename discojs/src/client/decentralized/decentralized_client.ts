@@ -152,7 +152,9 @@ export class DecentralizedClient extends Client<"decentralized"> {
     await this.waitForParticipantsIfNeeded()
     // Create peer-to-peer connections with all peers for the round
     await this.establishPeerConnections()
-    // Exchange weight updates with peers and return aggregated weights
+    // Wait StartWeightSharing message from the server before exchanging weight updates
+    await waitMessage(this.server, type.StartWeightSharing)
+    // Exchange weight updates with peers and return aggregated weights  // and then send out the contributions
     return await this.exchangeWeightUpdates(weights)
   }
 
@@ -178,8 +180,9 @@ export class DecentralizedClient extends Client<"decentralized"> {
     try {
       debug(`[${shortenId(this.ownId)}] is waiting for peer list for round ${this.aggregator.round}`);
       const receivedMessage = await waitMessage(this.server, type.PeersForRound)
-      
+
       const peers = Set(receivedMessage.peers)
+      debug(`[${shortenId(this.ownId)}] received peer list: %o`, peers.toArray());
 
       if (this.ownId !== undefined && peers.has(this.ownId)) {
         throw new Error('received peer list contains our own id')
@@ -198,7 +201,9 @@ export class DecentralizedClient extends Client<"decentralized"> {
         (conn) => this.receivePayloads(conn)
       )
 
-      debug(`[${shortenId(this.ownId)}] received peers for round ${this.aggregator.round}: %o`, connections.keySeq().toJS());
+      // Signal server that all connections with other peers in the round are established
+      this.server.send({ type: type.ConnectionsReady });
+      debug(`[${shortenId(this.ownId)}] peer connections ready: %o`, connections.keySeq().toJS());
       this.#connections = connections
     } catch (e) {
       debug(`Error for [${shortenId(this.ownId)}] while beginning round: %o`, e);

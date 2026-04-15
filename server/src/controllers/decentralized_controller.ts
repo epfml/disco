@@ -21,6 +21,7 @@ export class DecentralizedController<
   // the node has already sent a PeerIsReady message)
   // We wait for all peers to be ready to exchange weight updates
   #roundPeers = Map<client.NodeID, boolean>()
+  #connectFinishedNodes = Map<client.NodeID, boolean>()
   #aggregationRound = 0
 
   handle (ws: WebSocket): void {
@@ -84,6 +85,11 @@ export class DecentralizedController<
             this.connections.get(msg.peer)?.send(msgpack.encode(forward))
             break
           }
+          case MessageTypes.ConnectionsReady: {
+            this.#connectFinishedNodes = this.#connectFinishedNodes.set(peerId, true)
+            this.signalWeightSharing()
+            break
+          }
           default: {
             const _: never = msg
             throw new Error('should never happen')
@@ -145,9 +151,41 @@ export class DecentralizedController<
       }
       return [conn, encoded] as [WebSocket, Buffer]
     }).forEach(([conn, encoded]) => { conn.send(encoded) })
-    // empty the list of peers for the next round
-    this.#roundPeers = Map()
+
+    // Initialize connectFinishedNodes with all peers set to false
+    this.#connectFinishedNodes = this.#roundPeers.map(() => false) as Map<client.NodeID, boolean>
     this.#aggregationRound++
   }
-}
 
+  /**
+   * Check if all the participants of the round finished connecting 
+   * with other peers in the round
+   * If so, send StartWeightSharing message to signal peers to proceed
+   */
+  private signalWeightSharing(): void {
+    if (!this.#connectFinishedNodes.every((ready) => ready))
+      return
+    this.#roundPeers.keySeq()
+    .map((id) => {
+      const startSignal = {
+        type: MessageTypes.StartWeightSharing,
+      }
+      debug("Signaling weight sharing to: %o", id.slice(0, 4))
+
+      const encoded = msgpack.encode(startSignal)
+      return [id, encoded] as [client.NodeID, Buffer]
+    })
+    .map(([id, encoded]) => {
+      const conn = this.connections.get(id)
+      if (conn === undefined) {
+        throw new Error(`peer ${id} marked as ready but not connection to it`)
+      }
+      return [conn, encoded] as [WebSocket, Buffer]
+    })
+    .forEach(([conn, encoded]) => {conn.send(encoded)})
+
+    // empty the list of peers for the next round
+    this.#roundPeers = Map()
+    this.#connectFinishedNodes = Map()
+  }
+}
