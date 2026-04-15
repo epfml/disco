@@ -153,7 +153,7 @@ export class DecentralizedController<
     }).forEach(([conn, encoded]) => { conn.send(encoded) })
 
     // Initialize connectFinishedNodes with all peers set to false
-    this.#connectFinishedNodes = this.#roundPeers.map(() => false) as Map<client.NodeID, boolean>
+    this.#connectFinishedNodes = this.#roundPeers.map(() => false)
     this.#aggregationRound++
   }
 
