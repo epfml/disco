@@ -9,6 +9,8 @@
 		"benchmark_gpt": "npm run build && node dist/benchmark_gpt.js",
 		"train_gpt": "npm run build && node dist/train_gpt.js",
 		"hellaswag_gpt": "npm run build && node dist/hellaswag_gpt.js",
+		"eval_finetuned_gpt2": "npm run build && node dist/evaluate_finetuned_gpt2.js",
+		"finetune_gpt": "npm run build && node dist/finetune_gpt.js",
 		"build": "tsc --build",
 		"test": ": nothing"
 	},
