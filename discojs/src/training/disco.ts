@@ -37,10 +37,38 @@ interface DiscoConfig<N extends Network> {
   preprocessOnce: boolean;
 }
 
+export type SummaryLogs = {
+  round: number,
+  epoch: number,
+  trainingLoss: number,
+  trainingAccuracy: number,
+  peakMemory: number,
+  epochTime: number,
+  roundValidationLoss?: number,
+  roundValidationAccuracy?: number,
+  validationLoss?: number,
+  validationAccuracy?: number
+}
+
 export type RoundStatus = 'not enough participants' | // Server notification to wait for more participants
   'updating model' | // fetching/aggregating local updates into a global model
   'local training' | // Training the model locally
   'connecting to peers' // for decentralized only, fetch the server's list of participating peers
+
+function buildSummaryLog(roundNum: number, epochNum: number, roundLogs: RoundLogs, epochLogs: EpochLogs): SummaryLogs {
+  return {
+      round: roundNum,
+      epoch: epochNum,
+      trainingLoss: epochLogs.training.loss,
+      trainingAccuracy: epochLogs.training.accuracy,
+      peakMemory: epochLogs.peakMemory,
+      epochTime: epochLogs.epochTime,
+      roundValidationLoss: roundLogs.preRoundValidation?.loss,
+      roundValidationAccuracy: roundLogs.preRoundValidation?.accuracy,
+      validationLoss: epochLogs.validation?.loss,
+      validationAccuracy: epochLogs.validation?.accuracy,
+    }
+}
 
 /**
  * Top-level class handling distributed training from a client's perspective. It is meant to be
@@ -136,6 +164,31 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
       for await (const epoch of round) yield* epoch;
   }
 
+  /** Train on dataset, yielding summary logs */  
+  async *trainSummary(
+    dataset: Dataset<DataFormat.Raw[D]>,
+  ): AsyncGenerator<SummaryLogs> {
+    for await (const [roundNum, round] of enumerate(this.train(dataset))) {
+      const [roundGen, roundLogsPromise] = async_iterator.split(round);
+
+      const epochResults: Array<{epochNum: number; epochLogs: EpochLogs}> = [];
+
+      for await (const [epochNum, epoch] of enumerate(roundGen)) {
+        const [epochGen, epochLogsPromise] = async_iterator.split(epoch);
+        for await (const _ of epochGen);
+        const epochLogs = await epochLogsPromise;
+
+        epochResults.push({ epochNum, epochLogs });
+      }
+
+      const roundLogs = await roundLogsPromise;
+
+      for (const {epochNum, epochLogs} of epochResults) {
+        yield buildSummaryLog(roundNum, epochNum, roundLogs, epochLogs);
+      }
+    }
+  }
+
   /** Run whole train on dataset. */
   async trainFully(dataset: Dataset<DataFormat.Raw[D]>): Promise<void> {
     for await (const round of this.train(dataset))
@@ -162,21 +215,36 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     // TODO unsafe cast
     this.trainer.model = (await this.#client.connect()) as Model<D>;
 
-    for await (const [round, epochs] of enumerate(
+    for await (const [roundNum, round] of enumerate(
       this.trainer.train(trainingDataset, validationDataset),
     )) {
       yield async function* (this: Disco<D, N>) {
-        const [gen, returnedRoundLogs] = split(epochs);
-        for await (const [epoch, batches] of enumerate(gen)) {
-          const [gen, returnedEpochLogs] = split(batches);
+        const [roundGen, roundLogsPromise] = split(round);
+        const epochResults: Array<{epochNum: number; epochLogs: EpochLogs}> = []; 
 
-          yield gen;
-          const epochLogs = await returnedEpochLogs;
+        for await (const [epochNum, epoch] of enumerate(roundGen)) {
+          const [epochGen, epochLogsPromise] = split(epoch);
 
+          yield epochGen;
+          const epochLogs = await epochLogsPromise;
+
+          epochResults.push({ epochNum, epochLogs });
+        }
+
+        const roundLogs = await roundLogsPromise;
+        this.#logger.success(
+          [
+            `Round: ${roundNum}`,
+            `Initial round loss: ${roundLogs.preRoundValidation?.loss}`,
+            `Initial round accuracy: ${roundLogs.preRoundValidation?.accuracy}`,
+          ].join("\n"),
+        );
+
+        for (const {epochNum, epochLogs} of epochResults){
           this.#logger.success(
             [
-              `Round: ${round}`,
-              `  Epoch: ${epoch}`,
+              `Round: ${roundNum}`,
+              `  Epoch: ${epochNum}`,
               `    Training loss: ${epochLogs.training.loss}`,
               `    Training accuracy: ${epochLogs.training.accuracy}`,
               `    Peak memory: ${epochLogs.peakMemory}`,
@@ -190,7 +258,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
           );
         }
 
-        return await returnedRoundLogs;
+        return roundLogs;
       }.bind(this)();
     }
     this.#logger.success("Training finished");

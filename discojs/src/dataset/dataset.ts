@@ -238,7 +238,10 @@ export class Dataset<T> implements AsyncIterable<T> {
     return new CachingDataset(this.#content);
   }
 
-  /** Shuffles the Dataset instance within certain window size */
+  /** Shuffle the dataset
+   * 
+   * Shuffle within the sliding window
+   */
   shuffle(windowSize: number){
     if (!Number.isInteger(windowSize) || windowSize < 1){
       throw new Error("Shuffle window size should be a positive integer");
@@ -276,7 +279,10 @@ export class Dataset<T> implements AsyncIterable<T> {
     );
   }
 
-  /** filter the indices according to the splitting condition */
+  /** Filter the dataset using the condition
+   * 
+   * Used for splitting dataset for each client (filter by client's id)
+   */
   filter(
     condition: (value: T, index: number) => boolean | Promise<boolean>
   ): Dataset<T>{

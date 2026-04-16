@@ -8,7 +8,7 @@ export * as aggregator from './aggregator/index.js'
 
 export { WeightsContainer, aggregation } from './weights/index.js'
 export { Logger, ConsoleLogger } from './logging/index.js'
-export { Disco, RoundLogs, RoundStatus } from './training/index.js'
+export { Disco, RoundLogs, RoundStatus, SummaryLogs } from './training/index.js'
 export { Validator } from './validator.js'
 
 export {

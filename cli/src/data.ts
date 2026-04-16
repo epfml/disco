@@ -1,6 +1,5 @@
 import path from "node:path";
-import { promises as fs } from "fs";
-import { Dataset, processing, defaultTasks } from "@epfml/discojs";
+import { Dataset, processing } from "@epfml/discojs";
 import {
   DataFormat,
   DataType,
@@ -20,7 +19,9 @@ async function loadSimpleFaceData(userIdx: number, totalClient: number): Promise
 
   const combinded = adults.chain(childs);
 
-  return combinded.filter((_, i) => i % totalClient === userIdx);
+  const sharded = combinded.filter((_, i) => i % totalClient === userIdx);
+
+  return sharded;
 }
 
 async function loadLusCovidData(userIdx: number, totalClient: number): Promise<Dataset<DataFormat.Raw["image"]>> {
@@ -66,62 +67,28 @@ function loadTinderDogData(split: number): Dataset<DataFormat.Raw["image"]> {
     });
 }
 
-async function loadExtCifar10(userIdx: number): Promise<Dataset<[Image, string]>> {
-  const CIFAR10_LABELS = Array.from(await defaultTasks.cifar10.getTask().then(t => t.trainingInformation.LABEL_LIST));
-  const folder = path.join("..", "datasets", "extended_cifar10");
-  const clientFolder = path.join(folder, `client_${userIdx}`);
-
-  return new Dataset(async function*(){
-    const entries = await fs.readdir(clientFolder, {withFileTypes: true});
-
-    const items = entries
-        .flatMap((e) => {
-          const m = e.name.match(
-            /^image_(\d+)_label_(\d+)\.png$/i
-          );
-          if (m === null) return [];
-          const labelIdx = Number.parseInt(m[2], 10);
-
-          if(labelIdx >= CIFAR10_LABELS.length)
-            throw new Error(`${e.name}: too big label index`);
-
-          return {
-            name: e.name,
-            label: CIFAR10_LABELS[labelIdx],
-          };
-        })
-        .filter((x) => x !== null)
-
-      for (const {name, label} of items){
-        const filePath = path.join(clientFolder, name);
-        const image = await loadImage(filePath);
-        yield [image, label] as const;
-      }
-  })
-}
-
-function loadMnistData(split: number): Dataset<DataFormat.Raw["image"]>{
-  const folder = path.join("..", "datasets", "mnist", `${split + 1}`);
+function loadData(dataName: string, split: number): Dataset<DataFormat.Raw["image"]>{
+  const folder = path.join("..", "datasets", `${dataName}`, `client_${split}`);
   return loadCSV(path.join(folder, "labels.csv"))
     .map(
-      (row) =>
-        [
-          processing.extractColumn(row, "filename"),
-          processing.extractColumn(row, "label"),
-        ] as const,
+      (row) => [
+        processing.extractColumn(row, "filename"),
+        processing.extractColumn(row, "label"),
+      ] as const,
     )
-    .map(async ([filename, label]) => {
-      try {
-        const image = await Promise.any(
-          ["png", "jpg", "jpeg"].map((ext) =>
-            loadImage(path.join(folder, `${filename}.${ext}`)),
-          ),
-        );
-        return [image, label];
-      } catch {
-        throw Error(`${filename} not found in ${folder}`);
+    .map(
+      async ([filename, label]) => {
+        try {
+          const img = await Promise.any(
+            ["png", "jpg", "jpeg"].map((ext) =>
+              loadImage(path.join(folder, `${filename}.${ext}`)))
+          );
+          return [img, label]
+        } catch {
+          throw Error(`${filename} not found in ${folder}`);
+        }
       }
-    });
+    );
 }
 
 export async function getTaskData<D extends DataType>(
@@ -130,25 +97,27 @@ export async function getTaskData<D extends DataType>(
   totalClient: number
 ): Promise<Dataset<DataFormat.Raw[D]>> {
   switch (taskID) {
-    case "simple_face":
+    case "simple_face": // remove
       return (await loadSimpleFaceData(userIdx, totalClient)) as Dataset<DataFormat.Raw[D]>;
     case "titanic":
+    case "titanic_decentralized":
       const titanicData = loadCSV(
         path.join("..", "datasets", "titanic_train.csv"),
       ) as Dataset<DataFormat.Raw[D]>;
       return titanicData.filter((_, i) => i % totalClient === userIdx);
     case "cifar10":
-      return (
-        await loadImagesInDir(path.join("..", "datasets", "CIFAR10"))
-      ).zip(Repeat("cat")) as Dataset<DataFormat.Raw[D]>;
+      return loadData("cifar10-agent", userIdx) as Dataset<DataFormat.Raw[D]>;
+    case "cifar10_federated_simple_model":
+    case "cifar10_simple_model":
+      return loadData("cifar10_ext", userIdx) as Dataset<DataFormat.Raw[D]>;
     case "lus_covid":
+    case "lus_covid_decentralized":
       return (await loadLusCovidData(userIdx, totalClient)) as Dataset<DataFormat.Raw[D]>;
-    case "tinder_dog":
+    case "tinder_dog": // remove
       return loadTinderDogData(userIdx) as Dataset<DataFormat.Raw[D]>;
-    case "extended_cifar10":
-      return (await loadExtCifar10(userIdx)) as Dataset<DataFormat.Raw[D]>;    
+    case "mnist_federated":
     case "mnist":
-      return loadMnistData(userIdx) as Dataset<DataFormat.Raw[D]>;
+      return loadData("mnist", userIdx) as Dataset<DataFormat.Raw[D]>;
     default:
       throw new Error(`Data loader for ${taskID} not implemented.`);
   }
