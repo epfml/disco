@@ -144,7 +144,13 @@ async function benchmarkQA(
         D: { A: 0, B: 0, C: 0, D: 0 }
     };
 
-    const logs: any[] = [];
+    type PredictionLog = {
+        predicted: string;
+        answer: string;
+        correct: boolean;
+    };
+
+    const logs: PredictionLog[] = [];
 
     const start = Date.now();
 
