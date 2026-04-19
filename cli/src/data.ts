@@ -5,8 +5,9 @@ import {
   DataType,
   Image,
   Task,
+  Text,
 } from "@epfml/discojs";
-import { loadCSV, loadImage, loadImagesInDir } from "@epfml/discojs-node";
+import { loadCSV, loadImage, loadImagesInDir, loadText } from "@epfml/discojs-node";
 import { Repeat } from "immutable";
 
 async function loadSimpleFaceData(userIdx: number, totalClient: number): Promise<Dataset<DataFormat.Raw["image"]>> {
@@ -94,7 +95,10 @@ function loadData(dataName: string, split: number): Dataset<DataFormat.Raw["imag
 export async function getTaskData<D extends DataType>(
 	taskID: Task.ID,
 	userIdx: number,
-  totalClient: number
+  totalClient: number,
+  datasetPath?: string,
+  isValidation?: boolean,
+  validationDatasetPath?: string
 ): Promise<Dataset<DataFormat.Raw[D]>> {
   switch (taskID) {
     case "simple_face": // remove
@@ -118,6 +122,8 @@ export async function getTaskData<D extends DataType>(
     case "mnist_federated":
     case "mnist":
       return loadData("mnist", userIdx) as Dataset<DataFormat.Raw[D]>;
+    case "privacyrun":
+      return loadText(isValidation && validationDatasetPath ? validationDatasetPath : datasetPath ?? '../datasets/med_mcq/train.txt') as Dataset<DataFormat.Raw[D]>; 
     default:
       throw new Error(`Data loader for ${taskID} not implemented.`);
   }

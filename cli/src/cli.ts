@@ -17,6 +17,7 @@ import type {
 } from "@epfml/discojs";
 import { Disco, aggregator as aggregators, client as clients } from '@epfml/discojs'
 
+import { loadText } from "@epfml/discojs-node";
 import { getTaskData } from './data.js'
 import { args } from './args.js'
 import { makeUserLogFile } from "./user_log.js";
@@ -27,6 +28,7 @@ async function runUser<D extends DataType, N extends Network>(
 	task: Task<D, N>,
 	url: URL,
 	data: Dataset<DataFormat.Raw[D]>,
+  validationData: Dataset<DataFormat.Raw[D]> | undefined,
   userIndex: number,
   numberOfUsers: number,
 ): Promise<List<SummaryLogs>> {
@@ -49,7 +51,7 @@ async function runUser<D extends DataType, N extends Network>(
   }
 
   try{
-    for await (const log of disco.trainSummary(data)){
+    for await (const log of disco.trainSummary(data, validationData)){
       finalLog.push(log);
 
       if (jsonStream){
@@ -104,10 +106,17 @@ async function main<D extends DataType, N extends Network>(
   console.log({ args })
 
   const dataSplits = await Promise.all(
-    Range(0, numberOfUsers).map(async i => getTaskData(task.id, i, numberOfUsers))
+    Range(0, numberOfUsers).map(async i => getTaskData(task.id, i, numberOfUsers, args.datasetPath))
   )
+
+  let validationData: Dataset<DataFormat.Raw[D]> | undefined = undefined;
+  if (args.validationDatasetPath) {
+    // Assume text task for now
+    validationData = loadText(args.validationDatasetPath).cached() as Dataset<DataFormat.Raw[D]>;
+  }
+
   const logs = await Promise.all(
-    dataSplits.map((data, i) => runUser(task, args.host, data as Dataset<DataFormat.Raw[D]>, i, numberOfUsers))
+    dataSplits.map((data, i) => runUser(task, args.host, data as Dataset<DataFormat.Raw[D]>, validationData, i, numberOfUsers))
   )
 
   if (args.save) {

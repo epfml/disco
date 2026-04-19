@@ -159,16 +159,18 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   /** Train on dataset, yielding logs of every batch. */
   async *trainByBatch(
     dataset: Dataset<DataFormat.Raw[D]>,
+    validationDataset?: Dataset<DataFormat.Raw[D]>,
   ): AsyncGenerator<BatchLogs> {
-    for await (const round of this.train(dataset))
+    for await (const round of this.train(dataset, validationDataset))
       for await (const epoch of round) yield* epoch;
   }
 
   /** Train on dataset, yielding summary logs */  
   async *trainSummary(
     dataset: Dataset<DataFormat.Raw[D]>,
+    validationDataset?: Dataset<DataFormat.Raw[D]>,
   ): AsyncGenerator<SummaryLogs> {
-    for await (const [roundNum, round] of enumerate(this.train(dataset))) {
+    for await (const [roundNum, round] of enumerate(this.train(dataset, validationDataset))) {
       const [roundGen, roundLogsPromise] = async_iterator.split(round);
 
       const epochResults: Array<{epochNum: number; epochLogs: EpochLogs}> = [];
@@ -190,8 +192,8 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   }
 
   /** Run whole train on dataset. */
-  async trainFully(dataset: Dataset<DataFormat.Raw[D]>): Promise<void> {
-    for await (const round of this.train(dataset))
+  async trainFully(dataset: Dataset<DataFormat.Raw[D]>, validationDataset?: Dataset<DataFormat.Raw[D]>): Promise<void> {
+    for await (const round of this.train(dataset, validationDataset))
       for await (const epoch of round) for await (const _ of epoch);
   }
 
@@ -203,20 +205,23 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
    **/
   async *train(
     dataset: Dataset<DataFormat.Raw[D]>,
+    validationDataset?: Dataset<DataFormat.Raw[D]>,
   ): AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>
   > {
     this.#logger.success("Training started");
 
-    const [trainingDataset, validationDataset] =
-      await this.#preprocessSplitAndBatch(dataset);
+    const [trainingDataset, validationDataset_] =
+      validationDataset !== undefined
+        ? await this.#preprocessDatasets(dataset, validationDataset)
+        : await this.#preprocessSplitAndBatch(dataset);
 
     // the client fetches the latest weights upon connection
     // TODO unsafe cast
     this.trainer.model = (await this.#client.connect()) as Model<D>;
 
     for await (const [roundNum, round] of enumerate(
-      this.trainer.train(trainingDataset, validationDataset),
+      this.trainer.train(trainingDataset, validationDataset_),
     )) {
       yield async function* (this: Disco<D, N>) {
         const [roundGen, roundLogsPromise] = split(round);
@@ -295,6 +300,31 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     return [
       training.batch(batchSize).cached(),
       validation.batch(batchSize).cached(),
+    ];
+  }
+
+  async #preprocessDatasets(
+    trainingDataset: Dataset<DataFormat.Raw[D]>,
+    validationDataset: Dataset<DataFormat.Raw[D]>,
+  ): Promise<
+    [
+      Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+      Dataset<Batched<DataFormat.ModelEncoded[D]>> | undefined,
+    ]
+  > {
+    const { batchSize } = this.#task.trainingInformation;
+
+    let preprocessedTraining = processing.preprocess(this.#task, trainingDataset);
+    let preprocessedValidation = processing.preprocess(this.#task, validationDataset);
+
+    if (this.#preprocessOnce) {
+      preprocessedTraining = new Dataset(await arrayFromAsync(preprocessedTraining));
+      preprocessedValidation = new Dataset(await arrayFromAsync(preprocessedValidation));
+    }
+
+    return [
+      preprocessedTraining.batch(batchSize).cached(),
+      preprocessedValidation.batch(batchSize).cached(),
     ];
   }
 }

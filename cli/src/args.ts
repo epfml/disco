@@ -21,6 +21,8 @@ export interface BenchmarkArguments {
   roundDuration: number
   batchSize: number
   validationSplit: number
+  datasetPath?: string
+  validationDatasetPath?: string
 
   // DP
   epsilon?: number
@@ -41,6 +43,8 @@ export interface BenchmarkArguments {
 
 type BenchmarkUnsafeArguments = Omit<BenchmarkArguments, 'provider'> & {
   task: string
+  datasetPath?: string
+  validationDatasetPath?: string
   help?: boolean
 }
 
@@ -55,6 +59,8 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     roundDuration: { type: Number, alias: 'r', description: 'Round duration (in epochs)', defaultValue: 2 },
     batchSize: { type: Number, alias: 'b', description: 'Training batch size', defaultValue: 10 },
     validationSplit : { type: Number, alias: 'v', description: 'Validation dataset ratio', defaultValue: 0.2 },
+    datasetPath: { type: String, alias: 'd', description: 'Path to the dataset', optional: true },
+    validationDatasetPath: { type: String, alias: 'V', description: 'Path to the validation dataset', optional: true },
     save: { type: Boolean, alias: 's', description: 'Save logs of benchmark', defaultValue: false },
     host: {
       type: (raw: string) => new URL(raw),
@@ -89,18 +95,19 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
 
 const supportedTasks = Map(
   await Promise.all(
-    Set.of<TaskProvider<"image" | "tabular", Network>>(
+    Set.of<TaskProvider<"image" | "tabular" | "text", Network>>(
       defaultTasks.cifar10,
       defaultTasks.lusCovid,
       defaultTasks.simpleFace,
       defaultTasks.titanic,
       defaultTasks.tinderDog,
       defaultTasks.mnist,
+      defaultTasks.privacyrun,
     ).map(
       async (t) =>
         [(await t.getTask()).id, t] as [
           string,
-          TaskProvider<"image" | "tabular", Network>,
+          TaskProvider<"image" | "tabular" | "text", Network>,
         ],
     ),
   ),

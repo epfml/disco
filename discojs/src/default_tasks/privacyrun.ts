@@ -4,7 +4,7 @@ import { Tokenizer, models, serialization } from "../index.js";
 export const privacyrun: TaskProvider<"text", "local"> = {
   async getTask() {
     return {
-      id: 'privacyrun_task',
+      id: 'privacyrun',
       dataType: "text",
       displayInformation: {
         title: "GPT Privacy-Preserving Fine-tuning",
@@ -25,7 +25,7 @@ export const privacyrun: TaskProvider<"text", "local"> = {
       trainingInformation: {
         scheme: 'local',
         aggregationStrategy: 'mean',
-        minNbOfParticipants: 2,
+        // minNbOfParticipants: 2,
         epochs: 6,
         validationSplit: 0.1, 
         roundDuration: 2,
@@ -56,6 +56,8 @@ export const privacyrun: TaskProvider<"text", "local"> = {
       if (!(model instanceof models.GPT)) {
         throw new Error("Loaded model is not a GPT model");
       }
+
+      console.log("Successfully loaded pre-trained GPT model from Google Cloud Storage");
       
       return model;
     } catch (error) {
