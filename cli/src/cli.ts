@@ -26,6 +26,7 @@ import type { UserLogFile } from "./user_log.js";
 
 async function runUser<D extends DataType, N extends Network>(
 	task: Task<D, N>,
+	provider: TaskProvider<D, N>,
 	url: URL,
 	data: Dataset<DataFormat.Raw[D]>,
   validationData: Dataset<DataFormat.Raw[D]> | undefined,
@@ -37,6 +38,13 @@ async function runUser<D extends DataType, N extends Network>(
   const aggregator = aggregators.getAggregator(task)
   const client = clients.getClient(trainingScheme, url, task, aggregator)
   const disco = new Disco(task, client, { scheme: trainingScheme });
+
+  // For local training, load model from provider before training starts
+  if (trainingScheme === "local") {
+    console.log("Loading model for local training...");
+    disco.trainer.model = await provider.getModel();
+    console.log("Model loaded successfully");
+  }
 
   const dir = path.join(".", `${args.testID}`);
   await fs.mkdir(dir, { recursive: true });
@@ -116,7 +124,7 @@ async function main<D extends DataType, N extends Network>(
   }
 
   const logs = await Promise.all(
-    dataSplits.map((data, i) => runUser(task, args.host, data as Dataset<DataFormat.Raw[D]>, validationData, i, numberOfUsers))
+    dataSplits.map((data, i) => runUser(task, provider, args.host, data as Dataset<DataFormat.Raw[D]>, validationData, i, numberOfUsers))
   )
 
   if (args.save) {
