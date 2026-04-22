@@ -5,7 +5,7 @@ import { List, Range } from 'immutable'
 import fs from 'node:fs/promises'
 import { createWriteStream } from "node:fs";
 import path from "node:path";
-
+import createDebug from "debug";
 import type {
   Dataset,
   DataFormat,
@@ -17,12 +17,13 @@ import type {
 } from "@epfml/discojs";
 import { Disco, aggregator as aggregators, client as clients } from '@epfml/discojs'
 
-import { loadText } from "@epfml/discojs-node";
+import { loadText, saveModelToDisk } from "@epfml/discojs-node";
 import { getTaskData } from './data.js'
 import { args } from './args.js'
 import { makeUserLogFile } from "./user_log.js";
 import type { UserLogFile } from "./user_log.js";
 
+const debug = createDebug("cli:main");
 
 async function runUser<D extends DataType, N extends Network>(
 	task: Task<D, N>,
@@ -33,7 +34,8 @@ async function runUser<D extends DataType, N extends Network>(
   userIndex: number,
   numberOfUsers: number,
 ): Promise<List<SummaryLogs>> {
-  // cast as typescript isn't good with generics
+  debug(`Starting runUser for client ${userIndex}`);
+  const userStart = Date.now();
   const trainingScheme = task.trainingInformation.scheme as N
   const aggregator = aggregators.getAggregator(task)
   const client = clients.getClient(trainingScheme, url, task, aggregator)
@@ -41,9 +43,12 @@ async function runUser<D extends DataType, N extends Network>(
 
   // For local training, load model from provider before training starts
   if (trainingScheme === "local") {
+    debug(`Loading model for local training client ${userIndex}...`);
+    const modelStart = Date.now();
     console.log("Loading model for local training...");
     disco.trainer.model = await provider.getModel();
     console.log("Model loaded successfully");
+    debug(`Model loading took ${Date.now() - modelStart}ms for client ${userIndex}`);
   }
 
   const dir = path.join(".", `${args.testID}`);
@@ -59,6 +64,8 @@ async function runUser<D extends DataType, N extends Network>(
   }
 
   try{
+    debug(`Starting training for client ${userIndex}`);
+    const trainStart = Date.now();
     for await (const log of disco.trainSummary(data, validationData)){
       finalLog.push(log);
 
@@ -66,9 +73,16 @@ async function runUser<D extends DataType, N extends Network>(
         jsonStream.write(JSON.stringify(log) + "\n");
       }
     }
+    debug(`Training took ${Date.now() - trainStart}ms for client ${userIndex}`);
 
     await new Promise((res, _) => setTimeout(() => res('timeout'), 1000)) // Wait for other peers to finish
-
+  // Save the trained model if requested
+  if (args.saveModel) {
+    const modelDir = path.join(".", `${args.testID}`, "models");
+    const modelFileName = `client${userIndex}_model.json`;
+    await saveModelToDisk(disco.trainer.model, modelDir, modelFileName);
+    console.log(`Model saved for client ${userIndex} at ${modelDir}/${modelFileName}`);
+  }
     // saving the entire per-user logs
     if (args.save) {
       const finalPath = path.join(dir, `client${userIndex}_local_log.json`);

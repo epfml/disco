@@ -16,7 +16,10 @@ import {
 } from "../index.js";
 import { privacy } from "../index.js";
 import { Client } from "../client/index.js";
+import createDebug from "debug";
 import * as async_iterator from "../utils/async_iterator.js";
+
+const debug = createDebug("discojs:training:trainer");
 
 export interface RoundLogs {
   epochs: List<EpochLogs>;
@@ -88,6 +91,7 @@ export class Trainer<D extends DataType, N extends Network> {
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
     void
   > {
+    debug("Start train")
     if (this.#training !== undefined)
       throw new Error(
         "training already running, stop it before launching a new one",
@@ -109,6 +113,9 @@ export class Trainer<D extends DataType, N extends Network> {
     void
   > {
     const totalRound = Math.trunc(this.#epochs / this.#roundDuration);
+
+    debug("Run rounds")
+
     for (let round = 0; round < totalRound; round++) {
 
       await this.#client.onRoundBeginCommunication();
@@ -149,6 +156,8 @@ export class Trainer<D extends DataType, N extends Network> {
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
   ): AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs> {
     let epochsLogs = List<EpochLogs>();
+
+    debug("Run round")
 
     // Before starting the training, get the validation of global model
     const validation = validationDataset !== undefined ? await this.model.evaluate(validationDataset) : undefined;

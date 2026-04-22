@@ -38,6 +38,7 @@ export interface BenchmarkArguments {
   maxShareValue?: number
 
   save: boolean
+  saveModel: boolean
   host: URL
 }
 
@@ -62,6 +63,7 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     datasetPath: { type: String, alias: 'd', description: 'Path to the dataset', optional: true },
     validationDatasetPath: { type: String, alias: 'V', description: 'Path to the validation dataset', optional: true },
     save: { type: Boolean, alias: 's', description: 'Save logs of benchmark', defaultValue: false },
+    saveModel: { type: Boolean, alias: 'm', description: 'Save trained model to disk', defaultValue: false },
     host: {
       type: (raw: string) => new URL(raw),
       typeLabel: "URL",
