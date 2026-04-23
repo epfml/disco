@@ -9,15 +9,15 @@ For example, the following command trains a model on CIFAR10, using 4 federated 
 
 ```
 # From the root folder
-npm -w cli start -- --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration 5
+npm -w cli start -- --testID test1 --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration 5
 # Or from the cli folder directly
-npm start -- --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration 5
+npm start -- --testID test1 --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration 5
 ```
 
 or using the shorter alias notation:
 
 ```
-npm -w cli start -- -t cifar10 -u 4 -e 15 -r 5
+npm -w cli start -- -i test1 -t cifar10 -u 4 -e 15 -r 5
 ```
 
 You can find all the command arguments with:
@@ -25,6 +25,26 @@ You can find all the command arguments with:
 ```
 npm -w cli start -- --help # or -h
 ```
+
+## Command arguments
+Based on the task specification, we can adjust the command arguments. Available arguments are listed below.
+Non-mandatory fields will automatically use values from the task specification.
+### Test specification arguments
+- `testID`: (mandatory) arbitrary test ID defined by the user for the test run
+- `task`: (mandatory) pre-defined task (adding a new task is described in the next section)
+- `numberOfUsers`: number of users participating in the learning round
+- `save`: whether to save the logs of the test run
+### Learning hyperparameters
+- `epochs`: total number of training epochs
+- `roundDuration`: number of epochs per round
+- `batchSize`: batch size
+- `validationSplit`: ratio of the validation set used for evaluation
+### Aggregator parameters
+- `aggregator`: aggregator specification
+- `clippingRadius`, `maxIterations`, `beta`: (optional, for byzantine aggregator settings) byzantine aggregator hyperparameters
+- `maxShareValue`: (optional, for secure aggregator settings) secure aggregator hyperparameter
+### Differential Privacy parameters
+- `epsilon`, `delta`, `dpDefaultClippingRadius`: (optional, for testing with differential privacy) differential privacy hyperparameters
 
 ## Adding new tasks
 
