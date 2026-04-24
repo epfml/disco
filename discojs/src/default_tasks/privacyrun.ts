@@ -1,7 +1,7 @@
 import type { TaskProvider } from "../index.js";
 import { Tokenizer, models, serialization } from "../index.js";
 
-export const privacyrun: TaskProvider<"text", "local"> = {
+export const privacyrun: TaskProvider<"text", "federated"> = {
   async getTask() {
     return {
       id: 'privacyrun',
@@ -23,9 +23,9 @@ export const privacyrun: TaskProvider<"text", "local"> = {
           "For the first twenty years of its existence , the only staged performances of Parsifal took place in the Bayreuth Festspielhaus , the venue for which Wagner conceived the work.",
       },
       trainingInformation: {
-        scheme: 'local',
+        scheme: 'federated',
         aggregationStrategy: 'mean',
-        // minNbOfParticipants: 2,
+        minNbOfParticipants: 2,
         epochs: 6,
         validationSplit: 0.1, 
         roundDuration: 2,

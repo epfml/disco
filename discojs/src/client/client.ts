@@ -186,8 +186,11 @@ export abstract class Client<N extends Network> extends EventEmitter<{
     }
     url.pathname += `tasks/${this.task.id}/model.json`
 
+    debug("fetching latest model from server at {} for task {}...", url.href, this.task.id)
+
     const response = await fetch(url);
-    if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`);
+    if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`)
+    else debug("response ok, decoding model...")
 
     const encoded = new Uint8Array(await response.arrayBuffer())
     return await serialization.model.decode(encoded)

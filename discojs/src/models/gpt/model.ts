@@ -64,8 +64,12 @@ export class GPTModel extends tf.LayersModel {
       let accuracyFraction: [number, number] = [0, 0];
       let averageLoss = 0
       let iteration = 1
+
+      debug("before iterator init")
       const iterator = await dataset.iterator()
+      debug("after getting iterator, before next")
       let next = await iterator.next()
+      debug("after next of iterator")
 
       while (next.done !== true && iteration <= this.config.maxIter) {
         let weightUpdateTime = performance.now()
@@ -73,7 +77,9 @@ export class GPTModel extends tf.LayersModel {
         const { xs, ys } = next.value as { xs: tf.Tensor2D, ys: tf.Tensor3D }
 
         let preprocessingTime = performance.now()
+        debug("await batch data before {} iteration", iteration)
         await Promise.all([xs.data(), ys.data()])
+        debug("after await batch data {} iteration", iteration)
         preprocessingTime = performance.now() - preprocessingTime
         
         // TODO include as a tensor inside the model

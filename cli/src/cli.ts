@@ -42,15 +42,17 @@ async function runUser<D extends DataType, N extends Network>(
   const disco = new Disco(task, client, { scheme: trainingScheme });
 
   // For local training, load model from provider before training starts
-  if (trainingScheme === "local") {
-    debug(`Loading model for local training client ${userIndex}...`);
-    const modelStart = Date.now();
-    console.log("Loading model for local training...");
-    disco.trainer.model = await provider.getModel();
-    console.log("Model loaded successfully");
-    debug(`Model loading took ${Date.now() - modelStart}ms for client ${userIndex}`);
-  }
+  // if (trainingScheme === "local") {
+  //   debug(`Loading model for training client ${userIndex}...`);
+  //   const modelStart = Date.now();
+  //   console.log("Loading model for local training...");
+  //   disco.trainer.model = await provider.getModel();
+  //   console.log("Model loaded successfully");
+  //   debug(`Model loading took ${Date.now() - modelStart}ms for client ${userIndex}`);
+  // }
 
+  
+  
   const dir = path.join(".", `${args.testID}`);
   await fs.mkdir(dir, { recursive: true });
   const streamPath = path.join(dir, `client${userIndex}_local_log.jsonl`);

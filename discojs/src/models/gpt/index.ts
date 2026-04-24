@@ -228,8 +228,16 @@ export class GPT extends Model<"text"> {
   }
 
   static deserialize(data: GPTSerialization): Model<"text"> {
+
+    debug("GPT model deserialization started")
+
     const model = new GPT(data.config);
+
+    debug("GPT model config initialized: %O", data.config)
+
     model.weights = data.weights;
+
+    debug("GPT model weights initialized")
     return model;
   }
 

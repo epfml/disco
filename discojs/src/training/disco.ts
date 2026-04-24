@@ -21,7 +21,11 @@ import { getAggregator } from "../aggregator/index.js";
 import { enumerate, split } from "../utils/async_iterator.js";
 import { EventEmitter } from "../utils/event_emitter.js";
 
+import createDebug from "debug"
+
 import { RoundLogs, Trainer } from "./trainer.js";
+
+const debug = createDebug("discojs:training:disco");
 
 interface DiscoConfig<N extends Network> {
   scheme: N;
@@ -175,6 +179,8 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
 
       const epochResults: Array<{epochNum: number; epochLogs: EpochLogs}> = [];
 
+      debug("Starting round %d", roundNum)
+
       for await (const [epochNum, epoch] of enumerate(roundGen)) {
         const [epochGen, epochLogsPromise] = async_iterator.split(epoch);
         for await (const _ of epochGen);
@@ -218,7 +224,12 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
 
     // the client fetches the latest weights upon connection
     // TODO unsafe cast
+    debug("Connecting to client and fetching initial model...");
     this.trainer.model = (await this.#client.connect()) as Model<D>;
+    debug("Initial model fetched successfully");
+    if (this.trainer.model === null) {
+      debug(`No pre-trained model provided for client, initializing randomly...`);
+    }
 
     for await (const [roundNum, round] of enumerate(
       this.trainer.train(trainingDataset, validationDataset_),
