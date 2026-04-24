@@ -89,7 +89,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
             type: MessageTypes.NewFederatedNodeInfo,
             id: clientId,
             waitForMoreParticipants: this.connections.size < minNbOfParticipants,
-            payload: this.#latestGlobalWeights,
+            payload: this.#aggregator.round === 0 ? undefined : this.#latestGlobalWeights,
             round: this.#aggregator.round,
             nbOfParticipants: this.connections.size
           }

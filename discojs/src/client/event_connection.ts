@@ -118,6 +118,10 @@ export class WebSocketServer extends EventEmitter<{ [K in type]: NarrowMessage<K
       server.emit(msg.type, msg)
     }
 
+    ws.onclose = (event) => {
+      debug("websocket closed: code=%o reason=%o wasClean=%o", event.code, event.reason, event.wasClean)
+    }
+
     return await new Promise((resolve, reject) => {
       ws.onerror = (err: WebSocket.ErrorEvent) => {
         reject(new Error(`Server unreachable: ${err.message}`))

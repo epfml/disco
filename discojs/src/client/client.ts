@@ -186,7 +186,7 @@ export abstract class Client<N extends Network> extends EventEmitter<{
     }
     url.pathname += `tasks/${this.task.id}/model.json`
 
-    debug("fetching latest model from server at {} for task {}...", url.href, this.task.id)
+    debug("fetching latest model from server at %0 for task %1...", url.href, this.task.id)
 
     const response = await fetch(url);
     if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`)
