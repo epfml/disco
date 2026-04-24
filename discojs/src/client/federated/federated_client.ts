@@ -88,7 +88,7 @@ export class FederatedClient extends Client<"federated"> {
     // Upon connecting, the server answers with a boolean
     // which indicates whether there are enough participants or not
     debug(`[${shortenId(this.ownId)}] upon connecting, wait for participant flag %o`, this.waitingForMoreParticipants)
-    if (payload !== undefined) {
+    if (payload != null) {
       model.weights = serialization.weights.decode(payload)
     }
     return model
