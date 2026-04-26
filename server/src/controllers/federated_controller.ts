@@ -108,6 +108,12 @@ export class FederatedController<D extends DataType> extends TrainingController<
         case MessageTypes.SendPayload: {
           const { payload, round } = msg
           if (this.#aggregator.isValidContribution(clientId, round)) {
+            debug(
+              "Received valid contribution from client [%s] for round %d (participants=%d)",
+              shortId,
+              round,
+              this.connections.size,
+            )
             const weights = serialization.weights.decode(payload)
 
             // Create a callback to send the aggregated weight to the client 
@@ -120,9 +126,12 @@ export class FederatedController<D extends DataType> extends TrainingController<
                 payload: await serialization.weights.encode(weightUpdate),
                 nbOfParticipants: this.connections.size
               }
+              debug("Prepared aggregated payload for client [%s] at round %o", shortId, this.#aggregator.round)
               ws.send(msgpack.encode(msg))
+              debug("Aggregated payload sent to client [%s] for round %o", shortId, this.#aggregator.round)
             })
             // Add the contribution
+            debug("Adding contribution from client [%s] to aggregator for round %d", shortId, round)
             this.#aggregator.add(clientId, weights, round)
             debug(`Successfully added contribution from client [%s] for round ${round}`, shortId)
           } else {

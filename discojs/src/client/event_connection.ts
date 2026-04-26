@@ -98,7 +98,10 @@ export class WebSocketServer extends EventEmitter<{ [K in type]: NarrowMessage<K
   static async connect (url: URL,
     validateReceived: (msg: unknown) => msg is Message,
     validateSent: (msg: Message) => boolean): Promise<WebSocketServer> {
-    const ws = new WebSocket(url)
+    const ws = new WebSocket(url, {
+      // Federated GPT updates can exceed the default ws payload limit.
+      maxPayload: 1024 * 1024 * 1024,
+    })
     ws.binaryType = 'arraybuffer'
 
     const server: WebSocketServer = new WebSocketServer(ws, validateSent)
@@ -124,6 +127,7 @@ export class WebSocketServer extends EventEmitter<{ [K in type]: NarrowMessage<K
 
     return await new Promise((resolve, reject) => {
       ws.onerror = (err: WebSocket.ErrorEvent) => {
+        debug("websocket error while connecting/receiving: %o", err.message)
         reject(new Error(`Server unreachable: ${err.message}`))
       }
       ws.onopen = () => { resolve(server) }
