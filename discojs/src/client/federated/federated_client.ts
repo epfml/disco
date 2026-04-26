@@ -105,9 +105,16 @@ export class FederatedClient extends Client<"federated"> {
     this.aggregator.setNodes(this.aggregator.nodes.delete(SERVER_NODE_ID));
   }
 
-  override onRoundBeginCommunication(): Promise<void> {
+  // override onRoundBeginCommunication(): Promise<void> {
+  //   // Prepare the result promise for the incoming round
+  //   this.aggregationResult = new Promise((resolve) => this.aggregator.once('aggregation', resolve))
+  //   this.saveAndEmit("local training")
+  //   return Promise.resolve();
+  // }
+  override async onRoundBeginCommunication(): Promise<void> {
     // Prepare the result promise for the incoming round
     this.aggregationResult = new Promise((resolve) => this.aggregator.once('aggregation', resolve))
+    await this.waitForParticipantsIfNeeded() // In case we are waiting for more participants, we wait before starting the local training
     this.saveAndEmit("local training")
     return Promise.resolve();
   }

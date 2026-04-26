@@ -39,7 +39,7 @@ async function runUser<D extends DataType, N extends Network>(
   const trainingScheme = task.trainingInformation.scheme as N
   const aggregator = aggregators.getAggregator(task)
   const client = clients.getClient(trainingScheme, url, task, aggregator)
-  const disco = new Disco(task, client, { scheme: trainingScheme });
+  const disco = new Disco(task, client, { scheme: trainingScheme, preprocessOnce: true });
 
   // For local training, load model from provider before training starts
   // if (trainingScheme === "local") {
