@@ -66,6 +66,10 @@ export class FederatedController<D extends DataType> extends TrainingController<
     }
     const shortId = clientId.slice(0, 4)
 
+    ws.on('error', (err) => {
+      debug("websocket error for client [%s]: %o", shortId, err)
+    })
+
     // Setup callbacks triggered upon receiving the different client messages
     ws.on('message', (data: Buffer) => {
       const msg: unknown = msgpack.decode(data)
