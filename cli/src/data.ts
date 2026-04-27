@@ -1,4 +1,5 @@
 import path from "node:path";
+import { createReadStream } from "node:fs";
 import { Dataset, processing } from "@epfml/discojs";
 import {
   DataFormat,
@@ -9,6 +10,44 @@ import {
 } from "@epfml/discojs";
 import { loadCSV, loadImage, loadImagesInDir, loadText } from "@epfml/discojs-node";
 import { Repeat } from "immutable";
+
+function loadShardedTextSamples(
+  filePath: string,
+  userIdx: number,
+  totalClient: number,
+): Dataset<Text> {
+  return new Dataset(async function* () {
+    const stream = createReadStream(filePath, { encoding: "utf8" });
+    const sampleDelimiter = "<|endoftext|>";
+    let buffer = "";
+    let sampleIndex = 0;
+
+    for await (const chunk of stream) {
+      if (typeof chunk !== "string") {
+        throw new Error("Expected file stream to yield string");
+      }
+
+      buffer += chunk;
+
+      let delimiterIndex = buffer.indexOf(sampleDelimiter);
+      while (delimiterIndex !== -1) {
+        const sample = buffer.slice(0, delimiterIndex + sampleDelimiter.length).trim();
+        if (sample !== "" && sampleIndex % totalClient === userIdx) {
+          yield sample;
+        }
+
+        sampleIndex++;
+        buffer = buffer.slice(delimiterIndex + sampleDelimiter.length);
+        delimiterIndex = buffer.indexOf(sampleDelimiter);
+      }
+    }
+
+    const trailingSample = buffer.trim();
+    if (trailingSample !== "" && sampleIndex % totalClient === userIdx) {
+      yield trailingSample;
+    }
+  });
+}
 
 async function loadSimpleFaceData(userIdx: number, totalClient: number): Promise<Dataset<DataFormat.Raw["image"]>> {
   const folder = path.join("..", "datasets", "simple_face");
@@ -122,8 +161,23 @@ export async function getTaskData<D extends DataType>(
     case "mnist_federated":
     case "mnist":
       return loadData("mnist", userIdx) as Dataset<DataFormat.Raw[D]>;
-    case "privacyrun":
-      return loadText(isValidation && validationDatasetPath ? validationDatasetPath : datasetPath ?? '../datasets/med_mcq/train.txt') as Dataset<DataFormat.Raw[D]>; 
+    case "privacyrun": {
+      const filePath =
+        isValidation && validationDatasetPath
+          ? validationDatasetPath
+          : datasetPath ?? "../datasets/med_mcq/train.txt";
+
+      // Keep validation shared, but shard training data across clients by MCQ sample.
+      if (isValidation) {
+        return loadText(filePath) as Dataset<DataFormat.Raw[D]>;
+      }
+
+      return loadShardedTextSamples(
+        filePath,
+        userIdx,
+        totalClient,
+      ) as Dataset<DataFormat.Raw[D]>;
+    }
     default:
       throw new Error(`Data loader for ${taskID} not implemented.`);
   }

@@ -31,7 +31,8 @@ export type GPTConfig = {
 export const DefaultGPTConfig: Required<GPTConfig> = {
   lr: 0.001,
   weightDecay: 0,
-  maxIter: 10,
+  // By default, iterate through the whole dataset and let dataset exhaustion stop the epoch.
+  maxIter: Number.MAX_SAFE_INTEGER,
   verbose: 0,
   modelType: 'gpt-nano',
   evaluate: true,
