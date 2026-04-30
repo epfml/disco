@@ -44,9 +44,20 @@ export interface ConnectionsReady {
   type: type.ConnectionsReady
 }
 
-// Server signal each peer to start weight update sharing
+// Server signals each peer to start weight update sharing
 export interface StartWeightSharing {
-  type: type.StartWeightSharing;
+  type: type.StartWeightSharing
+}
+
+// Server signals peers to reestablish peer connections
+export interface RetryPeerConnections {
+  type: type.RetryPeerConnections
+  aggregationRound: number
+}
+
+// Server signals a node that the connection with other peers failed 
+export interface ConnectionFail {
+  type: type.ConnectionFail
 }
 
 /// Phase 1 communication (between peers)
@@ -67,7 +78,9 @@ export type MessageFromServer =
   PeersForRound |
   WaitingForMoreParticipants |
   EnoughParticipants |
-  StartWeightSharing
+  StartWeightSharing |
+  RetryPeerConnections |
+  ConnectionFail
 
 export type MessageToServer =
   ClientConnected |
@@ -94,6 +107,8 @@ export function isMessageFromServer (o: unknown): o is MessageFromServer {
     case type.WaitingForMoreParticipants:
     case type.EnoughParticipants:
     case type.StartWeightSharing:
+    case type.RetryPeerConnections:
+    case type.ConnectionFail:
           return true
   }
 

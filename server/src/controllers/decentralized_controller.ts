@@ -23,6 +23,8 @@ export class DecentralizedController<
   #roundPeers = Map<client.NodeID, boolean>()
   #connectFinishedNodes = Map<client.NodeID, boolean>()
   #aggregationRound = 0
+  #timeout?: NodeJS.Timeout
+  #connectionRetry= 0 // number of connection retrial for specific aggregationRound
 
   handle (ws: WebSocket): void {
     const minNbOfParticipants = this.task.trainingInformation.minNbOfParticipants
@@ -154,7 +156,11 @@ export class DecentralizedController<
 
     // Initialize connectFinishedNodes with all peers set to false
     this.#connectFinishedNodes = this.#roundPeers.map(() => false)
-    this.#aggregationRound++
+    // Change the peer states to not ready
+    this.#roundPeers = this.#roundPeers.map(() => false)
+    
+    // Start timeout to check peer connections are successful
+    this.startTimeout()
   }
 
   /**
@@ -163,8 +169,14 @@ export class DecentralizedController<
    * If so, send StartWeightSharing message to signal peers to proceed
    */
   private signalWeightSharing(): void {
+    // Return if not all participants are ready
     if (!this.#connectFinishedNodes.every((ready) => ready))
       return
+
+    // Stop the timeout
+    this.clearTimeout()
+
+    // Send round participants StartWeightSharing messages
     this.#roundPeers.keySeq()
     .map((id) => {
       const startSignal = {
@@ -187,5 +199,116 @@ export class DecentralizedController<
     // empty the list of peers for the next round
     this.#roundPeers = Map()
     this.#connectFinishedNodes = Map()
+    this.#aggregationRound++
+  }
+
+  /**
+   * Set a timeout to check peer connections establishment
+   */
+  private startTimeout(maxTime: number = 60_000): void {
+    this.#timeout = setTimeout(() => {
+      this.handleTimeout()
+    }, maxTime)
+  }
+
+  /**
+   * Clear previously set timeout once all peer connections 
+   * are established before the timeout
+   */
+  private clearTimeout(): void {
+    if (this.#timeout !== undefined){
+      clearTimeout(this.#timeout)
+      this.#timeout = undefined
+    }
+  }
+  
+  /**
+   * Called when a timeout occurs during peer connection
+   * Signals peers to discard existing connections and
+   * reestablish connections with the current set of peers
+   */
+  private handleTimeout(): void {
+    debug(`Connection setup timeout for round ${this.#aggregationRound}, Retrying with same peers`)
+    // Increment the connection retry count
+    this.#connectionRetry += 1;
+
+    // If the number of retries exceeds the threshold, exclude the failed peers from the roundPeers
+    if (this.#connectionRetry >= 3){
+      const numFailedClient = this.#connectFinishedNodes.valueSeq().count((val) => val === false)
+      const remainingPeers = this.#roundPeers.size - numFailedClient
+
+      // Exclude the failed peers
+      this.#connectFinishedNodes.forEach((connected, nodeId) => {
+        if (!connected){
+          // If the node failed connection, exclude from #roundPeers
+          this.#roundPeers = this.#roundPeers.delete(nodeId)
+          // Signal the node that connection is failed for that node
+          const conn = this.connections.get(nodeId)
+          if (conn === undefined) {
+            throw new Error(`peer ${nodeId} marked as ready but not connection to it`)
+          }
+          const failSignal : messages.ConnectionFail = {
+            type: MessageTypes.ConnectionFail
+          }
+          const encoded = msgpack.encode(failSignal)
+          conn.send(encoded)
+        }
+      })
+
+      // If excluding failed peers would leave too few participants,
+      // restart the round
+      // TODO: We need to wait until minNbOfParticipants is satisfied
+      if (remainingPeers < this.task.trainingInformation.minNbOfParticipants){
+        this.#roundPeers.keySeq()
+        .map((id) => {
+          const retrySignal = {
+            type: MessageTypes.RetryPeerConnections,
+          }
+          debug("Signaling connection retry to: %o", id.slice(0, 4))
+
+          const encoded = msgpack.encode(retrySignal)
+          return [id, encoded] as [client.NodeID, Buffer]
+        })
+        .map(([id, encoded]) => {
+          const conn = this.connections.get(id)
+          if (conn === undefined) {
+            throw new Error(`peer ${id} marked as ready but not connection to it`)
+          }
+          return [conn, encoded] as [WebSocket, Buffer]
+        })
+        .forEach(([conn, encoded]) => {conn.send(encoded)})
+
+        // empty the list of peers for the new round
+        // round number is not increased since this round failed
+        this.#roundPeers = Map()
+        this.#connectFinishedNodes = Map()
+        this.#connectionRetry = 0
+        return
+      }
+    }
+
+    // Retry peer connection with the currently remaining round peers
+    this.#connectFinishedNodes = this.#roundPeers.map(() => false)
+    this.#connectionRetry = 0
+
+    this.#roundPeers.keySeq()
+    .map((id) => {
+      const retrySignal = {
+        type: MessageTypes.RetryPeerConnections,
+      }
+      debug("Signaling connection retry to: %o", id.slice(0, 4))
+
+      const encoded = msgpack.encode(retrySignal)
+      return [id, encoded] as [client.NodeID, Buffer]
+    })
+    .map(([id, encoded]) => {
+      const conn = this.connections.get(id)
+      if (conn === undefined) {
+        throw new Error(`peer ${id} marked as ready but not connection to it`)
+      }
+      return [conn, encoded] as [WebSocket, Buffer]
+    })
+    .forEach(([conn, encoded]) => {conn.send(encoded)})
   }
 }
+

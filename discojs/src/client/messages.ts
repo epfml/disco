@@ -28,6 +28,10 @@ export enum type {
   ConnectionsReady,
   // Sent by the server to signal nodes proceed to weight update sharing
   StartWeightSharing,
+  // Sent by the server to signal nodes reestablish connections
+  RetryPeerConnections,
+  // Sent by the server to signal that the node's connection was not successful
+  ConnectionFail,
   // The weight update
   Payload,
   

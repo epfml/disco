@@ -150,11 +150,41 @@ export class DecentralizedClient extends Client<"decentralized"> {
     this.saveAndEmit("connecting to peers")
     // First we check if we are waiting for more participants before sending our weight update
     await this.waitForParticipantsIfNeeded()
-    // Create peer-to-peer connections with all peers for the round
-    await this.establishPeerConnections()
-    // Wait StartWeightSharing message from the server before exchanging weight updates
-    await waitMessage(this.server, type.StartWeightSharing)
-    // Exchange weight updates with peers and return aggregated weights  // and then send out the contributions
+
+    while(true){
+      // Create peer-to-peer connections with all peers for the round
+      await this.establishPeerConnections()
+
+      // Wait for connection related messages from the server before exchanging weight updates
+      // (1) If the client receives a StartWeightSharing message, it proceeds to weight update exchange
+      // (2) If it receives a RetryPeerConnections message, it retries peer connection establishment
+      // (3) After multiple retires, if the connection is still unsuccessful, the server starts excluding nodes from the round
+      // and sends a ConnectionFail message to those nodes
+      // (4) Upon receiving ConnectionFail, the client disconnects from the server
+      const msg = await Promise.race([
+        waitMessage(this.server, type.StartWeightSharing),
+        waitMessage(this.server, type.RetryPeerConnections),
+        waitMessage(this.server, type.ConnectionFail),
+      ])
+
+      if (msg.type === type.StartWeightSharing){
+        break
+      } else if (msg.type === type.RetryPeerConnections){
+        debug(`[${shortenId(this.ownId)}] retrying peer connection establishment`)
+        // clear the communication round peer pool
+        await this.#pool?.shutdown()
+        this.#pool = new PeerPool(this.ownId)
+        // clear the connections
+        this.#connections = Map()
+        this.setAggregatorNodes(Set(this.ownId))
+        continue
+      } else if (msg.type === type.ConnectionFail){
+        debug(`[${shortenId(this.ownId)}] disconnect from the server`)
+        await this.disconnect()
+        throw new Error("Client disconnected after connection failure")
+      }
+    }
+    // Exchange weight updates with peers and return aggregated weights
     return await this.exchangeWeightUpdates(weights)
   }
 
