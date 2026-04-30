@@ -13,12 +13,15 @@ export interface BatchLogs {
 
 export class EpochLogs {
   public readonly batches: List<BatchLogs>;
+  public readonly epochTime: number;
 
   constructor(
     batches: Iterable<BatchLogs>,
+    epochTime: number,
     public readonly validation?: ValidationMetrics,
   ) {
     this.batches = List(batches);
+    this.epochTime = epochTime;
   }
 
   get training(): Record<"accuracy" | "loss", number> {

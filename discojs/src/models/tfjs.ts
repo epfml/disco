@@ -44,6 +44,7 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
   ): AsyncGenerator<BatchLogs, EpochLogs> {
     let batchesLogs = List<BatchLogs>();
+    let epochTime = performance.now();
 		for await (const [batch, batchNumber] of trainingDataset.zip(
 			Range(0, Number.POSITIVE_INFINITY),
 		)) {
@@ -55,9 +56,9 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
       yield batchLogs;
       batchesLogs = batchesLogs.push(batchLogs);
     }
-
-    const validation = validationDataset && (await this.#evaluate(validationDataset));
-    return new EpochLogs(batchesLogs, validation);
+    epochTime = performance.now() - epochTime;
+    const validation = validationDataset && (await this.evaluate(validationDataset));
+    return new EpochLogs(batchesLogs, epochTime, validation);
   }
 
   async #runBatch(
@@ -88,7 +89,7 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     };
   }
 
-  async #evaluate(
+  override async evaluate(
     dataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
   ): Promise<Record<"accuracy" | "loss", number>> {
     const evaluation = await this.model.evaluateDataset(

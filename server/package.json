@@ -20,7 +20,7 @@
 		"cors": "2",
 		"express": "5",
 		"express-ws": "5",
-		"uuid": "13"
+		"uuid": "14"
 	},
 	"devDependencies": {
 		"@types/cors": "2",

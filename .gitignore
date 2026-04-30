@@ -15,5 +15,5 @@ dist/
 .vscode/
 *.DS_Store
 
-# venv
+# python venv
 .venv/

@@ -18,6 +18,6 @@
 		"@epfml/discojs-node": "*"
 	},
 	"devDependencies": {
-		"typescript": "5"
+		"typescript": "6"
 	}
 }

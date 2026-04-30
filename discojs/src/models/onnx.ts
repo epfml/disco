@@ -96,6 +96,10 @@ export class ONNXModel extends Model<'text'> {
     throw new Error('Training not supported for ONNX models');
   }
 
+  evaluate(): Promise<never> {
+    throw new Error('Evaluation not supported for ONNX models');
+  }
+
   get weights(): WeightsContainer {
     throw new Error('Weights access not supported in ONNX models');
   }

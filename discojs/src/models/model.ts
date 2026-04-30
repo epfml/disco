@@ -6,7 +6,7 @@ import type {
   WeightsContainer,
 } from "../index.js";
 
-import type { BatchLogs, EpochLogs } from "./logs.js";
+import type { BatchLogs, EpochLogs, ValidationMetrics } from "./logs.js";
 
 /**
  * Trainable predictor
@@ -38,6 +38,13 @@ export abstract class Model<D extends DataType> implements Disposable {
   abstract predict(
     batch: Batched<DataFormat.ModelEncoded[D][0]>,
   ): Promise<Batched<DataFormat.ModelEncoded[D][1]>>;
+
+  /**
+   * Return validation metrics
+   */
+  abstract evaluate(
+    _validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>
+  ): Promise<ValidationMetrics>
 
   /**
    * This method is automatically called to cleanup the memory occupied by the model
