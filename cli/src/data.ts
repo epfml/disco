@@ -8,13 +8,13 @@ import {
   Task,
   Text,
 } from "@epfml/discojs";
-import { loadCSV, loadImage, loadImagesInDir, loadText } from "@epfml/discojs-node";
+import { loadCSV, loadImage, loadImagesInDir } from "@epfml/discojs-node";
 import { Repeat } from "immutable";
 
-function loadShardedTextSamples(
+function loadTextSamples(
   filePath: string,
-  userIdx: number,
-  totalClient: number,
+  userIdx?: number,
+  totalClient?: number,
 ): Dataset<Text> {
   return new Dataset(async function* () {
     const stream = createReadStream(filePath, { encoding: "utf8" });
@@ -32,7 +32,12 @@ function loadShardedTextSamples(
       let delimiterIndex = buffer.indexOf(sampleDelimiter);
       while (delimiterIndex !== -1) {
         const sample = buffer.slice(0, delimiterIndex + sampleDelimiter.length).trim();
-        if (sample !== "" && sampleIndex % totalClient === userIdx) {
+        const shouldYield =
+          userIdx === undefined ||
+          totalClient === undefined ||
+          sampleIndex % totalClient === userIdx;
+
+        if (sample !== "" && shouldYield) {
           yield sample;
         }
 
@@ -43,7 +48,12 @@ function loadShardedTextSamples(
     }
 
     const trailingSample = buffer.trim();
-    if (trailingSample !== "" && sampleIndex % totalClient === userIdx) {
+    const shouldYieldTrailing =
+      userIdx === undefined ||
+      totalClient === undefined ||
+      sampleIndex % totalClient === userIdx;
+
+    if (trailingSample !== "" && shouldYieldTrailing) {
       yield trailingSample;
     }
   });
@@ -169,10 +179,10 @@ export async function getTaskData<D extends DataType>(
 
       // Keep validation shared, but shard training data across clients by MCQ sample.
       if (isValidation) {
-        return loadText(filePath) as Dataset<DataFormat.Raw[D]>;
+        return loadTextSamples(filePath) as Dataset<DataFormat.Raw[D]>;
       }
 
-      return loadShardedTextSamples(
+      return loadTextSamples(
         filePath,
         userIdx,
         totalClient,

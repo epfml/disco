@@ -17,7 +17,7 @@ import type {
 } from "@epfml/discojs";
 import { Disco, aggregator as aggregators, client as clients } from '@epfml/discojs'
 
-import { loadText, saveModelToDisk } from "@epfml/discojs-node";
+import { saveModelToDisk } from "@epfml/discojs-node";
 import { getTaskData } from './data.js'
 import { args } from './args.js'
 import { makeUserLogFile } from "./user_log.js";
@@ -135,8 +135,9 @@ async function main<D extends DataType, N extends Network>(
 
   let validationData: Dataset<DataFormat.Raw[D]> | undefined = undefined;
   if (args.validationDatasetPath) {
-    // Assume text task for now
-    validationData = loadText(args.validationDatasetPath).cached() as Dataset<DataFormat.Raw[D]>;
+    validationData = (
+      await getTaskData(task.id, 0, 1, args.validationDatasetPath, true, args.validationDatasetPath)
+    ).cached() as Dataset<DataFormat.Raw[D]>;
   }
 
   const logs = await Promise.all(
