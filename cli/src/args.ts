@@ -23,6 +23,7 @@ export interface BenchmarkArguments {
   validationSplit: number
   datasetPath?: string
   validationDatasetPath?: string
+  outputPath?: string
 
   // DP
   epsilon?: number
@@ -37,7 +38,7 @@ export interface BenchmarkArguments {
   // Secure aggregator
   maxShareValue?: number
 
-  save: boolean
+  saveLogs: boolean
   saveModel: boolean
   host: URL
 }
@@ -62,7 +63,8 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     validationSplit : { type: Number, alias: 'v', description: 'Validation dataset ratio', defaultValue: 0.2 },
     datasetPath: { type: String, alias: 'd', description: 'Path to the dataset', optional: true },
     validationDatasetPath: { type: String, alias: 'V', description: 'Path to the validation dataset', optional: true },
-    save: { type: Boolean, alias: 's', description: 'Save logs of benchmark', defaultValue: false },
+    outputPath: { type: String, alias: 'o', description: 'Path to save logs and models. Defaults to ./<testID>', optional: true },
+    saveLogs: { type: Boolean, alias: 's', description: 'Save logs of benchmark', defaultValue: false },
     saveModel: { type: Boolean, alias: 'm', description: 'Save trained model to disk', defaultValue: false },
     host: {
       type: (raw: string) => new URL(raw),

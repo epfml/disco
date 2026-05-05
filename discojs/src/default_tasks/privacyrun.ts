@@ -26,12 +26,13 @@ export const privacyrun: TaskProvider<"text", "federated"> = {
         scheme: 'federated',
         aggregationStrategy: 'mean',
         minNbOfParticipants: 2,
-        epochs: 6,
+        epochs: 1,
         validationSplit: 0.1, 
-        roundDuration: 2,
+        roundDuration: 1,
         batchSize: 8,
         tokenizer: await Tokenizer.from_pretrained("Xenova/gpt2"),
-        contextLength: 1024,
+        // contextLength: 1024,
+        contextLength: 512,
         tensorBackend: 'gpt'
       }
     }
@@ -40,8 +41,10 @@ export const privacyrun: TaskProvider<"text", "federated"> = {
   async getModel() {
     // Load the pre-trained ONNX-converted model from Google Cloud Storage
     // The model should be in DiscoJS serialization format (created by onnx-converter)
-    const modelUrl = "https://storage.googleapis.com/deai-313515.appspot.com/model.json";
+    // const modelUrl = "https://storage.googleapis.com/deai-313515.appspot.com/model.json";
     
+    const modelUrl = "https://storage.googleapis.com/deai-313515.appspot.com/model_ctx_512.json";
+
     try {
       const response = await fetch(modelUrl);
       if (!response.ok) {

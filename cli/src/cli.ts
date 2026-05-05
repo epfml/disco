@@ -25,6 +25,10 @@ import type { UserLogFile } from "./user_log.js";
 
 const debug = createDebug("cli:main");
 
+function getOutputDir(): string {
+  return args.outputPath ?? path.join(".", `${args.testID}`);
+}
+
 async function runUser<D extends DataType, N extends Network>(
 	task: Task<D, N>,
 	provider: TaskProvider<D, N>,
@@ -39,7 +43,7 @@ async function runUser<D extends DataType, N extends Network>(
   const trainingScheme = task.trainingInformation.scheme as N
   const aggregator = aggregators.getAggregator(task)
   const client = clients.getClient(trainingScheme, url, task, aggregator)
-  const disco = new Disco(task, client, { scheme: trainingScheme, preprocessOnce: true });
+  const disco = new Disco(task, client, { scheme: trainingScheme, preprocessOnce: false });
 
   // For local training, load model from provider before training starts
   // if (trainingScheme === "local") {
@@ -53,7 +57,7 @@ async function runUser<D extends DataType, N extends Network>(
 
   
   
-  const dir = path.join(".", `${args.testID}`);
+  const dir = getOutputDir();
   await fs.mkdir(dir, { recursive: true });
   const streamPath = path.join(dir, `client${userIndex}_local_log.jsonl`);
 
@@ -61,7 +65,7 @@ async function runUser<D extends DataType, N extends Network>(
   // create a write stream that saves learning logs during the train
   let jsonStream: ReturnType<typeof createWriteStream> | null = null;
 
-  if (args.save){
+  if (args.saveLogs){
     jsonStream = createWriteStream(streamPath, {flags: "w"});
   }
 
@@ -80,13 +84,13 @@ async function runUser<D extends DataType, N extends Network>(
     await new Promise((res, _) => setTimeout(() => res('timeout'), 1000)) // Wait for other peers to finish
   // Save the trained model if requested
   if (args.saveModel) {
-    const modelDir = path.join(".", `${args.testID}`, "models");
+    const modelDir = path.join(getOutputDir(), "models");
     const modelFileName = `client${userIndex}_model.json`;
     await saveModelToDisk(disco.trainer.model, modelDir, modelFileName);
     console.log(`Model saved for client ${userIndex} at ${modelDir}/${modelFileName}`);
   }
     // saving the entire per-user logs
-    if (args.save) {
+    if (args.saveLogs) {
       const finalPath = path.join(dir, `client${userIndex}_local_log.json`);
 
       const userLog: UserLogFile = makeUserLogFile(task, numberOfUsers, userIndex, client.ownId, finalLog);
@@ -144,8 +148,8 @@ async function main<D extends DataType, N extends Network>(
     dataSplits.map((data, i) => runUser(task, provider, args.host, data as Dataset<DataFormat.Raw[D]>, validationData, i, numberOfUsers))
   )
 
-  if (args.save) {
-    const dir = path.join(".", `${args.testID}`, `${task.id}`);
+  if (args.saveLogs) {
+    const dir = path.join(getOutputDir(), `${task.id}`);
     await fs.mkdir(dir, { recursive: true });
 
     const filePath = path.join(dir, `${task.id}_${numberOfUsers}users.json`);
