@@ -78,27 +78,29 @@ export class GPTModel extends tf.LayersModel {
 
         let preprocessingTime = performance.now()
         debug("await batch data before {} iteration", iteration)
-        await Promise.all([xs.data(), ys.data()])
+        // await Promise.all([xs.data(), ys.data()])
+        await Promise.resolve()
         debug("after await batch data {} iteration", iteration)
         preprocessingTime = performance.now() - preprocessingTime
         
         // TODO include as a tensor inside the model
-        const accTensor = tf.tidy(() => {
-          const logits = this.apply(xs)
-          if (Array.isArray(logits))
-            throw new Error('model outputs too many tensor')
-          if (logits instanceof tf.SymbolicTensor)
-            throw new Error('model outputs symbolic tensor')
-          return tf.metrics.categoricalAccuracy(ys, logits)
-        })
-        const accSize = accTensor.shape.reduce((l, r) => l * r, 1)
-        const accSumTensor = accTensor.sum()
-        const accSum = await accSumTensor.array()
-        tf.dispose(accSumTensor)
-        if (typeof accSum !== 'number')
-          throw new Error('got multiple accuracy sum')
-        accuracyFraction = [accuracyFraction[0] + accSum, accuracyFraction[1] + accSize];
-        tf.dispose([accTensor])
+        // const accTensor = tf.tidy(() => {
+        //   const logits = this.apply(xs)
+        //   if (Array.isArray(logits))
+        //     throw new Error('model outputs too many tensor')
+        //   if (logits instanceof tf.SymbolicTensor)
+        //     throw new Error('model outputs symbolic tensor')
+        //   return tf.metrics.categoricalAccuracy(ys, logits)
+        // })
+        // const accSize = accTensor.shape.reduce((l, r) => l * r, 1)
+        // const accSumTensor = accTensor.sum()
+        // const accSum = await accSumTensor.array()
+        // tf.dispose(accSumTensor)
+        // if (typeof accSum !== 'number')
+        //   throw new Error('got multiple accuracy sum')
+        // accuracyFraction = [accuracyFraction[0] + accSum, accuracyFraction[1] + accSize];
+        // tf.dispose([accTensor])
+        accuracyFraction = [Number.NaN, Number.NaN];
 
         const lossTensor = tf.tidy(() => {
           const { grads, value: lossTensor } = this.optimizer.computeGradients(() => {
