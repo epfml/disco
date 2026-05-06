@@ -7,6 +7,7 @@ import { models, serialization } from "@epfml/discojs";
 
 const OUTPUT_FILENAME = "model.json";
 const GPT2_N_LAYER = 12;
+const GPT2_CONTEXT_LENGTH = 1024;
 const ONNX_URL = "https://huggingface.co/Xenova/gpt2/resolve/main/onnx/decoder_model.onnx?download=true"
 
 
@@ -29,8 +30,7 @@ async function main() {
   
   
   // Init empty TF.js model
-  // Context length value from https://huggingface.co/Xenova/gpt2/blob/main/config.json
-  const gptModel = new models.GPT({ modelType: 'gpt2', contextLength: 1024 });
+  const gptModel = new models.GPT({ modelType: 'gpt2', contextLength: GPT2_CONTEXT_LENGTH });
   if (gptModel.config.nLayer != GPT2_N_LAYER)
     throw new Error(`ONNX conversion only supports GPT-2 with 12 layers, instead found ${gptModel.config.nLayer}.`);
   const gptLayersModel = gptModel.extract();
@@ -54,7 +54,14 @@ async function main() {
       throw new Error(`Undefined layer dimensions for ${tensor.name}`)
     const dims = tensor.dims.map((d) => Number(d));
     const flatData = parseTensorData(tensor);
-    const tfTensor = tf.tensor(flatData).reshape(dims)
+    let tfTensor = tf.tensor(flatData).reshape(dims)
+    if (tensor.name === "transformer.wpe.weight") {
+      if (dims.length !== 2)
+        throw new Error(`Expected transformer.wpe.weight to be a 2D tensor, got ${dims.length}D.`);
+      if (dims[0] < GPT2_CONTEXT_LENGTH)
+        throw new Error(`ONNX positional embeddings only support context length ${dims[0]}, requested ${GPT2_CONTEXT_LENGTH}.`);
+      tfTensor = tfTensor.slice([0, 0], [GPT2_CONTEXT_LENGTH, dims[1]]);
+    }
     preTrainedWeights = preTrainedWeights.set(tfjsName, tfTensor);
   }
 
