@@ -16,6 +16,7 @@ import type {
   Network,
   Task,
 } from "../index.js";
+import { WeightsContainer } from "../index.js";
 import type { Aggregator } from "../aggregator/index.js";
 import { getAggregator } from "../aggregator/index.js";
 import { enumerate, split } from "../utils/async_iterator.js";
@@ -68,6 +69,15 @@ function buildSummaryLog(roundNum: number, epochNum: number, roundLogs: RoundLog
       validationLoss: epochLogs.validation?.loss,
       validationAccuracy: epochLogs.validation?.accuracy,
     }
+}
+
+/**
+ * Interface providing an access to trainer's model weights.
+ * Used for model synchronization to retrieve and set the latest model.
+ */
+export interface ModelWeightAccess{
+  getModelWeight(): WeightsContainer;
+  setModelWeight(weight: WeightsContainer): void;
 }
 
 /**
@@ -127,6 +137,15 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     this.#client = client;
     this.#task = task;
     this.trainer = new Trainer(task, client);
+    // Set ModelWeightAccess of the client
+    this.#client.setModelWeightAccess({
+      getModelWeight: () => {
+        return new WeightsContainer(this.trainer.model.weights.weights.map(t => t.clone()));
+      },
+      setModelWeight: (weights) => {
+        this.trainer.model.weights = weights;
+      }
+    });
     // Simply propagate the training status events emitted by the client
     this.#client.on("status", (status) => this.emit("status", status));
     this.#client.on("participants", (nbParticipants) => this.emit("participants", nbParticipants));

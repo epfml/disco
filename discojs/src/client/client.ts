@@ -14,6 +14,7 @@ import type { EventConnection } from './event_connection.js'
 import type { Aggregator } from '../aggregator/index.js'
 import { EventEmitter } from '../utils/event_emitter.js'
 import { type } from "./messages.js";
+import { ModelWeightAccess } from "../training/disco.js";
 
 const debug = createDebug("discojs:client");
 
@@ -38,6 +39,9 @@ export abstract class Client<N extends Network> extends EventEmitter<{
    */
   protected promiseForMoreParticipants: Promise<void> | undefined = undefined;
 
+  // Interface to access trainer's model weights
+  protected modelWeightAccess?: ModelWeightAccess;
+
   /**
    * When the server notifies the client that they can resume training
    * after waiting for more participants, we want to be able to display what
@@ -55,6 +59,15 @@ export abstract class Client<N extends Network> extends EventEmitter<{
     public readonly aggregator: Aggregator,
   ) {
     super()
+  }
+  
+  /**
+   * Used for decentralized learning.
+   * Set the interface used by client to access to trainer's model weights.
+   * Disco object provides this access.
+   */
+  setModelWeightAccess(modelWeightAccess: ModelWeightAccess){
+    this.modelWeightAccess = modelWeightAccess
   }
 
   /**

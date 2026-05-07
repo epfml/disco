@@ -26,6 +26,15 @@ export class DecentralizedClient extends Client<"decentralized"> {
   #pool?: PeerPool
   #connections?: Map<NodeID, PeerConnection>
 
+  // Flag if this model requires model synchronization 
+  #modelSyncNeeded?: boolean
+
+  // Check if the training round is in progress 
+  // Used to get the latest model for model synchronization
+  #isRoundInTraining = false
+  #roundFinishedPromise?: Promise<void>
+  #resolveRoundFinished?: () => void // contains resolver
+
   // Used to handle timeouts and promise resolving after calling disconnect
   private get isDisconnected() : boolean {
     return this._server === undefined
@@ -69,6 +78,24 @@ export class DecentralizedClient extends Client<"decentralized"> {
       this.#pool.signal(event.peer, event.signal)
     })
 
+    // Listen if the client is selected as a model provider node for a newly joining client.
+    // Upon receiving the signal, this client establishes a connection with the newcomer
+    // and sends the latest model weights.
+    this.server.on(type.SignalNewPeer, async (event) => {
+      if (this.#pool === undefined) throw new Error('received signal about new peer but peer pool is undefined')
+      const syncConnection = await this.#pool.getPeers(Set([event.newNode]), this.server, ()=>{})
+
+      const newcomerConn = syncConnection.get(event.newNode)
+
+      if (newcomerConn === undefined){
+        // if connection with newly joining client fails, print debug message
+        // and return
+        debug(`Cannot connect to newly joined client [${event.newNode}]`)
+        return
+      }
+      await this.sendModel(newcomerConn)
+    })
+
     // c.f. setupServerCallbacks doc for explanation
     let receivedEnoughParticipants = false
     this.setupServerCallbacks(() => receivedEnoughParticipants = true)
@@ -79,8 +106,9 @@ export class DecentralizedClient extends Client<"decentralized"> {
     this.server.send(msg)
     
     const { id, waitForMoreParticipants,
-      nbOfParticipants } = await waitMessage(this.server, type.NewDecentralizedNodeInfo)
-    
+      nbOfParticipants, joinedMidTraining } = await waitMessage(this.server, type.NewDecentralizedNodeInfo)
+
+    this.#modelSyncNeeded = joinedMidTraining
     this.nbOfParticipants = nbOfParticipants
     
 
@@ -129,8 +157,38 @@ export class DecentralizedClient extends Client<"decentralized"> {
    * When connected, one peer creates a promise for every other peer's weight update
    * and waits for it to resolve.
    * 
+   * If a client joined the training after the first round, 
+   * model syncing happens first to get the latest model.
    */
   override async onRoundBeginCommunication(): Promise<void> {
+    if (this.#modelSyncNeeded) {
+      // 1. If model sync is needed, send server a request
+      this.server.send({ type: type.ModelSyncRequest })
+
+      // 2. Get the provider information from the server
+      const providerInfo = await waitMessageWithTimeout(this.server, type.SignalModelProvider, 30_000, "Timeout while waiting for the latest model provider")
+      
+      if (this.#pool === undefined) {
+        throw new Error('peer pool is undefined, make sure to call `client.connect()` first')
+      }
+
+      // 3. Connect with model provider client and get the latest model
+      const syncConnection = await this.#pool.getPeers(
+        Set([providerInfo.providerNode]),
+        this.server,
+        ()=>{}
+      )
+      const providerConn = syncConnection.get(providerInfo.providerNode)
+
+      if (providerConn === undefined){
+        throw new Error("The latest model provider is not connected")
+      }
+
+      const latestModel = await this.receiveModel(providerConn)
+      this.modelWeightAccess?.setModelWeight(latestModel)
+      this.#modelSyncNeeded = false
+    }
+
     // Notify the server we want to join the next round so that the server
     // waits for us to be ready before sending the list of peers for the round
     this.server.send({ type: type.JoinRound })
@@ -149,9 +207,11 @@ export class DecentralizedClient extends Client<"decentralized"> {
     // Once enough new participants join we can display the previous status again
     this.saveAndEmit("connecting to peers")
     // First we check if we are waiting for more participants before sending our weight update
-    await this.waitForParticipantsIfNeeded()
 
     while(true){
+      // Wait until enough participants are available before continuing the round
+      await this.waitForParticipantsIfNeeded()
+
       // Create peer-to-peer connections with all peers for the round
       await this.establishPeerConnections()
 
@@ -185,7 +245,18 @@ export class DecentralizedClient extends Client<"decentralized"> {
       }
     }
     // Exchange weight updates with peers and return aggregated weights
-    return await this.exchangeWeightUpdates(weights)
+    let aggregatedWeight: WeightsContainer
+    try{
+      aggregatedWeight = await this.exchangeWeightUpdates(weights)
+    } finally {
+      // Mark the round as finished so that model synchronization can proceed
+      this.#isRoundInTraining = false
+      this.#resolveRoundFinished?.()
+      this.#roundFinishedPromise = undefined
+      this.#resolveRoundFinished = undefined
+    }
+
+    return aggregatedWeight
   }
 
   /**
@@ -210,6 +281,12 @@ export class DecentralizedClient extends Client<"decentralized"> {
     try {
       debug(`[${shortenId(this.ownId)}] is waiting for peer list for round ${this.aggregator.round}`);
       const receivedMessage = await waitMessage(this.server, type.PeersForRound)
+
+      this.#isRoundInTraining = true
+      // Generate a promise that resolves when round training finishes
+      this.#roundFinishedPromise = new Promise<void>((resolve) => { 
+        this.#resolveRoundFinished = resolve
+      })
 
       const peers = Set(receivedMessage.peers)
       debug(`[${shortenId(this.ownId)}] received peer list: %o`, peers.toArray());
@@ -337,5 +414,40 @@ export class DecentralizedClient extends Client<"decentralized"> {
       }
     }
     return await this.aggregationResult
+  }
+
+  /**
+   * Receive model from the model provider.
+   */
+  private async receiveModel(providerConn: PeerConnection): Promise<WeightsContainer>{
+    const message = await waitMessageWithTimeout(providerConn, type.SharedModel, 30_000, "Timeout while waiting for the latest model")
+    
+    const decoded = serialization.weights.decode(message.model)
+    return decoded
+  }
+
+  /**
+   * Send the latest available model to a newly joining client.
+   * If the current training round is in progress, wait until the round finishes
+   * and receive the latest aggregated model.
+   */
+  private async sendModel(newcomerConn: PeerConnection): Promise<void> {
+    if (this.#isRoundInTraining){
+      await this.#roundFinishedPromise
+    }
+
+    const model = this.modelWeightAccess?.getModelWeight()
+
+    if (model === undefined){
+      debug("Failed to get the latest model from model provider client")
+      return
+    }
+    const encoded = await serialization.weights.encode(model)
+
+    const message: messages.SharedModel = {
+        type: type.SharedModel,
+        model: encoded
+      }
+    newcomerConn.send(message)
   }
 }

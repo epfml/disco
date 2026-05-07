@@ -12,6 +12,7 @@ export interface NewDecentralizedNodeInfo {
   id: NodeID
   waitForMoreParticipants: boolean
   nbOfParticipants: number
+  joinedMidTraining: boolean
 }
 
 // WebRTC signal to forward to other node
@@ -60,6 +61,32 @@ export interface ConnectionFail {
   type: type.ConnectionFail
 }
 
+// Nodes joining in the middle of the training send to server
+// to request the latest model before starting local training
+export interface ModelSyncRequest {
+  type: type.ModelSyncRequest
+}
+
+// Server signals a node that shares the lastest model with node
+// who joined in the middle of the training
+export interface SignalNewPeer {
+  type: type.SignalNewPeer
+  newNode: NodeID 
+}
+
+// Server signals new node joining in the middle of the training
+// about the model provider node
+export interface SignalModelProvider {
+  type: type.SignalModelProvider
+  providerNode: NodeID 
+}
+
+// Sent by client to another client to share the latest model
+export interface SharedModel {
+  type: type.SharedModel
+  model: serialization.Encoded
+}
+
 /// Phase 1 communication (between peers)
 
 export interface Payload {
@@ -80,16 +107,21 @@ export type MessageFromServer =
   EnoughParticipants |
   StartWeightSharing |
   RetryPeerConnections |
-  ConnectionFail
+  ConnectionFail |
+  SignalModelProvider |
+  SignalNewPeer
 
 export type MessageToServer =
   ClientConnected |
   SignalForPeer |
   PeerIsReady |
   JoinRound |
-  ConnectionsReady
+  ConnectionsReady |
+  ModelSyncRequest
 
-export type PeerMessage = Payload
+export type PeerMessage = 
+  Payload |
+  SharedModel
 
 export function isMessageFromServer (o: unknown): o is MessageFromServer {
   if (!hasMessageType(o)) return false
@@ -101,14 +133,17 @@ export function isMessageFromServer (o: unknown): o is MessageFromServer {
         typeof o.waitForMoreParticipants === 'boolean'
     case type.SignalForPeer:
       return 'peer' in o && isNodeID(o.peer) &&
-        'signal' in o // TODO check signal content?
+        'signal' in o
     case type.PeersForRound:
       return 'peers' in o && Array.isArray(o.peers) && o.peers.every(isNodeID)
+    case type.SignalNewPeer:
+      return 'newNode' in o && isNodeID(o.newNode)
     case type.WaitingForMoreParticipants:
     case type.EnoughParticipants:
     case type.StartWeightSharing:
     case type.RetryPeerConnections:
     case type.ConnectionFail:
+    case type.SignalModelProvider:
           return true
   }
 
@@ -123,10 +158,11 @@ export function isMessageToServer (o: unknown): o is MessageToServer {
       return true
     case type.SignalForPeer:
       return 'peer' in o && isNodeID(o.peer) &&
-        'signal' in o // TODO check signal content?
+        'signal' in o
     case type.JoinRound:
     case type.PeerIsReady:
     case type.ConnectionsReady:
+    case type.ModelSyncRequest:
       return true
   }
 
@@ -141,6 +177,10 @@ export function isPeerMessage (o: unknown): o is PeerMessage {
       return (
         'peer' in o && isNodeID(o.peer) &&
         'payload' in o && serialization.isEncoded(o.payload)
+      )
+    case type.SharedModel:
+      return (
+        'model' in o && serialization.isEncoded(o.model)
       )
   }
 

@@ -34,6 +34,14 @@ export enum type {
   ConnectionFail,
   // The weight update
   Payload,
+  // Sent by nodes to the server to request the latest model
+  ModelSyncRequest,
+  // Sent by the server to nodes to share the provider node info
+  SignalModelProvider,
+  // Sent by the server to nodes who was selected as a model provider node
+  SignalNewPeer,
+  // Sent by node to node to share the latest model weights
+  SharedModel,
   
   /* Federated */
   // The server answers the ClientConnected message with the necessary information
