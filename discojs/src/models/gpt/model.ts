@@ -79,12 +79,8 @@ export class GPTModel extends tf.LayersModel {
         const { xs, ys } = next.value as { xs: tf.Tensor2D, ys: tf.Tensor3D }
 
         let preprocessingTime = performance.now()
-        // debug("await batch data before {} iteration", iteration)
-        debug("await batch data before {} iteration", reportedIteration)
-        // await Promise.all([xs.data(), ys.data()])
-        await Promise.resolve()
-        // debug("after await batch data {} iteration", iteration)
-        debug("after await batch data {} iteration", reportedIteration)
+        await Promise.all([xs.data(), ys.data()])
+        // await Promise.resolve()
         preprocessingTime = performance.now() - preprocessingTime
         
         // TODO include as a tensor inside the model
