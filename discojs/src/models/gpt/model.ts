@@ -55,9 +55,10 @@ export class GPTModel extends tf.LayersModel {
       : tf.train.adam(this.config.lr) 
   }
 
-  override async fitDataset<T>(dataset: Dataset<T>, trainingArgs: tf.ModelFitDatasetArgs<T>): Promise<tf.History> {
+  override async fitDataset<T>(dataset: Dataset<T>, trainingArgs: tf.ModelFitDatasetArgs<T> & { iterationOffset?: number }): Promise<tf.History> {
     const callbacks = trainingArgs.callbacks as tf.CustomCallbackArgs
     const evalDataset = trainingArgs.validationData as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>
+    const iterationOffset = trainingArgs.iterationOffset ?? 0
     await callbacks.onTrainBegin?.()
 
     for (let epoch = 1; epoch <= trainingArgs.epochs; epoch++) {
@@ -72,15 +73,18 @@ export class GPTModel extends tf.LayersModel {
       debug("after next of iterator")
 
       while (next.done !== true && iteration <= this.config.maxIter) {
+        const reportedIteration = iterationOffset + iteration
         let weightUpdateTime = performance.now()
         await callbacks.onEpochBegin?.(epoch)
         const { xs, ys } = next.value as { xs: tf.Tensor2D, ys: tf.Tensor3D }
 
         let preprocessingTime = performance.now()
-        debug("await batch data before {} iteration", iteration)
+        // debug("await batch data before {} iteration", iteration)
+        debug("await batch data before {} iteration", reportedIteration)
         // await Promise.all([xs.data(), ys.data()])
         await Promise.resolve()
-        debug("after await batch data {} iteration", iteration)
+        // debug("after await batch data {} iteration", iteration)
+        debug("after await batch data {} iteration", reportedIteration)
         preprocessingTime = performance.now() - preprocessingTime
         
         // TODO include as a tensor inside the model
@@ -125,7 +129,8 @@ export class GPTModel extends tf.LayersModel {
         if (
           evalDataset !== undefined &&
           this.config.evaluateEvery !== undefined &&
-          iteration % this.config.evaluateEvery == 0
+          // iteration % this.config.evaluateEvery == 0
+          reportedIteration % this.config.evaluateEvery == 0
         ){
           const iterationLogs = await evaluate(this, evalDataset, this.config.maxEvalBatches)
           debug('evaluation metrics: %O', iterationLogs);
@@ -133,7 +138,8 @@ export class GPTModel extends tf.LayersModel {
         const memory = tf.memory().numBytes / 1024 / 1024 / 1024
         debug("training metrics: %O", {
           epoch,
-          iteration,
+          // iteration,
+          iteration: reportedIteration,
           loss,
           memory,
           allocated: tf.memory().numTensors,

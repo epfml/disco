@@ -30,6 +30,15 @@ export interface RoundLogs {
 /** List of weight update norms */
 export type WeightNormHistory = List<List<number>>;
 
+type IterationTrainableTextModel = Model<"text"> & {
+  trainNextBatches(
+    trainingIterator: AsyncIterator<Batched<DataFormat.ModelEncoded["text"]>>,
+    maxBatchCount: number,
+    validationDataset?: Dataset<Batched<DataFormat.ModelEncoded["text"]>>,
+    setDone?: (done: boolean) => void,
+  ): AsyncGenerator<BatchLogs, EpochLogs>;
+};
+
 function appendWeightHistory(weightNormHistory: WeightNormHistory, wc: number[]){
   return wc.reduce((hist, t, i) => {
     const arr = hist.get(i, List<number>());
@@ -53,6 +62,7 @@ export class Trainer<D extends DataType, N extends Network> {
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
     void
   >;
+  readonly #roundIterations?: number;
   // Map of weight Index and weight update
   #weightNormHistory : WeightNormHistory = List();
   #previousRoundWeights?: WeightsContainer;
@@ -71,10 +81,18 @@ export class Trainer<D extends DataType, N extends Network> {
     this.#client = client;
     this.#roundDuration = task.trainingInformation.roundDuration;
     this.#epochs = task.trainingInformation.epochs;
+    this.#roundIterations = task.trainingInformation.roundIterations;
 		if ("privacy" in task.trainingInformation)
 			this.#privacy = task.trainingInformation.privacy;
 
-    if (!Number.isInteger(this.#epochs / this.#roundDuration))
+    if (this.#roundIterations !== undefined && (task.dataType !== "text" || task.trainingInformation.tensorBackend !== "gpt"))
+      throw new Error("roundIterations is only supported for GPT text tasks");
+
+    if (this.#roundIterations !== undefined && (!Number.isInteger(this.#roundIterations) || this.#roundIterations < 1))
+      throw new Error("roundIterations must be a positive integer");
+
+    // if (!Number.isInteger(this.#epochs / this.#roundDuration))
+    if (this.#roundIterations === undefined && !Number.isInteger(this.#epochs / this.#roundDuration))
       throw new Error(
         `round duration ${this.#roundDuration} doesn't divide number of epochs ${this.#epochs}`,
       );
@@ -98,7 +116,11 @@ export class Trainer<D extends DataType, N extends Network> {
       );
 
     try {
-      this.#training = this.#runRounds(dataset, validationDataset);
+      // this.#training = this.#runRounds(dataset, validationDataset);
+      this.#training =
+        this.#roundIterations === undefined
+          ? this.#runRounds(dataset, validationDataset)
+          : this.#runIterationRounds(dataset, validationDataset);
       yield* this.#training;
     } finally {
       this.#training = undefined;
@@ -151,6 +173,77 @@ export class Trainer<D extends DataType, N extends Network> {
     }
   }
 
+  async *#runIterationRounds(
+    dataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+    validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+  ): AsyncGenerator<
+    AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
+    void
+  > {
+    if (this.#roundIterations === undefined)
+      throw new Error("roundIterations was not set");
+
+    for (let epoch = 0; epoch < this.#epochs; epoch++) {
+      const trainingIterator = dataset[Symbol.asyncIterator]();
+      let next = await trainingIterator.next();
+      let pendingBatch: Batched<DataFormat.ModelEncoded[D]> | undefined =
+        next.done === true ? undefined : next.value;
+
+      while (pendingBatch !== undefined) {
+        await this.#client.onRoundBeginCommunication();
+
+        this.#previousRoundWeights = new WeightsContainer(this.model.weights.weights.map(t => t.clone()));
+
+        let firstBatch: Batched<DataFormat.ModelEncoded[D]> | undefined = pendingBatch;
+        pendingBatch = undefined;
+        let done = false;
+        const prefixedIterator: AsyncIterator<Batched<DataFormat.ModelEncoded[D]>> = {
+          next: async () => {
+            if (firstBatch !== undefined) {
+              const value = firstBatch;
+              firstBatch = undefined;
+              return { value, done: false };
+            }
+
+            return await trainingIterator.next();
+          },
+        };
+
+        yield this.#runIterationRound(
+          prefixedIterator,
+          this.#roundIterations,
+          validationDataset,
+          (roundDone) => done = roundDone,
+        );
+
+        let roundWeights = this.model.weights;
+
+        if (this.#privacy !== undefined){
+          const roundUpdate = roundWeights.sub(this.#previousRoundWeights);
+          const updateNorm = await Promise.all(
+            roundUpdate.weights.map(privacy.frobeniusNorm)
+          );
+          this.#weightNormHistory = appendWeightHistory(this.#weightNormHistory, updateNorm);
+          
+          roundWeights = await applyOptimalPrivacy(
+            this.#previousRoundWeights,
+            roundWeights,
+            this.#privacy,
+            this.#weightNormHistory,
+            Number.MAX_SAFE_INTEGER,
+          )
+        }
+
+        const networkWeights = await this.#client.onRoundEndCommunication(roundWeights);
+        this.model.weights = networkWeights;
+
+        if (done) break;
+        next = await trainingIterator.next();
+        pendingBatch = next.done === true ? undefined : next.value;
+      }
+    }
+  }
+
   async *#runRound(
     dataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
@@ -171,6 +264,42 @@ export class Trainer<D extends DataType, N extends Network> {
       epochsLogs = epochsLogs.push(await epochLogs);
     }
       
+    return {
+      epochs: epochsLogs,
+      participants: this.#client.nbOfParticipants,
+      preRoundValidation: validation,
+    };
+  }
+
+  async *#runIterationRound(
+    datasetIterator: AsyncIterator<Batched<DataFormat.ModelEncoded[D]>>,
+    maxBatchCount: number,
+    validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+    setDone?: (done: boolean) => void,
+  ): AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs> {
+    let epochsLogs = List<EpochLogs>();
+
+    debug("Run iteration-based round")
+
+    const validation = validationDataset !== undefined ? await this.model.evaluate(validationDataset) : undefined;
+
+    const model = this.model as unknown as IterationTrainableTextModel;
+    if (typeof model.trainNextBatches !== "function")
+      throw new Error("model does not support iteration-based training");
+
+    const [gen, result] = async_iterator.split(
+      model.trainNextBatches(
+        datasetIterator as AsyncIterator<Batched<DataFormat.ModelEncoded["text"]>>,
+        maxBatchCount,
+        validationDataset as Dataset<Batched<DataFormat.ModelEncoded["text"]>> | undefined,
+        setDone,
+      ),
+    );
+
+    yield gen;
+    const epochLogs = await result;
+    epochsLogs = epochsLogs.push(epochLogs);
+
     return {
       epochs: epochsLogs,
       participants: this.#client.nbOfParticipants,

@@ -19,6 +19,7 @@ export interface BenchmarkArguments {
   numberOfUsers: number
   epochs: number
   roundDuration: number
+  roundIterations?: number
   batchSize: number
   validationSplit: number
   datasetPath?: string
@@ -59,6 +60,7 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     numberOfUsers: { type: Number, alias: 'u', description: 'Number of users', defaultValue: 2 },
     epochs: { type: Number, alias: 'e', description: 'Number of epochs', defaultValue: 10 },
     roundDuration: { type: Number, alias: 'r', description: 'Round duration (in epochs)', defaultValue: 2 },
+    roundIterations: { type: Number, description: 'For GPT text tasks, aggregate every N training batches without rewinding the dataset', optional: true },
     batchSize: { type: Number, alias: 'b', description: 'Training batch size', defaultValue: 10 },
     validationSplit : { type: Number, alias: 'v', description: 'Validation dataset ratio', defaultValue: 0.2 },
     datasetPath: { type: String, alias: 'd', description: 'Path to the dataset', optional: true },
@@ -133,6 +135,7 @@ export const args: BenchmarkArguments = {
       task.trainingInformation.roundDuration = unsafeArgs.roundDuration;
       task.trainingInformation.epochs = unsafeArgs.epochs;
       task.trainingInformation.validationSplit = unsafeArgs.validationSplit;
+      (task.trainingInformation as typeof task.trainingInformation & { roundIterations?: number }).roundIterations = unsafeArgs.roundIterations;
 
       const {aggregator, clippingRadius, maxIterations, beta, maxShareValue} = unsafeArgs;
 
