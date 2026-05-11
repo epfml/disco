@@ -117,6 +117,7 @@ export class GPTModel extends tf.LayersModel {
           })
           const gradsClipped = clipByGlobalNormObj(grads, 1)
           this.optimizer.applyGradients(gradsClipped)
+          tf.dispose(Object.values(gradsClipped))
           return lossTensor
         })
         

@@ -170,6 +170,9 @@ export class Trainer<D extends DataType, N extends Network> {
       
       // Update the local weights
       this.model.weights = networkWeights;
+      networkWeights.dispose();
+      this.#previousRoundWeights.dispose();
+      this.#previousRoundWeights = undefined;
     }
   }
 
@@ -236,6 +239,9 @@ export class Trainer<D extends DataType, N extends Network> {
 
         const networkWeights = await this.#client.onRoundEndCommunication(roundWeights);
         this.model.weights = networkWeights;
+        networkWeights.dispose();
+        this.#previousRoundWeights.dispose();
+        this.#previousRoundWeights = undefined;
 
         if (done) break;
         next = await trainingIterator.next();
