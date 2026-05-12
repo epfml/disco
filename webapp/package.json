@@ -39,7 +39,7 @@
 		"@vue/tsconfig": "0.9",
 		"canvas": "3",
 		"jsdom": "29",
-		"start-server-and-test": "3",
+		"start-server-and-test": "^3.0.4",
 		"tailwindcss": "4",
 		"typescript": "5",
 		"vite": "8",
