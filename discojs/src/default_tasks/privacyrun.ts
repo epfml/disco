@@ -32,7 +32,7 @@ export const privacyrun: TaskProvider<"text", "federated"> = {
         batchSize: 8,
         tokenizer: await Tokenizer.from_pretrained("Xenova/gpt2"),
         // contextLength: 1024,
-        contextLength: 512,
+        contextLength: 256,
         tensorBackend: 'gpt'
       }
     }
@@ -43,7 +43,9 @@ export const privacyrun: TaskProvider<"text", "federated"> = {
     // The model should be in DiscoJS serialization format (created by onnx-converter)
     // const modelUrl = "https://storage.googleapis.com/deai-313515.appspot.com/model.json";
     
-    const modelUrl = "https://storage.googleapis.com/deai-313515.appspot.com/model_ctx_512.json";
+    // const modelUrl = "https://storage.googleapis.com/deai-313515.appspot.com/model_ctx_512.json";
+
+    const modelUrl = "https://storage.googleapis.com/deai-313515.appspot.com/model_ctx_256.json";
 
     try {
       const response = await fetch(modelUrl);
