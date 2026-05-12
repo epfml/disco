@@ -58,6 +58,7 @@ export function preprocess<D extends DataType, N extends Network>(
         .map((text) => tokenizer.tokenize(text))
         .flatten()
         .batch(contextLength + 1, 1)
+        .filter((tokens) => tokens.size === contextLength + 1)
         .map((tokens) => [tokens.pop(), tokens.last()]) as Dataset<
         DataFormat.ModelEncoded[D]
       >;

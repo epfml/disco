@@ -5,6 +5,12 @@ import { Dataset } from "../index.js";
 
 import { preprocess } from "./index.js";
 
+async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
+  const ret: T[] = [];
+  for await (const e of iter) ret.push(e);
+  return ret;
+}
+
 describe("preprocess", () => {
   it("throws on missing column in tabular", async () => {
     const task: Task<"tabular", "local"> = {
@@ -40,5 +46,34 @@ describe("preprocess", () => {
     }
 
     expect(false, "should have thrown").to.be.true;
+  });
+
+  it("drops incomplete text windows", async () => {
+    const task = {
+      id: "task",
+      dataType: "text",
+      displayInformation: {
+        title: "",
+        summary: { preview: "", overview: "" },
+      },
+      trainingInformation: {
+        tensorBackend: "gpt",
+        scheme: "local",
+        aggregationStrategy: "mean",
+        epochs: 1,
+        roundDuration: 1,
+        batchSize: 2,
+        validationSplit: 0,
+        contextLength: 4,
+        tokenizer: {
+          tokenize: () => [0, 1, 2, 3, 4, 5, 6],
+        },
+      },
+    } as unknown as Task<"text", "local">;
+
+    const dataset = new Dataset(["ignored"]);
+    const preprocessed = await arrayFromAsync(preprocess(task, dataset));
+
+    expect(preprocessed.map(([tokens]) => tokens.size)).to.deep.equal([4]);
   });
 });
