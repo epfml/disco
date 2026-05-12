@@ -32,7 +32,7 @@ export const privacyrun: TaskProvider<"text", "federated"> = {
         batchSize: 8,
         tokenizer: await Tokenizer.from_pretrained("Xenova/gpt2"),
         // contextLength: 1024,
-        contextLength: 256,
+        contextLength: 512,
         tensorBackend: 'gpt'
       }
     }
@@ -45,7 +45,7 @@ export const privacyrun: TaskProvider<"text", "federated"> = {
     
     // const modelUrl = "https://storage.googleapis.com/deai-313515.appspot.com/model_ctx_512.json";
 
-    const modelUrl = "https://storage.googleapis.com/deai-313515.appspot.com/model_ctx_256.json";
+    const modelUrl = "https://storage.googleapis.com/deai-313515.appspot.com/model_ctx_512.json";
 
     try {
       const response = await fetch(modelUrl);
