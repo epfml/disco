@@ -14,12 +14,14 @@ interface Args {
   suffixLength: number;
   bleuThreshold: number;
   seed: number;
+  logEvery: number;
   savePath?: string;
   help?: boolean;
 }
 
 type PromptResult = {
   recordIndex: number;
+  recordTokenLength: number;
   promptLength: number;
   splitIndex: number;
   exactMatch: boolean;
@@ -28,6 +30,14 @@ type PromptResult = {
   promptText: string;
   referenceText: string;
   generatedText: string;
+};
+
+type TokenLengthStats = {
+  min: number;
+  p50: number;
+  p90: number;
+  max: number;
+  average: number;
 };
 
 function parseIntegerList(raw: string): number[] {
@@ -76,6 +86,24 @@ async function loadRecords(filePath: string, limit: number): Promise<string[]> {
     .filter((record) => record.length > 0);
 
   return limit > 0 ? records.slice(0, limit) : records;
+}
+
+function summarizeTokenLengths(lengths: number[]): TokenLengthStats {
+  if (lengths.length === 0) {
+    return { min: 0, p50: 0, p90: 0, max: 0, average: 0 };
+  }
+
+  const sorted = [...lengths].sort((a, b) => a - b);
+  const percentile = (p: number) =>
+    sorted[Math.min(sorted.length - 1, Math.floor((sorted.length - 1) * p))];
+
+  return {
+    min: sorted[0],
+    p50: percentile(0.5),
+    p90: percentile(0.9),
+    max: sorted[sorted.length - 1],
+    average: lengths.reduce((sum, length) => sum + length, 0) / lengths.length,
+  };
 }
 
 function ngrams(tokens: number[], n: number): Map<string, number> {
@@ -197,6 +225,7 @@ async function main() {
       suffixLength: { type: Number, description: "Number of suffix tokens to generate and compare", defaultValue: 50 },
       bleuThreshold: { type: Number, description: "BLEU threshold for approximate memorization", defaultValue: 0.75 },
       seed: { type: Number, description: "Random seed for choosing record split positions", defaultValue: 42 },
+      logEvery: { type: Number, description: "Print progress every N records; set 0 to disable per-record progress logs", defaultValue: 1 },
       savePath: { type: String, description: "Optional JSON output path", optional: true },
       help: { type: Boolean, optional: true, alias: "h", description: "Prints this usage guide" },
     },
@@ -228,26 +257,85 @@ async function main() {
   const records = await loadRecords(args.dataPath, args.maxRecords);
   console.log(`Loaded ${records.length} records`);
 
+  console.log("Tokenizing records...");
+  const tokenizedRecords = records.map((record) => tokenizer.tokenize(record).toArray());
+  const tokenLengths = tokenizedRecords.map((ids) => ids.length);
+  const requiredTokensByPromptLength = Object.fromEntries(
+    promptLengths.map((promptLength) => [
+      promptLength,
+      promptLength + args.suffixLength + 1,
+    ]),
+  );
+  const eligibleRecordsByPromptLength = Object.fromEntries(
+    promptLengths.map((promptLength) => [
+      promptLength,
+      tokenLengths.filter(
+        (length) => length >= promptLength + args.suffixLength + 1,
+      ).length,
+    ]),
+  );
+  console.log("Token length stats:", summarizeTokenLengths(tokenLengths));
+  console.log("Eligible records by prompt length:", eligibleRecordsByPromptLength);
+  console.log("Starting memorization evaluation...");
+
   const results: PromptResult[] = [];
   let skipped = 0;
+  const skippedByPromptLength: Record<string, number> = Object.fromEntries(
+    promptLengths.map((promptLength) => [promptLength, 0]),
+  );
 
-  for (let recordIndex = 0; recordIndex < records.length; recordIndex++) {
-    const record = records[recordIndex];
-    const ids = tokenizer.tokenize(record).toArray();
+  for (let recordIndex = 0; recordIndex < tokenizedRecords.length; recordIndex++) {
+    const ids = tokenizedRecords[recordIndex];
+    const eligiblePromptLengths = promptLengths.filter(
+      (promptLength) => ids.length >= promptLength + args.suffixLength + 1,
+    );
+    const shouldLogRecord =
+      args.logEvery > 0 &&
+      (recordIndex === 0 ||
+        (recordIndex + 1) % args.logEvery === 0 ||
+        recordIndex === tokenizedRecords.length - 1);
 
-    if (ids.length < maxPromptLength + args.suffixLength + 1) {
+    if (shouldLogRecord) {
+      console.log(
+        `Record ${recordIndex + 1}/${tokenizedRecords.length}: ${ids.length} tokens, eligible prompt lengths: ${
+          eligiblePromptLengths.length > 0 ? eligiblePromptLengths.join(",") : "none"
+        }`,
+      );
+    }
+
+    for (const promptLength of promptLengths) {
+      if (!eligiblePromptLengths.includes(promptLength)) {
+        skippedByPromptLength[promptLength]++;
+      }
+    }
+
+    if (eligiblePromptLengths.length === 0) {
+      if (shouldLogRecord) {
+        console.log(
+          `Skipping record ${recordIndex + 1}; needs at least ${
+            Math.min(...promptLengths) + args.suffixLength + 1
+          } tokens for the shortest prompt/suffix setting.`,
+        );
+      }
       skipped++;
       continue;
     }
 
+    const maxEligiblePromptLength = Math.max(...eligiblePromptLengths);
     const splitIndex = randomInt(
       random,
-      maxPromptLength,
+      maxEligiblePromptLength,
       ids.length - args.suffixLength,
     );
     const reference = ids.slice(splitIndex, splitIndex + args.suffixLength);
 
-    for (const promptLength of promptLengths) {
+    for (const promptLength of eligiblePromptLengths) {
+      if (shouldLogRecord) {
+        console.log(
+          `  Generating ${args.suffixLength} tokens for prompt length ${promptLength} at split ${splitIndex}...`,
+        );
+      }
+
       const prompt = ids.slice(splitIndex - promptLength, splitIndex);
       const generated = await greedyGenerateGPT2(
         loadedModel,
@@ -263,6 +351,7 @@ async function main() {
 
       results.push({
         recordIndex,
+        recordTokenLength: ids.length,
         promptLength,
         splitIndex,
         exactMatch,
@@ -272,10 +361,18 @@ async function main() {
         referenceText: tokenizer.decode(reference),
         generatedText: tokenizer.decode(generatedSuffix),
       });
+
+      if (shouldLogRecord) {
+        console.log(
+          `  Done prompt length ${promptLength}: exact=${exactMatch}, BLEU=${bleu.toFixed(4)}`,
+        );
+      }
     }
 
-    if ((recordIndex + 1) % 10 === 0) {
-      console.log(`Processed ${recordIndex + 1}/${records.length} records`);
+    if (shouldLogRecord) {
+      console.log(
+        `Finished record ${recordIndex + 1}/${tokenizedRecords.length}; results so far: ${results.length}`,
+      );
     }
   }
 
@@ -292,9 +389,15 @@ async function main() {
       suffixLength: args.suffixLength,
       bleuThreshold: args.bleuThreshold,
       seed: args.seed,
+      logEvery: args.logEvery,
       modelContextLength: loadedModel.config.contextLength,
     },
+    tokenLengthStats: summarizeTokenLengths(tokenLengths),
+    requiredTokensByPromptLength,
+    eligibleRecordsByPromptLength,
     skippedRecords: skipped,
+    skippedByPromptLength,
+    evaluatedRecords: new Set(results.map((result) => result.recordIndex)).size,
     ...summarize(results),
   };
 

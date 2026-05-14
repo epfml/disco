@@ -29,6 +29,7 @@ export const privacyrun: TaskProvider<"text", "federated"> = {
         epochs: 1,
         validationSplit: 0.1, 
         roundDuration: 1,
+        // Last context segment may be shorter than context length, so it will be dropped (TODO: implement padding to avoid this)
         batchSize: 8,
         tokenizer: await Tokenizer.from_pretrained("Xenova/gpt2"),
         // contextLength: 1024,
