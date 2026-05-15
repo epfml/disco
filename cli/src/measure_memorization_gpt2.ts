@@ -170,6 +170,8 @@ async function greedyGenerateGPT2(
       return output as tf.Tensor;
     });
 
+    console.log("logits shape:", logits.shape);
+
     const nextTokenTensor = tf.tidy(() => {
       const last = logits.slice([0, modelInput.length - 1, 0], [1, 1, -1]);
       return last.squeeze().argMax();
@@ -297,8 +299,7 @@ async function main() {
 
     if (shouldLogRecord) {
       console.log(
-        `Record ${recordIndex + 1}/${tokenizedRecords.length}: ${ids.length} tokens, eligible prompt lengths: ${
-          eligiblePromptLengths.length > 0 ? eligiblePromptLengths.join(",") : "none"
+        `Record ${recordIndex + 1}/${tokenizedRecords.length}: ${ids.length} tokens, eligible prompt lengths: ${eligiblePromptLengths.length > 0 ? eligiblePromptLengths.join(",") : "none"
         }`,
       );
     }
@@ -312,8 +313,7 @@ async function main() {
     if (eligiblePromptLengths.length === 0) {
       if (shouldLogRecord) {
         console.log(
-          `Skipping record ${recordIndex + 1}; needs at least ${
-            Math.min(...promptLengths) + args.suffixLength + 1
+          `Skipping record ${recordIndex + 1}; needs at least ${Math.min(...promptLengths) + args.suffixLength + 1
           } tokens for the shortest prompt/suffix setting.`,
         );
       }
@@ -344,6 +344,30 @@ async function main() {
         loadedModel.config.contextLength,
       );
       const generatedSuffix = generated.slice(prompt.length, prompt.length + args.suffixLength);
+
+      console.log("================================");
+      console.log("PROMPT LENGTH:", promptLength);
+
+      console.log("\nPROMPT IDS:");
+      console.log(prompt.slice(0, 30));
+
+      console.log("\nGENERATED IDS:");
+      console.log(generatedSuffix.slice(0, 30));
+
+      console.log("\nREFERENCE IDS:");
+      console.log(reference.slice(0, 30));
+
+      console.log("\nPROMPT TEXT:");
+      console.log(JSON.stringify(tokenizer.decode(prompt)));
+
+      console.log("\nGENERATED TEXT:");
+      console.log(JSON.stringify(tokenizer.decode(generatedSuffix)));
+
+      console.log("\nREFERENCE TEXT:");
+      console.log(JSON.stringify(tokenizer.decode(reference)));
+
+      console.log("================================");
+
       const exactMatch =
         generatedSuffix.length === reference.length &&
         generatedSuffix.every((token, i) => token === reference[i]);
