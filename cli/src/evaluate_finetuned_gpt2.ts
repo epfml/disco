@@ -55,68 +55,47 @@ function parseSample(sample: string) {
 
     for (const line of lines) {
         if (line.startsWith("Answer:")) {
-            answer = line.replace("Answer:", "").trim();
+            // answer = line.replace("Answer:", "").trim();
+            answer = line.replace("Answer:", "").trim().charAt(0).toUpperCase();
         } else {
             promptLines.push(line);
         }
     }
 
-    const basePrompt = promptLines.join("\n");
+    const basePrompt = promptLines.join("\n").trim();
     return { basePrompt, answer };
 }
 
-// =========================
-// SOFTMAX (for safety)
-// =========================
-async function scoreText(
+async function scoreContinuation(
     tfModel: tf.LayersModel,
     tokenizer: Tokenizer,
-    text: string
+    prompt: string,
+    continuation: string
 ): Promise<number> {
-    const tokens = tokenizer.tokenize(text);
+    const promptTokens = tokenizer.tokenize(prompt).toArray();
+    const fullTokens = tokenizer.tokenize(prompt + continuation).toArray();
 
-    if (tokens.size < 2) return -Infinity;
-
-    const inputTokens = tokens.slice(0, tokens.size - 1).toArray();
-    const targets = tokens.slice(1).toArray();
-
-    const inputTensor = tf.tensor([inputTokens], [1, inputTokens.length], "int32");
+    const inputTokens = fullTokens.slice(0, -1);
+    const inputTensor = tf.tensor2d([inputTokens], [1, inputTokens.length], "int32");
 
     const logits = tfModel.predict(inputTensor) as tf.Tensor;
-    const logitsArray = await logits.array() as number[][][];
+    const logProbs = tf.logSoftmax(logits, -1);
+    const arr = await logProbs.array() as number[][][];
 
     let score = 0;
+    let count = 0;
 
-    for (let i = 0; i < targets.length; i++) {
-        const stepLogits = logitsArray[0][i];
-
-        const logit = stepLogits[targets[i]] ?? -100;
-
-        score += logit;
+    for (let targetPos = promptTokens.length; targetPos < fullTokens.length; targetPos++) {
+        const targetToken = fullTokens[targetPos];
+        score += arr[0][targetPos - 1][targetToken];
+        count++;
     }
 
     inputTensor.dispose();
     logits.dispose();
+    logProbs.dispose();
 
-    return score;
-}
-
-// =========================
-// SCORE OPTIONS
-// =========================
-async function scoreOptions(
-    tfModel: tf.LayersModel,
-    tokenizer: Tokenizer,
-    texts: string[]
-): Promise<number[]> {
-    const scores: number[] = [];
-
-    for (const t of texts) {
-        const s = await scoreText(tfModel, tokenizer, t);
-        scores.push(s);
-    }
-
-    return scores;
+    return score / count;
 }
 
 // =========================
@@ -148,6 +127,7 @@ async function benchmarkQA(
         predicted: string;
         answer: string;
         correct: boolean;
+        scores: Record<string, number>;
     };
 
     const logs: PredictionLog[] = [];
@@ -157,11 +137,17 @@ async function benchmarkQA(
     for (const sample of dataset) {
         const { basePrompt, answer } = parseSample(sample);
 
-        const texts = options.map(
-            (opt) => `${basePrompt}\nAnswer: ${opt}`
-        );
+        if (!options.includes(answer)) {
+            console.log("Invalid answer:", JSON.stringify(answer));
+            continue;
+        }
 
-        const scores = await scoreOptions(tfModel, tokenizer, texts);
+        const prompt = `${basePrompt}\nAnswer:`;
+
+        const scores: number[] = [];
+        for (const opt of options) {
+            scores.push(await scoreContinuation(tfModel, tokenizer, prompt, ` ${opt}`));
+        }
 
         let bestIdx = 0;
         for (let i = 1; i < scores.length; i++) {
@@ -177,10 +163,15 @@ async function benchmarkQA(
             confusion[answer][predicted]++;
         }
 
+        const scoreMap = Object.fromEntries(
+            options.map((opt, i) => [opt, scores[i]])
+        );
+
         logs.push({
             predicted,
             answer,
-            correct: predicted === answer
+            correct: predicted === answer,
+            scores: scoreMap
         });
 
         if (total % 50 === 0) {
