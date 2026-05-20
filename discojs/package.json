@@ -27,7 +27,7 @@
 		"isomorphic-ws": "5",
 		"simple-peer": "9",
 		"tslib": "2",
-		"ws": "8",
+		"ws": "^8.20.1",
 		"zod": "4"
 	},
 	"devDependencies": {
