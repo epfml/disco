@@ -14,7 +14,7 @@
 		"@epfml/discojs-web": "*",
 		"@msgpack/msgpack": "3",
 		"chart.js": "4",
-		"cypress": "15",
+		"cypress": "^15.15.0",
 		"d3": "7",
 		"driver.js": "1",
 		"pinia": "3",
