@@ -44,6 +44,10 @@ export class GPT extends Model<"text"> {
     this.#vocabSize = partialConfig?.vocabSize ?? DefaultGPTConfig.vocabSize;
   }
 
+  setDebugLabel(label: string): void {
+    this.model.setDebugLabel(label);
+  }
+
   /**
    * The GPT train methods wraps the model.fitDataset call in a for loop to act as a generator (of logs)
    * This allows for getting logs and stopping training without callbacks.

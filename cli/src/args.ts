@@ -22,6 +22,7 @@ export interface BenchmarkArguments {
   roundIterations?: number
   batchSize: number
   validationSplit: number
+  validationFrequency?: number
   datasetPath?: string
   validationDatasetPath?: string
   outputPath?: string
@@ -63,6 +64,7 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     roundIterations: { type: Number, description: 'For GPT text tasks, aggregate every N training batches without rewinding the dataset', optional: true },
     batchSize: { type: Number, alias: 'b', description: 'Training batch size', defaultValue: 10 },
     validationSplit : { type: Number, alias: 'v', description: 'Validation dataset ratio', defaultValue: 0.2 },
+    validationFrequency: { type: Number, description: 'Run validation every N aggregation rounds. Defaults to every round; use 0 to disable validation metrics.', optional: true },
     datasetPath: { type: String, alias: 'd', description: 'Path to the dataset', optional: true },
     validationDatasetPath: { type: String, alias: 'V', description: 'Path to the validation dataset', optional: true },
     outputPath: { type: String, alias: 'o', description: 'Path to save logs and models. Defaults to ./<testID>', optional: true },
@@ -135,7 +137,14 @@ export const args: BenchmarkArguments = {
       task.trainingInformation.roundDuration = unsafeArgs.roundDuration;
       task.trainingInformation.epochs = unsafeArgs.epochs;
       task.trainingInformation.validationSplit = unsafeArgs.validationSplit;
-      (task.trainingInformation as typeof task.trainingInformation & { roundIterations?: number }).roundIterations = unsafeArgs.roundIterations;
+      (task.trainingInformation as typeof task.trainingInformation & {
+        roundIterations?: number;
+        validationFrequency?: number;
+      }).roundIterations = unsafeArgs.roundIterations;
+      (task.trainingInformation as typeof task.trainingInformation & {
+        roundIterations?: number;
+        validationFrequency?: number;
+      }).validationFrequency = unsafeArgs.validationFrequency;
 
       const {aggregator, clippingRadius, maxIterations, beta, maxShareValue} = unsafeArgs;
 

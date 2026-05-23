@@ -27,6 +27,7 @@ export declare abstract class Dataset<T> {
  */
 export class GPTModel extends tf.LayersModel {
   protected readonly config: Required<GPTConfig>
+  #debugLabel?: string
 
   constructor(partialConfig?: Partial<GPTConfig>, layersModel?: tf.LayersModel) {
     // Fill missing config parameters with default values
@@ -48,6 +49,14 @@ export class GPTModel extends tf.LayersModel {
     return this.config
   }
 
+  setDebugLabel(label: string): void {
+    this.#debugLabel = label
+  }
+
+  #debugMessage(message: string): string {
+    return this.#debugLabel === undefined ? message : `[${this.#debugLabel}] ${message}`
+  }
+
   override compile() {
     if (this.optimizer !== undefined) return
     this.optimizer = this.config.weightDecay !== 0
@@ -66,11 +75,11 @@ export class GPTModel extends tf.LayersModel {
       let averageLoss = 0
       let iteration = 1
 
-      debug("before iterator init")
+      debug(this.#debugMessage("before iterator init"))
       const iterator = await dataset.iterator()
-      debug("after getting iterator, before next")
+      debug(this.#debugMessage("after getting iterator, before next"))
       let next = await iterator.next()
-      debug("after next of iterator")
+      debug(this.#debugMessage("after next of iterator"))
 
       while (next.done !== true && iteration <= this.config.maxIter) {
         const reportedIteration = iterationOffset + iteration
@@ -130,10 +139,10 @@ export class GPTModel extends tf.LayersModel {
           reportedIteration % this.config.evaluateEvery == 0
         ){
           const iterationLogs = await evaluate(this, evalDataset, this.config.maxEvalBatches)
-          debug('evaluation metrics: %O', iterationLogs);
+          debug(this.#debugMessage('evaluation metrics: %O'), iterationLogs);
         }
         const memory = tf.memory().numBytes / 1024 / 1024 / 1024
-        debug("training metrics: %O", {
+        debug(this.#debugMessage("training metrics: %O"), {
           epoch,
           // iteration,
           iteration: reportedIteration,

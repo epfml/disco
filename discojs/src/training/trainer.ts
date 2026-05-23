@@ -63,6 +63,7 @@ export class Trainer<D extends DataType, N extends Network> {
     void
   >;
   readonly #roundIterations?: number;
+  readonly #validationFrequency?: number;
   // Map of weight Index and weight update
   #weightNormHistory : WeightNormHistory = List();
   #previousRoundWeights?: WeightsContainer;
@@ -82,6 +83,7 @@ export class Trainer<D extends DataType, N extends Network> {
     this.#roundDuration = task.trainingInformation.roundDuration;
     this.#epochs = task.trainingInformation.epochs;
     this.#roundIterations = task.trainingInformation.roundIterations;
+    this.#validationFrequency = task.trainingInformation.validationFrequency;
 		if ("privacy" in task.trainingInformation)
 			this.#privacy = task.trainingInformation.privacy;
 
@@ -90,6 +92,9 @@ export class Trainer<D extends DataType, N extends Network> {
 
     if (this.#roundIterations !== undefined && (!Number.isInteger(this.#roundIterations) || this.#roundIterations < 1))
       throw new Error("roundIterations must be a positive integer");
+
+    if (this.#validationFrequency !== undefined && (!Number.isInteger(this.#validationFrequency) || this.#validationFrequency < 0))
+      throw new Error("validationFrequency must be a non-negative integer");
 
     // if (!Number.isInteger(this.#epochs / this.#roundDuration))
     if (this.#roundIterations === undefined && !Number.isInteger(this.#epochs / this.#roundDuration))
@@ -145,7 +150,7 @@ export class Trainer<D extends DataType, N extends Network> {
       // Store the clean weight before starting the communication
       this.#previousRoundWeights = new WeightsContainer(this.model.weights.weights.map(t => t.clone()));
 
-      yield this.#runRound(dataset, validationDataset);
+      yield this.#runRound(dataset, this.#shouldValidateRound(round) ? validationDataset : undefined);
 
       let roundWeights = this.model.weights;
 
@@ -186,6 +191,7 @@ export class Trainer<D extends DataType, N extends Network> {
     if (this.#roundIterations === undefined)
       throw new Error("roundIterations was not set");
 
+    let round = 0;
     for (let epoch = 0; epoch < this.#epochs; epoch++) {
       const trainingIterator = dataset[Symbol.asyncIterator]();
       let next = await trainingIterator.next();
@@ -215,7 +221,7 @@ export class Trainer<D extends DataType, N extends Network> {
         yield this.#runIterationRound(
           prefixedIterator,
           this.#roundIterations,
-          validationDataset,
+          this.#shouldValidateRound(round) ? validationDataset : undefined,
           (roundDone) => done = roundDone,
         );
 
@@ -243,6 +249,7 @@ export class Trainer<D extends DataType, N extends Network> {
         this.#previousRoundWeights.dispose();
         this.#previousRoundWeights = undefined;
 
+        round++;
         if (done) break;
         next = await trainingIterator.next();
         pendingBatch = next.done === true ? undefined : next.value;
@@ -311,6 +318,12 @@ export class Trainer<D extends DataType, N extends Network> {
       participants: this.#client.nbOfParticipants,
       preRoundValidation: validation,
     };
+  }
+
+  #shouldValidateRound(round: number): boolean {
+    if (this.#validationFrequency === undefined) return true;
+    if (this.#validationFrequency === 0) return false;
+    return round % this.#validationFrequency === 0;
   }
 }
 

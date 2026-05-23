@@ -30,6 +30,7 @@ const debug = createDebug("discojs:training:disco");
 interface DiscoConfig<N extends Network> {
   scheme: N;
   logger: Logger;
+  debugLabel?: string;
 
   /**
    * keep preprocessed dataset in memory while training
@@ -88,6 +89,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   readonly #logger: Logger;
   readonly #task: Task<D, N>;
   readonly #preprocessOnce: boolean;
+  readonly #debugLabel?: string;
 
   /**
    * Connect to the given task and get ready to train.
@@ -102,7 +104,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     config: Partial<DiscoConfig<N>>,
   ) {
     super();
-    const { scheme, logger, preprocessOnce } = {
+    const { scheme, logger, preprocessOnce, debugLabel } = {
       // cast as typescript is bad at generic
       scheme: task.trainingInformation.scheme as N,
       logger: new ConsoleLogger(),
@@ -128,6 +130,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
 
     this.#logger = logger;
     this.#preprocessOnce = preprocessOnce;
+    this.#debugLabel = debugLabel;
     this.#client = client;
     this.#task = task;
     this.trainer = new Trainer(task, client);
@@ -226,6 +229,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     // TODO unsafe cast
     debug("Connecting to client and fetching initial model...");
     this.trainer.model = (await this.#client.connect()) as Model<D>;
+    this.#setModelDebugLabel(this.trainer.model);
     debug("Initial model fetched successfully");
     if (this.trainer.model === null) {
       debug(`No pre-trained model provided for client, initializing randomly...`);
@@ -285,6 +289,16 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
    */
   async close(): Promise<void> {
     await this.#client.disconnect();
+  }
+
+  #setModelDebugLabel(model: Model<D>): void {
+    if (this.#debugLabel === undefined) return;
+
+    const labeledModel = model as Model<D> & {
+      setDebugLabel?: (label: string) => void;
+    };
+
+    labeledModel.setDebugLabel?.(this.#debugLabel);
   }
 
   async #preprocessSplitAndBatch(
