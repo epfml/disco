@@ -96,6 +96,15 @@ export namespace TrainingInformation {
 			// the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
 			// truncate strings to a maximum length. The default value is tokenizer.model_max_length
 			contextLength: z.number().positive().int(),
+			// Goldfish loss drops a deterministic subset of shifted target-token losses while keeping full inputs.
+			goldfishLoss: z
+				.object({
+					enabled: z.boolean(),
+					k: z.number().positive().int().default(4),
+					h: z.number().positive().int().default(13),
+					padTokenId: z.number().int().optional(),
+				})
+				.optional(),
 		}),
 	} satisfies Record<DataType, unknown>;
 

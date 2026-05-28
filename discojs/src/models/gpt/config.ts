@@ -27,6 +27,13 @@ export type GPTConfig = {
   nEmbd?: number
   seed?: number,
 }
+
+export type GoldfishLossConfig = {
+  enabled: boolean
+  k: number
+  h: number
+  padTokenId?: number
+}
 // for a benchmark of performance, see https://github.com/epfml/disco/pull/659
 export const DefaultGPTConfig: Required<GPTConfig> = {
   lr: 0.001,

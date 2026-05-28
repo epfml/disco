@@ -15,6 +15,7 @@ import type {
   Model,
   Network,
   Task,
+  GoldfishLossConfig,
 } from "../index.js";
 import type { Aggregator } from "../aggregator/index.js";
 import { getAggregator } from "../aggregator/index.js";
@@ -230,6 +231,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     debug("Connecting to client and fetching initial model...");
     this.trainer.model = (await this.#client.connect()) as Model<D>;
     this.#setModelDebugLabel(this.trainer.model);
+    this.#setModelTrainingOptions(this.trainer.model);
     debug("Initial model fetched successfully");
     if (this.trainer.model === null) {
       debug(`No pre-trained model provided for client, initializing randomly...`);
@@ -299,6 +301,16 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     };
 
     labeledModel.setDebugLabel?.(this.#debugLabel);
+  }
+
+  #setModelTrainingOptions(model: Model<D>): void {
+    if (this.#task.dataType !== "text") return;
+
+    const configurableModel = model as Model<D> & {
+      setGoldfishLoss?: (config: GoldfishLossConfig | undefined) => void;
+    };
+
+    configurableModel.setGoldfishLoss?.(this.#task.trainingInformation.goldfishLoss);
   }
 
   async #preprocessSplitAndBatch(

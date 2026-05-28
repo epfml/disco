@@ -26,6 +26,10 @@ export interface BenchmarkArguments {
   datasetPath?: string
   validationDatasetPath?: string
   outputPath?: string
+  goldfishLoss: boolean
+  goldfishK: number
+  goldfishH: number
+  goldfishPadTokenId?: number
 
   // DP
   epsilon?: number
@@ -68,6 +72,10 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     datasetPath: { type: String, alias: 'd', description: 'Path to the dataset', optional: true },
     validationDatasetPath: { type: String, alias: 'V', description: 'Path to the validation dataset', optional: true },
     outputPath: { type: String, alias: 'o', description: 'Path to save logs and models. Defaults to ./<testID>', optional: true },
+    goldfishLoss: { type: Boolean, description: 'Use Goldfish loss for GPT text tasks', defaultValue: false },
+    goldfishK: { type: Number, description: 'Goldfish loss drop modulus k. Drops target if hash(context) mod k == 0', defaultValue: 4 },
+    goldfishH: { type: Number, description: 'Goldfish loss localized hash context length', defaultValue: 13 },
+    goldfishPadTokenId: { type: Number, description: 'Optional padding token id to exclude from Goldfish loss denominator', optional: true },
     saveLogs: { type: Boolean, alias: 's', description: 'Save logs of benchmark', defaultValue: false },
     saveModel: { type: Boolean, alias: 'm', description: 'Save trained model to disk', defaultValue: false },
     host: {
@@ -145,6 +153,22 @@ export const args: BenchmarkArguments = {
         roundIterations?: number;
         validationFrequency?: number;
       }).validationFrequency = unsafeArgs.validationFrequency;
+
+      if (unsafeArgs.goldfishLoss) {
+        if (task.dataType !== "text" || task.trainingInformation.tensorBackend !== "gpt")
+          throw new Error("Goldfish loss is only supported for GPT text tasks");
+        if (!Number.isInteger(unsafeArgs.goldfishK) || unsafeArgs.goldfishK < 1)
+          throw new Error("goldfishK must be a positive integer");
+        if (!Number.isInteger(unsafeArgs.goldfishH) || unsafeArgs.goldfishH < 1)
+          throw new Error("goldfishH must be a positive integer");
+
+        task.trainingInformation.goldfishLoss = {
+          enabled: true,
+          k: unsafeArgs.goldfishK,
+          h: unsafeArgs.goldfishH,
+          padTokenId: unsafeArgs.goldfishPadTokenId,
+        };
+      }
 
       const {aggregator, clippingRadius, maxIterations, beta, maxShareValue} = unsafeArgs;
 

@@ -15,6 +15,7 @@ export {
   Model,
   BatchLogs,
   EpochLogs,
+  GoldfishLossConfig,
   Tokenizer,
   ValidationMetrics,
 } from "./models/index.js";

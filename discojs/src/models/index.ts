@@ -5,6 +5,7 @@ export { Tokenizer } from "./tokenizer.js";
 export { GPT } from './gpt/index.js'
 export { ONNXModel } from './onnx.js'
 export { GPTConfig } from './gpt/config.js'
+export { GoldfishLossConfig } from './gpt/config.js'
 export {
 	evaluate as evaluate_hellaswag,
 	HellaSwagDataset,

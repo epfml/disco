@@ -13,14 +13,9 @@ interface Args {
     help?: boolean;
 }
 
-// =========================
 // HOW TO RUN
-// =========================
 // npm -w cli run eval_finetuned_gpt2 -- --modelPath absolute_path_to_model/model.json --testPath absolute_path_to_test_data/train_no_exp.txt --maxSamples 100
 
-// =========================
-// LOAD DATASET
-// =========================
 async function loadDataset(filePath: string, limit = -1): Promise<string[]> {
     const text = await fs.readFile(filePath, "utf-8");
     const lines = text.split("\n");
@@ -44,9 +39,6 @@ async function loadDataset(filePath: string, limit = -1): Promise<string[]> {
     return samples;
 }
 
-// =========================
-// PARSE SAMPLE
-// =========================
 function parseSample(sample: string) {
     const lines = sample.split("\n");
 
@@ -55,7 +47,6 @@ function parseSample(sample: string) {
 
     for (const line of lines) {
         if (line.startsWith("Answer:")) {
-            // answer = line.replace("Answer:", "").trim();
             answer = line.replace("Answer:", "").trim().charAt(0).toUpperCase();
         } else {
             promptLines.push(line);
@@ -98,9 +89,6 @@ async function scoreContinuation(
     return score / count;
 }
 
-// =========================
-// BENCHMARK
-// =========================
 async function benchmarkQA(
     model: models.GPT,
     tokenizer: Tokenizer,
@@ -205,9 +193,6 @@ async function benchmarkQA(
     }
 }
 
-// =========================
-// MAIN
-// =========================
 async function main() {
     const args = parse<Args>({
         modelPath: { type: String },

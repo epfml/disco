@@ -15,7 +15,7 @@ import { BatchLogs, Model, EpochLogs } from "../index.js";
 import { GPTModel } from "./model.js";
 import evaluate from "./evaluate.js";
 import { DefaultGPTConfig, DefaultGenerationConfig } from './config.js'
-import type { GPTConfig, GenerationConfig } from './config.js'
+import type { GoldfishLossConfig, GPTConfig, GenerationConfig } from './config.js'
 
 const debug = createDebug("discojs:models:gpt");
 
@@ -46,6 +46,10 @@ export class GPT extends Model<"text"> {
 
   setDebugLabel(label: string): void {
     this.model.setDebugLabel(label);
+  }
+
+  setGoldfishLoss(config: GoldfishLossConfig | undefined): void {
+    this.model.setGoldfishLoss(config);
   }
 
   /**
