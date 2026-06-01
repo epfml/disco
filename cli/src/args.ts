@@ -119,6 +119,7 @@ const supportedTasks = Map(
       defaultTasks.tinderDog,
       defaultTasks.mnist,
       defaultTasks.privacyrun,
+      defaultTasks.centralizedGPT2FineTune,
     ).map(
       async (t) =>
         [(await t.getTask()).id, t] as [
