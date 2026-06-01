@@ -171,7 +171,8 @@ export async function getTaskData<D extends DataType>(
     case "mnist_federated":
     case "mnist":
       return loadData("mnist", userIdx) as Dataset<DataFormat.Raw[D]>;
-    case "privacyrun": {
+    case "privacyrun":
+    case "centralized-gpt2-finetune": {
       const filePath =
         isValidation && validationDatasetPath
           ? validationDatasetPath
