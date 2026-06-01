@@ -53,7 +53,9 @@ export type SummaryLogs = {
   roundValidationLoss?: number,
   roundValidationAccuracy?: number,
   validationLoss?: number,
-  validationAccuracy?: number
+  validationAccuracy?: number,
+  postAggregationValidationLoss?: number,
+  postAggregationValidationAccuracy?: number
 }
 
 export type RoundStatus = 'not enough participants' | // Server notification to wait for more participants
@@ -73,6 +75,8 @@ function buildSummaryLog(roundNum: number, epochNum: number, roundLogs: RoundLog
       roundValidationAccuracy: roundLogs.preRoundValidation?.accuracy,
       validationLoss: epochLogs.validation?.loss,
       validationAccuracy: epochLogs.validation?.accuracy,
+      postAggregationValidationLoss: roundLogs.postAggregationValidation?.loss,
+      postAggregationValidationAccuracy: roundLogs.postAggregationValidation?.accuracy,
     }
 }
 
@@ -259,6 +263,8 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
             `Round: ${roundNum}`,
             `Initial round loss: ${roundLogs.preRoundValidation?.loss}`,
             `Initial round accuracy: ${roundLogs.preRoundValidation?.accuracy}`,
+            `Post-aggregation loss: ${roundLogs.postAggregationValidation?.loss}`,
+            `Post-aggregation accuracy: ${roundLogs.postAggregationValidation?.accuracy}`,
           ].join("\n"),
         );
 
@@ -271,10 +277,10 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
               `    Training accuracy: ${epochLogs.training.accuracy}`,
               `    Peak memory: ${epochLogs.peakMemory}`,
               epochLogs.validation !== undefined
-                ? `    Validation loss: ${epochLogs.validation.loss}`
+                ? `    Pre-aggregation validation loss: ${epochLogs.validation.loss}`
                 : "",
               epochLogs.validation !== undefined
-                ? `    Validation accuracy: ${epochLogs.validation.accuracy}`
+                ? `    Pre-aggregation validation accuracy: ${epochLogs.validation.accuracy}`
                 : "",
             ].join("\n"),
           );

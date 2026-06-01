@@ -25,6 +25,7 @@ export interface RoundLogs {
   epochs: List<EpochLogs>;
   participants: number;
   preRoundValidation?: ValidationMetrics;
+  postAggregationValidation?: ValidationMetrics;
 }
 
 /** List of weight update norms */
@@ -67,6 +68,7 @@ export class Trainer<D extends DataType, N extends Network> {
   // Map of weight Index and weight update
   #weightNormHistory : WeightNormHistory = List();
   #previousRoundWeights?: WeightsContainer;
+  readonly #shouldValidateAfterAggregation: boolean;
 
   public get model(): Model<D> {
     if (this.#model === undefined)
@@ -84,6 +86,7 @@ export class Trainer<D extends DataType, N extends Network> {
     this.#epochs = task.trainingInformation.epochs;
     this.#roundIterations = task.trainingInformation.roundIterations;
     this.#validationFrequency = task.trainingInformation.validationFrequency;
+    this.#shouldValidateAfterAggregation = task.trainingInformation.scheme !== "local";
 		if ("privacy" in task.trainingInformation)
 			this.#privacy = task.trainingInformation.privacy;
 
@@ -150,34 +153,18 @@ export class Trainer<D extends DataType, N extends Network> {
       // Store the clean weight before starting the communication
       this.#previousRoundWeights = new WeightsContainer(this.model.weights.weights.map(t => t.clone()));
 
-      yield this.#runRound(dataset, this.#shouldValidateRound(round) ? validationDataset : undefined);
+      const roundValidationDataset = this.#shouldValidateRound(round)
+        ? validationDataset
+        : undefined;
 
-      let roundWeights = this.model.weights;
-
-      // Apply differential privacy before sharing the weight updates with other nodes
-      if (this.#privacy !== undefined){
-        const roundUpdate = roundWeights.sub(this.#previousRoundWeights);
-        const updateNorm = await Promise.all(
-          roundUpdate.weights.map(privacy.frobeniusNorm)
-        );
-        this.#weightNormHistory = appendWeightHistory(this.#weightNormHistory, updateNorm);
-        
-        roundWeights = await applyOptimalPrivacy(
-          this.#previousRoundWeights,
-          roundWeights,
-          this.#privacy,
-          this.#weightNormHistory,
+      yield this.#runRound(
+        dataset,
+        roundValidationDataset,
+        async () => this.#finishRoundCommunication(
           totalRound,
-        )
-      }
-      // Get the updated weights
-      const networkWeights = await this.#client.onRoundEndCommunication(roundWeights);
-      
-      // Update the local weights
-      this.model.weights = networkWeights;
-      networkWeights.dispose();
-      this.#previousRoundWeights.dispose();
-      this.#previousRoundWeights = undefined;
+          roundValidationDataset,
+        ),
+      );
     }
   }
 
@@ -218,36 +205,20 @@ export class Trainer<D extends DataType, N extends Network> {
           },
         };
 
+        const roundValidationDataset = this.#shouldValidateRound(round)
+          ? validationDataset
+          : undefined;
+
         yield this.#runIterationRound(
           prefixedIterator,
           this.#roundIterations,
-          this.#shouldValidateRound(round) ? validationDataset : undefined,
+          roundValidationDataset,
           (roundDone) => done = roundDone,
-        );
-
-        let roundWeights = this.model.weights;
-
-        if (this.#privacy !== undefined){
-          const roundUpdate = roundWeights.sub(this.#previousRoundWeights);
-          const updateNorm = await Promise.all(
-            roundUpdate.weights.map(privacy.frobeniusNorm)
-          );
-          this.#weightNormHistory = appendWeightHistory(this.#weightNormHistory, updateNorm);
-          
-          roundWeights = await applyOptimalPrivacy(
-            this.#previousRoundWeights,
-            roundWeights,
-            this.#privacy,
-            this.#weightNormHistory,
+          async () => this.#finishRoundCommunication(
             Number.MAX_SAFE_INTEGER,
-          )
-        }
-
-        const networkWeights = await this.#client.onRoundEndCommunication(roundWeights);
-        this.model.weights = networkWeights;
-        networkWeights.dispose();
-        this.#previousRoundWeights.dispose();
-        this.#previousRoundWeights = undefined;
+            roundValidationDataset,
+          ),
+        );
 
         round++;
         if (done) break;
@@ -260,6 +231,7 @@ export class Trainer<D extends DataType, N extends Network> {
   async *#runRound(
     dataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+    onAfterTraining?: () => Promise<ValidationMetrics | undefined>,
   ): AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs> {
     let epochsLogs = List<EpochLogs>();
 
@@ -277,10 +249,13 @@ export class Trainer<D extends DataType, N extends Network> {
       epochsLogs = epochsLogs.push(await epochLogs);
     }
       
+    const postAggregationValidation = await onAfterTraining?.();
+
     return {
       epochs: epochsLogs,
       participants: this.#client.nbOfParticipants,
       preRoundValidation: validation,
+      postAggregationValidation,
     };
   }
 
@@ -289,6 +264,7 @@ export class Trainer<D extends DataType, N extends Network> {
     maxBatchCount: number,
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
     setDone?: (done: boolean) => void,
+    onAfterTraining?: () => Promise<ValidationMetrics | undefined>,
   ): AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs> {
     let epochsLogs = List<EpochLogs>();
 
@@ -313,10 +289,13 @@ export class Trainer<D extends DataType, N extends Network> {
     const epochLogs = await result;
     epochsLogs = epochsLogs.push(epochLogs);
 
+    const postAggregationValidation = await onAfterTraining?.();
+
     return {
       epochs: epochsLogs,
       participants: this.#client.nbOfParticipants,
       preRoundValidation: validation,
+      postAggregationValidation,
     };
   }
 
@@ -324,6 +303,46 @@ export class Trainer<D extends DataType, N extends Network> {
     if (this.#validationFrequency === undefined) return true;
     if (this.#validationFrequency === 0) return false;
     return round % this.#validationFrequency === 0;
+  }
+
+  async #finishRoundCommunication(
+    totalRound: number,
+    validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+  ): Promise<ValidationMetrics | undefined> {
+    let roundWeights = this.model.weights;
+
+    try {
+      if (this.#privacy !== undefined){
+        if (this.#previousRoundWeights === undefined)
+          throw new Error("previous round weights were not captured");
+
+        const previousRoundWeights = this.#previousRoundWeights;
+        const roundUpdate = roundWeights.sub(previousRoundWeights);
+        const updateNorm = await Promise.all(
+          roundUpdate.weights.map(privacy.frobeniusNorm)
+        );
+        this.#weightNormHistory = appendWeightHistory(this.#weightNormHistory, updateNorm);
+        
+        roundWeights = await applyOptimalPrivacy(
+          previousRoundWeights,
+          roundWeights,
+          this.#privacy,
+          this.#weightNormHistory,
+          totalRound,
+        )
+      }
+
+      const networkWeights = await this.#client.onRoundEndCommunication(roundWeights);
+      this.model.weights = networkWeights;
+      networkWeights.dispose();
+
+      return this.#shouldValidateAfterAggregation && validationDataset !== undefined
+        ? await this.model.evaluate(validationDataset)
+        : undefined;
+    } finally {
+      this.#previousRoundWeights?.dispose();
+      this.#previousRoundWeights = undefined;
+    }
   }
 }
 
