@@ -263,8 +263,6 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
             `Round: ${roundNum}`,
             `Initial round loss: ${roundLogs.preRoundValidation?.loss}`,
             `Initial round accuracy: ${roundLogs.preRoundValidation?.accuracy}`,
-            `Post-aggregation loss: ${roundLogs.postAggregationValidation?.loss}`,
-            `Post-aggregation accuracy: ${roundLogs.postAggregationValidation?.accuracy}`,
           ].join("\n"),
         );
 
@@ -285,6 +283,14 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
             ].join("\n"),
           );
         }
+
+        this.#logger.success(
+          [
+            `Round: ${roundNum}`,
+            `Post-aggregation loss: ${roundLogs.postAggregationValidation?.loss}`,
+            `Post-aggregation accuracy: ${roundLogs.postAggregationValidation?.accuracy}`,
+          ].join("\n"),
+        );
 
         return roundLogs;
       }.bind(this)();

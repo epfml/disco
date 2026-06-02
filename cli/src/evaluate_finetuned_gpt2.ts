@@ -10,33 +10,66 @@ interface Args {
     testPath: string;
     maxSamples?: number;
     savePath?: string;
+    compareFormats?: boolean;
+    promptFormat?: PromptFormatName;
+    contextLength?: number;
     help?: boolean;
 }
 
 // HOW TO RUN
 // npm -w cli run eval_finetuned_gpt2 -- --modelPath absolute_path_to_model/model.json --testPath absolute_path_to_test_data/train_no_exp.txt --maxSamples 100
 
+const PromptFormatNames = [
+    "answer-colon-space",
+    "answer-colon",
+    "answer-newline",
+] as const;
+
+type PromptFormatName = typeof PromptFormatNames[number];
+
+type PromptFormat = {
+    name: PromptFormatName;
+    makePrompt: (basePrompt: string) => string;
+    makeContinuation: (option: string) => string;
+};
+
+const promptFormats: PromptFormat[] = [
+    {
+        name: "answer-colon-space",
+        makePrompt: (basePrompt) => `${basePrompt}\nAnswer: `,
+        makeContinuation: (option) => option,
+    },
+    {
+        name: "answer-colon",
+        makePrompt: (basePrompt) => `${basePrompt}\nAnswer:`,
+        makeContinuation: (option) => ` ${option}`,
+    },
+    {
+        name: "answer-newline",
+        makePrompt: (basePrompt) => `${basePrompt}\nAnswer:\n`,
+        makeContinuation: (option) => option,
+    },
+];
+
+function castPromptFormatName(raw: string): PromptFormatName {
+    for (const name of PromptFormatNames) {
+        if (raw === name) return name;
+    }
+    throw new Error(`Invalid promptFormat: ${raw}`);
+}
+
 async function loadDataset(filePath: string, limit = -1): Promise<string[]> {
     const text = await fs.readFile(filePath, "utf-8");
-    const lines = text.split("\n");
+    const samples = text
+        .split("<|endoftext|>")
+        .map((sample) =>
+            sample
+                .replaceAll("<|startoftext|>", "")
+                .trim(),
+        )
+        .filter((sample) => sample !== "");
 
-    const samples: string[] = [];
-    let current = "";
-
-    for (const line of lines) {
-        const l = line.trim();
-
-        if (l.includes("<|startoftext|>")) {
-            current = "";
-        } else if (l.includes("<|endoftext|>")) {
-            samples.push(current.trim());
-            if (limit !== -1 && samples.length >= limit) break;
-        } else {
-            current += l + "\n";
-        }
-    }
-
-    return samples;
+    return limit === -1 ? samples : samples.slice(0, limit);
 }
 
 function parseSample(sample: string) {
@@ -46,8 +79,9 @@ function parseSample(sample: string) {
     const promptLines: string[] = [];
 
     for (const line of lines) {
-        if (line.startsWith("Answer:")) {
-            answer = line.replace("Answer:", "").trim().charAt(0).toUpperCase();
+        const trimmed = line.trim();
+        if (trimmed.startsWith("Answer:")) {
+            answer = trimmed.replace("Answer:", "").trim().charAt(0).toUpperCase();
         } else {
             promptLines.push(line);
         }
@@ -61,13 +95,31 @@ async function scoreContinuation(
     tfModel: tf.LayersModel,
     tokenizer: Tokenizer,
     prompt: string,
-    continuation: string
-): Promise<number> {
+    continuation: string,
+    contextLength: number
+): Promise<{ score: number; promptTokens: number; continuationTokens: number; usedInputTokens: number }> {
     const promptTokens = tokenizer.tokenize(prompt).toArray();
     const fullTokens = tokenizer.tokenize(prompt + continuation).toArray();
+    const continuationTokens = fullTokens.length - promptTokens.length;
 
     const inputTokens = fullTokens.slice(0, -1);
-    const inputTensor = tf.tensor2d([inputTokens], [1, inputTokens.length], "int32");
+    const offset = Math.max(0, inputTokens.length - contextLength);
+    const truncatedInputTokens = inputTokens.slice(offset);
+
+    if (truncatedInputTokens.length === 0 || continuationTokens <= 0) {
+        return {
+            score: Number.NEGATIVE_INFINITY,
+            promptTokens: promptTokens.length,
+            continuationTokens,
+            usedInputTokens: truncatedInputTokens.length,
+        };
+    }
+
+    const inputTensor = tf.tensor2d(
+        [truncatedInputTokens],
+        [1, truncatedInputTokens.length],
+        "int32",
+    );
 
     const logits = tfModel.predict(inputTensor) as tf.Tensor;
     const logProbs = tf.logSoftmax(logits, -1);
@@ -78,7 +130,9 @@ async function scoreContinuation(
 
     for (let targetPos = promptTokens.length; targetPos < fullTokens.length; targetPos++) {
         const targetToken = fullTokens[targetPos];
-        score += arr[0][targetPos - 1][targetToken];
+        const logitPos = targetPos - 1 - offset;
+        if (logitPos < 0 || logitPos >= arr[0].length) continue;
+        score += arr[0][logitPos][targetToken];
         count++;
     }
 
@@ -86,16 +140,24 @@ async function scoreContinuation(
     logits.dispose();
     logProbs.dispose();
 
-    return score / count;
+    return {
+        score: count === 0 ? Number.NEGATIVE_INFINITY : score / count,
+        promptTokens: promptTokens.length,
+        continuationTokens,
+        usedInputTokens: truncatedInputTokens.length,
+    };
 }
 
 async function benchmarkQA(
     model: models.GPT,
     tokenizer: Tokenizer,
     dataset: string[],
+    format: PromptFormat,
+    contextLength: number,
     savePath?: string
-) {
-    console.log("=== QA LOGPROB BENCHMARK ===");
+): Promise<number> {
+    console.log(`=== QA LOGPROB BENCHMARK (${format.name}) ===`);
+    console.log(`Context length: ${contextLength}`);
 
     const tfModel = model.extract();
 
@@ -116,6 +178,9 @@ async function benchmarkQA(
         answer: string;
         correct: boolean;
         scores: Record<string, number>;
+        promptTokens: number;
+        continuationTokens: Record<string, number>;
+        usedInputTokens: Record<string, number>;
     };
 
     const logs: PredictionLog[] = [];
@@ -130,11 +195,22 @@ async function benchmarkQA(
             continue;
         }
 
-        const prompt = `${basePrompt}\nAnswer:`;
+        const prompt = format.makePrompt(basePrompt);
 
         const scores: number[] = [];
+        const continuationTokens: number[] = [];
+        const usedInputTokens: number[] = [];
         for (const opt of options) {
-            scores.push(await scoreContinuation(tfModel, tokenizer, prompt, ` ${opt}`));
+            const result = await scoreContinuation(
+                tfModel,
+                tokenizer,
+                prompt,
+                format.makeContinuation(opt),
+                contextLength,
+            );
+            scores.push(result.score);
+            continuationTokens.push(result.continuationTokens);
+            usedInputTokens.push(result.usedInputTokens);
         }
 
         let bestIdx = 0;
@@ -159,7 +235,14 @@ async function benchmarkQA(
             predicted,
             answer,
             correct: predicted === answer,
-            scores: scoreMap
+            scores: scoreMap,
+            promptTokens: tokenizer.tokenize(prompt).size,
+            continuationTokens: Object.fromEntries(
+                options.map((opt, i) => [opt, continuationTokens[i]])
+            ),
+            usedInputTokens: Object.fromEntries(
+                options.map((opt, i) => [opt, usedInputTokens[i]])
+            ),
         });
 
         if (total % 50 === 0) {
@@ -191,6 +274,8 @@ async function benchmarkQA(
         await fs.writeFile(savePath, JSON.stringify(logs, null, 2));
         console.log(`Saved results to ${savePath}`);
     }
+
+    return accuracy;
 }
 
 async function main() {
@@ -199,6 +284,13 @@ async function main() {
         testPath: { type: String },
         maxSamples: { type: Number, optional: true, defaultValue: 100 },
         savePath: { type: String, optional: true },
+        compareFormats: { type: Boolean, optional: true, defaultValue: false },
+        promptFormat: {
+            type: (raw: string) => castPromptFormatName(raw),
+            optional: true,
+            defaultValue: "answer-colon-space",
+        },
+        contextLength: { type: Number, optional: true },
         help: { type: Boolean, optional: true }
     });
 
@@ -217,7 +309,19 @@ async function main() {
 
     console.log(`Loaded ${dataset.length} samples`);
 
-    await benchmarkQA(model, tokenizer, dataset, args.savePath);
+    const contextLength = args.contextLength ?? model.config.contextLength;
+    const formats = args.compareFormats
+        ? promptFormats
+        : promptFormats.filter((format) => format.name === args.promptFormat);
+
+    for (const format of formats) {
+        const savePath =
+            args.savePath === undefined || formats.length === 1
+                ? args.savePath
+                : args.savePath.replace(/(\.[^.]+)?$/, `.${format.name}$1`);
+
+        await benchmarkQA(model, tokenizer, dataset, format, contextLength, savePath);
+    }
 
     console.log("Done.");
 }
