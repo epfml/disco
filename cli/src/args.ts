@@ -46,6 +46,7 @@ export interface BenchmarkArguments {
 
   saveLogs: boolean
   saveModel: boolean
+  saveCheckpoints: boolean
   host: URL
 }
 
@@ -78,6 +79,7 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     goldfishPadTokenId: { type: Number, description: 'Optional padding token id to exclude from Goldfish loss denominator', optional: true },
     saveLogs: { type: Boolean, alias: 's', description: 'Save logs of benchmark', defaultValue: false },
     saveModel: { type: Boolean, alias: 'm', description: 'Save trained model to disk', defaultValue: false },
+    saveCheckpoints: { type: Boolean, description: 'Save each client model after every completed round/aggregation', defaultValue: false },
     host: {
       type: (raw: string) => new URL(raw),
       typeLabel: "URL",

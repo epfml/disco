@@ -14,6 +14,7 @@ import type {
   Task,
   TaskProvider,
   Network,
+  Model,
 } from "@epfml/discojs";
 import { Disco, aggregator as aggregators, client as clients } from '@epfml/discojs'
 
@@ -27,6 +28,18 @@ const debug = createDebug("cli:main");
 
 function getOutputDir(): string {
   return args.outputPath ?? path.join(".", `${args.testID}`);
+}
+
+async function saveClientModelCheckpoint(
+  model: Model<DataType>,
+  userIndex: number,
+  round: number,
+): Promise<void> {
+  const checkpointDir = path.join(getOutputDir(), "checkpoints", `round_${round}`);
+  const checkpointFileName = `client${userIndex}_model.json`;
+
+  await saveModelToDisk(model, checkpointDir, checkpointFileName);
+  console.log(`Checkpoint saved for client ${userIndex} round ${round} at ${checkpointDir}/${checkpointFileName}`);
 }
 
 async function runUser<D extends DataType, N extends Network>(
@@ -76,11 +89,18 @@ async function runUser<D extends DataType, N extends Network>(
   try{
     debug(`Starting training for client ${userIndex}`);
     const trainStart = Date.now();
+    let lastCheckpointRound: number | undefined = undefined;
+
     for await (const log of disco.trainSummary(data, validationData)){
       finalLog.push(log);
 
       if (jsonStream){
         jsonStream.write(JSON.stringify(log) + "\n");
+      }
+
+      if (args.saveCheckpoints && lastCheckpointRound !== log.round) {
+        await saveClientModelCheckpoint(disco.trainer.model, userIndex, log.round);
+        lastCheckpointRound = log.round;
       }
     }
     debug(`Training took ${Date.now() - trainStart}ms for client ${userIndex}`);

@@ -58,6 +58,16 @@ function castPromptFormatName(raw: string): PromptFormatName {
     throw new Error(`Invalid promptFormat: ${raw}`);
 }
 
+function commonPrefixLength(left: number[], right: number[]): number {
+    const maxLength = Math.min(left.length, right.length);
+
+    for (let i = 0; i < maxLength; i++) {
+        if (left[i] !== right[i]) return i;
+    }
+
+    return maxLength;
+}
+
 async function loadDataset(filePath: string, limit = -1): Promise<string[]> {
     const text = await fs.readFile(filePath, "utf-8");
     const samples = text
@@ -100,7 +110,8 @@ async function scoreContinuation(
 ): Promise<{ score: number; promptTokens: number; continuationTokens: number; usedInputTokens: number }> {
     const promptTokens = tokenizer.tokenize(prompt).toArray();
     const fullTokens = tokenizer.tokenize(prompt + continuation).toArray();
-    const continuationTokens = fullTokens.length - promptTokens.length;
+    const continuationStart = commonPrefixLength(promptTokens, fullTokens);
+    const continuationTokens = fullTokens.length - continuationStart;
 
     const inputTokens = fullTokens.slice(0, -1);
     const offset = Math.max(0, inputTokens.length - contextLength);
@@ -128,7 +139,7 @@ async function scoreContinuation(
     let score = 0;
     let count = 0;
 
-    for (let targetPos = promptTokens.length; targetPos < fullTokens.length; targetPos++) {
+    for (let targetPos = continuationStart; targetPos < fullTokens.length; targetPos++) {
         const targetToken = fullTokens[targetPos];
         const logitPos = targetPos - 1 - offset;
         if (logitPos < 0 || logitPos >= arr[0].length) continue;
