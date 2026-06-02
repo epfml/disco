@@ -5,7 +5,7 @@ import type { DataType, Model, WeightsContainer } from "../../index.js";
 import { serialization } from "../../index.js";
 import { Client,  shortenId } from '../client.js'
 import { type NodeID } from '../index.js'
-import { type, type ClientConnected } from '../messages.js'
+import { type, type ClientConnected, NarrowMessage } from '../messages.js'
 import { timeout } from '../utils.js'
 import { WebSocketServer, waitMessage, type PeerConnection, waitMessageWithTimeout } from '../event_connection.js'
 import { PeerPool } from './peer_pool.js'
@@ -46,7 +46,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
   }
 
   // Used by model provider peer during model syncing
-  private async handleSignalNewPeer(event: any): Promise<void> {
+  private async handleSignalNewPeer(event: NarrowMessage<type.SignalNewPeer>): Promise<void> {
     if (this.#pool === undefined) throw new Error('received signal about new peer but peer pool is undefined')
       const roundFinishedPromise = this.#roundFinishedPromise
       const syncConnection = await this.#pool.getPeers(Set([event.newNode]), this.server, ()=>{})
