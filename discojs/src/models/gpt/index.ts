@@ -52,6 +52,10 @@ export class GPT extends Model<"text"> {
     this.model.setGoldfishLoss(config);
   }
 
+  setLearningRate(lr: number): void {
+    this.model.setLearningRate(lr);
+  }
+
   /**
    * The GPT train methods wraps the model.fitDataset call in a for loop to act as a generator (of logs)
    * This allows for getting logs and stopping training without callbacks.

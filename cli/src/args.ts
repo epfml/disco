@@ -2,7 +2,7 @@ import { parse } from 'ts-command-line-args'
 import { Map, Set } from 'immutable'
 
 import type { DataType, Network, TaskProvider } from "@epfml/discojs";
-import { defaultTasks } from '@epfml/discojs'
+import { defaultTasks, models } from '@epfml/discojs'
 
 type AggregationStrategy = "mean" | "byzantine" | "secure";
 
@@ -30,6 +30,7 @@ export interface BenchmarkArguments {
   goldfishK: number
   goldfishH: number
   goldfishPadTokenId?: number
+  learningRate?: number
 
   // DP
   epsilon?: number
@@ -77,6 +78,7 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     goldfishK: { type: Number, description: 'Goldfish loss drop modulus k. Drops target if hash(context) mod k == 0', defaultValue: 4 },
     goldfishH: { type: Number, description: 'Goldfish loss localized hash context length', defaultValue: 13 },
     goldfishPadTokenId: { type: Number, description: 'Optional padding token id to exclude from Goldfish loss denominator', optional: true },
+    learningRate: { type: Number, description: 'Override learning rate for GPT text tasks', optional: true },
     saveLogs: { type: Boolean, alias: 's', description: 'Save logs of benchmark', defaultValue: false },
     saveModel: { type: Boolean, alias: 'm', description: 'Save trained model to disk', defaultValue: false },
     saveCheckpoints: { type: Boolean, description: 'Save each client model after every completed round/aggregation', defaultValue: false },
@@ -235,6 +237,20 @@ export const args: BenchmarkArguments = {
 
       return task;
     },
-    getModel: () => provider.getModel(),
+    async getModel() {
+      const model = await provider.getModel();
+
+      if (unsafeArgs.learningRate !== undefined) {
+        if (!(model instanceof models.GPT))
+          throw new Error("learningRate override is only supported for GPT models");
+        if (!Number.isFinite(unsafeArgs.learningRate) || unsafeArgs.learningRate <= 0)
+          throw new Error("learningRate must be a positive finite number");
+
+        model.setLearningRate(unsafeArgs.learningRate);
+        console.log(`Overriding GPT learning rate to ${unsafeArgs.learningRate}`);
+      }
+
+      return model;
+    },
   },
 };
