@@ -27,9 +27,13 @@ export class DecentralizedController<
 
   // number of connection retries for the training round
   #connectionRetry = 0
+
   // Client selected to provide the latest model to peers
   // joining in the middle of training
   #providerNode?: client.NodeID
+
+  // Set of nodes that are syncing node
+  #syncingNodes = Set<client.NodeID>()
 
   handle (ws: WebSocket): void {
     const minNbOfParticipants = this.task.trainingInformation.minNbOfParticipants
@@ -53,10 +57,13 @@ export class DecentralizedController<
           case MessageTypes.ClientConnected: {
             debug(`peer [%s] joined ${this.task.id}`, shortId)
             this.connections = this.connections.set(peerId, ws)
-
+            
+            // If the new peer joins in the middle of training, 
+            // it needs to get the latest model from an existing peer
             let joinedMidTraining = false
             if (this.#aggregationRound > 0){
               joinedMidTraining = true
+              this.#syncingNodes = this.#syncingNodes.add(peerId)
             }
 
             // Answer with client id in an NewNodeInfo message
@@ -75,6 +82,7 @@ export class DecentralizedController<
           // Send by peers at the beginning of each training round to notify 
           // the server that they want to join the round
           case MessageTypes.JoinRound: {
+            this.#syncingNodes = this.#syncingNodes.delete(peerId)
             this.#roundPeers = this.#roundPeers.set(peerId, false)
             break
           }
@@ -150,6 +158,12 @@ export class DecentralizedController<
       this.#connectFinishedNodes = this.#connectFinishedNodes.delete(peerId)
       debug("client [%s] left", shortId)
 
+      // If this participant was a latest model provider node,
+      // replace the provider node to another node
+      if (this.#providerNode === peerId) {
+        this.#providerNode = this.connections.keySeq().first()
+      }
+
       // Check if we are already waiting for new participants to join
       if (this.waitingForMoreParticipants) return
       // If no, check if we are still above the minimum number of participant required
@@ -170,10 +184,16 @@ export class DecentralizedController<
   private sendPeersForRoundIfNeeded(): void {
     const minNbOfParticipants = this.task.trainingInformation.minNbOfParticipants
     const nbOfPeersReady = this.#roundPeers.filter(ready => ready).size
+    // participating peers are connected peers expect the ones that are in process of syncing
+    const participatingPeers = this.connections.keySeq().toSet().subtract(this.#syncingNodes)
+
     // First check if there are enough participants to start the round
     // Then check if all peers that wanted to join this round are ready
+    // All peers that are connected to the server (except for newly joining peers waiting for the latest model) 
+    // are expected to participate in the round
+
     if (nbOfPeersReady < minNbOfParticipants
-      || nbOfPeersReady != this.#roundPeers.size) return
+      || nbOfPeersReady != participatingPeers.size) return
     // Once every peer that joined the round is ready, we can start the round
     this.#roundPeers.keySeq()
     .map((id) => {
@@ -276,7 +296,7 @@ export class DecentralizedController<
 
     // If the number of retries exceeds the threshold, exclude the failed peers from the round
     // and retry peer connection only with the remaining peers
-    if (this.#connectionRetry >= 3){
+    if (this.#connectionRetry >= this.task.trainingInformation.maxConnectionRetry){
       // Exclude the failed peers
       this.#connectFinishedNodes.forEach((connected, nodeId) => {
         if (!connected){

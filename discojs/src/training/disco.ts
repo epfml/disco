@@ -87,7 +87,8 @@ export interface ModelWeightAccess{
  */
 export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   status: RoundStatus;
-  participants: number
+  participants: number;
+  modelSynced: WeightsContainer | undefined;
 }> {
   public readonly trainer: Trainer<D, N>;
   readonly #client: clients.Client<N>;
@@ -149,6 +150,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     // Simply propagate the training status events emitted by the client
     this.#client.on("status", (status) => this.emit("status", status));
     this.#client.on("participants", (nbParticipants) => this.emit("participants", nbParticipants));
+    this.#client.on("modelSynced", (latestWeights) => this.emit("modelSynced", latestWeights));
   }
 
   /** Train on dataset, yielding logs of every round. */

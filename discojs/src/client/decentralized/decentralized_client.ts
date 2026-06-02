@@ -31,7 +31,6 @@ export class DecentralizedClient extends Client<"decentralized"> {
 
   // Check if the training round is in progress 
   // Used to get the latest model for model synchronization
-  #isRoundInTraining = false
   #roundFinishedPromise?: Promise<void>
   #resolveRoundFinished?: () => void // contains resolver
 
@@ -83,6 +82,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
     // and sends the latest model weights.
     this.server.on(type.SignalNewPeer, async (event) => {
       if (this.#pool === undefined) throw new Error('received signal about new peer but peer pool is undefined')
+      const roundFinishedPromise = this.#roundFinishedPromise
       const syncConnection = await this.#pool.getPeers(Set([event.newNode]), this.server, ()=>{})
 
       const newcomerConn = syncConnection.get(event.newNode)
@@ -93,7 +93,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
         debug(`Cannot connect to newly joined client [${event.newNode}]`)
         return
       }
-      await this.sendModel(newcomerConn)
+      await this.sendModel(newcomerConn, roundFinishedPromise)
     })
 
     // c.f. setupServerCallbacks doc for explanation
@@ -186,6 +186,8 @@ export class DecentralizedClient extends Client<"decentralized"> {
 
       const latestModel = await this.receiveModel(providerConn)
       this.modelWeightAccess?.setModelWeight(latestModel)
+
+      this.emit("modelSynced", this.modelWeightAccess?.getModelWeight())
       this.#modelSyncNeeded = false
     }
 
@@ -195,6 +197,10 @@ export class DecentralizedClient extends Client<"decentralized"> {
     // Store the promise for the current round's aggregation result.
     // We will await for it to resolve at the end of the round when exchanging weight updates.
     this.aggregationResult = this.aggregator.getPromiseForAggregation()
+
+    // Do not proceed to local training when minNbOfParticipants condition is not satisfied
+    await this.waitForParticipantsIfNeeded()
+
     this.saveAndEmit("local training")
     return Promise.resolve()
   }
@@ -210,6 +216,8 @@ export class DecentralizedClient extends Client<"decentralized"> {
 
     while(true){
       // Wait until enough participants are available before continuing the round
+      // Checks minNbOfParticipants requirement for 
+      // when participants disconnect when connection error happens continuously
       await this.waitForParticipantsIfNeeded()
 
       // Create peer-to-peer connections with all peers for the round
@@ -228,6 +236,12 @@ export class DecentralizedClient extends Client<"decentralized"> {
       ])
 
       if (msg.type === type.StartWeightSharing){
+        // Generate a promise that resolves when round training finishes
+        if (this.#roundFinishedPromise === undefined){
+          this.#roundFinishedPromise = new Promise<void>((resolve) => { 
+            this.#resolveRoundFinished = resolve
+          })
+        }
         break
       } else if (msg.type === type.RetryPeerConnections){
         debug(`[${shortenId(this.ownId)}] retrying peer connection establishment`)
@@ -245,16 +259,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
       }
     }
     // Exchange weight updates with peers and return aggregated weights
-    let aggregatedWeight: WeightsContainer
-    try{
-      aggregatedWeight = await this.exchangeWeightUpdates(weights)
-    } finally {
-      // Mark the round as finished so that model synchronization can proceed
-      this.#isRoundInTraining = false
-      this.#resolveRoundFinished?.()
-      this.#roundFinishedPromise = undefined
-      this.#resolveRoundFinished = undefined
-    }
+    const aggregatedWeight = await this.exchangeWeightUpdates(weights)
 
     return aggregatedWeight
   }
@@ -281,12 +286,6 @@ export class DecentralizedClient extends Client<"decentralized"> {
     try {
       debug(`[${shortenId(this.ownId)}] is waiting for peer list for round ${this.aggregator.round}`);
       const receivedMessage = await waitMessage(this.server, type.PeersForRound)
-
-      this.#isRoundInTraining = true
-      // Generate a promise that resolves when round training finishes
-      this.#roundFinishedPromise = new Promise<void>((resolve) => { 
-        this.#resolveRoundFinished = resolve
-      })
 
       const peers = Set(receivedMessage.peers)
       debug(`[${shortenId(this.ownId)}] received peer list: %o`, peers.toArray());
@@ -431,9 +430,10 @@ export class DecentralizedClient extends Client<"decentralized"> {
    * If the current training round is in progress, wait until the round finishes
    * and receive the latest aggregated model.
    */
-  private async sendModel(newcomerConn: PeerConnection): Promise<void> {
-    if (this.#isRoundInTraining){
-      await this.#roundFinishedPromise
+  private async sendModel(newcomerConn: PeerConnection, roundFinishedPromise: Promise<void> | undefined): Promise<void> {
+    // wait until the round finishes to get the latest model
+    if (roundFinishedPromise !== undefined){
+      await roundFinishedPromise
     }
 
     const model = this.modelWeightAccess?.getModelWeight()
@@ -449,5 +449,13 @@ export class DecentralizedClient extends Client<"decentralized"> {
         model: encoded
       }
     newcomerConn.send(message)
+  }
+
+  // Resolve the round finished promise and reset related state
+  override finishRound(): void{
+    // Mark round as finished so that model synchronization can proceed
+    this.#resolveRoundFinished?.()
+    this.#roundFinishedPromise = undefined
+    this.#resolveRoundFinished = undefined
   }
 }

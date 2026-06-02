@@ -1,5 +1,5 @@
 import type * as http from "node:http";
-import type { DataType, RoundStatus, Task, TaskProvider } from "@epfml/discojs";
+import type { DataType, RoundStatus, Task, TaskProvider, EpochLogs } from "@epfml/discojs";
 import {
 	aggregator as aggregators,
 	client as clients,
@@ -26,6 +26,47 @@ async function expectWSToBeClose(
 		for (const [l, r] of tensors[0].zip(tensors[1]))
 			expect(l).to.be.closeTo(r, 1e-4);
 }
+
+
+// function from federated.spec.ts
+export async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
+	const ret: T[] = [];
+	for await (const e of iter) {
+		// TODO trick to allow other Promises to run
+		// else one client might progress alone without communicating with others
+		// will be fixed when client orchestrations in the server is correctly done
+		await new Promise((resolve) => setTimeout(resolve, 10));
+
+		ret.push(e);
+	}
+	return ret;
+}
+
+// function to check if weights across all participants are close to each other
+async function expectAllWSToBeClose(
+  weights: WeightsContainer[]
+): Promise<void> {
+  const reference = weights[0]
+
+  await Promise.all(
+    weights.map(async (current) => {
+      await expectWSToBeClose(reference, current)
+    })
+  )
+}
+
+const expectWeightsToEqual = (
+  a: WeightsContainer,
+  b: WeightsContainer,
+) => {
+  expect(a.weights.length).to.equal(b.weights.length);
+
+  a.weights.forEach((w, i) => {
+    expect(Array.from(w.dataSync())).to.deep.equal(
+      Array.from(b.weights[i].dataSync()),
+    );
+  });
+};
 
 describe("end-to-end decentralized", { timeout: 50_000 }, () => {
   let handle: http.Server | undefined;
@@ -134,7 +175,147 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
     await reachConsensus(url, "secure", 3);
   });
 
-  it("peers emit expected events", { timeout: 100_000 }, async () => {
+  /**
+   * Unit tests with 10 participants
+   */
+  // Mean aggregator
+  it("ten cifar10 users reach consensus with mean aggregation", { timeout: 300_000 }, async () => {
+    const baseTask = await defaultTasks.cifar10.getTask();
+    const task: Task<"image", "decentralized"> = {
+      ...baseTask,
+      trainingInformation: {
+        ...baseTask.trainingInformation,
+        scheme: "decentralized",
+        aggregationStrategy: "mean",
+        epochs: 3,
+        roundDuration: 1,
+        minNbOfParticipants: 10,
+      },
+    };
+
+    const url = await startServer({
+      ...defaultTasks.cifar10,
+      getTask: () => Promise.resolve(task),
+    });
+    const dataset = await datasets.loadCifar10();
+
+    const discos = Array.from(
+      { length: 10 },
+      () => new Disco(task, url, { preprocessOnce: true }),
+    );
+
+    try{
+      const results = await Promise.all(
+        discos.map(async (disco) => {
+          const logs = List(await arrayFromAsync(disco.trainByRound(dataset)));
+          const lastEpoch = logs.last()?.epochs.last();
+          if (lastEpoch === undefined) throw new Error("no epoch ran");
+
+          return [disco.trainer.model.weights, lastEpoch] as [WeightsContainer, EpochLogs];
+        })
+      );
+
+      await expectAllWSToBeClose(results.map(([weights])=>weights));
+    }finally{
+      await Promise.all(discos.map((disco) => disco.close()));
+    }
+  });
+
+  // Byzantine aggregator
+  it("ten cifar10 users reach consensus with byzantine aggregation", { timeout: 300_000 }, async () => {
+    const baseTask = await defaultTasks.cifar10.getTask();
+    const task: Task<"image", "decentralized"> = {
+      ...baseTask,
+      trainingInformation: {
+        ...baseTask.trainingInformation,
+        scheme: "decentralized",
+        aggregationStrategy: "byzantine",
+        epochs: 3,
+        roundDuration: 1,
+        minNbOfParticipants: 10,
+        privacy: {
+					byzantineFaultTolerance: {
+						clippingRadius: 10,
+						maxIterations: 1,
+						beta: 0.9,
+					},
+				},
+      },
+    };
+
+    const url = await startServer({
+      ...defaultTasks.cifar10,
+      getTask: () => Promise.resolve(task),
+    });
+    const dataset = await datasets.loadCifar10();
+
+    const discos = Array.from(
+      { length: 10 },
+      () => new Disco(task, url, { preprocessOnce: true }),
+    );
+
+    try{
+      const results = await Promise.all(
+        discos.map(async (disco) => {
+          const logs = List(await arrayFromAsync(disco.trainByRound(dataset)));
+          const lastEpoch = logs.last()?.epochs.last();
+          if (lastEpoch === undefined) throw new Error("no epoch ran");
+
+          return [disco.trainer.model.weights, lastEpoch] as [WeightsContainer, EpochLogs];
+        })
+      );
+
+      await expectAllWSToBeClose(results.map(([weights])=>weights));
+    }finally{
+      await Promise.all(discos.map((disco) => disco.close()));
+    }
+  });
+
+  // Secure aggregator
+  it("ten cifar10 users reach consensus with secure aggregation", { timeout: 500_000 }, async () => {
+    const baseTask = await defaultTasks.cifar10.getTask();
+    const task: Task<"image", "decentralized"> = {
+      ...baseTask,
+      trainingInformation: {
+        ...baseTask.trainingInformation,
+        scheme: "decentralized",
+        aggregationStrategy: "secure",
+        epochs: 10,
+        roundDuration: 1,
+        minNbOfParticipants: 10,
+        maxShareValue: 100,
+      },
+    };
+
+    const url = await startServer({
+      ...defaultTasks.cifar10,
+      getTask: () => Promise.resolve(task),
+    });
+    const dataset = await datasets.loadCifar10();
+
+    const discos = Array.from(
+      { length: 10 },
+      () => new Disco(task, url, { preprocessOnce: true }),
+    );
+
+    try{
+      const results = await Promise.all(
+        discos.map(async (disco) => {
+          const logs = List(await arrayFromAsync(disco.trainByRound(dataset)));
+          const lastEpoch = logs.last()?.epochs.last();
+          if (lastEpoch === undefined) throw new Error("no epoch ran");
+
+          return [disco.trainer.model.weights, lastEpoch] as [WeightsContainer, EpochLogs];
+        })
+      );
+
+      await expectAllWSToBeClose(results.map(([weights])=>weights));
+    }finally{
+      await Promise.all(discos.map((disco) => disco.close()));
+    }
+  });
+
+  it("peers emit expected events", { timeout: 300_000 }, async () => {
 		const baseTask = await defaultTasks.lusCovid.getTask();
 		const task: Task<"image", "decentralized"> = {
 			...baseTask,
@@ -144,6 +325,7 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
 				aggregationStrategy: "mean",
 				roundDuration: 1,
 				minNbOfParticipants: 2,
+        maxConnectionRetry: 3,
 			},
 		};
 		const url = await startServer({
@@ -325,5 +507,132 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
     expect(await nbParticipantsUser3.next()).equal(1)
 
     await discoUser3.close()
+  });
+
+  /**
+     * We test if the latest model syncing is working when new participant
+     * joins in the middle of the training (when the round > 0). 
+     * 
+     * The test workflow
+     * 1. Start User1 and User2 starts training
+     * 2. Let them complete at least one aggregation round
+     * 3. Start User3 when aggregationRound is larger than 0
+     * 4. When User3 starts training, model synchronization should be triggered first
+     * 5. Compare User3's model weights with User1/User2's latest model weights
+     */
+  it("Model Syncing when new participant joins in the middle of the training", { timeout: 200_000 }, async () => {
+    const baseTask = await defaultTasks.lusCovid.getTask();
+    const task: Task<"image", "decentralized"> = {
+      ...baseTask,
+      trainingInformation: {
+        ...baseTask.trainingInformation,
+        scheme: "decentralized",
+        aggregationStrategy: "mean",
+        roundDuration: 1,
+        minNbOfParticipants: 2,
+        maxConnectionRetry: 3,
+      },
+    };
+
+    const url = await startServer({
+      ...defaultTasks.lusCovid,
+      getTask: () => Promise.resolve(task),
+    });
+    const dataset = await datasets.loadLusCOVID();
+
+    const discoUser1 = new Disco(task, url, { preprocessOnce: true });
+    const discoUser2 = new Disco(task, url, { preprocessOnce: true });
+    const discoUser3 = new Disco(task, url, { preprocessOnce: true });
+
+    try {
+      const generatorUser1 = discoUser1.trainByRound(dataset);
+      const generatorUser2 = discoUser2.trainByRound(dataset);
+
+      await Promise.all([
+        generatorUser1.next(),
+        generatorUser2.next(),
+      ]);
+
+      await Promise.all([
+        generatorUser1.next(),
+        generatorUser2.next(),
+      ]);
+
+      // Existing participants should already have the same aggregated model.
+      await expectWSToBeClose(
+        discoUser1.trainer.model.weights,
+        discoUser2.trainer.model.weights,
+      );
+
+      const waitForModelSynced = Promise.race([
+        new Promise<{
+          syncedWeights: WeightsContainer;
+          providerWeightsUser1: WeightsContainer;
+          providerWeightsUser2: WeightsContainer;
+        }>((resolve) => {
+          discoUser3.on("modelSynced", (weights) => {
+            if (weights !== undefined) {
+              resolve({
+                syncedWeights: weights,
+                providerWeightsUser1: new WeightsContainer(
+                  discoUser1.trainer.model.weights.weights.map((w) => w.clone()),
+                ),
+                providerWeightsUser2: new WeightsContainer(
+                  discoUser2.trainer.model.weights.weights.map((w) => w.clone()),
+                ),
+              });
+            }
+          });
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Timed out waiting for modelSynced")),
+            60_000,
+          ),
+        ),
+      ]);
+
+      const generatorUser3 = discoUser3.trainByRound(dataset);
+      const user3RoundPromise = generatorUser3.next();
+
+      await new Promise((resolve) => setTimeout(resolve, 5_000));
+
+      // The newcomer may ask for synchronization while existing participants are
+      // already in the next local round. Progress peers until the provider sends the latest model.
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const synced = await Promise.race([
+          waitForModelSynced.then(() => true),
+          new Promise<boolean>((resolve) =>
+            setTimeout(() => resolve(false), 100),
+          ),
+        ]);
+
+        if (synced) break;
+
+        await Promise.all([
+          generatorUser1.next(),
+          generatorUser2.next(),
+        ]);
+      }
+
+      const {
+        syncedWeights,
+        providerWeightsUser1,
+        providerWeightsUser2,
+      } = await waitForModelSynced;
+
+      try {
+        expectWeightsToEqual(syncedWeights, providerWeightsUser1);
+      } catch {
+        expectWeightsToEqual(syncedWeights, providerWeightsUser2);
+      }
+
+      const user3Round = await user3RoundPromise;
+      expect(user3Round.done).to.be.false;
+    } finally {
+      await discoUser1.close();
+      await discoUser2.close();
+      await discoUser3.close();
+    }
   });
 })

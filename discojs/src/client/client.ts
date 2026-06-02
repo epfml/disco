@@ -25,6 +25,7 @@ const debug = createDebug("discojs:client");
 export abstract class Client<N extends Network> extends EventEmitter<{
 	status: RoundStatus;
 	participants: number;
+  modelSynced: WeightsContainer | undefined;
 }> {
   // Own ID provided by the network's server.
   protected _ownId?: NodeID
@@ -204,6 +205,10 @@ export abstract class Client<N extends Network> extends EventEmitter<{
 
     const encoded = new Uint8Array(await response.arrayBuffer())
     return await serialization.model.decode(encoded)
+  }
+
+  public finishRound(): void{
+    // DecentralizedClient override the method to clean up round state
   }
 
   /**

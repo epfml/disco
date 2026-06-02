@@ -100,6 +100,9 @@ export namespace TrainingInformation {
 			.object({
 				scheme: z.literal("decentralized"),
 				aggregationStrategy: z.literal(["byzantine", "mean", "secure"]),
+
+				// Maximum number of retries for connection failures
+				maxConnectionRetry: z.number().nonnegative().int().default(3),
 			})
 			.and(nonLocalNetworkSchema),
 		federated: z

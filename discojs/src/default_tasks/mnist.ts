@@ -43,7 +43,8 @@ export const mnist: TaskProvider<"image", "decentralized"> = {
 				},
         minNbOfParticipants: 3,
         maxShareValue: 100,
-        tensorBackend: 'tfjs'
+        tensorBackend: 'tfjs',
+        maxConnectionRetry: 3,
       }
     });
   },
