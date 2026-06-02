@@ -44,6 +44,24 @@ export class DecentralizedClient extends Client<"decentralized"> {
     // Emits the `participants` event
     this.nbOfParticipants = this.aggregator.nodes.size === 0 ? 1 : this.aggregator.nodes.size
   }
+
+  // Used by model provider peer during model syncing
+  private async handleSignalNewPeer(event: any): Promise<void> {
+    if (this.#pool === undefined) throw new Error('received signal about new peer but peer pool is undefined')
+      const roundFinishedPromise = this.#roundFinishedPromise
+      const syncConnection = await this.#pool.getPeers(Set([event.newNode]), this.server, ()=>{})
+
+      const newcomerConn = syncConnection.get(event.newNode)
+
+      if (newcomerConn === undefined){
+        // if connection with newly joining client fails, print debug message
+        // and return
+        debug(`Cannot connect to newly joined client [${event.newNode}]`)
+        return
+      }
+
+      await this.sendModel(newcomerConn, roundFinishedPromise)
+  }
   
   /**
    * Public method called by disco.ts when starting training. This method sends
@@ -80,20 +98,8 @@ export class DecentralizedClient extends Client<"decentralized"> {
     // Listen if the client is selected as a model provider node for a newly joining client.
     // Upon receiving the signal, this client establishes a connection with the newcomer
     // and sends the latest model weights.
-    this.server.on(type.SignalNewPeer, async (event) => {
-      if (this.#pool === undefined) throw new Error('received signal about new peer but peer pool is undefined')
-      const roundFinishedPromise = this.#roundFinishedPromise
-      const syncConnection = await this.#pool.getPeers(Set([event.newNode]), this.server, ()=>{})
-
-      const newcomerConn = syncConnection.get(event.newNode)
-
-      if (newcomerConn === undefined){
-        // if connection with newly joining client fails, print debug message
-        // and return
-        debug(`Cannot connect to newly joined client [${event.newNode}]`)
-        return
-      }
-      await this.sendModel(newcomerConn, roundFinishedPromise)
+    this.server.on(type.SignalNewPeer, (event) => {
+      void this.handleSignalNewPeer(event)
     })
 
     // c.f. setupServerCallbacks doc for explanation
