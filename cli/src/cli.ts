@@ -117,7 +117,9 @@ async function runUser<D extends DataType, N extends Network>(
     if (args.saveLogs) {
       const finalPath = path.join(dir, `client${userIndex}_local_log.json`);
 
-      const userLog: UserLogFile = makeUserLogFile(task, numberOfUsers, userIndex, client.ownId, finalLog);
+      const clientId =
+        trainingScheme === "local" ? `local-client-${userIndex}` : client.ownId;
+      const userLog: UserLogFile = makeUserLogFile(task, numberOfUsers, userIndex, clientId, finalLog);
 
       await fs.writeFile(finalPath, JSON.stringify(userLog, null, 2));
     }

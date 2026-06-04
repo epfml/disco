@@ -68,6 +68,18 @@ function commonPrefixLength(left: number[], right: number[]): number {
     return maxLength;
 }
 
+function predictTokenLogits(tfModel: tf.LayersModel, inputTensor: tf.Tensor2D): tf.Tensor3D {
+    const logits = tfModel.predict(inputTensor);
+    if (Array.isArray(logits)) {
+        throw new Error("Expected GPT model to return a single logits tensor");
+    }
+    if (logits.rank !== 3) {
+        logits.dispose();
+        throw new Error(`Expected GPT logits to have rank 3, got rank ${logits.rank}`);
+    }
+    return logits as tf.Tensor3D;
+}
+
 async function loadDataset(filePath: string, limit = -1): Promise<string[]> {
     const text = await fs.readFile(filePath, "utf-8");
     const samples = text
@@ -101,62 +113,182 @@ function parseSample(sample: string) {
     return { basePrompt, answer };
 }
 
-async function scoreContinuation(
+async function scoreContinuations(
     tfModel: tf.LayersModel,
     tokenizer: Tokenizer,
     prompt: string,
-    continuation: string,
+    continuations: string[],
     contextLength: number
-): Promise<{ score: number; promptTokens: number; continuationTokens: number; usedInputTokens: number }> {
+): Promise<{ score: number; promptTokens: number; continuationTokens: number; usedInputTokens: number }[]> {
     const promptTokens = tokenizer.tokenize(prompt).toArray();
-    const fullTokens = tokenizer.tokenize(prompt + continuation).toArray();
-    const continuationStart = commonPrefixLength(promptTokens, fullTokens);
-    const continuationTokens = fullTokens.length - continuationStart;
+    const scoredInputs = continuations.map((continuation) => {
+        const fullTokens = tokenizer.tokenize(prompt + continuation).toArray();
+        const continuationStart = commonPrefixLength(promptTokens, fullTokens);
+        const continuationTokens = fullTokens.length - continuationStart;
+        const inputTokens = fullTokens.slice(0, -1);
+        const offset = Math.max(0, inputTokens.length - contextLength);
+        const truncatedInputTokens = inputTokens.slice(offset);
 
-    const inputTokens = fullTokens.slice(0, -1);
-    const offset = Math.max(0, inputTokens.length - contextLength);
-    const truncatedInputTokens = inputTokens.slice(offset);
-
-    if (truncatedInputTokens.length === 0 || continuationTokens <= 0) {
         return {
+            fullTokens,
+            continuationStart,
+            continuationTokens,
+            offset,
+            truncatedInputTokens,
+        };
+    });
+
+    const maxInputLength = scoredInputs.reduce(
+        (maxLength, scoredInput) => Math.max(maxLength, scoredInput.truncatedInputTokens.length),
+        0,
+    );
+
+    if (maxInputLength === 0) {
+        return scoredInputs.map((scoredInput) => ({
             score: Number.NEGATIVE_INFINITY,
             promptTokens: promptTokens.length,
-            continuationTokens,
-            usedInputTokens: truncatedInputTokens.length,
-        };
+            continuationTokens: scoredInput.continuationTokens,
+            usedInputTokens: scoredInput.truncatedInputTokens.length,
+        }));
     }
 
+    const canScoreFromPromptOnly = scoredInputs.every(
+        ({ continuationStart, continuationTokens }) =>
+            continuationStart === promptTokens.length && continuationTokens === 1,
+    );
+
+    if (canScoreFromPromptOnly) {
+        const offset = Math.max(0, promptTokens.length - contextLength);
+        const truncatedPromptTokens = promptTokens.slice(offset);
+
+        if (truncatedPromptTokens.length === 0) {
+            return scoredInputs.map((scoredInput) => ({
+                score: Number.NEGATIVE_INFINITY,
+                promptTokens: promptTokens.length,
+                continuationTokens: scoredInput.continuationTokens,
+                usedInputTokens: truncatedPromptTokens.length,
+            }));
+        }
+
+        const inputTensor = tf.tensor2d(
+            [truncatedPromptTokens],
+            [1, truncatedPromptTokens.length],
+            "int32",
+        );
+
+        const optionScores = tf.tidy(() => {
+            const logits = predictTokenLogits(tfModel, inputTensor);
+            const lastLogits = logits
+                .slice([0, truncatedPromptTokens.length - 1, 0], [1, 1, -1])
+                .reshape<tf.Tensor1D>([-1]);
+            const logProbs = tf.logSoftmax(lastLogits);
+            const continuationTokenIds = scoredInputs.map(
+                ({ fullTokens, continuationStart }) => fullTokens[continuationStart],
+            );
+            return tf.gather(logProbs, continuationTokenIds);
+        });
+
+        const scores = await optionScores.array() as number[];
+
+        inputTensor.dispose();
+        optionScores.dispose();
+
+        return scoredInputs.map((scoredInput, index) => ({
+            score: scores[index],
+            promptTokens: promptTokens.length,
+            continuationTokens: scoredInput.continuationTokens,
+            usedInputTokens: truncatedPromptTokens.length,
+        }));
+    }
+
+    const paddedInputs = scoredInputs.map(({ truncatedInputTokens }) => [
+        ...truncatedInputTokens,
+        ...Array(maxInputLength - truncatedInputTokens.length).fill(0),
+    ]);
+
     const inputTensor = tf.tensor2d(
-        [truncatedInputTokens],
-        [1, truncatedInputTokens.length],
+        paddedInputs,
+        [paddedInputs.length, maxInputLength],
         "int32",
     );
 
-    const logits = tfModel.predict(inputTensor) as tf.Tensor;
-    const logProbs = tf.logSoftmax(logits, -1);
-    const arr = await logProbs.array() as number[][][];
+    const targetIndexes: number[][] = [];
+    const targetTokenIds: number[] = [];
+    const targetOwners: number[] = [];
 
-    let score = 0;
-    let count = 0;
+    scoredInputs.forEach((scoredInput, batchIdx) => {
+        const {
+            fullTokens,
+            continuationStart,
+            offset,
+            truncatedInputTokens,
+        } = scoredInput;
 
-    for (let targetPos = continuationStart; targetPos < fullTokens.length; targetPos++) {
-        const targetToken = fullTokens[targetPos];
-        const logitPos = targetPos - 1 - offset;
-        if (logitPos < 0 || logitPos >= arr[0].length) continue;
-        score += arr[0][logitPos][targetToken];
-        count++;
+        // Usually A/B/C/D is one token and the prompt-only fast path above handles it.
+        // Keep this fallback for prompt/continuation tokenizer merges and multi-token labels.
+        for (let targetPos = continuationStart; targetPos < fullTokens.length; targetPos++) {
+            const targetToken = fullTokens[targetPos];
+            const logitPos = targetPos - 1 - offset;
+            if (logitPos < 0 || logitPos >= truncatedInputTokens.length) continue;
+            targetIndexes.push([batchIdx, logitPos]);
+            targetTokenIds.push(targetToken);
+            targetOwners.push(batchIdx);
+        }
+    });
+
+    if (targetIndexes.length === 0) {
+        inputTensor.dispose();
+        return scoredInputs.map((scoredInput) => ({
+            score: Number.NEGATIVE_INFINITY,
+            promptTokens: promptTokens.length,
+            continuationTokens: scoredInput.continuationTokens,
+            usedInputTokens: scoredInput.truncatedInputTokens.length,
+        }));
     }
+
+    const logits = predictTokenLogits(tfModel, inputTensor);
+    const targetLogProbs = tf.tidy(() => {
+        const targetIndexTensor = tf.tensor2d(
+            targetIndexes,
+            [targetIndexes.length, 2],
+            "int32",
+        );
+        const targetTokenIndexTensor = tf.tensor2d(
+            targetTokenIds.map((targetTokenId, index) => [index, targetTokenId]),
+            [targetTokenIds.length, 2],
+            "int32",
+        );
+        const targetLogits = tf.gatherND(logits, targetIndexTensor) as tf.Tensor2D;
+        const logProbs = tf.logSoftmax(targetLogits, -1);
+        return tf.gatherND(logProbs, targetTokenIndexTensor);
+    });
+
+    const targetScores = await targetLogProbs.array() as number[];
+    const scoreSums = Array(scoredInputs.length).fill(0) as number[];
+    const scoreCounts = Array(scoredInputs.length).fill(0) as number[];
+
+    targetScores.forEach((score, index) => {
+        const owner = targetOwners[index];
+        scoreSums[owner] += score;
+        scoreCounts[owner]++;
+    });
+
+    const results = scoredInputs.map((scoredInput, index) => {
+        return {
+            score: scoreCounts[index] === 0
+                ? Number.NEGATIVE_INFINITY
+                : scoreSums[index] / scoreCounts[index],
+            promptTokens: promptTokens.length,
+            continuationTokens: scoredInput.continuationTokens,
+            usedInputTokens: scoredInput.truncatedInputTokens.length,
+        };
+    });
 
     inputTensor.dispose();
     logits.dispose();
-    logProbs.dispose();
+    targetLogProbs.dispose();
 
-    return {
-        score: count === 0 ? Number.NEGATIVE_INFINITY : score / count,
-        promptTokens: promptTokens.length,
-        continuationTokens,
-        usedInputTokens: truncatedInputTokens.length,
-    };
+    return results;
 }
 
 async function benchmarkQA(
@@ -211,14 +343,15 @@ async function benchmarkQA(
         const scores: number[] = [];
         const continuationTokens: number[] = [];
         const usedInputTokens: number[] = [];
-        for (const opt of options) {
-            const result = await scoreContinuation(
-                tfModel,
-                tokenizer,
-                prompt,
-                format.makeContinuation(opt),
-                contextLength,
-            );
+        const results = await scoreContinuations(
+            tfModel,
+            tokenizer,
+            prompt,
+            options.map((opt) => format.makeContinuation(opt)),
+            contextLength,
+        );
+
+        for (const result of results) {
             scores.push(result.score);
             continuationTokens.push(result.continuationTokens);
             usedInputTokens.push(result.usedInputTokens);
@@ -234,9 +367,10 @@ async function benchmarkQA(
         if (predicted === answer) correct++;
         total++;
 
-        if (confusion[answer]) {
-            confusion[answer][predicted]++;
+        if (confusion[answer]?.[predicted] === undefined) {
+            throw new Error(`Unexpected confusion matrix key: answer=${answer}, predicted=${predicted}`);
         }
+        confusion[answer][predicted]++;
 
         const scoreMap = Object.fromEntries(
             options.map((opt, i) => [opt, scores[i]])
@@ -247,7 +381,7 @@ async function benchmarkQA(
             answer,
             correct: predicted === answer,
             scores: scoreMap,
-            promptTokens: tokenizer.tokenize(prompt).size,
+            promptTokens: results[0]?.promptTokens ?? tokenizer.tokenize(prompt).size,
             continuationTokens: Object.fromEntries(
                 options.map((opt, i) => [opt, continuationTokens[i]])
             ),
