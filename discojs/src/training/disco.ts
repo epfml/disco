@@ -320,9 +320,14 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
 
     const configurableModel = model as Model<D> & {
       setGoldfishLoss?: (config: GoldfishLossConfig | undefined) => void;
+      setLearningRate?: (learningRate: number) => void;
     };
 
     configurableModel.setGoldfishLoss?.(this.#task.trainingInformation.goldfishLoss);
+    if (this.#task.trainingInformation.learningRate !== undefined) {
+      configurableModel.setLearningRate?.(this.#task.trainingInformation.learningRate);
+      console.log(`Using GPT learning rate ${this.#task.trainingInformation.learningRate}`);
+    }
   }
 
   async #preprocessSplitAndBatch(

@@ -105,6 +105,7 @@ export namespace TrainingInformation {
 					padTokenId: z.number().int().optional(),
 				})
 				.optional(),
+			learningRate: z.number().positive().optional(),
 		}),
 	} satisfies Record<DataType, unknown>;
 

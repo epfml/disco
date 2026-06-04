@@ -175,6 +175,15 @@ export const args: BenchmarkArguments = {
         };
       }
 
+      if (unsafeArgs.learningRate !== undefined) {
+        if (task.dataType !== "text" || task.trainingInformation.tensorBackend !== "gpt")
+          throw new Error("learningRate override is only supported for GPT text tasks");
+        if (!Number.isFinite(unsafeArgs.learningRate) || unsafeArgs.learningRate <= 0)
+          throw new Error("learningRate must be a positive finite number");
+
+        task.trainingInformation.learningRate = unsafeArgs.learningRate;
+      }
+
       const {aggregator, clippingRadius, maxIterations, beta, maxShareValue} = unsafeArgs;
 
       // For aggregators
