@@ -98,7 +98,7 @@ export interface GenerationConfig {
 
 export const DefaultGenerationConfig: Required<GenerationConfig> = {
   temperature: 1.0,
-  doSample: false,
+  doSample: true,
   seed: Math.random(),
   topk: 50
 }
