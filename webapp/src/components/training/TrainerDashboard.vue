@@ -222,6 +222,9 @@ async function startTraining(): Promise<void> {
   // manually interrupt the training
   cleanupDisco.value = async () => await disco.close()
 
+  // For the training completed message
+  let trainingCompleted = true
+
   try {
     trainingGenerator.value = disco.train(dataset);
 
@@ -245,6 +248,7 @@ async function startTraining(): Promise<void> {
       epochsOfRoundLogs.value = List<EpochLogs>();
     }
   } catch (e) {
+    trainingCompleted = false;
     if (e === stopper) {
       toaster.info("Training stopped");
       return;
@@ -262,8 +266,22 @@ async function startTraining(): Promise<void> {
       toaster.error(
         "Training is not converging. Data potentially needs better preprocessing.",
       );
+    } else if (
+      e instanceof Error &&
+      e.message.includes("Client disconnected after connection failure")
+    ){
+      toaster.error(
+        "Client disconnected after multiple peer connection failure. Please rejoin the training."
+      );
+    } else if (
+      e instanceof Error &&
+      e.message.includes("Timeout while waiting for the latest model")
+    ){
+      toaster.error(
+        "Timeout while waiting for the model syncing. Please rejoin the training."
+      );
     } else {
-      toaster.error("An error occurred during training");
+      toaster.error("An error occurred during training.")
     }
     debug("while training: %o", e);
   } finally {
@@ -271,7 +289,10 @@ async function startTraining(): Promise<void> {
     await cleanupTrainingSession()
   }
 
-  toaster.success("Training successfully completed");
+  if (trainingCompleted){
+    // printed only when the training is compeleted successfully
+    toaster.success("Training successfully completed");
+  }
 }
 
 async function cleanupTrainingSession() {

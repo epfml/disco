@@ -348,6 +348,25 @@
               </FormLabel>
             </FormLabel>
 
+            <FormLabel
+                v-if="scheme === 'decentralized'"
+                label="Maximum connection retries"
+                type="required"
+              >
+                <div class="text-sm text-gray-500 mb-1">
+                  Maximum number of connection retries before disconnecting failed participants.
+                </div>
+
+                <FormField
+                  name="trainingInformation.maxConnectionRetry"
+                  placeholder="3"
+                  as="input"
+                  type="number"
+                  min="0"
+                />
+            </FormLabel>
+        
+
             <!-- Byzantine Robust Aggregator Parameters -->
             <FormLabel
               v-show="aggregationStrategy === 'byzantine'"
@@ -757,13 +776,16 @@ const trainingInformationNetworks = z.union([
   z
     .object({
       scheme: z.literal("decentralized"),
-      aggregationStrategy: z.literal(["byzantine", "mean"]),
+      aggregationStrategy: z.literal(["byzantine", "mean", "secure"]),
+
+      // Maximum number of retries for connection failures
+      maxConnectionRetry: z.number().nonnegative().int().default(3),
     })
     .and(nonLocalNetworkSchema),
   z
     .object({
       scheme: z.literal("federated"),
-      aggregationStrategy: z.literal(["byzantine", "mean", "secure"]),
+      aggregationStrategy: z.literal(["byzantine", "mean"]),
     })
     .and(nonLocalNetworkSchema),
   z.object({

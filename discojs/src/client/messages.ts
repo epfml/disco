@@ -24,8 +24,24 @@ export enum type {
   // Message forwarded by the server from a client to another client
   // to establish a peer-to-peer (WebRTC) connection
   SignalForPeer,
+  // Message sent by nodes to server to signal all connections are established
+  ConnectionsReady,
+  // Sent by the server to signal nodes proceed to weight update sharing
+  StartWeightSharing,
+  // Sent by the server to signal nodes reestablish connections
+  RetryPeerConnections,
+  // Sent by the server to signal that the node's connection was not successful
+  ConnectionFail,
   // The weight update
   Payload,
+  // Sent by nodes to the server to request the latest model
+  ModelSyncRequest,
+  // Sent by the server to nodes to share the provider node info
+  SignalModelProvider,
+  // Sent by the server to nodes who was selected as a model provider node
+  SignalNewPeer,
+  // Sent by node to node to share the latest model weights
+  SharedModel,
   
   /* Federated */
   // The server answers the ClientConnected message with the necessary information
