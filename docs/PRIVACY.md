@@ -19,7 +19,7 @@ Differential privacy (DP) is a rigorous privacy framework that provides a privac
 
 In DISCO, differential privacy ensures privacy by making sure that the weight updates produced by one client do not significantly change when a single data point in that client's dataset is modified. This is called local differential privacy (LDP). Before sharing weight updates with the server, random noise is added to these updates. By examining only the weight updates that each client sends to the server, no party, including the server, can infer who generated a specific update or which datasets particular clients have.
 
-Differntial privacy has an important parameter, epsilon($\epsilon$), which indicates the privacy level applied to the learning process. It is also called the "privacy budget."
+Differential privacy has an key parameter, epsilon($\epsilon$), which indicates the privacy level applied to the learning process. It is also called the "privacy budget."
 
 ### Parameter Explanations
 Differential privacy is achieved by adding noise. To guarantee your desired privacy level, you need to specify several parameters:
