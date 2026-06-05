@@ -83,8 +83,8 @@
                 v-tippy="{
                   content: 'This is how we call collaborative training sessions in DISCO.',
                   placement: 'top'
-                }">
-                class="underline hover:cursor-pointer"
+                }"
+                class="underline hover:cursor-pointer">
                 <DISCOllaborative/>
               </span>
             </span>
