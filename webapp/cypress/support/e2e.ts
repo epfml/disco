@@ -22,7 +22,7 @@ export function setupServerWith(
     )
     .as("taskAndModels");
 
-  cy.get<Array<[Task<DataType,Network>, unknown]>>("@taskAndModels")
+  cy.get<Array<[Task<DataType, Network>, unknown]>>("@taskAndModels")
     .then((taskAndModels) =>
       taskAndModels.map(([t]) => serialization.task.serializeToJSON(t)),
     )
@@ -67,30 +67,30 @@ type BasicKeys =
   | "aggregationStrategy";
 
 export function basicTask<D extends DataType>(
-	dataType: D,
-	info: Omit<TrainingInformation<D, "local">, BasicKeys>,
+  dataType: D,
+  info: Omit<TrainingInformation<D, "local">, BasicKeys>,
 ): Task<D, "local"> {
-	return {
-		id: "task",
-		dataType,
-		trainingInformation: {
-			epochs: 1,
-			batchSize: 1,
-			roundDuration: 1,
-			validationSplit: 1,
-			tensorBackend: "tfjs",
-			scheme: "local",
-			aggregationStrategy: "mean",
-			...info,
-		},
-		displayInformation: {
-			title: "task",
-			summary: { preview: "preview", overview: "overview" },
-		},
-		// cast as typescript doesn't work well w/ generics
-	} as Task<D, "local">;
+  return {
+    id: "task",
+    dataType,
+    trainingInformation: {
+      epochs: 1,
+      batchSize: 1,
+      roundDuration: 1,
+      validationSplit: 1,
+      tensorBackend: "tfjs",
+      scheme: "local",
+      aggregationStrategy: "mean",
+      ...info,
+    },
+    displayInformation: {
+      title: "task",
+      summary: { preview: "preview", overview: "overview" },
+    },
+    // cast as typescript doesn't work well w/ generics
+  } as Task<D, "local">;
 }
 
 before(() => {
-	localStorage.debug = "discojs*,webapp*";
+  localStorage.debug = "discojs*,webapp*";
 });

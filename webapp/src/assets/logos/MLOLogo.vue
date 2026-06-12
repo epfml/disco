@@ -213,7 +213,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { useThemeStore } from "@/store";
-  const themeStore = useThemeStore();
-  const color = themeStore.selectByTheme("#333", "#eee");
+import { useThemeStore } from "@/store";
+const themeStore = useThemeStore();
+const color = themeStore.selectByTheme("#333", "#eee");
 </script>

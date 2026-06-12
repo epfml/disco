@@ -19,9 +19,9 @@
       v-show="trainingStore.step === 2"
       class="flex flex-col space-y-4 md:space-y-8"
     >
-      <LabeledDatasetInput v-model="dataset" :task >
+      <LabeledDatasetInput v-model="dataset" :task>
         <template #header>
-          <DataDescription :task class="tuto-data-desc"/>
+          <DataDescription :task class="tuto-data-desc" />
         </template>
       </LabeledDatasetInput>
     </div>
@@ -33,7 +33,11 @@
       @model="(m) => (trainedModel = m)"
     />
 
-    <TrainingFinished v-show="trainingStore.step === 4" :task :model="trainedModel" />
+    <TrainingFinished
+      v-show="trainingStore.step === 4"
+      :task
+      :model="trainedModel"
+    />
   </div>
   <TrainingButtons />
 </template>

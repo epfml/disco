@@ -3,12 +3,12 @@
 import { List } from "immutable";
 
 import type {
-	Dataset,
-	DataFormat,
-	DataType,
-	Tabular,
-	Task,
-	Network,
+  Dataset,
+  DataFormat,
+  DataType,
+  Tabular,
+  Task,
+  Network,
 } from "../index.js";
 
 import * as processing from "./index.js";
@@ -103,34 +103,34 @@ export function preprocessWithoutLabel<D extends DataType>(
 }
 
 export function postprocess<D extends DataType>(
-	task: Task<D, Network>,
-	encoded: DataFormat.ModelEncoded[D][1],
+  task: Task<D, Network>,
+  encoded: DataFormat.ModelEncoded[D][1],
 ): DataFormat.Inferred[D] {
-	switch (task.dataType) {
-		case "image": {
-			// cast as typescript doesn't reduce generic type
-			const index = encoded as DataFormat.ModelEncoded["image"][1];
+  switch (task.dataType) {
+    case "image": {
+      // cast as typescript doesn't reduce generic type
+      const index = encoded as DataFormat.ModelEncoded["image"][1];
       const labels = List(task.trainingInformation.LABEL_LIST);
 
-			const v = labels.get(index);
-			if (v === undefined) throw new Error("index not found in labels");
-			return v as DataFormat.Inferred[D];
-		}
-		case "tabular": {
-			// cast as typescript doesn't reduce generic type
-			const v = encoded as DataFormat.ModelEncoded["tabular"][1];
+      const v = labels.get(index);
+      if (v === undefined) throw new Error("index not found in labels");
+      return v as DataFormat.Inferred[D];
+    }
+    case "tabular": {
+      // cast as typescript doesn't reduce generic type
+      const v = encoded as DataFormat.ModelEncoded["tabular"][1];
 
-			return v as DataFormat.Inferred[D];
-		}
-		case "text": {
-			// cast as typescript doesn't reduce generic type
-			const token = encoded as DataFormat.ModelEncoded["text"][1];
+      return v as DataFormat.Inferred[D];
+    }
+    case "text": {
+      // cast as typescript doesn't reduce generic type
+      const token = encoded as DataFormat.ModelEncoded["text"][1];
 
-			return task.trainingInformation.tokenizer.decode([
-				token,
-			]) as DataFormat.Inferred[D];
-		}
-	}
+      return task.trainingInformation.tokenizer.decode([
+        token,
+      ]) as DataFormat.Inferred[D];
+    }
+  }
 }
 
 function extractToNumbers(columns: Iterable<string>, row: Tabular) {

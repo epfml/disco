@@ -1,17 +1,19 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { defineStore } from "pinia";
+import { ref } from "vue";
 
-export const useInformationStore = defineStore('information', () => {
-  const step = ref(0)
+export const useInformationStore = defineStore("information", () => {
+  const step = ref(0);
 
-  const nextStep = () => { step.value++ }
+  const nextStep = () => {
+    step.value++;
+  };
   const prevStep = () => {
     if (step.value <= 0) {
-      throw new Error('step must be positive')
+      throw new Error("step must be positive");
     } else {
-      step.value--
+      step.value--;
     }
-  }
+  };
 
-  return { step, nextStep, prevStep }
-})
+  return { step, nextStep, prevStep };
+});

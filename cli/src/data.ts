@@ -1,15 +1,13 @@
 import path from "node:path";
 import { Dataset, processing } from "@epfml/discojs";
-import {
-  DataFormat,
-  DataType,
-  Image,
-  Task,
-} from "@epfml/discojs";
+import { DataFormat, DataType, Image, Task } from "@epfml/discojs";
 import { loadCSV, loadImage, loadImagesInDir } from "@epfml/discojs-node";
 import { Repeat } from "immutable";
 
-async function loadSimpleFaceData(userIdx: number, totalClient: number): Promise<Dataset<DataFormat.Raw["image"]>> {
+async function loadSimpleFaceData(
+  userIdx: number,
+  totalClient: number,
+): Promise<Dataset<DataFormat.Raw["image"]>> {
   const folder = path.join("..", "datasets", "simple_face");
 
   const [adults, childs]: Dataset<[Image, string]>[] = [
@@ -24,7 +22,10 @@ async function loadSimpleFaceData(userIdx: number, totalClient: number): Promise
   return sharded;
 }
 
-async function loadLusCovidData(userIdx: number, totalClient: number): Promise<Dataset<DataFormat.Raw["image"]>> {
+async function loadLusCovidData(
+  userIdx: number,
+  totalClient: number,
+): Promise<Dataset<DataFormat.Raw["image"]>> {
   const folder = path.join("..", "datasets", "lus_covid");
 
   const [positive, negative]: Dataset<[Image, string]>[] = [
@@ -67,38 +68,43 @@ function loadTinderDogData(split: number): Dataset<DataFormat.Raw["image"]> {
     });
 }
 
-function loadData(dataName: string, split: number): Dataset<DataFormat.Raw["image"]>{
+function loadData(
+  dataName: string,
+  split: number,
+): Dataset<DataFormat.Raw["image"]> {
   const folder = path.join("..", "datasets", `${dataName}`, `client_${split}`);
   return loadCSV(path.join(folder, "labels.csv"))
     .map(
-      (row) => [
-        processing.extractColumn(row, "filename"),
-        processing.extractColumn(row, "label"),
-      ] as const,
+      (row) =>
+        [
+          processing.extractColumn(row, "filename"),
+          processing.extractColumn(row, "label"),
+        ] as const,
     )
-    .map(
-      async ([filename, label]) => {
-        try {
-          const img = await Promise.any(
-            ["png", "jpg", "jpeg"].map((ext) =>
-              loadImage(path.join(folder, `${filename}.${ext}`)))
-          );
-          return [img, label]
-        } catch {
-          throw Error(`${filename} not found in ${folder}`);
-        }
+    .map(async ([filename, label]) => {
+      try {
+        const img = await Promise.any(
+          ["png", "jpg", "jpeg"].map((ext) =>
+            loadImage(path.join(folder, `${filename}.${ext}`)),
+          ),
+        );
+        return [img, label];
+      } catch {
+        throw Error(`${filename} not found in ${folder}`);
       }
-    );
+    });
 }
 
 export async function getTaskData<D extends DataType>(
-	taskID: Task.ID,
-	userIdx: number,
-  totalClient: number
+  taskID: Task.ID,
+  userIdx: number,
+  totalClient: number,
 ): Promise<Dataset<DataFormat.Raw[D]>> {
   switch (taskID) {
     case "simple_face": // remove
-      return (await loadSimpleFaceData(userIdx, totalClient)) as Dataset<DataFormat.Raw[D]>;
+      return (await loadSimpleFaceData(userIdx, totalClient)) as Dataset<
+        DataFormat.Raw[D]
+      >;
     case "titanic":
     case "titanic_decentralized":
       const titanicData = loadCSV(
@@ -112,7 +118,9 @@ export async function getTaskData<D extends DataType>(
       return loadData("cifar10_ext", userIdx) as Dataset<DataFormat.Raw[D]>;
     case "lus_covid":
     case "lus_covid_decentralized":
-      return (await loadLusCovidData(userIdx, totalClient)) as Dataset<DataFormat.Raw[D]>;
+      return (await loadLusCovidData(userIdx, totalClient)) as Dataset<
+        DataFormat.Raw[D]
+      >;
     case "tinder_dog": // remove
       return loadTinderDogData(userIdx) as Dataset<DataFormat.Raw[D]>;
     case "mnist_federated":

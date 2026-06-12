@@ -3,16 +3,10 @@
     v-show="showPrev || showNext"
     class="mx-auto flex gap-4 lg:gap-8 mt-8 lg:mt-12 justify-center"
   >
-    <CustomButton
-      v-show="showPrev"
-      @click="setStep(validationStore.step - 1)"
-    >
+    <CustomButton v-show="showPrev" @click="setStep(validationStore.step - 1)">
       previous
     </CustomButton>
-    <CustomButton
-      v-show="showNext"
-      @click="setStep(validationStore.step + 1)"
-    >
+    <CustomButton v-show="showNext" @click="setStep(validationStore.step + 1)">
       next
     </CustomButton>
   </div>
