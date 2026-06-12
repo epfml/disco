@@ -4,7 +4,7 @@
   "scripts": {
     "lint": "eslint",
     "format:check": "prettier -c .",
-    "format:fix": "prettier ."
+    "format:fix": "prettier -w ."
   },
   "workspaces": [
     "cli",
