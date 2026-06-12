@@ -1,3 +1,2 @@
 package-lock.json
-# Prettier errors on this file, not sure why
-datasets/wikitext/wiki.train.tokens
+datasets
