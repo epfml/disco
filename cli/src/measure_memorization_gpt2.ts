@@ -13,11 +13,17 @@ interface Args {
   promptLengths: string;
   suffixLength: number;
   bleuThreshold: number;
+  decodingStrategy: DecodingStrategy;
+  temperature: number;
+  topK: number;
   seed: number;
   logEvery: number;
   savePath?: string;
   help?: boolean;
 }
+
+const DecodingStrategies = ["top-k", "greedy"] as const;
+type DecodingStrategy = typeof DecodingStrategies[number];
 
 type PromptResult = {
   recordIndex: number;
@@ -51,6 +57,14 @@ function parseIntegerList(raw: string): number[] {
   }
 
   return values;
+}
+
+function castDecodingStrategy(raw: string): DecodingStrategy {
+  for (const strategy of DecodingStrategies) {
+    if (raw === strategy) return strategy;
+  }
+
+  throw new Error(`Invalid decodingStrategy: ${raw}`);
 }
 
 function seededRandom(seed: number): () => number {
@@ -149,11 +163,15 @@ function bleu1to4(reference: number[], candidate: number[]): number {
   return brevityPenalty * geometricMean;
 }
 
-async function greedyGenerateGPT2(
+async function sampleGenerateGPT2(
   model: models.GPT,
   inputIds: number[],
   maxNewTokens: number,
   maxContextLength: number,
+  decodingStrategy: DecodingStrategy,
+  temperature: number,
+  topK: number,
+  seed: number,
 ): Promise<number[]> {
   const generated = [...inputIds];
   const tfModel = model.extract();
@@ -170,11 +188,26 @@ async function greedyGenerateGPT2(
       return output as tf.Tensor;
     });
 
-    console.log("logits shape:", logits.shape);
-
     const nextTokenTensor = tf.tidy(() => {
       const last = logits.slice([0, modelInput.length - 1, 0], [1, 1, -1]);
-      return last.squeeze().argMax();
+      const scaled = last.squeeze<tf.Tensor1D>().div(temperature);
+      const { values: topKLogits, indices: topKTokens } = tf.topk(
+        scaled,
+        topK,
+      );
+
+      if (decodingStrategy === "greedy") {
+        return topKTokens.gather(tf.scalar(0, "int32")).squeeze<tf.Scalar>();
+      }
+
+      const sampledIndex = tf.multinomial(
+        topKLogits.expandDims<tf.Tensor2D>(0),
+        1,
+        seed + i,
+        false,
+      ).squeeze<tf.Scalar>();
+
+      return topKTokens.gather(sampledIndex).squeeze<tf.Scalar>();
     });
 
     const nextTokenData = await nextTokenTensor.data();
@@ -226,6 +259,13 @@ async function main() {
       promptLengths: { type: String, description: "Comma-separated prompt lengths", defaultValue: "10,50,100,200,500" },
       suffixLength: { type: Number, description: "Number of suffix tokens to generate and compare", defaultValue: 50 },
       bleuThreshold: { type: Number, description: "BLEU threshold for approximate memorization", defaultValue: 0.75 },
+      decodingStrategy: {
+        type: (raw: string) => castDecodingStrategy(raw),
+        description: "Generation strategy: top-k or greedy",
+        defaultValue: "top-k",
+      },
+      temperature: { type: Number, description: "Generation temperature used with top-k sampling", defaultValue: 0.8 },
+      topK: { type: Number, description: "Number of most likely tokens considered for top-k sampling", defaultValue: 50 },
       seed: { type: Number, description: "Random seed for choosing record split positions", defaultValue: 42 },
       logEvery: { type: Number, description: "Print progress every N records; set 0 to disable per-record progress logs", defaultValue: 1 },
       savePath: { type: String, description: "Optional JSON output path", optional: true },
@@ -243,6 +283,12 @@ async function main() {
   );
 
   const promptLengths = parseIntegerList(args.promptLengths);
+  if (!Number.isFinite(args.temperature) || args.temperature <= 0) {
+    throw new Error("temperature must be a positive finite number");
+  }
+  if (!Number.isInteger(args.topK) || args.topK < 1) {
+    throw new Error("topK must be a positive integer");
+  }
   const maxPromptLength = Math.max(...promptLengths);
   const random = seededRandom(args.seed);
 
@@ -337,11 +383,15 @@ async function main() {
       }
 
       const prompt = ids.slice(splitIndex - promptLength, splitIndex);
-      const generated = await greedyGenerateGPT2(
+      const generated = await sampleGenerateGPT2(
         loadedModel,
         prompt,
         args.suffixLength,
         loadedModel.config.contextLength,
+        args.decodingStrategy,
+        args.temperature,
+        args.topK,
+        args.seed + recordIndex + promptLength,
       );
       const generatedSuffix = generated.slice(prompt.length, prompt.length + args.suffixLength);
 
@@ -412,6 +462,9 @@ async function main() {
       promptLengths,
       suffixLength: args.suffixLength,
       bleuThreshold: args.bleuThreshold,
+      decodingStrategy: args.decodingStrategy,
+      temperature: args.temperature,
+      topK: args.topK,
       seed: args.seed,
       logEvery: args.logEvery,
       modelContextLength: loadedModel.config.contextLength,

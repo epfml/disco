@@ -324,6 +324,13 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     };
 
     configurableModel.setGoldfishLoss?.(this.#task.trainingInformation.goldfishLoss);
+    if (this.#task.trainingInformation.goldfishLoss?.enabled === true) {
+      const { k, h, padTokenId } = this.#task.trainingInformation.goldfishLoss;
+      console.log(
+        `Using Goldfish loss with k=${k}, h=${h}`
+        + (padTokenId === undefined ? "" : `, padTokenId=${padTokenId}`),
+      );
+    }
     if (this.#task.trainingInformation.learningRate !== undefined) {
       configurableModel.setLearningRate?.(this.#task.trainingInformation.learningRate);
       console.log(`Using GPT learning rate ${this.#task.trainingInformation.learningRate}`);
