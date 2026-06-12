@@ -101,7 +101,12 @@ export class FederatedClient extends Client<"federated"> {
     // which indicates whether there are enough participants or not
     debug(`[${shortenId(this.ownId)}] upon connecting, wait for participant flag %o`, this.waitingForMoreParticipants)
     if (payload != null) {
-      model.weights = serialization.weights.decode(payload)
+      const latestWeights = serialization.weights.decode(payload)
+      try {
+        model.weights = latestWeights
+      } finally {
+        latestWeights.dispose()
+      }
     }
     return model
   }

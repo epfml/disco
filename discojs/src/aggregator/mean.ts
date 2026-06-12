@@ -2,7 +2,6 @@ import type { Map } from "immutable";
 import { AggregationStep } from "./aggregator.js";
 import { MultiRoundAggregator, ThresholdType } from "./multiround.js";
 import type { WeightsContainer, client } from "../index.js";
-import { aggregation } from "../index.js";
 
 /** 
  * Mean aggregator whose aggregation step consists in computing the mean of the received weights. 
@@ -19,11 +18,16 @@ export class MeanAggregator extends MultiRoundAggregator {
   }
 
   override _add(nodeId: client.NodeID, contribution: WeightsContainer): void {
+    const previous = this.contributions.getIn([0, nodeId]) as WeightsContainer | undefined;
     this.log(
       this.contributions.hasIn([0, nodeId]) ? AggregationStep.UPDATE : AggregationStep.ADD,
       nodeId,
     );
-    this.contributions = this.contributions.setIn([0, nodeId], contribution);
+    if (previous !== undefined) previous.dispose();
+    this.contributions = this.contributions.setIn(
+      [0, nodeId],
+      contribution.map((weight) => weight.clone()),
+    );
   }
 
   override aggregate(): WeightsContainer {
@@ -32,8 +36,22 @@ export class MeanAggregator extends MultiRoundAggregator {
 
     this.log(AggregationStep.AGGREGATE);
 
-    const result = aggregation.avg(currentContributions.values());
-    return result;
+    const contributions = Array.from(currentContributions.values());
+    let summed = contributions[0]?.map((weight) => weight.clone());
+    if (summed === undefined) throw new Error("aggregating without any contribution");
+
+    try {
+      for (const contribution of contributions.slice(1)) {
+        const next = summed.add(contribution);
+        summed.dispose();
+        summed = next;
+      }
+
+      return summed.map((weight) => weight.div(contributions.length));
+    } finally {
+      summed.dispose();
+      contributions.forEach((contribution) => contribution.dispose());
+    }
   }
 
   override makePayloads(

@@ -130,10 +130,14 @@ export class FederatedController<D extends DataType> extends TrainingController<
               ws.send(msgpack.encode(msg))
               debug("Aggregated payload sent to client [%s] for round %o", shortId, this.#aggregator.round)
             })
-            // Add the contribution
-            debug("Adding contribution from client [%s] to aggregator for round %d", shortId, round)
-            this.#aggregator.add(clientId, weights, round)
-            debug(`Successfully added contribution from client [%s] for round ${round}`, shortId)
+            try {
+              // Add the contribution
+              debug("Adding contribution from client [%s] to aggregator for round %d", shortId, round)
+              this.#aggregator.add(clientId, weights, round)
+              debug(`Successfully added contribution from client [%s] for round ${round}`, shortId)
+            } finally {
+              weights.dispose()
+            }
           } else {
             // If the client sent an invalid or outdated contribution
             // the server answers with the current round and last global model update

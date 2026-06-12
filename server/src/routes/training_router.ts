@@ -51,8 +51,14 @@ export class TrainingRouter<N extends Exclude<Network, "local">> {
 
       // The federated controller takes the initial model weights at initialization
       // so that it can send it to new clients
-      const model = serialization.model.decode(encodedModel)
-      const encodedWeights = await serialization.weights.encode((await model).weights)
+      const model = await serialization.model.decode(encodedModel)
+      const weights = model.weights
+      let encodedWeights: serialization.Encoded
+      try {
+        encodedWeights = await serialization.weights.encode(weights)
+      } finally {
+        model[Symbol.dispose]()
+      }
       taskController = new FederatedController(t, encodedWeights)
     } else {
 			const t = task as Task<D, "decentralized">
