@@ -18,8 +18,32 @@ jobs:
           key: datasets-${{ hashFiles('datasets/**') }}
       - run: datasets/populate
 
+  format-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/Cypress
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npm ci
+      - run: npm run format:check
+
   lint-most:
-    needs: [build-cli, build-lib, build-lib-node, build-lib-web, build-server, build-webapp]
+    needs:
+      [
+        build-cli,
+        build-lib,
+        build-lib-node,
+        build-lib-web,
+        build-server,
+        build-webapp,
+      ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -175,7 +199,14 @@ jobs:
         working-directory: docs/examples
 
   test-most:
-    needs: [build-lib, build-lib-node, build-lib-web, build-server, download-datasets]
+    needs:
+      [
+        build-lib,
+        build-lib-node,
+        build-lib-web,
+        build-server,
+        download-datasets,
+      ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
