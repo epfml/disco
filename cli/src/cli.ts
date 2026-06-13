@@ -26,6 +26,8 @@ import type { UserLogFile } from "./user_log.js";
 
 const debug = createDebug("cli:main");
 
+let checkpointQueue = Promise.resolve();
+
 function getOutputDir(): string {
   return args.outputPath ?? path.join(".", `${args.testID}`);
 }
@@ -40,6 +42,18 @@ function debugProcessMemory(label: string): void {
   });
 }
 
+function runGarbageCollection(label: string): void {
+  const gc = (globalThis as typeof globalThis & { gc?: () => void }).gc;
+  if (gc === undefined) {
+    debug("%s skipped explicit GC because node was not started with --expose-gc", label);
+    return;
+  }
+
+  debugProcessMemory(`${label} before explicit GC`);
+  gc();
+  debugProcessMemory(`${label} after explicit GC`);
+}
+
 async function saveClientModelCheckpoint(
   model: Model<DataType>,
   userIndex: number,
@@ -50,6 +64,16 @@ async function saveClientModelCheckpoint(
 
   await saveModelToDisk(model, checkpointDir, checkpointFileName);
   console.log(`Checkpoint saved for client ${userIndex} round ${round} at ${checkpointDir}/${checkpointFileName}`);
+}
+
+async function enqueueClientModelCheckpoint(
+  model: Model<DataType>,
+  userIndex: number,
+  round: number,
+): Promise<void> {
+  const save = checkpointQueue.then(() => saveClientModelCheckpoint(model, userIndex, round));
+  checkpointQueue = save.catch(() => undefined);
+  await save;
 }
 
 async function runUser<D extends DataType, N extends Network>(
@@ -112,8 +136,9 @@ async function runUser<D extends DataType, N extends Network>(
 
       if (args.saveCheckpoints && lastCheckpointRound !== log.round) {
         debugProcessMemory(`client ${userIndex} round ${log.round} before checkpoint`);
-        await saveClientModelCheckpoint(disco.trainer.model, userIndex, log.round);
+        await enqueueClientModelCheckpoint(disco.trainer.model, userIndex, log.round);
         debugProcessMemory(`client ${userIndex} round ${log.round} after checkpoint`);
+        runGarbageCollection(`client ${userIndex} round ${log.round} checkpoint`);
         lastCheckpointRound = log.round;
       }
       debugProcessMemory(`client ${userIndex} round ${log.round} after summary bookkeeping`);
@@ -129,6 +154,7 @@ async function runUser<D extends DataType, N extends Network>(
     const modelFileName = `client${userIndex}_model.json`;
     await saveModelToDisk(disco.trainer.model, modelDir, modelFileName);
     debugProcessMemory(`client ${userIndex} after final model save`);
+    runGarbageCollection(`client ${userIndex} final model save`);
     console.log(`Model saved for client ${userIndex} at ${modelDir}/${modelFileName}`);
   }
     // saving the entire per-user logs

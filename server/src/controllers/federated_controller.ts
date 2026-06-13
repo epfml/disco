@@ -65,6 +65,14 @@ export class FederatedController<D extends DataType> extends TrainingController<
 
         const recipients = this.#pendingUpdateRecipients
         this.#pendingUpdateRecipients = new Map()
+        const msg: FederatedMessages.ReceiveServerPayload = {
+          type: MessageTypes.ReceiveServerPayload,
+          round: aggregator.round,
+          payload,
+          nbOfParticipants: this.connections.size
+        }
+        const encodedMsg = msgpack.encode(msg)
+        debugProcessMemory(`round ${aggregator.round} after encoding websocket message`)
 
         recipients.forEach((recipientWs, recipientId) => {
           debug(
@@ -72,13 +80,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
             aggregator.round,
             recipientId.slice(0, 4),
           )
-          const msg: FederatedMessages.ReceiveServerPayload = {
-            type: MessageTypes.ReceiveServerPayload,
-            round: aggregator.round,
-            payload,
-            nbOfParticipants: this.connections.size
-          }
-          recipientWs.send(msgpack.encode(msg))
+          recipientWs.send(encodedMsg)
           debug(
             "Aggregated payload sent to client [%s] for round %o",
             recipientId.slice(0, 4),

@@ -9,6 +9,18 @@ import { GPTArchitecture } from './layers.js'
 
 const debug = createDebug("discojs:models:gpt:model");
 
+function processMemory(): Record<string, number> | undefined {
+  if (typeof process === "undefined") return undefined;
+
+  const m = process.memoryUsage();
+  return {
+    rssGB: m.rss / 1024 / 1024 / 1024,
+    heapUsedGB: m.heapUsed / 1024 / 1024 / 1024,
+    externalGB: m.external / 1024 / 1024 / 1024,
+    arrayBuffersGB: m.arrayBuffers / 1024 / 1024 / 1024,
+  };
+}
+
 /**
  * tfjs does not export LazyIterator and Dataset...
  */
@@ -170,6 +182,7 @@ export class GPTModel extends tf.LayersModel {
           loss,
           memory,
           allocated: tf.memory().numTensors,
+          processMemory: processMemory(),
           preprocessingTime,
           weightUpdateTime,
         });
