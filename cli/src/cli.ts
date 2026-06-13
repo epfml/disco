@@ -30,6 +30,16 @@ function getOutputDir(): string {
   return args.outputPath ?? path.join(".", `${args.testID}`);
 }
 
+function debugProcessMemory(label: string): void {
+  const m = process.memoryUsage();
+  debug("%s memory: %O", label, {
+    rssGB: m.rss / 1024 / 1024 / 1024,
+    heapUsedGB: m.heapUsed / 1024 / 1024 / 1024,
+    externalGB: m.external / 1024 / 1024 / 1024,
+    arrayBuffersGB: m.arrayBuffers / 1024 / 1024 / 1024,
+  });
+}
+
 async function saveClientModelCheckpoint(
   model: Model<DataType>,
   userIndex: number,
@@ -88,10 +98,12 @@ async function runUser<D extends DataType, N extends Network>(
 
   try{
     debug(`Starting training for client ${userIndex}`);
+    debugProcessMemory(`client ${userIndex} before training`);
     const trainStart = Date.now();
     let lastCheckpointRound: number | undefined = undefined;
 
     for await (const log of disco.trainSummary(data, validationData)){
+      debugProcessMemory(`client ${userIndex} round ${log.round} before summary bookkeeping`);
       finalLog.push(log);
 
       if (jsonStream){
@@ -99,22 +111,29 @@ async function runUser<D extends DataType, N extends Network>(
       }
 
       if (args.saveCheckpoints && lastCheckpointRound !== log.round) {
+        debugProcessMemory(`client ${userIndex} round ${log.round} before checkpoint`);
         await saveClientModelCheckpoint(disco.trainer.model, userIndex, log.round);
+        debugProcessMemory(`client ${userIndex} round ${log.round} after checkpoint`);
         lastCheckpointRound = log.round;
       }
+      debugProcessMemory(`client ${userIndex} round ${log.round} after summary bookkeeping`);
     }
     debug(`Training took ${Date.now() - trainStart}ms for client ${userIndex}`);
+    debugProcessMemory(`client ${userIndex} after training loop`);
 
     await new Promise((res, _) => setTimeout(() => res('timeout'), 1000)) // Wait for other peers to finish
   // Save the trained model if requested
   if (args.saveModel) {
+    debugProcessMemory(`client ${userIndex} before final model save`);
     const modelDir = path.join(getOutputDir(), "models");
     const modelFileName = `client${userIndex}_model.json`;
     await saveModelToDisk(disco.trainer.model, modelDir, modelFileName);
+    debugProcessMemory(`client ${userIndex} after final model save`);
     console.log(`Model saved for client ${userIndex} at ${modelDir}/${modelFileName}`);
   }
     // saving the entire per-user logs
     if (args.saveLogs) {
+      debugProcessMemory(`client ${userIndex} before final log save`);
       const finalPath = path.join(dir, `client${userIndex}_local_log.json`);
 
       const clientId =
@@ -122,6 +141,7 @@ async function runUser<D extends DataType, N extends Network>(
       const userLog: UserLogFile = makeUserLogFile(task, numberOfUsers, userIndex, clientId, finalLog);
 
       await fs.writeFile(finalPath, JSON.stringify(userLog, null, 2));
+      debugProcessMemory(`client ${userIndex} after final log save`);
     }
 
     return List(finalLog);
