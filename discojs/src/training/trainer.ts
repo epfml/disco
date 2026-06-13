@@ -327,18 +327,24 @@ export class Trainer<D extends DataType, N extends Network> {
 
         const previousRoundWeights = this.#previousRoundWeights;
         const roundUpdate = roundWeights.sub(previousRoundWeights);
-        const updateNorm = await Promise.all(
-          roundUpdate.weights.map(privacy.frobeniusNorm)
-        );
-        this.#weightNormHistory = appendWeightHistory(this.#weightNormHistory, updateNorm);
-        
-        roundWeights = await applyOptimalPrivacy(
-          previousRoundWeights,
-          roundWeights,
-          this.#privacy,
-          this.#weightNormHistory,
-          totalRound,
-        )
+        try {
+          const updateNorm = await Promise.all(
+            roundUpdate.weights.map(privacy.frobeniusNorm)
+          );
+          this.#weightNormHistory = appendWeightHistory(this.#weightNormHistory, updateNorm);
+        } finally {
+          roundUpdate.dispose();
+        }
+
+        const privateRoundWeights = await applyOptimalPrivacy(
+            previousRoundWeights,
+            roundWeights,
+            this.#privacy,
+            this.#weightNormHistory,
+            totalRound,
+          );
+        roundWeights.dispose();
+        roundWeights = privateRoundWeights;
       }
 
       const networkWeights = await this.#client.onRoundEndCommunication(roundWeights);
@@ -349,6 +355,7 @@ export class Trainer<D extends DataType, N extends Network> {
         ? await this.model.evaluate(validationDataset)
         : undefined;
     } finally {
+      roundWeights.dispose();
       this.#previousRoundWeights?.dispose();
       this.#previousRoundWeights = undefined;
     }
@@ -377,14 +384,19 @@ async function applyOptimalPrivacy(
 		const previousRoundWeights =
 			previous ?? current.map((w) => tf.zerosLike(w));
 		const weightsProgress = current.sub(previousRoundWeights);
-		ret = previousRoundWeights.add(
-			await privacy.clipNorm(
-				weightsProgress,
-				Repeat(options.byzantineFaultTolerance.clippingRadius)
-					.take(weightsProgress.weights.length)
-					.toArray(),
-			),
+		const clippedProgress = await privacy.clipNorm(
+			weightsProgress,
+			Repeat(options.byzantineFaultTolerance.clippingRadius)
+				.take(weightsProgress.weights.length)
+				.toArray(),
 		);
+		try {
+			ret = previousRoundWeights.add(clippedProgress);
+		} finally {
+			weightsProgress.dispose();
+			clippedProgress.dispose();
+			if (previous === undefined) previousRoundWeights.dispose();
+		}
 	}
 
 	// Adding Gaussian noise for DP
@@ -426,14 +438,19 @@ async function applyOptimalPrivacy(
 			sigmaMax: Math.max(...sigmas),
 		});
 
-		ret = previousEpochWeights.add(
-			await privacy.addOptimalNoise(
-				weightsProgress,
-				epsilon,
-				delta,
-				effectiveRadius,
-			),
+		const noisyProgress = await privacy.addOptimalNoise(
+			weightsProgress,
+			epsilon,
+			delta,
+			effectiveRadius,
 		);
+		try {
+			ret = previousEpochWeights.add(noisyProgress);
+		} finally {
+			weightsProgress.dispose();
+			noisyProgress.dispose();
+			if (previous === undefined) previousEpochWeights.dispose();
+		}
 	}
 	return ret;
 }
