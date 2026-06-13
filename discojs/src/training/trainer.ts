@@ -178,6 +178,15 @@ export class Trainer<D extends DataType, N extends Network> {
     if (this.#roundIterations === undefined)
       throw new Error("roundIterations was not set");
 
+    const totalRound =
+      this.#privacy?.differentialPrivacy === undefined
+        ? Number.MAX_SAFE_INTEGER
+        : Math.max(
+            1,
+            Math.ceil((await dataset.size()) / this.#roundIterations) *
+              this.#epochs,
+          );
+
     let round = 0;
     for (let epoch = 0; epoch < this.#epochs; epoch++) {
       const trainingIterator = dataset[Symbol.asyncIterator]();
@@ -215,7 +224,7 @@ export class Trainer<D extends DataType, N extends Network> {
           roundValidationDataset,
           (roundDone) => done = roundDone,
           async () => this.#finishRoundCommunication(
-            Number.MAX_SAFE_INTEGER,
+            totalRound,
             roundValidationDataset,
           ),
         );
@@ -403,6 +412,19 @@ async function applyOptimalPrivacy(
 						Math.min(r, options.byzantineFaultTolerance.clippingRadius),
 					)
 				: dpClippingRadius;
+
+		const sigmas = effectiveRadius.map((r) =>
+			(2 * r * Math.sqrt(2 * Math.log(1.25 / delta))) / epsilon,
+		);
+		debug("DP applied: %O", {
+			totalRound,
+			epsilon,
+			delta,
+			radiusMin: Math.min(...effectiveRadius),
+			radiusMax: Math.max(...effectiveRadius),
+			sigmaMin: Math.min(...sigmas),
+			sigmaMax: Math.max(...sigmas),
+		});
 
 		ret = previousEpochWeights.add(
 			await privacy.addOptimalNoise(
