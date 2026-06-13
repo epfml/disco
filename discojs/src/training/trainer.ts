@@ -319,6 +319,7 @@ export class Trainer<D extends DataType, N extends Network> {
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
   ): Promise<ValidationMetrics | undefined> {
     let roundWeights = this.model.weights;
+    let disposeRoundWeightsAfterSend = false;
 
     try {
       if (this.#privacy !== undefined){
@@ -343,8 +344,8 @@ export class Trainer<D extends DataType, N extends Network> {
             this.#weightNormHistory,
             totalRound,
           );
-        roundWeights.dispose();
         roundWeights = privateRoundWeights;
+        disposeRoundWeightsAfterSend = true;
       }
 
       const networkWeights = await this.#client.onRoundEndCommunication(roundWeights);
@@ -355,7 +356,7 @@ export class Trainer<D extends DataType, N extends Network> {
         ? await this.model.evaluate(validationDataset)
         : undefined;
     } finally {
-      roundWeights.dispose();
+      if (disposeRoundWeightsAfterSend) roundWeights.dispose();
       this.#previousRoundWeights?.dispose();
       this.#previousRoundWeights = undefined;
     }
