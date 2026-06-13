@@ -25,13 +25,9 @@ export async function encode(model: Model<DataType>): Promise<Encoded> {
     }
     case model instanceof models.GPT: {
       const { weights, config } = model.serialize();
-      try {
-        const serializedWeights = await serialization.weights.encode(weights);
-        debug("GPT model weights serialized");
-        return coder.encode([Type.GPT, serializedWeights, config]);
-      } finally {
-        weights.dispose();
-      }
+      const serializedWeights = await serialization.weights.encode(weights);
+      debug("GPT model weights serialized");
+      return coder.encode([Type.GPT, serializedWeights, config]);
     }
     default:
       throw new Error("unknown model type");
