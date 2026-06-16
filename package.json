@@ -29,6 +29,7 @@
 		"eslint": "10",
 		"eslint-plugin-cypress": "6",
 		"eslint-plugin-vue": "10",
+		"knip": "^6.17.1",
 		"typescript": "5",
 		"typescript-eslint": "8"
 	}
