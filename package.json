@@ -31,7 +31,7 @@
     "eslint": "10",
     "eslint-plugin-cypress": "6",
     "eslint-plugin-vue": "10",
-    "prettier": "^3.8.4",
+    "prettier": "3",
     "typescript": "5",
     "typescript-eslint": "8"
   }
