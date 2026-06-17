@@ -282,7 +282,8 @@ Once you have finished your work on your draft PR, make sure to do the following
 
 1. Run the adequate test suites (server, webapp, discojs).
 2. Make sure you remove debugging comments / console outputs.
-3. Merge (or rebase if you can do it properly) `develop` into your feature branch:
+3. Format your code (`npm run format:fix`)
+4. Merge (or rebase if you can do it properly) `develop` into your feature branch:
 
 ```
 git checkout develop
