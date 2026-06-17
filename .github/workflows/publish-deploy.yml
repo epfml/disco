@@ -16,7 +16,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           registry-url: "https://registry.npmjs.org"
-          package-manager-cache: false  # never use caching in release builds
+          package-manager-cache: false # never use caching in release builds
           scope: "@epfml"
       - uses: actions/cache@v5
         with:
@@ -29,7 +29,7 @@ jobs:
         if: github.ref_type == 'branch'
       - run: npm --workspace=discojs{,-node,-web} run build
       - run: npm --workspace=discojs{,-node,-web} publish --access public
-       
+
   build-webapp:
     if: github.ref_type == 'branch'
     runs-on: ubuntu-latest
