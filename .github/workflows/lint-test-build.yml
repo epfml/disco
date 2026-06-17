@@ -32,6 +32,7 @@ jobs:
             ~/.cache/Cypress
           key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm ci
+      - run: npx prettier --version
       - run: npm run format:check
 
   lint-most:
