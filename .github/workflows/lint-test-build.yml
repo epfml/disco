@@ -36,14 +36,12 @@ jobs:
 
   lint-most:
     needs:
-      [
-        build-cli,
-        build-lib,
-        build-lib-node,
-        build-lib-web,
-        build-server,
-        build-webapp,
-      ]
+      - build-cli
+      - build-lib
+      - build-lib-node
+      - build-lib-web
+      - build-server
+      - build-webapp
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -200,13 +198,11 @@ jobs:
 
   test-most:
     needs:
-      [
-        build-lib,
-        build-lib-node,
-        build-lib-web,
-        build-server,
-        download-datasets,
-      ]
+      - build-lib
+      - build-lib-node
+      - build-lib-web
+      - build-server
+      - download-datasets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
