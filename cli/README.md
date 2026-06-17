@@ -27,23 +27,32 @@ npm -w cli start -- --help # or -h
 ```
 
 ## Command arguments
+
 Based on the task specification, we can adjust the command arguments. Available arguments are listed below.
 Non-mandatory fields will automatically use values from the task specification.
+
 ### Test specification arguments
+
 - `testID`: (mandatory) arbitrary test ID defined by the user for the test run
 - `task`: (mandatory) pre-defined task (adding a new task is described in the next section)
 - `numberOfUsers`: number of users participating in the learning round
 - `save`: whether to save the logs of the test run
+
 ### Learning hyperparameters
+
 - `epochs`: total number of training epochs
 - `roundDuration`: number of epochs per round
 - `batchSize`: batch size
 - `validationSplit`: ratio of the validation set used for evaluation
+
 ### Aggregator parameters
+
 - `aggregator`: aggregator specification
 - `clippingRadius`, `maxIterations`, `beta`: (optional, for byzantine aggregator settings) byzantine aggregator hyperparameters
 - `maxShareValue`: (optional, for secure aggregator settings) secure aggregator hyperparameter
+
 ### Differential Privacy parameters
+
 - `epsilon`, `delta`, `dpDefaultClippingRadius`: (optional, for testing with differential privacy) differential privacy hyperparameters
 
 ## Adding new tasks
@@ -80,17 +89,18 @@ The CLI includes a script to evaluate GPT models on the [HellaSwag](https://rowa
 To run the evaluation: `npm -w cli run hellaswag_gpt`
 
 The script benchmarks the following models:
+
 - A TensorFlow.js implementation of GPT (`gpt-tfjs`)
 - A pre-trained ONNX model (`Xenova/gpt2`)
 
 Both models are evaluated using a shared tokenizer (`Xenova/gpt2`), and the script reports:
+
 - Accuracy (proportion of correct multiple-choice predictions)
 - Total evaluation time (in seconds)
 
 ### Output
 
 Results are printed to the console and saved to a log file: `../datasets/logFile_hellaswag.txt`
-
 
 This allows for a direct comparison between the inference performance and accuracy of the two architectures.
 

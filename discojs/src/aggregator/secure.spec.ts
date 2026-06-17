@@ -54,8 +54,8 @@ describe("secret shares test", () => {
 
 describe("secure aggregator", () => {
   it("behaves as mean aggregator", async () => {
-    const secureNetwork = setupNetwork(SecureAggregator)
-    const meanNetwork = setupNetwork(MeanAggregator)  // waits for 100% of the nodes' contributions by default
+    const secureNetwork = setupNetwork(SecureAggregator);
+    const meanNetwork = setupNetwork(MeanAggregator); // waits for 100% of the nodes' contributions by default
 
     const meanResults = await communicate(
       Map(
@@ -63,7 +63,8 @@ describe("secure aggregator", () => {
           .entrySeq()
           .zip(Range(0, 3))
           .map(([[id, agg], i]) => [id, [agg, WeightsContainer.of([i])]]),
-      ), 0
+      ),
+      0,
     );
     const secureResults = await communicate(
       Map(
@@ -71,21 +72,22 @@ describe("secure aggregator", () => {
           .entrySeq()
           .zip(Range(0, 3))
           .map(([[id, agg], i]) => [id, [agg, WeightsContainer.of([i])]]),
-      ), 0
+      ),
+      0,
     );
 
-		// biome-ignore lint/correctness/noFlatMapIdentity: .flatten convert to Collection and zipAll is picky
-		for (const [secure, mean] of List(
-			await Promise.all(secureResults.sort().valueSeq().map(wsIntoArrays)),
-		)
-			.flatMap((x) => x)
-			.flatMap((x) => x)
-			.zipAll(
-				// biome-ignore lint/correctness/noFlatMapIdentity: .flatten convert to Collection and zipAll is picky
-				List(await Promise.all(meanResults.sort().valueSeq().map(wsIntoArrays)))
-					.flatMap((x) => x)
-					.flatMap((x) => x),
-			))
-			expect(secure).to.be.closeTo(mean, 0.001);
+    // biome-ignore lint/correctness/noFlatMapIdentity: .flatten convert to Collection and zipAll is picky
+    for (const [secure, mean] of List(
+      await Promise.all(secureResults.sort().valueSeq().map(wsIntoArrays)),
+    )
+      .flatMap((x) => x)
+      .flatMap((x) => x)
+      .zipAll(
+        // biome-ignore lint/correctness/noFlatMapIdentity: .flatten convert to Collection and zipAll is picky
+        List(await Promise.all(meanResults.sort().valueSeq().map(wsIntoArrays)))
+          .flatMap((x) => x)
+          .flatMap((x) => x),
+      ))
+      expect(secure).to.be.closeTo(mean, 0.001);
   });
 });

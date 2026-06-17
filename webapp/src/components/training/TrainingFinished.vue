@@ -12,8 +12,8 @@
     <ButtonsCard :buttons="List.of(['save model', onSaveModel])">
       <template #title> Save the model </template>
 
-      Saving the model will allow you to access it later to update training in
-      a new <DISCOllaborative />.
+      Saving the model will allow you to access it later to update training in a
+      new <DISCOllaborative />.
     </ButtonsCard>
   </div>
 </template>

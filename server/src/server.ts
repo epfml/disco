@@ -5,14 +5,14 @@ import type * as http from "http";
 
 import type { DataType, Network, TaskProvider } from "@epfml/discojs";
 
-import { TaskRouter, TrainingRouter } from './routes/index.js'
+import { TaskRouter, TrainingRouter } from "./routes/index.js";
 import { TaskSet } from "./task_set.js";
 
 /**
  * The Disco Server, initializing an Express app
  * Its main goal is to provide the available tasks (DISCOllaboratives)
- * and tasks' base models to clients. 
- * 
+ * and tasks' base models to clients.
+ *
  * More info on Express apps:
  * https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/Introduction
  */
@@ -20,7 +20,9 @@ export class Server {
   readonly #taskSet = new TaskSet();
 
   /** setup with given initial tasks */
-  static async with(...tasks: TaskProvider<DataType, Network>[]): Promise<Server> {
+  static async with(
+    ...tasks: TaskProvider<DataType, Network>[]
+  ): Promise<Server> {
     const server = new Server();
 
     await Promise.all(tasks.map((t) => server.#taskSet.addTask(t)));
@@ -33,7 +35,7 @@ export class Server {
    *
    * @param port where to start, if not given, choose a random one
    * @returns a tuple with the server instance and the URL
-   * 
+   *
    **/
   async serve(port?: number): Promise<[http.Server, URL]> {
     const wsApplier = expressWS(express(), undefined, {
@@ -46,17 +48,25 @@ export class Server {
     app.use(express.json({ limit: "50mb" }));
     app.use(express.urlencoded({ limit: "50mb", extended: false }));
 
-    const taskRouter = new TaskRouter(this.#taskSet)
-    const federatedRouter = new TrainingRouter('federated', wsApplier, this.#taskSet)
-    const decentralizedRouter = new TrainingRouter('decentralized', wsApplier, this.#taskSet)
+    const taskRouter = new TaskRouter(this.#taskSet);
+    const federatedRouter = new TrainingRouter(
+      "federated",
+      wsApplier,
+      this.#taskSet,
+    );
+    const decentralizedRouter = new TrainingRouter(
+      "decentralized",
+      wsApplier,
+      this.#taskSet,
+    );
 
-    app.get('/', (_, res, next) => {
-      res.send('The DISCO Server\n')
-      next()
-    })
-    app.use('/federated', federatedRouter.router)
-    app.use('/decentralized', decentralizedRouter.router)
-    app.use('/tasks', taskRouter.router)
+    app.get("/", (_, res, next) => {
+      res.send("The DISCO Server\n");
+      next();
+    });
+    app.use("/federated", federatedRouter.router);
+    app.use("/decentralized", decentralizedRouter.router);
+    app.use("/tasks", taskRouter.router);
 
     const server = await new Promise<http.Server>((resolve, reject) => {
       const ret = app.listen(port);

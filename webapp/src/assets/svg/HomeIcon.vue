@@ -18,10 +18,10 @@
 export default {
   props: {
     customClass: {
-      default: 'w-7 h-7',
-      type: String
+      default: "w-7 h-7",
+      type: String,
     },
-    viewBox: { default: '0 0 24 24', type: String }
-  }
-}
+    viewBox: { default: "0 0 24 24", type: String },
+  },
+};
 </script>

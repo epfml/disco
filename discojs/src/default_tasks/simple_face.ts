@@ -1,21 +1,23 @@
-import * as tf from '@tensorflow/tfjs'
+import * as tf from "@tensorflow/tfjs";
 
 import type { Model, TaskProvider } from "../index.js";
-import { models } from '../index.js'
-import baseModel from '../models/mobileNetV2_35_alpha_2_classes.js'
+import { models } from "../index.js";
+import baseModel from "../models/mobileNetV2_35_alpha_2_classes.js";
 
 export const simpleFace: TaskProvider<"image", "federated"> = {
   getTask() {
     return Promise.resolve({
-      id: 'simple_face',
+      id: "simple_face",
       dataType: "image",
       displayInformation: {
-        title: 'Simple Face',
+        title: "Simple Face",
         summary: {
-          preview: 'Can you detect if the person in a picture is a child or an adult?',
-          overview: 'Simple face is a small subset of the public face_task dataset from Kaggle'
+          preview:
+            "Can you detect if the person in a picture is a child or an adult?",
+          overview:
+            "Simple face is a small subset of the public face_task dataset from Kaggle",
         },
-        dataFormatInformation: '',
+        dataFormatInformation: "",
         dataExample:
           "https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/simple_face-example.png",
         sampleDataset: {
@@ -31,26 +33,26 @@ export const simpleFace: TaskProvider<"image", "federated"> = {
         batchSize: 10,
         IMAGE_H: 200,
         IMAGE_W: 200,
-        LABEL_LIST: ['child', 'adult'],
-        scheme: 'federated',
-        aggregationStrategy: 'mean',
+        LABEL_LIST: ["child", "adult"],
+        scheme: "federated",
+        aggregationStrategy: "mean",
         minNbOfParticipants: 2,
-        tensorBackend: 'tfjs'
-      }
+        tensorBackend: "tfjs",
+      },
     });
   },
 
-  async getModel (): Promise<Model<'image'>> {
+  async getModel(): Promise<Model<"image">> {
     const model = await tf.loadLayersModel({
       load: async () => Promise.resolve(baseModel),
     });
 
     model.compile({
       optimizer: tf.train.sgd(0.001),
-      loss: 'categoricalCrossentropy',
-      metrics: ['accuracy']
-    })
+      loss: "categoricalCrossentropy",
+      metrics: ["accuracy"],
+    });
 
-    return new models.TFJS('image', model)
-  }
-}
+    return new models.TFJS("image", model);
+  },
+};

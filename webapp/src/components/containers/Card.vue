@@ -1,17 +1,14 @@
 <template>
-  <div
-    class="p-1 rounded-md"
-    :class="customClass"
-  >
+  <div class="p-1 rounded-md" :class="customClass">
     <slot />
   </div>
 </template>
 
 <script lang="ts">
 export default {
-  name: 'CardItem',
+  name: "CardItem",
   props: {
-    customClass: { default: 'bg-white dark:bg-slate-950', type: String }
-  }
-}
+    customClass: { default: "bg-white dark:bg-slate-950", type: String },
+  },
+};
 </script>

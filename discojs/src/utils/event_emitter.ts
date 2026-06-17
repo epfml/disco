@@ -1,8 +1,8 @@
 // inspired by https://danilafe.com/blog/typescript_typesafe_events/
 
-import { List } from 'immutable'
+import { List } from "immutable";
 
-type Listener<T> = (_: T) => void | Promise<void>
+type Listener<T> = (_: T) => void | Promise<void>;
 
 /**
  * Call handlers on given events
@@ -13,33 +13,33 @@ export class EventEmitter<I extends Record<string, unknown>> {
   // List of callbacks to run per event
   #listeners: {
     [E in keyof I]?: List<[once: boolean, _: Listener<I[E]>]>;
-  } = {}
+  } = {};
 
   /**
    * @param initialListeners object/mapping of event name to listener, as if using `on` on created instance
    */
-  constructor (
+  constructor(
     initialListeners: {
       [E in keyof I]?: Listener<I[E]>;
-    } = {}
+    } = {},
   ) {
     for (const event in initialListeners) {
-      const listener = initialListeners[event]
+      const listener = initialListeners[event];
       if (listener !== undefined) {
-        this.on(event, listener)
+        this.on(event, listener);
       }
     }
   }
 
   /**
-   * Register listener to call on event. 
+   * Register listener to call on event.
    *
    * @param event event name to listen to
    * @param listener handler to call
    */
   on<E extends keyof I>(event: E, listener: Listener<I[E]>): void {
-    const eventListeners = this.#listeners[event] ?? List()
-    this.#listeners[event] = eventListeners.push([false, listener])
+    const eventListeners = this.#listeners[event] ?? List();
+    this.#listeners[event] = eventListeners.push([false, listener]);
   }
 
   /**
@@ -49,8 +49,8 @@ export class EventEmitter<I extends Record<string, unknown>> {
    * @param listener handler to call next time
    */
   once<E extends keyof I>(event: E, listener: Listener<I[E]>): void {
-    const eventListeners = this.#listeners[event] ?? List()
-    this.#listeners[event] = eventListeners.push([true, listener])
+    const eventListeners = this.#listeners[event] ?? List();
+    this.#listeners[event] = eventListeners.push([true, listener]);
   }
 
   /**
@@ -60,10 +60,12 @@ export class EventEmitter<I extends Record<string, unknown>> {
    * @param value what to call listeners with
    */
   emit<E extends keyof I>(event: E, value: I[E]): void {
-    const eventListeners = this.#listeners[event] ?? List()
-    this.#listeners[event] = eventListeners.filterNot(([once]) => once)
+    const eventListeners = this.#listeners[event] ?? List();
+    this.#listeners[event] = eventListeners.filterNot(([once]) => once);
 
-    eventListeners.forEach(async ([_, listener]) => { await listener(value) })
+    eventListeners.forEach(async ([_, listener]) => {
+      await listener(value);
+    });
   }
 }
 
