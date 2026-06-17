@@ -197,6 +197,19 @@ export abstract class Aggregator extends EventEmitter<{'aggregation': WeightsCon
   }
 
   /**
+   * Dispose the contributions to clean tensor memory
+   */
+  dispose(): void {
+    this.contributions.forEach((roundContributions) => {
+      roundContributions.forEach((contribution) => {
+        contribution.dispose()
+      })
+    })
+
+    this.contributions = Map()
+  }
+
+  /**
    * Overwrites the current set of active nodes with the given one. A node represents
    * an active neighbor peer/client within the network, whom we are communicating with
    * during this aggregation round.

@@ -151,9 +151,8 @@ export class FederatedController<D extends DataType> extends TrainingController<
 
       // Reset the training session when all participants left
       if (this.connections.size === 0) {
-        debug("All participants left. Resetting the training session")
-        this.#aggregator = new aggregators.MeanAggregator(undefined, 1, 'relative')
-        this.#latestGlobalWeights = this.initialWeights
+        debug("All participants left. Resetting federated training session")
+        this.reset()
       }
 
       // Check if we dropped below the minimum number of participant required
@@ -165,5 +164,19 @@ export class FederatedController<D extends DataType> extends TrainingController<
       // tell remaining participants to wait until more participants join
       this.sendWaitForMoreParticipantsMsg()
     })
+  }
+
+  reset(): void {
+    this.resetConnectionState()
+
+    this.#aggregator = new aggregators.MeanAggregator(undefined, 1, 'relative')
+    this.#latestGlobalWeights = this.initialWeights
+
+    // Since we replaced aggregator, we also need to register new aggregation listener
+    this.#aggregator.on("aggregation", async (weightUpdate) => {
+      this.#latestGlobalWeights = await serialization.weights.encode(weightUpdate)
+    })
+
+    this.#aggregator.dispose()
   }
 }

@@ -1,5 +1,6 @@
 # Peer Connection in Decentralized Learning
 This document describes how peer connections for decentralized learning are established.
+Relevant code can be found in [decentralized controller](../server/src/controllers/decentralized_controller.ts) and [decentralized client](../discojs/src/client/decentralized/decentralized_client.ts).
 
 Peer connections for decentralized learning are coordinated by the server. However, model weight updates are shared only between peers.
 

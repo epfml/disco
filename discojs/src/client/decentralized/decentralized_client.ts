@@ -47,7 +47,9 @@ export class DecentralizedClient extends Client<"decentralized"> {
 
   // Used by model provider peer during model syncing
   private async handleSignalNewPeer(event: NarrowMessage<type.SignalNewPeer>): Promise<void> {
-    if (this.#pool === undefined) throw new Error('received signal about new peer but peer pool is undefined')
+      if (this.#pool === undefined){
+        throw new Error('received signal about new peer but peer pool is undefined')
+      }
       const roundFinishedPromise = this.#roundFinishedPromise
       const syncConnection = await this.#pool.getPeers(Set([event.newNode]), this.server, ()=>{})
 

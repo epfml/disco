@@ -44,6 +44,16 @@ export abstract class TrainingController<
   abstract handle(
     ws: WebSocket
   ): void
+  
+  // Reset the controller state
+  abstract reset(): void
+  
+  // Reset the peer connection state
+  // Used when the training is finished
+  protected resetConnectionState(): void {
+    this.waitingForMoreParticipants = true
+    this.connections = Map<client.NodeID, WebSocket>()
+  }
 
   /**
    * If enough participants joined, notifies them that the training can start/resume

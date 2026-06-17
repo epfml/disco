@@ -156,6 +156,14 @@ export class DecentralizedController<
       this.connections = this.connections.delete(peerId)
       this.#roundPeers = this.#roundPeers.delete(peerId)
       this.#connectFinishedNodes = this.#connectFinishedNodes.delete(peerId)
+
+      // Reset the training session when all participants leave
+      if (this.connections.size === 0){
+        debug("All participants left. Resetting decentralized training session")
+        this.reset()
+        return
+      }
+
       debug("client [%s] left", shortId)
 
       // If this participant was a latest model provider node,
@@ -176,6 +184,24 @@ export class DecentralizedController<
       this.sendWaitForMoreParticipantsMsg()
     }) 
   }
+
+  reset(): void {
+    this.resetConnectionState()
+
+    this.#roundPeers = Map<client.NodeID, boolean>()
+    this.#connectFinishedNodes = Map<client.NodeID, boolean>()
+    this.#aggregationRound = 0
+    this.#connectionRetry = 0
+    this.#providerNode = undefined
+    this.#syncingNodes = Set<client.NodeID>()
+
+    // Reset the timeout
+    if (this.#timeout !== undefined){
+      clearTimeout(this.#timeout)
+      this.#timeout = undefined
+    }
+  }
+
   /**
    * Check if we have enough participants to start the training
    * and if all peers that joined the round are ready to exchange weight updates
