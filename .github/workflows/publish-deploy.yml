@@ -24,6 +24,7 @@ jobs:
             ~/.npm
             ~/.cache/Cypress
           key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npm install -g npm@latest
       - run: npm ci
       - run: npm --workspace=discojs{,-node,-web} version prerelease --preid=p`date +%Y%m%d%H%M%S`
         if: github.ref_type == 'branch'
