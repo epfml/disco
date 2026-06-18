@@ -1,0 +1,6 @@
+# Prettier also ignores everything from .gitignore
+package-lock.json
+
+# File formats that are not filtered by default
+*.png
+*.tokens

@@ -2,7 +2,9 @@
   "name": "disco",
   "type": "module",
   "scripts": {
-    "lint": "eslint"
+    "lint": "eslint",
+    "format:check": "prettier -c .",
+    "format:fix": "prettier -w ."
   },
   "workspaces": [
     "cli",
@@ -29,7 +31,8 @@
     "eslint": "10",
     "eslint-plugin-cypress": "6",
     "eslint-plugin-vue": "10",
-    "knip": "^6.17.1",
+    "knip": "6",
+    "prettier": "3",
     "typescript": "5",
     "typescript-eslint": "8"
   }
