@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { WeightsContainer } from "./index.js";
-import { frobeniusNorm, clipNorm, addOptimalNoise, getClippingRadius } from "./privacy.js";
+import {
+  frobeniusNorm,
+  clipNorm,
+  addOptimalNoise,
+  getClippingRadius,
+} from "./privacy.js";
 import { WeightNormHistory } from "./training/trainer.js";
 import * as tf from "@tensorflow/tfjs";
 import { List } from "immutable";
@@ -12,38 +17,37 @@ async function WSIntoArrays(ws: WeightsContainer): Promise<number[][]> {
   );
 }
 
-
 /** Test the frobenius norm computation */
 describe("frobeniusNorm", () => {
   it("computes Frobenius norm", async () => {
     const t = tf.tensor([3, 4]);
     const n = await frobeniusNorm(t);
     expect(n).toBeCloseTo(5, 1e-12);
-  })
+  });
 });
 
 describe("clipNorm", () => {
   it("clips a single-layer vector using single radius value", async () => {
     const result = await clipNorm(WeightsContainer.of([2]), [1]);
     expect(await WSIntoArrays(result)).toEqual([[1]]);
-  })
+  });
 
   it("check if it does not change vector when it is already within radius", async () => {
     // norm is smaller than the clipping radius 10
-    const result = await clipNorm(WeightsContainer.of([3, 4]), [10]); 
-    expect(await WSIntoArrays(result)).toEqual([[3, 4]])
-  })
+    const result = await clipNorm(WeightsContainer.of([3, 4]), [10]);
+    expect(await WSIntoArrays(result)).toEqual([[3, 4]]);
+  });
 
   it("applying different clipping radii per layer", async () => {
     const wc = WeightsContainer.of([3, 4], [0, 6]);
     const result = await clipNorm(wc, [5, 3]); // apply different clipping radii for each layer
-    
+
     expect(await WSIntoArrays(result)).toEqual([
-        [3, 4],
-        [0, 3],
+      [3, 4],
+      [0, 3],
     ]);
   });
-})
+});
 
 describe("addOptimalNoise", () => {
   it("check if the structure is maintained", async () => {
@@ -66,22 +70,26 @@ describe("addOptimalNoise", () => {
     expect(Number.isFinite(resultArrays[1][0])).toBe(true);
     expect(Number.isFinite(resultArrays[1][1])).toBe(true);
   });
-})
+});
 
 describe("getClippingRadius", () => {
   it("correct average clipping radius and default radius", () => {
     const weightNormHistory = List([
       List([2, 4, 6]), // expected average norm is 4
-      List([10])
+      List([10]),
     ]);
 
-    expect(getClippingRadius(weightNormHistory as WeightNormHistory, 5)).toEqual([4, 5]);
+    expect(
+      getClippingRadius(weightNormHistory as WeightNormHistory, 5),
+    ).toEqual([4, 5]);
   });
 
   it("uses smaller window size automatically if needed", () => {
     const weightNormHistory = List([List([2, 4])]);
 
     // Automatically use window size of 2 instead of 10
-    expect(getClippingRadius(weightNormHistory as WeightNormHistory, 10)).toEqual([3]);
+    expect(
+      getClippingRadius(weightNormHistory as WeightNormHistory, 10),
+    ).toEqual([3]);
   });
 });

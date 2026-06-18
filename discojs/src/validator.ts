@@ -1,10 +1,10 @@
 import type {
-	Dataset,
-	DataFormat,
-	DataType,
-	Model,
-	Task,
-	Network,
+  Dataset,
+  DataFormat,
+  DataType,
+  Model,
+  Task,
+  Network,
 } from "./index.js";
 import { processing } from "./index.js";
 
@@ -19,25 +19,25 @@ export class Validator<D extends DataType> {
   }
 
   /** infer every line of the dataset and check that it is as labelled */
-	test(
-		dataset: Dataset<DataFormat.Raw[D]>,
-	): Dataset<Record<"predicted" | "truth", DataFormat.Inferred[D]>> {
-		const preprocessed = processing.preprocess(this.task, dataset);
-		const batched = preprocessed.batch(this.task.trainingInformation.batchSize);
+  test(
+    dataset: Dataset<DataFormat.Raw[D]>,
+  ): Dataset<Record<"predicted" | "truth", DataFormat.Inferred[D]>> {
+    const preprocessed = processing.preprocess(this.task, dataset);
+    const batched = preprocessed.batch(this.task.trainingInformation.batchSize);
 
-		const predictionWithTruth = batched
-			.map(async (batch) =>
-				(await this.#model.predict(batch.map(([inputs, _]) => inputs))).zip(
-					batch.map(([_, outputs]) => outputs),
-				),
-			)
-			.flatten();
+    const predictionWithTruth = batched
+      .map(async (batch) =>
+        (await this.#model.predict(batch.map(([inputs, _]) => inputs))).zip(
+          batch.map(([_, outputs]) => outputs),
+        ),
+      )
+      .flatten();
 
-		return predictionWithTruth.map(([predicted, truth]) => ({
-			predicted: processing.postprocess(this.task, predicted),
-			truth: processing.postprocess(this.task, truth),
-		}));
-	}
+    return predictionWithTruth.map(([predicted, truth]) => ({
+      predicted: processing.postprocess(this.task, predicted),
+      truth: processing.postprocess(this.task, truth),
+    }));
+  }
 
   /** use the model to predict every line of the dataset */
   async *infer(
@@ -49,9 +49,9 @@ export class Validator<D extends DataType> {
       .map((batch) => this.#model.predict(batch))
       .flatten();
 
-		const predictions = modelPredictions.map((prediction) =>
-			processing.postprocess(this.task, prediction),
-		);
+    const predictions = modelPredictions.map((prediction) =>
+      processing.postprocess(this.task, prediction),
+    );
 
     for await (const e of predictions) yield e;
   }

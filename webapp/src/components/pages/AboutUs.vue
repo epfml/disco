@@ -16,7 +16,8 @@
             class="text-blue-500 hover:underline"
             href="https://www.epfl.ch/labs/mlo/"
             target="_blank"
-          >MLO</a>
+            >MLO</a
+          >
           (Machine Learning and Optimization Laboratory) hosted at
           <a
             href="https://www.epfl.ch/"
@@ -30,7 +31,8 @@
             class="text-blue-500 hover:underline"
             href="https://www.light-laboratory.org/"
             target="_blank"
-          >LiGHT</a>
+            >LiGHT</a
+          >
           (Laboratory for Intelligent Global Health & Humanitarian Response
           Technologies) hosted at
           <a
@@ -50,12 +52,13 @@
           class="text-blue-500 hover:underline"
           target="_blank"
           >Github</a
-        >. You can reach out to us by email at 
+        >. You can reach out to us by email at
         <a
           href="mailto:discolab@listes.epfl.ch"
           class="text-blue-500 hover:underline"
           target="_blank"
-          >discolab AT listes.epfl.ch</a>.<br/>
+          >discolab AT listes.epfl.ch</a
+        >.<br />
         Your support and feedback is greatly appreciated.
       </p>
 
@@ -68,7 +71,7 @@
             href="https://www.epfl.ch/labs/mlo/"
             target="_blank"
           >
-            <MLOLogo class="w-full h-20 lg:h-48"/>
+            <MLOLogo class="w-full h-20 lg:h-48" />
           </a>
         </div>
         <!-- LiGHT logo -->

@@ -1,33 +1,33 @@
 {
-	"name": "@epfml/discojs-node",
-	"version": "3.0.0",
-	"type": "module",
-	"exports": "./dist/index.js",
-	"types": "dist/index.d.ts",
-	"scripts": {
-		"watch": "nodemon --ext ts --ignore dist --watch ../discojs/dist --watch . --exec npm run",
-		"build": "tsc --build",
-		"test": "cd .. && vitest --run --project=discojs-node"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/epfml/disco.git"
-	},
-	"bugs": {
-		"url": "https://github.com/epfml/disco/issues"
-	},
-	"homepage": "https://github.com/epfml/disco#readme",
-	"dependencies": {
-		"@epfml/discojs": "*",
-		"@roamhq/wrtc": "0.10",
-		"@tensorflow/tfjs-node": "4",
-		"csv-parse": "6",
-		"sharp": "0.34"
-	},
-	"devDependencies": {
-		"@types/node": "22",
-		"nodemon": "3",
-		"tmp-promise": "3",
-		"ts-node": "10"
-	}
+  "name": "@epfml/discojs-node",
+  "version": "3.0.0",
+  "type": "module",
+  "exports": "./dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "watch": "nodemon --ext ts --ignore dist --watch ../discojs/dist --watch . --exec npm run",
+    "build": "tsc --build",
+    "test": "cd .. && vitest --run --project=discojs-node"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/epfml/disco.git"
+  },
+  "bugs": {
+    "url": "https://github.com/epfml/disco/issues"
+  },
+  "homepage": "https://github.com/epfml/disco#readme",
+  "dependencies": {
+    "@epfml/discojs": "*",
+    "@roamhq/wrtc": "0.10",
+    "@tensorflow/tfjs-node": "4",
+    "csv-parse": "6",
+    "sharp": "0.34"
+  },
+  "devDependencies": {
+    "@types/node": "22",
+    "nodemon": "3",
+    "tmp-promise": "3",
+    "ts-node": "10"
+  }
 }

@@ -19,7 +19,15 @@ jobs:
       - run: datasets/populate
 
   lint-most:
-    needs: [build-cli, build-lib, build-lib-node, build-lib-web, build-server, build-webapp]
+    needs:
+      [
+        build-cli,
+        build-lib,
+        build-lib-node,
+        build-lib-web,
+        build-server,
+        build-webapp,
+      ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -175,7 +183,14 @@ jobs:
         working-directory: docs/examples
 
   test-most:
-    needs: [build-lib, build-lib-node, build-lib-web, build-server, download-datasets]
+    needs:
+      [
+        build-lib,
+        build-lib-node,
+        build-lib-web,
+        build-server,
+        download-datasets,
+      ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

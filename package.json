@@ -1,36 +1,36 @@
 {
-	"name": "disco",
-	"type": "module",
-	"scripts": {
-		"lint": "eslint"
-	},
-	"workspaces": [
-		"cli",
-		"discojs",
-		"discojs-node",
-		"discojs-web",
-		"server",
-		"webapp",
-		"onnx-converter"
-	],
-	"dependencies": {
-		"@epfml/isomorphic-wrtc": "file:isomorphic-wrtc",
-		"debug": "4",
-		"immutable": "5",
-		"vitest": "4",
-		"zod": "4"
-	},
-	"devDependencies": {
-		"@types/debug": "4",
-		"@types/node": "22",
-		"@vitest/eslint-plugin": "1",
-		"@vue/eslint-config-prettier": "10",
-		"@vue/eslint-config-typescript": "14",
-		"eslint": "10",
-		"eslint-plugin-cypress": "6",
-		"eslint-plugin-vue": "10",
-		"knip": "^6.17.1",
-		"typescript": "5",
-		"typescript-eslint": "8"
-	}
+  "name": "disco",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint"
+  },
+  "workspaces": [
+    "cli",
+    "discojs",
+    "discojs-node",
+    "discojs-web",
+    "server",
+    "webapp",
+    "onnx-converter"
+  ],
+  "dependencies": {
+    "@epfml/isomorphic-wrtc": "file:isomorphic-wrtc",
+    "debug": "4",
+    "immutable": "5",
+    "vitest": "4",
+    "zod": "4"
+  },
+  "devDependencies": {
+    "@types/debug": "4",
+    "@types/node": "22",
+    "@vitest/eslint-plugin": "1",
+    "@vue/eslint-config-prettier": "10",
+    "@vue/eslint-config-typescript": "14",
+    "eslint": "10",
+    "eslint-plugin-cypress": "6",
+    "eslint-plugin-vue": "10",
+    "knip": "^6.17.1",
+    "typescript": "5",
+    "typescript-eslint": "8"
+  }
 }

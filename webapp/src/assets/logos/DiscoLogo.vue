@@ -16,9 +16,7 @@
     "
   >
     <g transform="matrix(1,0,0,1,0,-366)">
-      <g
-        transform="matrix(1,0,0,1,0,366)"
-      >
+      <g transform="matrix(1,0,0,1,0,366)">
         <rect x="0" y="0" width="680" height="300" style="fill: none" />
         <g id="Grid"></g>
         <g id="Fonts"></g>

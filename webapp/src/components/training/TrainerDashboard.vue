@@ -4,84 +4,99 @@
     <div class="w-full lg:w-1/2 lg:max-w-[640px] mx-auto tuto-train-dash">
       <IconCard title-placement="center">
         <template #title> Control the Training Flow </template>
-          <!-- If we are not currently training -->
+        <!-- If we are not currently training -->
+        <div v-if="!isTraining" class="flex flex-col gap-y-4 min-w-full">
+          <!-- Toggle buttons between training collaboratively and locally -->
+          <div class="flex justify-center">
+            <button
+              id="train-collab-bttn"
+              v-tippy="{
+                content: 'Exchange model updates with other participants',
+                placement: 'left',
+              }"
+              class="w-60 py-1 capitalize text-lg font-disco rounded-l-full border-2 border-disco-cyan focus:outline-hidden"
+              :class="
+                isTrainingAlone
+                  ? 'text-disco-cyan bg-transparent'
+                  : 'text-white bg-disco-cyan'
+              "
+              @click="isTrainingAlone = false"
+            >
+              collaboratively
+            </button>
+            <button
+              id="train-locally-bttn"
+              v-tippy="{
+                content: 'Train by yourself',
+                placement: 'right',
+              }"
+              class="w-60 py-1 capitalize text-lg font-disco rounded-r-full border-2 border-disco-cyan focus:outline-hidden"
+              :class="
+                isTrainingAlone
+                  ? 'text-white bg-disco-cyan'
+                  : 'text-disco-cyan bg-transparent'
+              "
+              @click="isTrainingAlone = true"
+            >
+              locally
+            </button>
+          </div>
+          <!-- Start training button -->
+          <div class="flex justify-center">
+            <button
+              id="start-training-bttn"
+              type="button"
+              class="mt-4 px-6 py-2 min-w-32 text-xl text-white font-disco bg-disco-orange rounded-full duration-200 hover:bg-transparent hover:outline-solid hover:outline-disco-orange hover:outline-2 hover:text-disco-orange"
+              @click="startTraining()"
+            >
+              Start training
+            </button>
+          </div>
+        </div>
+        <!-- If we are currently training -->
+        <div v-else class="flex flex-col justify-center items-center gap-y-4">
+          <!-- Display the training status if defined -->
           <div
-            v-if="!isTraining"
-            class="flex flex-col gap-y-4 min-w-full"
+            v-if="
+              roundStatus !== undefined &&
+              roundStatus.length > 0 &&
+              roundStatus[1] !== undefined
+            "
           >
-            <!-- Toggle buttons between training collaboratively and locally -->
-            <div class="flex justify-center">
-              <button
-                id="train-collab-bttn"
-                v-tippy="{
-                  content: 'Exchange model updates with other participants',
-                  placement: 'left'
-                }"
-                class="w-60 py-1 capitalize text-lg font-disco rounded-l-full border-2 border-disco-cyan focus:outline-hidden"
-                :class="isTrainingAlone ? 'text-disco-cyan bg-transparent' : 'text-white bg-disco-cyan'"
-                @click="isTrainingAlone = false"
-              >
-                collaboratively
-              </button>
-              <button
-                id="train-locally-bttn"
-                v-tippy="{
-                  content: 'Train by yourself',
-                  placement: 'right'
-                }"
-                class="w-60 py-1 capitalize text-lg font-disco rounded-r-full border-2 border-disco-cyan focus:outline-hidden"
-                :class="isTrainingAlone ? 'text-white bg-disco-cyan': 'text-disco-cyan bg-transparent'"
-                @click="isTrainingAlone = true"
-              >
-                locally
-              </button>
+            <span
+              class="text-xs font-medium leading-none tracking-wider text-gray-500 uppercase"
+              >Status</span
+            >
+            <span
+              class="ml-5 font-mono text-md font-medium leading-none tracking-wider text-gray-600"
+              >{{ roundStatus[1] }}</span
+            >
+          </div>
+          <!-- Display an activity indicator depending on the training status -->
+          <div class="min-h-9">
+            <div
+              v-if="
+                roundStatus !== undefined &&
+                (roundStatus[0] === 'connecting to peers' ||
+                  roundStatus[0] === 'not enough participants')
+              "
+            >
+              <VueSpinnerPuff size="30" color="#6096BA" />
             </div>
-            <!-- Start training button -->
-            <div class="flex justify-center">
-              <button
-                id="start-training-bttn"
-                type="button"
-                class="
-                mt-4 px-6 py-2 min-w-32
-                text-xl text-white font-disco
-                bg-disco-orange rounded-full duration-200
-                hover:bg-transparent hover:outline-solid hover:outline-disco-orange hover:outline-2 hover:text-disco-orange"
-                @click="startTraining()"
-              >
-                Start training
-              </button>
+            <div v-else>
+              <VueSpinnerGears size="30" color="#6096BA" />
             </div>
           </div>
-          <!-- If we are currently training -->
-          <div v-else class="flex flex-col justify-center items-center gap-y-4">
-            <!-- Display the training status if defined -->
-            <div v-if="roundStatus !== undefined && roundStatus.length > 0  && roundStatus[1] !== undefined">
-              <span class="text-xs font-medium leading-none tracking-wider text-gray-500 uppercase">Status</span>
-              <span class="ml-5 font-mono text-md font-medium leading-none tracking-wider text-gray-600">{{ roundStatus[1] }}</span>
-            </div>
-            <!-- Display an activity indicator depending on the training status -->
-            <div class="min-h-9">
-              <div
-                v-if="roundStatus !== undefined && (roundStatus[0] === 'connecting to peers' ||
-                roundStatus[0] === 'not enough participants')"
-              >
-                <VueSpinnerPuff size="30" color="#6096BA"/>
-              </div>
-              <div v-else>
-                <VueSpinnerGears size="30" color="#6096BA"/>
-              </div>
-            </div>
-            <!-- Stop training button -->
-            <div>
-              <CustomButton @click="stopTraining()"> stop training </CustomButton>
-            </div>
+          <!-- Stop training button -->
+          <div>
+            <CustomButton @click="stopTraining()"> stop training </CustomButton>
           </div>
+        </div>
       </IconCard>
     </div>
     <!-- Demo warning -->
     <div
-      class="flex flex-row justify-between gap-x-4 items-center mb-5 py-4 px-4 
-      bg-purple-100 dark:text-body-light rounded-md"
+      class="flex flex-row justify-between gap-x-4 items-center mb-5 py-4 px-4 bg-purple-100 dark:text-body-light rounded-md"
     >
       <InfoIcon custom-class="min-w-6 min-h-6 w-6 h-6" />
       <p class="text-sm pt-0.5">
@@ -93,9 +108,10 @@
           class="underline text-blue-400 font-bold"
           target="_blank"
           href="https://github.com/epfml/disco/blob/develop/DEV.md"
-          >these steps</a>.
-          <!-- Warning about the maximum nb of iteration per epoch for LLMs -->
-          <span v-if="task.dataType === 'text'" class="text-sm">
+          >these steps</a
+        >.
+        <!-- Warning about the maximum nb of iteration per epoch for LLMs -->
+        <span v-if="task.dataType === 'text'" class="text-sm">
           <!-- Leading space is important -->
           Additionally, when training language models we have limited the number
           of batches per epoch to 10.
@@ -142,8 +158,8 @@ import TrainingInformation from "@/components/training/TrainingInformation.vue";
 import CustomButton from "@/components/simple/CustomButton.vue";
 import IconCard from "@/components/containers/IconCard.vue";
 import InfoIcon from "@/assets/svg/InfoIcon.vue";
-import { CONFIG } from '../../config'
-import { VueSpinnerPuff, VueSpinnerGears } from 'vue3-spinners';
+import { CONFIG } from "../../config";
+import { VueSpinnerPuff, VueSpinnerGears } from "vue3-spinners";
 
 const debug = createDebug("webapp:training:Trainer");
 const toaster = useToaster();
@@ -204,23 +220,29 @@ async function startTraining(): Promise<void> {
 
   toaster.info("Model training started");
 
-  console.log("server URL:", CONFIG.serverUrl.toString())
+  console.log("server URL:", CONFIG.serverUrl.toString());
   const disco = new Disco(props.task, CONFIG.serverUrl, {
-    scheme: isTrainingAlone.value ? "local": props.task.trainingInformation.scheme,
+    scheme: isTrainingAlone.value
+      ? "local"
+      : props.task.trainingInformation.scheme,
   });
   // set the round status displayed to the status emitted by the disco object
   const discoStatusMessage = Map<RoundStatus, string>({
-    'not enough participants': "Waiting for more participants",
-    'connecting to peers': "Establishing peer-to-peer connections",
-    'updating model': "Updating the model with other participants' models",
-    'local training': "Training the model on the data you connected"
-  })
-  disco.on("status", status => { roundStatus.value = [status, discoStatusMessage.get(status)] })
-  disco.on("participants", participants => { nbParticipants.value = participants})
+    "not enough participants": "Waiting for more participants",
+    "connecting to peers": "Establishing peer-to-peer connections",
+    "updating model": "Updating the model with other participants' models",
+    "local training": "Training the model on the data you connected",
+  });
+  disco.on("status", (status) => {
+    roundStatus.value = [status, discoStatusMessage.get(status)];
+  });
+  disco.on("participants", (participants) => {
+    nbParticipants.value = participants;
+  });
 
   // Store the cleanup function such that it can be ran if users
   // manually interrupt the training
-  cleanupDisco.value = async () => await disco.close()
+  cleanupDisco.value = async () => await disco.close();
 
   try {
     trainingGenerator.value = disco.train(dataset);
@@ -268,7 +290,7 @@ async function startTraining(): Promise<void> {
     debug("while training: %o", e);
   } finally {
     emit("model", disco.trainer.model);
-    await cleanupTrainingSession()
+    await cleanupTrainingSession();
   }
 
   toaster.success("Training successfully completed");
@@ -277,14 +299,14 @@ async function startTraining(): Promise<void> {
 async function cleanupTrainingSession() {
   trainingGenerator.value = undefined;
   // check if a cleanup callback has been initialized
-  if (cleanupDisco.value === undefined) return
+  if (cleanupDisco.value === undefined) return;
   // create a local copy and set cleanupTrainingSessionFn to undefined
   // to make sure we only call the cleanup function once
-  const cleanup = cleanupDisco.value
-  cleanupDisco.value = undefined
+  const cleanup = cleanupDisco.value;
+  cleanupDisco.value = undefined;
   // Calling the cleanup function returns a promise
   // awaiting the promise notifies the network that we are disconnecting
-  await cleanup()
+  await cleanup();
 }
 
 async function stopTraining(): Promise<void> {
@@ -299,6 +321,6 @@ async function stopTraining(): Promise<void> {
 
   // Cleanup the session, potentially already done if the
   // stopper error was caught
-  await cleanupTrainingSession()
+  await cleanupTrainingSession();
 }
 </script>

@@ -76,7 +76,7 @@ jobs:
           working-directory: webapp
           install: false
           start: npm start
-          wait-on: 'http://localhost:8081' # Waits for above
+          wait-on: "http://localhost:8081" # Waits for above
           # Records to Cypress Cloud
           # https://docs.cypress.io/guides/cloud/projects#Set-up-a-project-to-record
           record: true
