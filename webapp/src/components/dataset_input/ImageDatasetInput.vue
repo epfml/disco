@@ -15,7 +15,7 @@ import { loadImage } from "@epfml/discojs-web";
 import DatasetInput from "./DatasetInput.vue";
 import FileSelection from "./FileSelection.vue";
 
-export type NamedImageDataset = Dataset<{
+type NamedImageDataset = Dataset<{
   image: Image;
   filename: string;
 }>;

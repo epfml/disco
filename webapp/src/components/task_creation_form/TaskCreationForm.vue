@@ -606,7 +606,7 @@
 
 <script lang="ts" setup>
 import createDebug from "debug";
-import * as immutable from "immutable";
+import { isSet as isImmutableSet } from "immutable";
 import { storeToRefs } from "pinia";
 import { FieldArray, Form } from "vee-validate";
 import { ref, useTemplateRef, watch } from "vue";
@@ -818,7 +818,7 @@ const TFJSModelSchema = {
       switch (true) {
         case fileOrSet instanceof File:
           return fileOrSet;
-        case immutable.isSet(fileOrSet): {
+        case isImmutableSet(fileOrSet): {
           const file = fileOrSet.first();
 
           if (file === undefined || fileOrSet.size !== 1)
