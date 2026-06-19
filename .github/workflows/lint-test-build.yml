@@ -176,7 +176,7 @@ jobs:
             ~/.cache/Cypress
           key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm ci
-      - run: npm --workspace={discojs,discojs-node,server} run build
+      - run: npm --workspace=server run build
       - run: npm run build
         working-directory: docs/examples
 
@@ -207,21 +207,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/cache@v5
-        with:
-          path: datasets
-          key: datasets-${{ hashFiles('datasets/**') }}
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-      - run: npm --workspace={discojs,discojs-web} run build
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/cache-datasets
+      - run: npm --workspace=webapp run build
       - run: npm --workspace=webapp run test:unit
       - uses: cypress-io/github-action@v7
         with:
@@ -248,7 +236,7 @@ jobs:
             ~/.cache/Cypress
           key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm ci
-      - run: npm --workspace={discojs,discojs-node,server} run build
+      - run: npm --workspace=server run build
       - run: npm --workspace=cli start -- -t cifar10 -u 3 -e 1 -r 1
 
   test-docs-examples:
@@ -270,6 +258,6 @@ jobs:
             ~/.cache/Cypress
           key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm ci
-      - run: npm --workspace={discojs,discojs-node,server} run build
+      - run: npm --workspace=server run build
       - run: npm run test
         working-directory: docs/examples
