@@ -73,3 +73,20 @@ And more on the roadmap
   - Upload the initial model
   - Choose between federated and decentralized for your DISCO training scheme ... connect your data and... done! :bar_chart:
   - For more details on ML tasks and custom training have a look at [this guide](./docs/TASK.md)
+
+---
+
+📚 **CITATION**
+
+If you find DISCO useful, please cite out [paper](https://openreview.net/pdf?id=JkzgEsBIQ3) the following way:
+
+```
+@inproceedings{
+  vignoud2025disco,
+  title={{DISCO}: A Browser-Based Privacy-Preserving Framework for Distributed Collaborative Learning},
+  author={Julien Tuấn T{\'u} Vignoud and Martin Jaggi and Mary-Anne Hartley and Tahseen Rabbani and Val{\'e}rian Rousset},
+  booktitle={Championing Open-source DEvelopment in ML Workshop @ ICML25},
+  year={2025},
+  url={https://openreview.net/forum?id=JkzgEsBIQ3}
+}
+```
