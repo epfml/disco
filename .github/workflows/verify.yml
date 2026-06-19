@@ -12,14 +12,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/actions/cache-datasets
-      - run: datasets/populate
+      - uses: ./.github/actions/download-datasets
 
   static-analysis:
     uses: ./.github/workflows/_static-analysis.yml
 
   build:
-    needs: [static-analysis]
+    needs: [download-datasets, static-analysis]
     uses: ./.github/workflows/_build.yml
 
   test:

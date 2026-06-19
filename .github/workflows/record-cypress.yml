@@ -10,8 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/actions/cache-datasets
-      - run: datasets/populate
+      - uses: ./.github/actions/download-datasets
 
   record-test-webapp:
     needs: download-datasets
@@ -19,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/cache-datasets
+      - uses: ./.github/actions/download-dataset-artifacts
       - run: npm --workspace=webapp run build
       - run: npm --workspace=webapp run test:unit
       - uses: cypress-io/github-action@v7
