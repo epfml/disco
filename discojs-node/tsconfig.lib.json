@@ -1,5 +1,10 @@
 {
   "extends": "../tsconfig.base.json",
+  "references": [
+    {
+      "path": "../discojs"
+    }
+  ],
   "compilerOptions": { "outDir": "dist" },
   "include": ["src"],
   "exclude": ["**/*.spec.ts"]

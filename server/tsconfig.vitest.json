@@ -1,5 +1,13 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": { "noEmit": true },
+  "references": [
+    {
+      "path": "../discojs"
+    },
+    {
+      "path": "../discojs-node"
+    }
+  ],
   "include": ["src", "tests"]
 }
