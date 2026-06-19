@@ -3,14 +3,41 @@ on:
   workflow_call:
 
 jobs:
-  test-most:
+  test-discojs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/cache-datasets
-      - run: npm --workspace={discojs,discojs-{node,web},server} run build
-      - run: npx vitest --run
+      - run: npm --workspace=discojs run build
+      - run: npx vitest --run --project=discojs
+
+  test-discojs-node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/cache-datasets
+      - run: npm --workspace=discojs-node run build
+      - run: npx vitest --run --project=discojs-node
+
+  test-discojs-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/cache-datasets
+      - run: npm --workspace=discojs-web run build
+      - run: npx vitest --run --project=discojs-web
+
+  test-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/cache-datasets
+      - run: npm --workspace=server run build
+      - run: npx vitest --run --project=server
 
   test-webapp:
     runs-on: ubuntu-latest
@@ -20,6 +47,14 @@ jobs:
       - uses: ./.github/actions/cache-datasets
       - run: npm --workspace=webapp run build
       - run: npm --workspace=webapp run test:unit
+
+  test-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/cache-datasets
+      - run: npm --workspace=webapp run build
       - uses: cypress-io/github-action@v7
         with:
           working-directory: webapp
