@@ -1,7 +1,7 @@
 <div align="center">
   <h1>DISCO <code>developer guide</code></h1>
   <p>
-    <a href="https://github.com/epfml/disco/actions/workflows/lint-test-build.yml"><img src="https://github.com/epfml/disco/actions/workflows/lint-test-build.yml/badge.svg" alt="build status" /></a>
+    <a href="https://github.com/epfml/disco/actions/workflows/verify.yml"><img src="https://github.com/epfml/disco/actions/workflows/lint-test-build.yml/badge.svg" alt="build status" /></a>
     <a href="https://github.com/epfml/disco/actions/workflows/deploy-server.yml"><img src="https://github.com/epfml/disco/actions/workflows/publish-deploy.yml/badge.svg" alt="build status" /></a>
   </p>
   </br>

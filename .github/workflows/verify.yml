@@ -1,0 +1,27 @@
+name: verify
+on:
+  push:
+    branches: [develop]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  download-datasets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/cache-datasets
+      - run: datasets/populate
+
+  static-analysis:
+    uses: ./.github/workflows/_static-analysis.yml
+
+  build:
+    needs: [static-analysis]
+    uses: ./.github/workflows/_build.yml
+
+  test:
+    needs: [build]
+    uses: ./.github/workflows/_test.yml

@@ -1,0 +1,46 @@
+name: test
+on:
+  workflow_call:
+
+jobs:
+  test-most:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/cache-datasets
+      - run: npm --workspace={discojs,discojs-{node,web},server} run build
+      - run: npx vitest --run
+
+  test-webapp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/cache-datasets
+      - run: npm --workspace=webapp run build
+      - run: npm --workspace=webapp run test:unit
+      - uses: cypress-io/github-action@v7
+        with:
+          working-directory: webapp
+          install: false
+          start: npx vite --mode test --port 1351
+
+  test-cli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/cache-datasets
+      - run: npm --workspace=server run build
+      - run: npm --workspace=cli start -- -t cifar10 -u 3 -e 1 -r 1
+
+  test-docs-examples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/cache-datasets
+      - run: npm --workspace=server run build
+      - run: npm run test
+        working-directory: docs/examples
