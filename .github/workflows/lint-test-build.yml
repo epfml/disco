@@ -12,26 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/cache@v5
-        with:
-          path: datasets
-          key: datasets-${{ hashFiles('datasets/**') }}
+      - uses: ./.github/actions/cache-datasets
       - run: datasets/populate
 
   format-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
+      - uses: ./.github/actions/setup-node
       - run: npm run format:check
 
   lint-all:
@@ -39,23 +27,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
-      - run: npm --workspace={cli,webapp} run build
       - run: npm run lint
 
   build-lib:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
+      - uses: ./.github/actions/setup-node
       - run: npm --workspace=discojs run build
 
   build-lib-node:
@@ -63,16 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
+      - uses: ./.github/actions/setup-node
       - run: npm --workspace=discojs-node run build
 
   build-lib-web:
@@ -80,16 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
+      - uses: ./.github/actions/setup-node
       - run: npm run --workspace=discojs-web build
 
   build-server:
@@ -97,16 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
+      - uses: ./.github/actions/setup-node
       - run: npm run --workspace=server build
 
   build-server-docker:
@@ -132,16 +83,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
+      - uses: ./.github/actions/setup-node
       - run: npm run --workspace=cli build
 
   build-webapp:
@@ -149,16 +91,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
+      - uses: ./.github/actions/setup-node
       - run: npm --workspace=webapp run build
 
   build-docs-examples:
@@ -166,16 +99,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
+      - uses: ./.github/actions/setup-node
       - run: npm --workspace=server run build
       - run: npm run build
         working-directory: docs/examples
@@ -185,20 +109,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/cache@v5
-        with:
-          path: datasets
-          key: datasets-${{ hashFiles('datasets/**') }}
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/cache-datasets
       - run: npm --workspace={discojs,discojs-{node,web},server} run build
       - run: npx vitest --run
 
@@ -222,20 +134,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/cache@v5
-        with:
-          path: datasets
-          key: datasets-${{ hashFiles('datasets/**') }}
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/cache-datasets
       - run: npm --workspace=server run build
       - run: npm --workspace=cli start -- -t cifar10 -u 3 -e 1 -r 1
 
@@ -244,20 +144,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/cache@v5
-        with:
-          path: datasets
-          key: datasets-${{ hashFiles('datasets/**') }}
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/cache-datasets
       - run: npm --workspace=server run build
       - run: npm run test
         working-directory: docs/examples
