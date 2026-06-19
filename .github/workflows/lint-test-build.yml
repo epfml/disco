@@ -35,13 +35,6 @@ jobs:
       - run: npm run format:check
 
   lint-most:
-    needs:
-      - build-cli
-      - build-lib
-      - build-lib-node
-      - build-lib-web
-      - build-server
-      - build-webapp
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -109,7 +102,7 @@ jobs:
       - run: npm run --workspace=discojs-web build
 
   build-server:
-    needs: [build-lib, build-lib-node]
+    needs: build-lib-node
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -144,7 +137,7 @@ jobs:
           done
 
   build-cli:
-    needs: [build-lib, build-lib-node, build-server]
+    needs: build-server
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -161,7 +154,7 @@ jobs:
       - run: npm run --workspace=cli build
 
   build-webapp:
-    needs: [build-lib, build-lib-web]
+    needs: build-lib-web
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -178,7 +171,7 @@ jobs:
       - run: npm --workspace=webapp run build
 
   build-docs-examples:
-    needs: [build-lib, build-lib-node, build-server]
+    needs: build-server
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -197,12 +190,7 @@ jobs:
         working-directory: docs/examples
 
   test-most:
-    needs:
-      - build-lib
-      - build-lib-node
-      - build-lib-web
-      - build-server
-      - download-datasets
+    needs: [build-server, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -224,7 +212,7 @@ jobs:
       - run: npx vitest --run
 
   test-webapp:
-    needs: [build-lib, build-lib-web, download-datasets]
+    needs: [build-webapp, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -251,7 +239,7 @@ jobs:
           start: npx vite --mode test --port 1351
 
   test-cli:
-    needs: [build-lib, build-lib-node, build-server, download-datasets]
+    needs: [build-server, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -273,7 +261,7 @@ jobs:
       - run: npm --workspace=cli start -- -t cifar10 -u 3 -e 1 -r 1
 
   test-docs-examples:
-    needs: [build-lib, build-lib-node, build-server, download-datasets]
+    needs: [build-server, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
