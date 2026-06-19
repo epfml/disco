@@ -30,6 +30,7 @@ jobs:
       - run: npm run lint
 
   build-lib:
+    needs: [format-check, lint-all]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
