@@ -79,6 +79,7 @@ And more on the roadmap
 📚 **CITATION**
 
 If you find DISCO useful, please cite out [paper](https://openreview.net/pdf?id=JkzgEsBIQ3) the following way:
+
 ```
 @inproceedings{
   vignoud2025disco,
