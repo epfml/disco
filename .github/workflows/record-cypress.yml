@@ -13,30 +13,14 @@ jobs:
       - uses: ./.github/actions/cache-datasets
       - run: datasets/populate
 
-  build-lib:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-node
-      - run: npm --workspace=discojs run build
-
-  build-lib-web:
-    needs: build-lib
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-node
-      - run: npm run --workspace=discojs build
-      - run: npm run --workspace=discojs-web build
-
   record-test-webapp:
-    needs: [build-lib, build-lib-web, download-datasets]
+    needs: download-datasets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/cache-datasets
-      - run: npm --workspace={discojs,discojs-web} run build
+      - run: npm --workspace=webapp run build
       - run: npm --workspace=webapp run test:unit
       - uses: cypress-io/github-action@v7
         with:

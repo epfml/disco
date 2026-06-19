@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
-      - run: npm --workspace={discojs,discojs-web,webapp} run build
+      - run: npm --workspace=webapp run build
       - uses: actions/upload-pages-artifact@v5
         with:
           path: webapp/dist
