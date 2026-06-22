@@ -18,12 +18,11 @@ jobs:
           registry-url: "https://registry.npmjs.org"
           package-manager-cache: false # never use caching in release builds
           scope: "@epfml"
-      - run: npm install -g npm@latest
-      - run: npm ci
-      - run: npm --workspace=discojs{,-node,-web} version prerelease --preid=p`date +%Y%m%d%H%M%S`
+      - run: pnpm ci
+      - run: pnpm -F 'discojs*' version prerelease --preid=p`date +%Y%m%d%H%M%S`
         if: github.ref_type == 'branch'
-      - run: npm --workspace=discojs{,-node,-web} run build
-      - run: npm --workspace=discojs{,-node,-web} publish --access public --tag latest
+      - run: pnpm -F 'discojs*' run build
+      - run: pnpm -F 'discojs*' publish --access public --tag latest
 
   build-webapp:
     if: github.ref_type == 'branch'
@@ -33,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node
-      - run: npm --workspace=webapp run build
+      - run: pnpm -F webapp run build
       - uses: actions/upload-pages-artifact@v5
         with:
           path: webapp/dist

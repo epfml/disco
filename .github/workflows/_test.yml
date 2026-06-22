@@ -11,7 +11,7 @@ jobs:
       - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
         with: { name: all-builds }
-      - run: npx vitest --run --project=discojs
+      - run: pnpm exec vitest --run --project=discojs
 
   test-discojs-node:
     runs-on: ubuntu-latest
@@ -21,7 +21,7 @@ jobs:
       - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
         with: { name: all-builds }
-      - run: npx vitest --run --project=discojs-node
+      - run: pnpm exec vitest --run --project=discojs-node
 
   test-discojs-web:
     runs-on: ubuntu-latest
@@ -31,7 +31,7 @@ jobs:
       - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
         with: { name: all-builds }
-      - run: npx vitest --run --project=discojs-web
+      - run: pnpm exec vitest --run --project=discojs-web
 
   test-server:
     runs-on: ubuntu-latest
@@ -41,7 +41,7 @@ jobs:
       - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
         with: { name: all-builds }
-      - run: npx vitest --run --project=server
+      - run: pnpm exec vitest --run --project=server
 
   test-webapp:
     runs-on: ubuntu-latest
@@ -51,7 +51,7 @@ jobs:
       - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
         with: { name: all-builds }
-      - run: npm --workspace=webapp run test:unit
+      - run: pnpm -F webapp run test:unit
 
   test-e2e:
     runs-on: ubuntu-latest
@@ -65,7 +65,7 @@ jobs:
         with:
           working-directory: webapp
           install: false
-          start: npx vite --mode test --port 1351
+          start: pnpm exec vite --mode test --port 1351
 
   test-cli:
     runs-on: ubuntu-latest
@@ -75,7 +75,7 @@ jobs:
       - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
         with: { name: all-builds }
-      - run: npm --workspace=cli start -- -t cifar10 -u 3 -e 1 -r 1
+      - run: pnpm -F cli start -- -t cifar10 -u 3 -e 1 -r 1
 
   test-docs-examples:
     runs-on: ubuntu-latest
@@ -85,5 +85,5 @@ jobs:
       - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
         with: { name: all-builds }
-      - run: npm run test
+      - run: pnpm run test
         working-directory: docs/examples
