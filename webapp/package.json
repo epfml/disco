@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@pinia/testing": "1",
-    "@tailwindcss/vite": "4",
+    "@tailwindcss/vite": "^4.3.1",
     "@tsconfig/node20": "20",
     "@types/d3": "7",
     "@types/jsdom": "28",
