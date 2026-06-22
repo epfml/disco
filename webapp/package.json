@@ -14,7 +14,7 @@
     "@epfml/discojs-web": "*",
     "@tensorflow/tfjs": "4",
     "chart.js": "4",
-    "cypress": "15",
+    "cypress": "^15.17.0",
     "d3": "7",
     "driver.js": "1",
     "pinia": "3",
