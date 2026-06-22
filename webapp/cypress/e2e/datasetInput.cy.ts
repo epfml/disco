@@ -30,11 +30,7 @@ describe("image dataset input by group", () => {
 
   it("allows to input images", () => {
     setupServerWith(
-      basicTask("image", {
-        LABEL_LIST: ["label"],
-        IMAGE_H: 100,
-        IMAGE_W: 100,
-      }),
+      basicTask("image", { LABEL_LIST: ["label"], IMAGE_H: 100, IMAGE_W: 100 }),
     );
 
     goToDatasetInputStep();
@@ -52,11 +48,7 @@ describe("image dataset input by group", () => {
 describe("image dataset input by csv", () => {
   it("allows to input CSV then images", () => {
     setupServerWith(
-      basicTask("image", {
-        LABEL_LIST: ["label"],
-        IMAGE_H: 100,
-        IMAGE_W: 100,
-      }),
+      basicTask("image", { LABEL_LIST: ["label"], IMAGE_H: 100, IMAGE_W: 100 }),
     );
 
     goToDatasetInputStep();
@@ -84,10 +76,7 @@ describe("image dataset input by csv", () => {
 describe("tabular dataset input", () => {
   it("allows to input CSV", () => {
     setupServerWith(
-      basicTask("tabular", {
-        inputColumns: ["a", "b"],
-        outputColumn: "c",
-      }),
+      basicTask("tabular", { inputColumns: ["a", "b"], outputColumn: "c" }),
     );
 
     goToDatasetInputStep();

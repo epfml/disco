@@ -330,11 +330,7 @@ describe("end-to-end federated", () => {
         minNbOfParticipants: 3,
         aggregationStrategy: "mean",
         privacy: {
-          differentialPrivacy: {
-            epsilon: 50,
-            delta: 1e-5,
-            clippingRadius: 10,
-          },
+          differentialPrivacy: { epsilon: 50, delta: 1e-5, clippingRadius: 10 },
         },
       };
       const url = await startServer({

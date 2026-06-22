@@ -1,14 +1,7 @@
 {
   "extends": "./tsconfig.app.json",
   "exclude": [],
-  "references": [
-    {
-      "path": "../discojs"
-    },
-    {
-      "path": "../discojs-web"
-    }
-  ],
+  "references": [{ "path": "../discojs" }, { "path": "../discojs-web" }],
   "compilerOptions": {
     "composite": true,
     "tsBuildInfoFile": "tsconfig.vitest.tsbuildinfo",

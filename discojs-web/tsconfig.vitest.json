@@ -1,13 +1,6 @@
 {
   "extends": "../tsconfig.base.json",
-  "references": [
-    {
-      "path": "../discojs"
-    }
-  ],
-  "compilerOptions": {
-    "lib": ["DOM"],
-    "noEmit": true
-  },
+  "references": [{ "path": "../discojs" }],
+  "compilerOptions": { "lib": ["DOM"], "noEmit": true },
   "include": ["src"]
 }

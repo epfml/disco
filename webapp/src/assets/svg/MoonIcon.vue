@@ -18,10 +18,7 @@
 <script lang="ts">
 export default {
   props: {
-    customClass: {
-      default: "bi bi-info-circle w-7 h-7",
-      type: String,
-    },
+    customClass: { default: "bi bi-info-circle w-7 h-7", type: String },
     viewBox: { default: "0 0 24 24", type: String },
   },
 };

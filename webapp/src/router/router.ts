@@ -24,58 +24,30 @@ const router = createRouter({
     return { top: 0 };
   },
   routes: [
-    {
-      path: "/",
-      name: "HomePage",
-      component: HomePage,
-    },
+    { path: "/", name: "HomePage", component: HomePage },
     {
       path: "/create",
       name: "task-creation-form",
       component: TaskCreationForm,
     },
-    {
-      path: "/about",
-      name: "about",
-      component: AboutUs,
-    },
+    { path: "/about", name: "about", component: AboutUs },
     {
       path: "/list",
       name: "task-list",
-      components: {
-        default: TaskList,
-        ProgressBar: TrainingBar,
-      },
+      components: { default: TaskList, ProgressBar: TrainingBar },
     },
     {
       path: "/evaluate",
       name: "evaluate",
-      components: {
-        default: ModelLibrary,
-        ProgressBar: TestingBar,
-      },
+      components: { default: ModelLibrary, ProgressBar: TestingBar },
     },
     {
       path: "/:id",
-      components: {
-        default: Training,
-        ProgressBar: TrainingBar,
-      },
-      props: {
-        default: true,
-        ProgressBar: false,
-      },
+      components: { default: Training, ProgressBar: TrainingBar },
+      props: { default: true, ProgressBar: false },
     },
-    {
-      path: "/:pathMatch(.*)*",
-      name: "not-found",
-      component: NotFound,
-    },
-    {
-      path: "/not-found",
-      name: "not-found",
-      component: NotFound,
-    },
+    { path: "/:pathMatch(.*)*", name: "not-found", component: NotFound },
+    { path: "/not-found", name: "not-found", component: NotFound },
   ],
 });
 

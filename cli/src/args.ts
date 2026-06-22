@@ -224,11 +224,7 @@ export const args: BenchmarkArguments = {
 
         task.trainingInformation.privacy = {
           ...task.trainingInformation.privacy,
-          byzantineFaultTolerance: {
-            clippingRadius,
-            maxIterations,
-            beta,
-          },
+          byzantineFaultTolerance: { clippingRadius, maxIterations, beta },
         };
       }
 

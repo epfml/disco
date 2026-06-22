@@ -22,9 +22,7 @@ import * as validate from "./validate.js";
 
 const toaster = useToaster();
 
-const props = defineProps<{
-  task: Task<D, Network>;
-}>();
+const props = defineProps<{ task: Task<D, Network> }>();
 
 const type = computed<D>(() => props.task.dataType as D);
 

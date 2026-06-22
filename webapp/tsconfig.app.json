@@ -2,21 +2,12 @@
   "extends": "@vue/tsconfig/tsconfig.dom.json",
   "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
   "exclude": ["src/**/__tests__/*"],
-  "references": [
-    {
-      "path": "../discojs"
-    },
-    {
-      "path": "../discojs-web"
-    }
-  ],
+  "references": [{ "path": "../discojs" }, { "path": "../discojs-web" }],
   "compilerOptions": {
     "composite": true,
     "tsBuildInfoFile": "tsconfig.app.tsbuildinfo",
 
     "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    "paths": { "@/*": ["./src/*"] }
   }
 }

@@ -172,10 +172,7 @@ const debug = createDebug("webapp:testing:TestSteps");
 const toaster = useToaster();
 const validationStore = useValidationStore();
 
-const props = defineProps<{
-  task: Task<D, Network>;
-  model: Model<D>;
-}>();
+const props = defineProps<{ task: Task<D, Network>; model: Model<D> }>();
 
 interface Tested {
   image: List<{
@@ -366,12 +363,7 @@ async function startImageTest(
             image.height,
           ),
         },
-        output: {
-          label,
-          correct: predicted === truth,
-          predicted,
-          truth,
-        },
+        output: { label, correct: predicted === truth, predicted, truth },
       });
 
       tested.value = results as Tested[D];
@@ -393,10 +385,7 @@ async function startTabularTest(
     throw new Error("no input and output columns but CSV needs it");
   const labels = {
     input: List(inputColumns),
-    output: {
-      truth: `Truth_${outputColumn}`,
-      correct: "Correct",
-    },
+    output: { truth: `Truth_${outputColumn}`, correct: "Correct" },
   };
   const validator = new Validator(task, model);
 

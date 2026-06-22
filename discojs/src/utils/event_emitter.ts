@@ -11,18 +11,13 @@ type Listener<T> = (_: T) => void | Promise<void>;
  */
 export class EventEmitter<I extends Record<string, unknown>> {
   // List of callbacks to run per event
-  #listeners: {
-    [E in keyof I]?: List<[once: boolean, _: Listener<I[E]>]>;
-  } = {};
+  #listeners: { [E in keyof I]?: List<[once: boolean, _: Listener<I[E]>]> } =
+    {};
 
   /**
    * @param initialListeners object/mapping of event name to listener, as if using `on` on created instance
    */
-  constructor(
-    initialListeners: {
-      [E in keyof I]?: Listener<I[E]>;
-    } = {},
-  ) {
+  constructor(initialListeners: { [E in keyof I]?: Listener<I[E]> } = {}) {
     for (const event in initialListeners) {
       const listener = initialListeners[event];
       if (listener !== undefined) {

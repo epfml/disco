@@ -21,8 +21,5 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  header: string;
-  text: string;
-}>();
+defineProps<{ header: string; text: string }>();
 </script>

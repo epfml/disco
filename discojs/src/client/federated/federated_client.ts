@@ -54,9 +54,7 @@ export class FederatedClient extends Client<"federated"> {
 
     this.aggregator.registerNode(SERVER_NODE_ID);
 
-    const msg: ClientConnected = {
-      type: type.ClientConnected,
-    };
+    const msg: ClientConnected = { type: type.ClientConnected };
     this.server.send(msg);
 
     const { id, waitForMoreParticipants, payload, round, nbOfParticipants } =

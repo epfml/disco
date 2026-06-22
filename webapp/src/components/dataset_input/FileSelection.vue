@@ -103,10 +103,7 @@ const props = withDefaults(
     multiple?: boolean; // accept one or multiple files
     lockIcon?: boolean;
   }>(),
-  {
-    multiple: false,
-    lockIcon: false,
-  },
+  { multiple: false, lockIcon: false },
 );
 
 const emit = defineEmits<{

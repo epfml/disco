@@ -31,9 +31,7 @@ import * as validate from "./validate.js";
 
 const toaster = useToaster();
 
-const props = defineProps<{
-  task: Task<D, Network>;
-}>();
+const props = defineProps<{ task: Task<D, Network> }>();
 
 const dataset = defineModel<LabeledDataset[D]>();
 watch(dataset, (dataset: LabeledDataset[D] | undefined) => {

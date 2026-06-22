@@ -6,30 +6,16 @@ type SerializableArguments = Omit<BenchmarkArguments, "provider" | "host"> & {
 };
 
 export interface UserLogFile {
-  run: {
-    testID: string;
-    taskID: string;
-    numberOfUsers: number;
-  };
-  task: {
-    id: string;
-    dataType: string;
-    trainingInformation: unknown;
-  };
+  run: { testID: string; taskID: string; numberOfUsers: number };
+  task: { id: string; dataType: string; trainingInformation: unknown };
   args: SerializableArguments;
-  user: {
-    index: number;
-    clientId: string;
-  };
+  user: { index: number; clientId: string };
   logs: SummaryLogs[];
 }
 
 function serializeArgs(): SerializableArguments {
   const { provider, host, ...rest } = args;
-  return {
-    ...rest,
-    host: host.toString(),
-  };
+  return { ...rest, host: host.toString() };
 }
 
 export function makeUserLogFile<D extends DataType, N extends Network>(
@@ -40,21 +26,14 @@ export function makeUserLogFile<D extends DataType, N extends Network>(
   logs: SummaryLogs[],
 ): UserLogFile {
   return {
-    run: {
-      testID: args.testID,
-      taskID: task.id,
-      numberOfUsers,
-    },
+    run: { testID: args.testID, taskID: task.id, numberOfUsers },
     task: {
       id: task.id,
       dataType: task.dataType,
       trainingInformation: task.trainingInformation,
     },
     args: serializeArgs(),
-    user: {
-      index: userIndex,
-      clientId: clientId,
-    },
+    user: { index: userIndex, clientId: clientId },
     logs: logs,
   };
 }

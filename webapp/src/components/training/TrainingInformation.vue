@@ -227,10 +227,7 @@ const accuracySeries = computed(() =>
         training: training.concat([cur.training]),
         validation: validation.concat([cur.validation]),
       }),
-      {
-        training: [] as number[],
-        validation: [] as number[],
-      },
+      { training: [] as number[], validation: [] as number[] },
     ),
 );
 const lossSeries = computed(() =>
@@ -244,10 +241,7 @@ const lossSeries = computed(() =>
         training: training.concat([cur.training]),
         validation: validation.concat([cur.validation]),
       }),
-      {
-        training: [] as number[],
-        validation: [] as number[],
-      },
+      { training: [] as number[], validation: [] as number[] },
     ),
 );
 
@@ -262,10 +256,7 @@ Tooltip.positioners.left = function (items, event) {
   const nearest = Tooltip.positioners.nearest.bind(this)(items, event);
   if (nearest === false) return false;
 
-  return {
-    x: this.chart.chartArea.left,
-    y: nearest.y,
-  };
+  return { x: this.chart.chartArea.left, y: nearest.y };
 };
 declare module "chart.js" {
   interface TooltipPositionerMap {
@@ -276,11 +267,7 @@ declare module "chart.js" {
 const commonChartsOptions = computed<ChartOptions<"line">>(() => ({
   plugins: {
     legend: { display: false },
-    tooltip: {
-      enabled: true,
-      displayColors: false,
-      position: "left",
-    },
+    tooltip: { enabled: true, displayColors: false, position: "left" },
   },
   elements: {
     line: {
@@ -289,23 +276,15 @@ const commonChartsOptions = computed<ChartOptions<"line">>(() => ({
       borderColor: theme.selectByTheme("#6096BA", "#cbd5e1").value,
       backgroundColor: theme.selectByTheme("#E2E8F0", "#1A3A4F").value,
     },
-    point: {
-      pointStyle: false,
-    },
+    point: { pointStyle: false },
   },
-  interaction: {
-    intersect: false,
-    mode: "index",
-  },
+  interaction: { intersect: false, mode: "index" },
 }));
 
 const accuracyChartsOptions = computed<ChartOptions<"line">>(() => ({
   ...commonChartsOptions.value,
   scales: {
-    x: {
-      grid: { display: false },
-      ticks: { color: textColor.value },
-    },
+    x: { grid: { display: false }, ticks: { color: textColor.value } },
     y: {
       max: 100,
       min: 0,
@@ -326,10 +305,7 @@ const lossChartsOptions = computed<ChartOptions<"line">>(() => {
   return {
     ...commonChartsOptions.value,
     scales: {
-      x: {
-        grid: { display: false },
-        ticks: { color: textColor.value },
-      },
+      x: { grid: { display: false }, ticks: { color: textColor.value } },
       y: {
         max: yAxisMax,
         min: 0,

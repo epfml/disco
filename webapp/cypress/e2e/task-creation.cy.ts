@@ -70,10 +70,7 @@ it("submits with tabular task", () => {
       dataType: "tabular",
       displayInformation: {
         title: "simple",
-        summary: {
-          preview: "preview",
-          overview: "overview",
-        },
+        summary: { preview: "preview", overview: "overview" },
         dataExample: [{ name: "name", data: "data" }],
       },
       trainingInformation: {

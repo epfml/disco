@@ -1,18 +1,10 @@
 {
   "extends": "../tsconfig.base.json",
   "references": [
-    {
-      "path": "../discojs"
-    },
-    {
-      "path": "../discojs-node"
-    },
-    {
-      "path": "../server"
-    }
+    { "path": "../discojs" },
+    { "path": "../discojs-node" },
+    { "path": "../server" }
   ],
-  "compilerOptions": {
-    "outDir": "dist"
-  },
+  "compilerOptions": { "outDir": "dist" },
   "include": ["src"]
 }

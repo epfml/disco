@@ -17,13 +17,9 @@
 <script lang="ts" setup>
 import { ErrorMessage, Field } from "vee-validate";
 
-withDefaults(
-  defineProps<{
-    name: string;
-    supressError?: boolean;
-  }>(),
-  { supressError: false },
-);
+withDefaults(defineProps<{ name: string; supressError?: boolean }>(), {
+  supressError: false,
+});
 const model = defineModel<string>();
 
 // https://vuejs-language-tools.vercel.app/features/slots#how-to-handle-indeterminate-slot-types

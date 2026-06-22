@@ -38,10 +38,7 @@ const validationStore = useValidationStore();
 const router = useRouter();
 const toaster = useToaster();
 
-const props = defineProps<{
-  task: Task<D, Network>;
-  model?: Model<D>;
-}>();
+const props = defineProps<{ task: Task<D, Network>; model?: Model<D> }>();
 
 const saved = ref<ModelID>();
 watch(props, () => (saved.value = undefined));

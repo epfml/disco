@@ -5,10 +5,7 @@ import type { DataType } from "../types/index.js";
 export namespace DisplayInformation {
   export const baseSchema = z.object({
     title: z.string(),
-    summary: z.object({
-      preview: z.string(),
-      overview: z.string(),
-    }),
+    summary: z.object({ preview: z.string(), overview: z.string() }),
     dataFormatInformation: z.string().optional(),
     model: z.string().optional(),
     sampleDataset: z
@@ -31,9 +28,7 @@ export namespace DisplayInformation {
         .array(z.object({ name: z.string(), data: z.string() }))
         .optional(),
     }),
-    text: z.object({
-      dataExample: z.string().optional(),
-    }),
+    text: z.object({ dataExample: z.string().optional() }),
   } satisfies Record<DataType, unknown>;
 }
 

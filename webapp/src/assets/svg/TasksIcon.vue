@@ -11,10 +11,5 @@
 </template>
 
 <script setup lang="ts">
-withDefaults(
-  defineProps<{
-    viewBox?: string;
-  }>(),
-  { viewBox: "0 0 16 16" },
-);
+withDefaults(defineProps<{ viewBox?: string }>(), { viewBox: "0 0 16 16" });
 </script>

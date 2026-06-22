@@ -127,10 +127,7 @@ const debug = createDebug("webapp:testing:PredictSteps");
 const toaster = useToaster();
 const validationStore = useValidationStore();
 
-const props = defineProps<{
-  task: Task<D, Network>;
-  model: Model<D>;
-}>();
+const props = defineProps<{ task: Task<D, Network>; model: Model<D> }>();
 
 interface Results {
   image: List<{

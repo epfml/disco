@@ -703,9 +703,7 @@ const nonLocalNetworkSchema = z
   })
   .and(
     z.union([
-      z.object({
-        aggregationStrategy: z.literal("mean"),
-      }),
+      z.object({ aggregationStrategy: z.literal("mean") }),
       z.object({
         aggregationStrategy: z.literal("byzantine"),
         privacy: privacySchema.and(
@@ -724,11 +722,7 @@ const nonLocalNetworkSchema = z
 
               function addUndefIssue(field?: string[]): void {
                 const path = field !== undefined ? field : undefined;
-                ctx.addIssue({
-                  code: "custom",
-                  message: "Required",
-                  path,
-                });
+                ctx.addIssue({ code: "custom", message: "Required", path });
               }
 
               if (arg === undefined) {
@@ -807,10 +801,7 @@ const TFJSModelSchema = {
     }),
     topology: z.unknown().transform((fileOrSet, ctx) => {
       if (fileOrSet === undefined) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Missing JSON file",
-        });
+        ctx.addIssue({ code: "custom", message: "Missing JSON file" });
         return z.NEVER;
       }
 

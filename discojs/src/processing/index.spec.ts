@@ -10,10 +10,7 @@ describe("preprocess", () => {
     const task: Task<"tabular", "local"> = {
       id: "task",
       dataType: "tabular",
-      displayInformation: {
-        title: "",
-        summary: { preview: "", overview: "" },
-      },
+      displayInformation: { title: "", summary: { preview: "", overview: "" } },
       trainingInformation: {
         tensorBackend: "tfjs",
         scheme: "local",

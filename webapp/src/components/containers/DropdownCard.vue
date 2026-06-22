@@ -31,12 +31,9 @@ import DownArrow from "@/assets/svg/DownArrow.vue";
 
 import IconCardHeader from "./IconCardHeader.vue";
 
-const props = withDefaults(
-  defineProps<{
-    initiallyOpen?: boolean;
-  }>(),
-  { initiallyOpen: true },
-);
+const props = withDefaults(defineProps<{ initiallyOpen?: boolean }>(), {
+  initiallyOpen: true,
+});
 
 const opened = ref(true);
 

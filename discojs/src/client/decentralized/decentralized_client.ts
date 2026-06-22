@@ -84,9 +84,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
     let receivedEnoughParticipants = false;
     this.setupServerCallbacks(() => (receivedEnoughParticipants = true));
 
-    const msg: ClientConnected = {
-      type: type.ClientConnected,
-    };
+    const msg: ClientConnected = { type: type.ClientConnected };
     this.server.send(msg);
 
     const { id, waitForMoreParticipants, nbOfParticipants } = await waitMessage(

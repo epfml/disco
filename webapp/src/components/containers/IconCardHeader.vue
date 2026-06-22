@@ -12,12 +12,7 @@
 </template>
 
 <script setup lang="ts">
-withDefaults(
-  defineProps<{
-    titlePlacement?: "left" | "center" | "right";
-  }>(),
-  {
-    titlePlacement: "left",
-  },
-);
+withDefaults(defineProps<{ titlePlacement?: "left" | "center" | "right" }>(), {
+  titlePlacement: "left",
+});
 </script>

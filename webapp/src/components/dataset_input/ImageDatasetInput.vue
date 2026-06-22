@@ -15,10 +15,7 @@ import { loadImage } from "@epfml/discojs-web";
 import DatasetInput from "./DatasetInput.vue";
 import FileSelection from "./FileSelection.vue";
 
-type NamedImageDataset = Dataset<{
-  image: Image;
-  filename: string;
-}>;
+type NamedImageDataset = Dataset<{ image: Image; filename: string }>;
 
 const dataset = defineModel<NamedImageDataset>();
 watch(dataset, (dataset: NamedImageDataset | undefined) => {

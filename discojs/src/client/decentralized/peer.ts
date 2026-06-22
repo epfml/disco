@@ -53,10 +53,7 @@ export class Peer {
 
   private receiving = Map<
     MessageID,
-    {
-      total?: number;
-      chunks: Map<ChunkID, Buffer>;
-    }
+    { total?: number; chunks: Map<ChunkID, Buffer> }
   >();
 
   constructor(

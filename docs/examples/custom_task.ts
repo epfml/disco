@@ -12,10 +12,7 @@ const customTask: TaskProvider<"tabular", "federated"> = {
       dataType: "tabular",
       displayInformation: {
         title: "Custom task",
-        summary: {
-          preview: "task preview",
-          overview: "task overview",
-        },
+        summary: { preview: "task preview", overview: "task overview" },
       },
       trainingInformation: {
         epochs: 5,

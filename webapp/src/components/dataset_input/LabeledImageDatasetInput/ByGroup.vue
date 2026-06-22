@@ -27,9 +27,7 @@ import FileSelection from "../FileSelection.vue";
 import type { NamedLabeledImageDataset } from "../types.js";
 import { browsingTip } from "./strings.js";
 
-const props = defineProps<{
-  labels: Set<string>;
-}>();
+const props = defineProps<{ labels: Set<string> }>();
 
 const dataset = defineModel<NamedLabeledImageDataset | undefined>();
 watch(dataset, (dataset: NamedLabeledImageDataset | undefined) => {

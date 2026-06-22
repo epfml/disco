@@ -30,9 +30,7 @@ type TaskAndModel = [Task<DataType, Network>, EncodedModel];
  * and objects depending on tasks and models can subscribe to
  * the 'newTask' event to run callbacks whenever a new Task and EncodedModel are initialized.
  */
-export class TaskSet extends EventEmitter<{
-  newTask: TaskAndModel;
-}> {
+export class TaskSet extends EventEmitter<{ newTask: TaskAndModel }> {
   // Keep track of previously initialized task-model pairs
   #tasks = Map<Task.ID, TaskAndModel>();
 

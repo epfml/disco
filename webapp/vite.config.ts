@@ -10,10 +10,7 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     vue(),
-    nodePolyfills({
-      include: ["buffer"],
-      globals: { Buffer: true },
-    }),
+    nodePolyfills({ include: ["buffer"], globals: { Buffer: true } }),
   ],
   resolve: {
     alias: {

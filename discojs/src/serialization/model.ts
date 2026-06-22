@@ -7,10 +7,7 @@ import { GPTConfig } from "../models/index.js";
 import * as coder from "./coder.js";
 import { Encoded, isEncoded } from "./coder.js";
 
-const Type = {
-  TFJS: 0,
-  GPT: 1,
-} as const;
+const Type = { TFJS: 0, GPT: 1 } as const;
 
 export async function encode(model: Model<DataType>): Promise<Encoded> {
   switch (true) {

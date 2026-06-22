@@ -25,8 +25,5 @@
 <script lang="ts" setup>
 import { List } from "immutable";
 
-defineProps<{
-  columns: List<string>;
-  rows: List<List<string>>;
-}>();
+defineProps<{ columns: List<string>; rows: List<List<string>> }>();
 </script>

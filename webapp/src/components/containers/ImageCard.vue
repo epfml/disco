@@ -16,9 +16,7 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUpdated } from "vue";
 
-const props = defineProps<{
-  image: ImageData;
-}>();
+const props = defineProps<{ image: ImageData }>();
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 

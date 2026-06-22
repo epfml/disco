@@ -120,9 +120,7 @@ export function resize<D extends 1 | 3 | 4, W extends number, H extends number>(
   height: H,
   image: Image<D, number, number>,
 ): Image<4, W, H> {
-  const Jimp = createJimp({
-    plugins: [jimpResize.methods],
-  });
+  const Jimp = createJimp({ plugins: [jimpResize.methods] });
 
   const resized = new Jimp(addAlpha(expandToMulticolor(image))).resize({
     w: width,

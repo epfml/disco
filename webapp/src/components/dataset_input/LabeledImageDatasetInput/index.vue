@@ -56,9 +56,7 @@ import type { NamedLabeledImageDataset } from "../types.js";
 import ByCSV from "./ByCSV.vue";
 import ByGroup from "./ByGroup.vue";
 
-const props = defineProps<{
-  labels: Set<string>;
-}>();
+const props = defineProps<{ labels: Set<string> }>();
 
 const dataset = defineModel<NamedLabeledImageDataset>();
 

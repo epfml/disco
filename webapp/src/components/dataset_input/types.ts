@@ -1,13 +1,8 @@
 import type { Dataset, DataFormat, Image } from "@epfml/discojs";
 
-type NamedImage = {
-  image: Image;
-  filename: string;
-};
+type NamedImage = { image: Image; filename: string };
 
-type NamedLabeledImage = NamedImage & {
-  label: string;
-};
+type NamedLabeledImage = NamedImage & { label: string };
 
 type NamedImageDataset = Dataset<NamedImage>;
 export type NamedLabeledImageDataset = Dataset<NamedLabeledImage>;

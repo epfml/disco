@@ -56,10 +56,7 @@ export default defineConfigWithVueTs(
       "@typescript-eslint/no-unused-expressions": "off",
     },
   },
-  {
-    ...pluginCypress.configs.recommended,
-    files: ["webapp/cypress/**/*.ts"],
-  },
+  { ...pluginCypress.configs.recommended, files: ["webapp/cypress/**/*.ts"] },
   { ignores: ["**/dist/*"] },
   { ignores: ["docs/examples/**"] },
   { ignores: ["**/src/protobuf/"] },

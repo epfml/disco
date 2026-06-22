@@ -26,10 +26,7 @@
             </button>
             <button
               id="train-locally-bttn"
-              v-tippy="{
-                content: 'Train by yourself',
-                placement: 'right',
-              }"
+              v-tippy="{ content: 'Train by yourself', placement: 'right' }"
               class="w-60 py-1 capitalize text-lg font-disco rounded-r-full border-2 border-disco-cyan focus:outline-hidden"
               :class="
                 isTrainingAlone
@@ -168,9 +165,7 @@ const props = defineProps<{
   task: Task<D, Network>;
   dataset?: Dataset<DataFormat.Raw[D]>;
 }>();
-const emit = defineEmits<{
-  model: [Model<D>];
-}>();
+const emit = defineEmits<{ model: [Model<D>] }>();
 
 const trainingGenerator =
   ref<

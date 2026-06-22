@@ -20,9 +20,7 @@ it("shows buttons", () => {
 it("triggers action on click", async () => {
   const button = ["click", vi.fn(() => {})] as const;
 
-  const wrapper = mount(ButtonsCard, {
-    props: { buttons: List.of(button) },
-  });
+  const wrapper = mount(ButtonsCard, { props: { buttons: List.of(button) } });
 
   await wrapper.get("button").trigger("click");
 

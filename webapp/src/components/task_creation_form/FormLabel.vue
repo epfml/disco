@@ -22,13 +22,8 @@
 
 <script lang="ts" setup>
 withDefaults(
-  defineProps<{
-    label: string;
-    type?: "required" | "optional" | "checkbox";
-  }>(),
-  {
-    type: "optional",
-  },
+  defineProps<{ label: string; type?: "required" | "optional" | "checkbox" }>(),
+  { type: "optional" },
 );
 
 const model = defineModel<boolean>();

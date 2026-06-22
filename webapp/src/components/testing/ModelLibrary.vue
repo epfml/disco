@@ -244,10 +244,7 @@ async function downloadModel(task: Task<DataType, Network>): Promise<void> {
       CONFIG.serverUrl,
       {
         ...task,
-        trainingInformation: {
-          ...task.trainingInformation,
-          scheme: "local",
-        },
+        trainingInformation: { ...task.trainingInformation, scheme: "local" },
       } as Task<DataType, "local">,
       aggregator.getAggregator(task),
     );
@@ -264,11 +261,7 @@ async function downloadModel(task: Task<DataType, Network>): Promise<void> {
 
   const scrollableDiv = document.getElementById("base-container");
   if (scrollableDiv !== null)
-    scrollableDiv.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: "smooth",
-    });
+    scrollableDiv.scrollTo({ top: 0, left: 0, behavior: "smooth" });
 }
 
 async function selectModel(

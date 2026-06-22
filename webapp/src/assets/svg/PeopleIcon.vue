@@ -19,10 +19,7 @@
 <script lang="ts">
 export default {
   props: {
-    customClass: {
-      default: "w-12 h-12 text-gray-300",
-      type: String,
-    },
+    customClass: { default: "w-12 h-12 text-gray-300", type: String },
     viewBox: { default: "-6 -3 24 24", type: String },
   },
 };

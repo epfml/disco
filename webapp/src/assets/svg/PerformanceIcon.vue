@@ -18,13 +18,7 @@
 
 <script setup lang="ts">
 const _ = withDefaults(
-  defineProps<{
-    customClass?: string;
-    viewBox?: string;
-  }>(),
-  {
-    customClass: " 'w-12 h-12 text-gray-300",
-    viewBox: "-6 -3 24 24",
-  },
+  defineProps<{ customClass?: string; viewBox?: string }>(),
+  { customClass: " 'w-12 h-12 text-gray-300", viewBox: "-6 -3 24 24" },
 );
 </script>

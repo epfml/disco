@@ -5,10 +5,7 @@ import { WeightsContainer } from "../index.js";
 import { Encoded } from "./coder.js";
 import * as coder from "./coder.js";
 
-type Serialized = {
-  shape: number[];
-  data: Float32Array;
-};
+type Serialized = { shape: number[]; data: Float32Array };
 
 function isSerialized(raw: unknown): raw is Serialized {
   if (typeof raw !== "object" || raw === null) return false;

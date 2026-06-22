@@ -46,10 +46,7 @@ const props = withDefaults(
     buttons: List<readonly [string, () => void, string?]>; // button text, on click function, optional description
     buttonsJustify?: "start" | "center" | "end";
   }>(),
-  {
-    titleAlign: "left",
-    buttonsJustify: "center",
-  },
+  { titleAlign: "left", buttonsJustify: "center" },
 );
 
 const buttons = computed(() =>

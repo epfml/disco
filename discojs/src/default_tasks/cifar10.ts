@@ -54,11 +54,7 @@ export const cifar10: TaskProvider<"image", "decentralized"> = {
         beta: 0.9,
         aggregationStrategy: "mean",
         privacy: {
-          differentialPrivacy: {
-            clippingRadius: 1,
-            epsilon: 50,
-            delta: 1e-5,
-          },
+          differentialPrivacy: { clippingRadius: 1, epsilon: 50, delta: 1e-5 },
         },
         minNbOfParticipants: 3,
         maxShareValue: 100,

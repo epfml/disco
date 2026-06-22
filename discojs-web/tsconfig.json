@@ -1,14 +1,8 @@
 {
-  "compilerOptions": {
-    "composite": true
-  },
+  "compilerOptions": { "composite": true },
   "files": [],
   "references": [
-    {
-      "path": "tsconfig.lib.json"
-    },
-    {
-      "path": "tsconfig.vitest.json"
-    }
+    { "path": "tsconfig.lib.json" },
+    { "path": "tsconfig.vitest.json" }
   ]
 }

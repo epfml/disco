@@ -21,10 +21,5 @@
 import { defineComponent } from "vue";
 import IconCard from "../containers/IconCard.vue";
 
-export default defineComponent({
-  name: "NotFound",
-  components: {
-    IconCard,
-  },
-});
+export default defineComponent({ name: "NotFound", components: { IconCard } });
 </script>

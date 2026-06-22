@@ -74,9 +74,7 @@ const trainingStore = useTrainingStore();
 const { tasks } = storeToRefs(useTasksStore());
 
 // task ID given by the route
-const props = defineProps<{
-  id: Task.ID;
-}>();
+const props = defineProps<{ id: Task.ID }>();
 
 function setupTrainingStore() {
   trainingStore.setTask(route.params.id as string); // more reliable than props.id

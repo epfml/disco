@@ -123,9 +123,7 @@ In this project, we chose to follow:
 This means that each `vue` file shall contain the following code
 
 ```javascript
-export default {
-  name: "xxx-yyy",
-};
+export default { name: "xxx-yyy" };
 ```
 
 and that another `vue` component can use it inside its template using the following syntax:
