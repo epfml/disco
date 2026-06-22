@@ -1,4 +1,4 @@
-name: Download dataset artifacts
+name: Pull dataset artifacts
 runs:
   using: composite
   steps:

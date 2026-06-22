@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/download-dataset-artifacts
+      - uses: ./.github/actions/pull-dataset-artifacts
       - run: npm --workspace=webapp run build
       - run: npm --workspace=webapp run test:unit
       - uses: cypress-io/github-action@v7

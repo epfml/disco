@@ -8,7 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/download-dataset-artifacts
+      - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
         with: { name: all-builds }
       - run: npx vitest --run --project=discojs
@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/download-dataset-artifacts
+      - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
         with: { name: all-builds }
       - run: npx vitest --run --project=discojs-node
@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/download-dataset-artifacts
+      - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
         with: { name: all-builds }
       - run: npx vitest --run --project=discojs-web
@@ -38,7 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/download-dataset-artifacts
+      - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
         with: { name: all-builds }
       - run: npx vitest --run --project=server
@@ -48,7 +48,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/download-dataset-artifacts
+      - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
         with: { name: all-builds }
       - run: npm --workspace=webapp run test:unit
@@ -58,7 +58,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/download-dataset-artifacts
+      - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
         with: { name: all-builds }
       - uses: cypress-io/github-action@v7
@@ -72,7 +72,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/download-dataset-artifacts
+      - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
         with: { name: all-builds }
       - run: npm --workspace=cli start -- -t cifar10 -u 3 -e 1 -r 1
@@ -82,7 +82,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/download-dataset-artifacts
+      - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
         with: { name: all-builds }
       - run: npm run test
