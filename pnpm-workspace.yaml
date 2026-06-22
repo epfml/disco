@@ -1,0 +1,9 @@
+allowBuilds:
+  '@koush/wrtc': true
+  '@tensorflow/tfjs-node': true
+  canvas: true
+  core-js: true
+  cypress: true
+  protobufjs: true
+  sharp: true
+  wrtc: true
