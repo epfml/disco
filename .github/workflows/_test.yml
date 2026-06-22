@@ -1,0 +1,89 @@
+name: test
+on:
+  workflow_call:
+
+jobs:
+  test-discojs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/pull-dataset-artifacts
+      - uses: actions/download-artifact@v7
+        with: { name: all-builds }
+      - run: npx vitest --run --project=discojs
+
+  test-discojs-node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/pull-dataset-artifacts
+      - uses: actions/download-artifact@v7
+        with: { name: all-builds }
+      - run: npx vitest --run --project=discojs-node
+
+  test-discojs-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/pull-dataset-artifacts
+      - uses: actions/download-artifact@v7
+        with: { name: all-builds }
+      - run: npx vitest --run --project=discojs-web
+
+  test-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/pull-dataset-artifacts
+      - uses: actions/download-artifact@v7
+        with: { name: all-builds }
+      - run: npx vitest --run --project=server
+
+  test-webapp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/pull-dataset-artifacts
+      - uses: actions/download-artifact@v7
+        with: { name: all-builds }
+      - run: npm --workspace=webapp run test:unit
+
+  test-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/pull-dataset-artifacts
+      - uses: actions/download-artifact@v7
+        with: { name: all-builds }
+      - uses: cypress-io/github-action@v7
+        with:
+          working-directory: webapp
+          install: false
+          start: npx vite --mode test --port 1351
+
+  test-cli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/pull-dataset-artifacts
+      - uses: actions/download-artifact@v7
+        with: { name: all-builds }
+      - run: npm --workspace=cli start -- -t cifar10 -u 3 -e 1 -r 1
+
+  test-docs-examples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/pull-dataset-artifacts
+      - uses: actions/download-artifact@v7
+        with: { name: all-builds }
+      - run: npm run test
+        working-directory: docs/examples

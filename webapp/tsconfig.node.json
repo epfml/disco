@@ -7,6 +7,14 @@
     "nightwatch.conf.*",
     "playwright.config.*"
   ],
+  "references": [
+    {
+      "path": "../discojs"
+    },
+    {
+      "path": "../discojs-web"
+    }
+  ],
   "compilerOptions": {
     "composite": true,
     "noEmit": true,

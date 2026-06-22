@@ -1,0 +1,15 @@
+name: Setup Node
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v6
+      with:
+        node-version-file: .nvmrc
+    - uses: actions/cache@v5
+      with:
+        path: |
+          ~/.npm
+          ~/.cache/Cypress
+        key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+    - run: npm ci
+      shell: bash

@@ -11,19 +11,13 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           registry-url: "https://registry.npmjs.org"
           package-manager-cache: false # never use caching in release builds
           scope: "@epfml"
-      - uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm install -g npm@latest
       - run: npm ci
       - run: npm --workspace=discojs{,-node,-web} version prerelease --preid=p`date +%Y%m%d%H%M%S`
@@ -37,21 +31,13 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-      - run: npm --workspace={discojs,discojs-web,webapp} run build
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - run: npm --workspace=webapp run build
       - uses: actions/upload-pages-artifact@v5
         with:
           path: webapp/dist
+
   deploy-pages:
     needs: build-webapp
     if: github.ref_type == 'branch'
@@ -101,7 +87,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: google-github-actions/auth@v3
         with:
           project_id: disco-367212
