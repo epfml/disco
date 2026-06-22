@@ -9,8 +9,6 @@ jobs:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
       - run: npm --workspace=discojs run build
-      - uses: actions/upload-artifact@v7
-        with: { name: discojs-dist, path: discojs/dist }
 
   build-lib-node:
     needs: build-lib
@@ -19,8 +17,6 @@ jobs:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
       - run: npm --workspace=discojs-node run build
-      - uses: actions/upload-artifact@v7
-        with: { name: discojs-node-dist, path: discojs-node/dist }
 
   build-lib-web:
     needs: build-lib
@@ -29,8 +25,6 @@ jobs:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
       - run: npm run --workspace=discojs-web build
-      - uses: actions/upload-artifact@v7
-        with: { name: discojs-web-dist, path: discojs-web/dist }
 
   build-server:
     needs: build-lib-node
@@ -39,8 +33,6 @@ jobs:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
       - run: npm run --workspace=server build
-      - uses: actions/upload-artifact@v7
-        with: { name: server-dist, path: server/dist }
 
   build-server-docker:
     needs: build-server
@@ -66,7 +58,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
-      - run: npm run --workspace=cli build
+      # Build all subprojects to upload all artifacts at once
+      - run: npm run --workspaces build
+      - uses: actions/upload-artifact@v7
+        with: { name: all-builds, path: "*/dist" }
 
   build-webapp:
     needs: build-lib-web
@@ -75,8 +70,6 @@ jobs:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
       - run: npm --workspace=webapp run build
-      - uses: actions/upload-artifact@v7
-        with: { name: webapp-dist, path: webapp/dist }
 
   build-docs-examples:
     needs: build-server

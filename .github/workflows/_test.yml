@@ -10,7 +10,7 @@ jobs:
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/download-dataset-artifacts
       - uses: actions/download-artifact@v7
-        with: { name: discojs-dist, path: discojs/dist }
+        with: { name: all-builds }
       - run: npx vitest --run --project=discojs
 
   test-discojs-node:
@@ -20,9 +20,7 @@ jobs:
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/download-dataset-artifacts
       - uses: actions/download-artifact@v7
-        with: { name: discojs-dist, path: discojs/dist }
-      - uses: actions/download-artifact@v7
-        with: { name: discojs-node-dist, path: discojs-node/dist }
+        with: { name: all-builds }
       - run: npx vitest --run --project=discojs-node
 
   test-discojs-web:
@@ -32,9 +30,7 @@ jobs:
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/download-dataset-artifacts
       - uses: actions/download-artifact@v7
-        with: { name: discojs-dist, path: discojs/dist }
-      - uses: actions/download-artifact@v7
-        with: { name: discojs-web-dist, path: discojs-web/dist }
+        with: { name: all-builds }
       - run: npx vitest --run --project=discojs-web
 
   test-server:
@@ -44,11 +40,7 @@ jobs:
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/download-dataset-artifacts
       - uses: actions/download-artifact@v7
-        with: { name: discojs-dist, path: discojs/dist }
-      - uses: actions/download-artifact@v7
-        with: { name: discojs-node-dist, path: discojs-node/dist }
-      - uses: actions/download-artifact@v7
-        with: { name: server-dist, path: server/dist }
+        with: { name: all-builds }
       - run: npx vitest --run --project=server
 
   test-webapp:
@@ -58,11 +50,7 @@ jobs:
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/download-dataset-artifacts
       - uses: actions/download-artifact@v7
-        with: { name: discojs-dist, path: discojs/dist }
-      - uses: actions/download-artifact@v7
-        with: { name: discojs-web-dist, path: discojs-web/dist }
-      - uses: actions/download-artifact@v7
-        with: { name: webapp-dist, path: webapp/dist }
+        with: { name: all-builds }
       - run: npm --workspace=webapp run test:unit
 
   test-e2e:
@@ -72,11 +60,7 @@ jobs:
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/download-dataset-artifacts
       - uses: actions/download-artifact@v7
-        with: { name: discojs-dist, path: discojs/dist }
-      - uses: actions/download-artifact@v7
-        with: { name: discojs-web-dist, path: discojs-web/dist }
-      - uses: actions/download-artifact@v7
-        with: { name: webapp-dist, path: webapp/dist }
+        with: { name: all-builds }
       - uses: cypress-io/github-action@v7
         with:
           working-directory: webapp
@@ -90,11 +74,7 @@ jobs:
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/download-dataset-artifacts
       - uses: actions/download-artifact@v7
-        with: { name: discojs-dist, path: discojs/dist }
-      - uses: actions/download-artifact@v7
-        with: { name: discojs-node-dist, path: discojs-node/dist }
-      - uses: actions/download-artifact@v7
-        with: { name: server-dist, path: server/dist }
+        with: { name: all-builds }
       - run: npm --workspace=cli start -- -t cifar10 -u 3 -e 1 -r 1
 
   test-docs-examples:
@@ -104,10 +84,6 @@ jobs:
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/download-dataset-artifacts
       - uses: actions/download-artifact@v7
-        with: { name: discojs-dist, path: discojs/dist }
-      - uses: actions/download-artifact@v7
-        with: { name: discojs-node-dist, path: discojs-node/dist }
-      - uses: actions/download-artifact@v7
-        with: { name: server-dist, path: server/dist }
+        with: { name: all-builds }
       - run: npm run test
         working-directory: docs/examples
