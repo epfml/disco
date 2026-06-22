@@ -1,6 +1,24 @@
+packages:
+  - "cli"
+  - "discojs"
+  - "discojs-node"
+  - "discojs-web"
+  - "onnx-converter"
+  - "server"
+  - "webapp"
+
+catalog:
+  "debug": "4"
+  "immutable": "5"
+  "vitest": "4"
+  "zod": "4"
+  "@tensorflow/tfjs": "4"
+  "@tensorflow/tfjs-node": "4"
+  "@epfml/isomorphic-wrtc": "file:isomorphic-wrtc"
+
 allowBuilds:
-  '@koush/wrtc': true
-  '@tensorflow/tfjs-node': true
+  "@koush/wrtc": true
+  "@tensorflow/tfjs-node": true
   canvas: true
   core-js: true
   cypress: true
