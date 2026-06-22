@@ -21,6 +21,7 @@
     "@epfml/isomorphic-wrtc": "file:../isomorphic-wrtc",
     "zod": "catalog:",
     "immutable": "catalog:",
+    "debug": "catalog:",
     "@tensorflow/tfjs": "catalog:",
     "@jimp/core": "1",
     "@jimp/plugin-resize": "1",

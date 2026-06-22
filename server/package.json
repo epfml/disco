@@ -13,16 +13,21 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "zod": "catalog:",
+    "immutable": "catalog:",
+    "debug": "catalog:",
+    "@tensorflow/tfjs": "catalog:",
     "@epfml/discojs-node": "*",
     "@msgpack/msgpack": "3",
     "@roamhq/wrtc": "0.10",
-    "@tensorflow/tfjs": "catalog:",
     "cors": "2",
     "express": "5",
     "express-ws": "5",
-    "uuid": "14"
+    "uuid": "14",
+    "ws": "8"
   },
   "devDependencies": {
+    "@tensorflow/tfjs-node": "catalog:",
     "@types/cors": "2",
     "@types/express-ws": "3",
     "@types/node": "22",

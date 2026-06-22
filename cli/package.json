@@ -16,10 +16,12 @@
   "license": "ISC",
   "dependencies": {
     "@epfml/discojs-node": "*",
+    "immutable": "catalog:",
     "server": "*",
     "tslib": "2"
   },
   "devDependencies": {
+    "@tensorflow/tfjs-node": "catalog:",
     "vitest": "catalog:",
     "nodemon": "3",
     "ts-command-line-args": "2"

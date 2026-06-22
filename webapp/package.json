@@ -12,7 +12,9 @@
   "dependencies": {
     "@epfml/discojs": "*",
     "@epfml/discojs-web": "*",
-    "@tensorflow/tfjs": "4",
+    "@tensorflow/tfjs": "catalog:",
+    "immutable": "catalog:",
+    "debug": "catalog:",
     "chart.js": "4",
     "cypress": "15",
     "d3": "7",

@@ -19,6 +19,7 @@
   "homepage": "https://github.com/epfml/disco#readme",
   "dependencies": {
     "@epfml/discojs": "*",
+    "debug": "catalog:",
     "@roamhq/wrtc": "0.10",
     "@tensorflow/tfjs-node": "catalog:",
     "csv-parse": "6",
