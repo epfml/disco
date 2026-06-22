@@ -1,6 +1,7 @@
 # dependencies
 /node_modules/
 /*/node_modules/
+pnpm-lock.yaml
 
 # stored trained models
 models/
