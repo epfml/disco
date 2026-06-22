@@ -1,6 +1,7 @@
 #!/bin/sh -eu
 
 # TODO replace by git submodules
+# version: 1.0
 
 cd "$(dirname "$0")"
 
