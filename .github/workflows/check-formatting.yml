@@ -1,11 +1,13 @@
-name: static-analysis
+name: check-formatting
 on:
-  workflow_call:
+  push:
+    branches: [develop]
+  pull_request:
 
 jobs:
-  lint-all:
+  format-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node
-      - run: npm run lint
+      - run: npm run format:check
