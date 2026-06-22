@@ -6,7 +6,7 @@ jobs:
   test-discojs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
@@ -16,7 +16,7 @@ jobs:
   test-discojs-node:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
@@ -26,7 +26,7 @@ jobs:
   test-discojs-web:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
@@ -36,7 +36,7 @@ jobs:
   test-server:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
@@ -46,7 +46,7 @@ jobs:
   test-webapp:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
@@ -56,7 +56,7 @@ jobs:
   test-e2e:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
@@ -70,7 +70,7 @@ jobs:
   test-cli:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
@@ -80,7 +80,7 @@ jobs:
   test-docs-examples:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7

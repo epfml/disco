@@ -9,14 +9,14 @@ jobs:
   download-datasets:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/download-datasets
 
   record-test-webapp:
     needs: download-datasets
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/pull-dataset-artifacts
       - run: npm --workspace=webapp run build
