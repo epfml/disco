@@ -18,20 +18,23 @@
   },
   "homepage": "https://github.com/epfml/disco#readme",
   "dependencies": {
-    "@epfml/isomorphic-wrtc": "1",
+    "@epfml/isomorphic-wrtc": "catalog:",
+    "zod": "catalog:",
+    "immutable": "catalog:",
+    "@tensorflow/tfjs": "catalog:",
     "@jimp/core": "1",
-    "@jimp/plugin-resize": "^1.6.1",
+    "@jimp/plugin-resize": "1",
     "@msgpack/msgpack": "3",
-    "@tensorflow/tfjs": "4",
     "@xenova/transformers": "2",
+    "chalk": "4",
     "isomorphic-ws": "5",
     "simple-peer": "9",
     "tslib": "2",
-    "ws": "8",
-    "zod": "4"
+    "ws": "8"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-node": "4",
+    "@tensorflow/tfjs-node": "catalog:",
+    "vitest": "catalog:",
     "@types/simple-peer": "9",
     "nodemon": "3",
     "ts-node": "10"

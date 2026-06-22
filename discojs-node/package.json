@@ -20,12 +20,14 @@
   "dependencies": {
     "@epfml/discojs": "*",
     "@roamhq/wrtc": "0.10",
-    "@tensorflow/tfjs-node": "4",
+    "@tensorflow/tfjs-node": "catalog:",
     "csv-parse": "6",
+    "node-fetch": "2",
     "sharp": "0.34"
   },
   "devDependencies": {
     "@types/node": "22",
+    "vitest": "catalog:",
     "nodemon": "3",
     "tmp-promise": "3",
     "ts-node": "10"

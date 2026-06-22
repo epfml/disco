@@ -16,7 +16,7 @@
     "@epfml/discojs-node": "*",
     "@msgpack/msgpack": "3",
     "@roamhq/wrtc": "0.10",
-    "@tensorflow/tfjs": "4",
+    "@tensorflow/tfjs": "catalog:",
     "cors": "2",
     "express": "5",
     "express-ws": "5",

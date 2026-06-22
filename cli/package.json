@@ -20,6 +20,7 @@
     "tslib": "2"
   },
   "devDependencies": {
+    "vitest": "catalog:",
     "nodemon": "3",
     "ts-command-line-args": "2"
   }
