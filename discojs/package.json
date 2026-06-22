@@ -20,7 +20,7 @@
   "dependencies": {
     "@epfml/isomorphic-wrtc": "1",
     "@jimp/core": "1",
-    "@jimp/plugin-resize": "^1.6.1",
+    "@jimp/plugin-resize": "1",
     "@msgpack/msgpack": "3",
     "@tensorflow/tfjs": "4",
     "@xenova/transformers": "2",
