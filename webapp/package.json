@@ -23,7 +23,7 @@
     "vee-validate": "5.0.0-beta.0",
     "vue": "3",
     "vue-chartjs": "5",
-    "vue-router": "^5.1.0",
+    "vue-router": "5",
     "vue-tippy": "6",
     "vue-toast-notification": "3",
     "yup": "1",
