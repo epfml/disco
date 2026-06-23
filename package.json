@@ -6,22 +6,6 @@
     "format:check": "prettier -c .",
     "format:fix": "prettier -w ."
   },
-  "workspaces": [
-    "cli",
-    "discojs",
-    "discojs-node",
-    "discojs-web",
-    "server",
-    "webapp",
-    "onnx-converter"
-  ],
-  "dependencies": {
-    "@epfml/isomorphic-wrtc": "file:isomorphic-wrtc",
-    "debug": "4.4.3",
-    "immutable": "5.1.6",
-    "vitest": "4.1.9",
-    "zod": "4.3.6"
-  },
   "devDependencies": {
     "@types/debug": "4.1.13",
     "@types/node": "22.19.15",
