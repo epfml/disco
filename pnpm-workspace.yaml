@@ -8,6 +8,9 @@ packages:
   - "webapp"
   - "docs/examples"
 
+syncInjectedDepsAfterScripts:
+  - build
+
 catalog:
   "debug": "4.4.3"
   "immutable": "5.1.6"
