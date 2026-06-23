@@ -17,10 +17,10 @@
   "dependencies": {
     "@epfml/discojs-node": "*",
     "server": "*",
-    "tslib": "2"
+    "tslib": "2.8.1"
   },
   "devDependencies": {
-    "nodemon": "3",
-    "ts-command-line-args": "2"
+    "nodemon": "3.1.14",
+    "ts-command-line-args": "2.5.1"
   }
 }

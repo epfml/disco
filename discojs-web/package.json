@@ -19,12 +19,12 @@
   "homepage": "https://github.com/epfml/disco#readme",
   "dependencies": {
     "@epfml/discojs": "*",
-    "@tensorflow/tfjs": "4",
-    "papaparse": "5"
+    "@tensorflow/tfjs": "4.22.0",
+    "papaparse": "5.5.3"
   },
   "devDependencies": {
-    "@types/papaparse": "5",
-    "jsdom": "29",
-    "nodemon": "3"
+    "@types/papaparse": "5.5.2",
+    "jsdom": "29.0.1",
+    "nodemon": "3.1.14"
   }
 }

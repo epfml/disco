@@ -19,15 +19,15 @@
   "homepage": "https://github.com/epfml/disco#readme",
   "dependencies": {
     "@epfml/discojs": "*",
-    "@roamhq/wrtc": "0.10",
-    "@tensorflow/tfjs-node": "4",
-    "csv-parse": "6",
-    "sharp": "0.34"
+    "@roamhq/wrtc": "0.10.0",
+    "@tensorflow/tfjs-node": "4.22.0",
+    "csv-parse": "6.2.0",
+    "sharp": "0.34.5"
   },
   "devDependencies": {
-    "@types/node": "22",
-    "nodemon": "3",
-    "tmp-promise": "3",
-    "ts-node": "10"
+    "@types/node": "22.19.15",
+    "nodemon": "3.1.14",
+    "tmp-promise": "3.0.3",
+    "ts-node": "10.9.2"
   }
 }

@@ -23,17 +23,17 @@
     "zod": "4"
   },
   "devDependencies": {
-    "@types/debug": "4",
-    "@types/node": "22",
-    "@vitest/eslint-plugin": "1",
-    "@vue/eslint-config-prettier": "10",
-    "@vue/eslint-config-typescript": "14",
-    "eslint": "10",
-    "eslint-plugin-cypress": "6",
-    "eslint-plugin-vue": "10",
-    "knip": "6",
-    "prettier": "3",
-    "typescript": "5",
-    "typescript-eslint": "8"
+    "@types/debug": "4.1.13",
+    "@types/node": "22.20.0",
+    "@vitest/eslint-plugin": "1.6.20",
+    "@vue/eslint-config-prettier": "10.2.0",
+    "@vue/eslint-config-typescript": "14.7.0",
+    "eslint": "10.0.3",
+    "eslint-plugin-cypress": "6.2.0",
+    "eslint-plugin-vue": "10.8.0",
+    "knip": "6.18.0",
+    "prettier": "3.8.4",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.58.0"
   }
 }
