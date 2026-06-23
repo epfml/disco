@@ -51,7 +51,7 @@ const textDataset = ref<LabeledDataset["text"]>();
 watch([props, imageDataset, tabularDataset, textDataset], async () => {
   switch (props.task.dataType) {
     case "image":
-      dataset.value = toRaw(imageDataset.value) as LabeledDataset[D];
+      dataset.value = toRaw(imageDataset.value);
       break;
     case "tabular": {
       const task = props.task as Task<"tabular", Network>;
@@ -76,11 +76,11 @@ watch([props, imageDataset, tabularDataset, textDataset], async () => {
         tabularDataset.value = undefined;
       }
 
-      dataset.value = toRaw(tabularDataset.value) as LabeledDataset[D];
+      dataset.value = toRaw(tabularDataset.value);
       break;
     }
     case "text":
-      dataset.value = textDataset.value as LabeledDataset[D];
+      dataset.value = textDataset.value;
       break;
   }
 });

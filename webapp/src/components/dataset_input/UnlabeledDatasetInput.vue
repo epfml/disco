@@ -26,7 +26,7 @@ const props = defineProps<{
   task: Task<D, Network>;
 }>();
 
-const type = computed<D>(() => props.task.dataType as D);
+const type = computed<D>(() => props.task.dataType);
 
 const dataset = defineModel<UnlabeledDataset[D]>();
 watch(dataset, (dataset: UnlabeledDataset[D] | undefined) => {
@@ -44,7 +44,7 @@ const textDataset = ref<UnlabeledDataset["text"]>();
 watch([imageDataset, tabularDataset, textDataset], async () => {
   switch (type.value) {
     case "image":
-      dataset.value = imageDataset.value as UnlabeledDataset[D];
+      dataset.value = imageDataset.value;
       break;
     case "tabular": {
       const task = props.task as Task<"tabular", Network>;
@@ -65,11 +65,11 @@ watch([imageDataset, tabularDataset, textDataset], async () => {
         toaster.error(msg);
       }
 
-      dataset.value = tabularDataset.value as UnlabeledDataset[D];
+      dataset.value = tabularDataset.value;
       break;
     }
     case "text":
-      dataset.value = textDataset.value as UnlabeledDataset[D];
+      dataset.value = textDataset.value;
       break;
     default: {
       const _: never = type.value;

@@ -130,7 +130,7 @@ const unnamedDataset = computed<Dataset<DataFormat.Raw[DataType]> | undefined>(
       case "image":
         return (toRaw(dataset.value) as LabeledDataset["image"]).map(
           ({ image, label }) => [image, label],
-        ) as Dataset<DataFormat.Raw["image"]>;
+        );
       case "tabular":
       case "text":
         return dataset.value as Dataset<DataFormat.Raw["tabular" | "text"]>;

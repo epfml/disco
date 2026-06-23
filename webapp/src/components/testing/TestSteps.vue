@@ -310,21 +310,21 @@ async function startTest(): Promise<void> {
     switch (props.task.dataType) {
       case "image":
         await startImageTest(
-          toRaw(props.task) as Task<"image", Network>,
+          toRaw(props.task),
           toRaw(props.model) as Model<"image">,
           toRaw(dataset.value) as LabeledDataset["image"],
         );
         break;
       case "tabular":
         await startTabularTest(
-          toRaw(props.task) as Task<"tabular", Network>,
+          toRaw(props.task),
           toRaw(props.model) as Model<"tabular">,
           toRaw(dataset.value) as LabeledDataset["tabular"],
         );
         break;
       case "text":
         await startTextTest(
-          toRaw(props.task) as Task<"text", Network>,
+          toRaw(props.task),
           toRaw(props.model) as Model<"text">,
           toRaw(dataset.value) as LabeledDataset["text"],
         );
@@ -374,7 +374,7 @@ async function startImageTest(
         },
       });
 
-      tested.value = results as Tested[D];
+      tested.value = results;
 
       if (controller.value.signal.aborted) break;
     }
@@ -448,7 +448,7 @@ async function startTextTest(
 
     for await (const { predicted, truth } of validator.test(dataset)) {
       results = results.push({ output: { correct: predicted === truth } });
-      tested.value = results as Tested[D];
+      tested.value = results;
 
       if (controller.value.signal.aborted) break;
 
