@@ -176,14 +176,14 @@ async function startInference(): Promise<void> {
     switch (props.task.dataType) {
       case "image":
         await startImageInference(
-          props.task,
+          props.task as Task<"image", Network>,
           toRaw(props.model) as Model<"image">,
           toRaw(dataset.value) as UnlabeledDataset["image"],
         );
         break;
       case "tabular":
         await startTabularInference(
-          props.task,
+          props.task as Task<"tabular", Network>,
           toRaw(props.model) as Model<"tabular">,
           toRaw(dataset.value) as UnlabeledDataset["tabular"],
         );
@@ -223,7 +223,7 @@ async function startImageInference(
         output,
       });
 
-      predictions.value = results;
+      predictions.value = results as Results[D];
     }
   } finally {
     generator.value = undefined;
@@ -256,7 +256,7 @@ async function startTabularInference(
         output: prediction.toString(),
       });
 
-      predictions.value = { labels, results };
+      predictions.value = { labels, results } as Results[D];
     }
   } finally {
     generator.value = undefined;

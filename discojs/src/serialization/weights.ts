@@ -29,7 +29,7 @@ function isSerialized(raw: unknown): raw is Serialized {
 export async function encode(weights: WeightsContainer): Promise<Encoded> {
   const serialized: Serialized[] = await Promise.all(
     weights.weights.map(async (t) => ({
-      shape: t.shape,
+      shape: t.shape as number[],
       data: await t.data<"float32">(),
     })),
   );

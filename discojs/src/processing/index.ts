@@ -109,7 +109,7 @@ export function postprocess<D extends DataType>(
   switch (task.dataType) {
     case "image": {
       // cast as typescript doesn't reduce generic type
-      const index = encoded;
+      const index = encoded as DataFormat.ModelEncoded["image"][1];
       const labels = List(task.trainingInformation.LABEL_LIST);
 
       const v = labels.get(index);
@@ -118,13 +118,13 @@ export function postprocess<D extends DataType>(
     }
     case "tabular": {
       // cast as typescript doesn't reduce generic type
-      const v = encoded;
+      const v = encoded as DataFormat.ModelEncoded["tabular"][1];
 
       return v as DataFormat.Inferred[D];
     }
     case "text": {
       // cast as typescript doesn't reduce generic type
-      const token = encoded;
+      const token = encoded as DataFormat.ModelEncoded["text"][1];
 
       return task.trainingInformation.tokenizer.decode([
         token,
