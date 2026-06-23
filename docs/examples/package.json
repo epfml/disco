@@ -13,11 +13,15 @@
   },
   "license": "ISC",
   "dependencies": {
-    "server": "*",
-    "@epfml/discojs": "*",
-    "@epfml/discojs-node": "*"
+    "@epfml/discojs": "workspace:",
+    "@epfml/discojs-node": "workspace:",
+    "@tensorflow/tfjs": "catalog:",
+    "@tensorflow/tfjs-node": "catalog:",
+    "immutable": "catalog:",
+    "server": "workspace:"
   },
   "devDependencies": {
+    "@types/node": "22.19.15",
     "typescript": "6"
   }
 }

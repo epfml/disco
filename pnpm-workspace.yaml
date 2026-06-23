@@ -6,6 +6,7 @@ packages:
   - "onnx-converter"
   - "server"
   - "webapp"
+  - "docs/examples"
 
 catalog:
   "debug": "4.4.3"

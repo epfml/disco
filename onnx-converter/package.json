@@ -12,6 +12,11 @@
   },
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "@epfml/discojs": "workspace:",
+    "@tensorflow/tfjs-node": "catalog:",
+    "immutable": "catalog:"
+  },
   "devDependencies": {
     "nodemon": "3.1.14"
   }
