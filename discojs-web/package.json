@@ -5,7 +5,7 @@
   "exports": "./dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "watch": "nodemon --ext ts --ignore dist --watch ../discojs/dist --watch . --exec npm run",
+    "watch": "nodemon --ext ts --ignore dist --watch ../discojs/dist --watch . --exec pnpm run",
     "build": "tsc --build",
     "test": "cd .. && vitest --run --project=discojs-web"
   },

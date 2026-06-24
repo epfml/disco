@@ -4,11 +4,11 @@
   "type": "module",
   "main": "dist/cli.js",
   "scripts": {
-    "watch": "nodemon --ext ts --ignore dist --watch ../discojs-node/dist --watch ../server/dist --watch . --exec npm run",
-    "start": "npm run build && node dist/cli.js",
-    "benchmark_gpt": "npm run build && node dist/benchmark_gpt.js",
-    "train_gpt": "npm run build && node dist/train_gpt.js",
-    "hellaswag_gpt": "npm run build && node dist/hellaswag_gpt.js",
+    "watch": "nodemon --ext ts --ignore dist --watch ../discojs-node/dist --watch ../server/dist --watch . --exec pnpm run",
+    "start": "pnpm run build && node dist/cli.js",
+    "benchmark_gpt": "pnpm run build && node dist/benchmark_gpt.js",
+    "train_gpt": "pnpm run build && node dist/train_gpt.js",
+    "hellaswag_gpt": "pnpm run build && node dist/hellaswag_gpt.js",
     "build": "tsc --build",
     "test": ": nothing"
   },

@@ -42,7 +42,7 @@ type BenchmarkUnsafeArguments = Omit<BenchmarkArguments, "provider"> & {
   help?: boolean;
 };
 
-const argExample = "e.g. npm start -- -u 2 -e 3 # runs 2 users for 3 epochs";
+const argExample = "e.g. pnpm start -- -u 2 -e 3 # runs 2 users for 3 epochs";
 
 const unsafeArgs = parse<BenchmarkUnsafeArguments>(
   {
@@ -159,7 +159,10 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
   {
     helpArg: "help",
     headerContentSections: [
-      { header: "DISCO CLI", content: "npm start -- [Options]\n" + argExample },
+      {
+        header: "DISCO CLI",
+        content: "pnpm start -- [Options]\n" + argExample,
+      },
     ],
   },
 );

@@ -4,10 +4,10 @@
   "type": "module",
   "main": "dist/gpt2_from_onnx.js",
   "scripts": {
-    "convert_onnx": "npm run build && node dist/convert_onnx.js",
-    "watch": "nodemon --ext ts --ignore dist --exec npm run",
+    "convert_onnx": "pnpm run build && node dist/convert_onnx.js",
+    "watch": "nodemon --ext ts --ignore dist --exec pnpm run",
     "build": "tsc --build && cp -r src/protobuf dist",
-    "lint": "npx eslint .",
+    "lint": "pnpm exec eslint .",
     "test": ": nothing"
   },
   "author": "",

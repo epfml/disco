@@ -43,5 +43,5 @@ async function main(): Promise<void> {
   console.log(generation);
 }
 
-// You can run this example with "npm run run_gpt" from this folder
+// You can run this example with "pnpm run run_gpt" from this folder
 main().catch(console.error);

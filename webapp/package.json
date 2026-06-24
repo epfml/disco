@@ -5,7 +5,7 @@
   "scripts": {
     "start": "vite",
     "build": "vue-tsc --build && vite build",
-    "test": "npm run test:unit && npm run test:e2e",
+    "test": "pnpm run test:unit && pnpm run test:e2e",
     "test:unit": "vitest --run",
     "test:e2e": "VITE_SERVER_URL=http://server start-server-and-test start http://localhost:1351 'cypress run --e2e'"
   },
