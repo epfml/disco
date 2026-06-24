@@ -4,7 +4,7 @@
       "ignore": ["docs/**"]
     },
     "webapp": {
-      "ignore": ["env.d.ts", "src/shims-vue.d.ts"]
+      "ignore": ["env.d.ts"]
     }
   }
 }
