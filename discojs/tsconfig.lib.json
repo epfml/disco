@@ -1,6 +1,6 @@
 {
   "extends": "../tsconfig.base.json",
-  "compilerOptions": { "outDir": "dist" },
+  "compilerOptions": { "rootDir": "./src", "outDir": "dist" },
   "include": ["src"],
   "exclude": ["**/*.spec.ts"]
 }

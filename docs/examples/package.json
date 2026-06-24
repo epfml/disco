@@ -8,7 +8,7 @@
     "custom_task": "pnpm run build && node dist/custom_task.js",
     "language_model": "pnpm run build && node dist/wikitext.js",
     "benchmark_gpt": "pnpm run build && node dist/benchmark_gpt.js",
-    "build": "tsc",
+    "build": "tsc --build",
     "test": "pnpm run train"
   },
   "license": "ISC",

@@ -76,6 +76,4 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node
-      - run: pnpm -F server run build
-      - run: pnpm run build
-        working-directory: docs/examples
+      - run: pnpm -F examples run build
