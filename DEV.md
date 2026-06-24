@@ -159,8 +159,8 @@ Training a model with the `cli` on pre-defined tasks is straightforward:
 
 ```
 # From the root folder
-npm -w cli start -- --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration 5
-npm -w cli start -- --help # for all options
+pnpm -F cli start --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration 5
+pnpm -F cli start --help # for all options
 ```
 
 Adding CLI support for another task is described in the [CLI README](./cli/README.md).

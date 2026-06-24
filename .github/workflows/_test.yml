@@ -75,7 +75,7 @@ jobs:
       - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v7
         with: { name: all-builds }
-      - run: pnpm -F cli start -- -t cifar10 -u 3 -e 1 -r 1
+      - run: pnpm -F cli start -t cifar10 -u 3 -e 1 -r 1
 
   test-docs-examples:
     runs-on: ubuntu-latest
