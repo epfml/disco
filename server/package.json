@@ -6,7 +6,7 @@
   "exports": "./dist/index.js",
   "scripts": {
     "watch": "nodemon --ext ts --ignore dist --watch ../discojs-node/dist --watch . --exec pnpm run",
-    "start": "pnpm run build && node dist/main.js",
+    "start": "node dist/main.js",
     "build": "tsc --build",
     "test": "cd .. && vitest --run --project=server"
   },
