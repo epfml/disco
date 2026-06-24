@@ -94,9 +94,6 @@ importers:
         specifier: 2.8.1
         version: 2.8.1
     devDependencies:
-      '@tensorflow/tfjs-node':
-        specifier: 'catalog:'
-        version: 4.22.0(supports-color@8.1.1)
       nodemon:
         specifier: 3.1.14
         version: 3.1.14
@@ -122,6 +119,9 @@ importers:
         specifier: 3.1.3
         version: 3.1.3
       '@tensorflow/tfjs':
+        specifier: 'catalog:'
+        version: 4.22.0(seedrandom@3.0.5)
+      '@tensorflow/tfjs-node':
         specifier: 'catalog:'
         version: 4.22.0(seedrandom@3.0.5)
       '@xenova/transformers':
@@ -152,9 +152,6 @@ importers:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
-      '@tensorflow/tfjs-node':
-        specifier: 'catalog:'
-        version: 4.22.0(seedrandom@3.0.5)
       '@types/simple-peer':
         specifier: 9.11.9
         version: 9.11.9
@@ -247,6 +244,9 @@ importers:
       '@tensorflow/tfjs':
         specifier: 'catalog:'
         version: 4.22.0(seedrandom@3.0.5)
+      '@tensorflow/tfjs-node':
+        specifier: 'catalog:'
+        version: 4.22.0(seedrandom@3.0.5)
       immutable:
         specifier: 'catalog:'
         version: 5.1.6
@@ -254,9 +254,6 @@ importers:
         specifier: 'workspace:'
         version: link:../../server
     devDependencies:
-      '@tensorflow/tfjs-node':
-        specifier: 'catalog:'
-        version: 4.22.0(seedrandom@3.0.5)
       '@types/node':
         specifier: 22.19.15
         version: 22.19.15
@@ -269,13 +266,13 @@ importers:
       '@epfml/discojs':
         specifier: 'workspace:'
         version: link:../discojs
+      '@tensorflow/tfjs-node':
+        specifier: 'catalog:'
+        version: 4.22.0(seedrandom@3.0.5)
       immutable:
         specifier: 'catalog:'
         version: 5.1.6
     devDependencies:
-      '@tensorflow/tfjs-node':
-        specifier: 'catalog:'
-        version: 4.22.0(seedrandom@3.0.5)
       nodemon:
         specifier: 3.1.14
         version: 3.1.14
@@ -295,6 +292,9 @@ importers:
         specifier: 0.10.0
         version: 0.10.0
       '@tensorflow/tfjs':
+        specifier: 'catalog:'
+        version: 4.22.0(seedrandom@3.0.5)
+      '@tensorflow/tfjs-node':
         specifier: 'catalog:'
         version: 4.22.0(seedrandom@3.0.5)
       cors:
@@ -322,9 +322,6 @@ importers:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
-      '@tensorflow/tfjs-node':
-        specifier: 'catalog:'
-        version: 4.22.0(seedrandom@3.0.5)
       '@types/cors':
         specifier: 2.8.19
         version: 2.8.19
