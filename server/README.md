@@ -7,13 +7,13 @@ This module contains the helper server providing the APIs used by the decentrali
 To run the local server implementation of this folder run:
 
 ```
-npm -w server start # from the root level
+pnpm -F server start # from the root level
 ```
 
 Alternatively, you can start a server instance via the NPM package:
 
 ```sh
-npm i -g @epfml/disco-server
+npm i -g @epfml/disco-server # (also works with pnpm)
 disco-server
 ```
 
@@ -92,7 +92,7 @@ sudo docker run -p 8080:8080 disco-server:latest
 You can now start the `server` test suite as usual:
 
 ```sh
-npm -w server test
+pnpm -F server test
 ```
 
 > [!WARNING]

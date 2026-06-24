@@ -63,5 +63,5 @@ async function main(): Promise<void> {
   console.log(tokenizer.decode(tokens.toArray()));
 }
 
-// You can run this example with "npm start" from this folder
+// You can run this example with "pnpm start" from this folder
 main().catch(console.error);
