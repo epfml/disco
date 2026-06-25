@@ -19,7 +19,6 @@
   "homepage": "https://github.com/epfml/disco#readme",
   "dependencies": {
     "@epfml/discojs": "workspace:",
-    "@tensorflow/tfjs": "catalog:",
     "papaparse": "5.5.3"
   },
   "devDependencies": {
