@@ -72,6 +72,7 @@ nvm install # it reads `.nvmrc` to select the correct version
 ```
 
 To use pnpm, you can use corepack, which usually comes bundled with Node.js
+
 ```
 corepack enable
 corepack use pnpm
