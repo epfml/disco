@@ -41,10 +41,22 @@ export default defineConfigWithVueTs(
           ignoreRestSiblings: true,
         },
       ],
-      // allow biome formatting
-      "no-mixed-spaces-and-tabs": "off",
       // allow for nicer names
       "@typescript-eslint/no-namespace": "off",
+      // rule is buggy, might be necessary to disable it entirely
+      "@typescript-eslint/no-unnecessary-type-assertion": [
+        "error",
+        {
+          typesToIgnore: ["Model", "DataType"],
+        },
+      ],
+    },
+  },
+  {
+    files: ["webapp/**"],
+    rules: {
+      // Buggy rule in typescript-eslint 8.59 and at least until 8.62. Check if future versions fix it
+      "@typescript-eslint/no-unnecessary-type-assertion": "off",
     },
   },
   {
