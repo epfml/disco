@@ -61,7 +61,6 @@ export default defineConfigWithVueTs(
     files: ["webapp/cypress/**/*.ts"],
   },
   { ignores: ["**/dist/*"] },
-  { ignores: ["docs/examples/**"] },
   { ignores: ["**/src/protobuf/"] },
 
   // don't use linter for formatting
