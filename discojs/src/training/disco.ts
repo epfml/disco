@@ -224,7 +224,8 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
       await this.#preprocessSplitAndBatch(dataset);
 
     // the client fetches the latest weights upon connection
-    // TODO unsafe cast
+    // TODO unsafe cast, and eslint rule is buggy
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     this.trainer.model = (await this.#client.connect()) as Model<D>;
 
     for await (const [roundNum, round] of enumerate(

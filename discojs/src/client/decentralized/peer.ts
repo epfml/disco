@@ -137,7 +137,7 @@ export class Peer {
         : FIRST_HEADER_SIZE + b.length,
     );
     firstChunk.writeUint16BE(messageID);
-    firstChunk.writeUint8(0 as ChunkID, 2);
+    firstChunk.writeUint8(0, 2);
     firstChunk.writeUint8(totalChunkCount, 3);
     b.copy(
       firstChunk,
@@ -147,7 +147,7 @@ export class Peer {
     );
 
     return Seq.Indexed([firstChunk]).concat(
-      Range(1 as ChunkID, Number.POSITIVE_INFINITY)
+      Range(1, Number.POSITIVE_INFINITY)
         .zip(tail)
         .map(([id, raw]) => {
           const chunk = Buffer.alloc(HEADER_SIZE + raw.length);
