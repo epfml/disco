@@ -15,7 +15,9 @@
   "dependencies": {
     "@epfml/discojs": "workspace:",
     "@tensorflow/tfjs-node": "catalog:",
-    "immutable": "catalog:"
+    "immutable": "catalog:",
+    "long": "4.0.0",
+    "protobufjs": "6.11.6"
   },
   "devDependencies": {
     "nodemon": "3.1.14"

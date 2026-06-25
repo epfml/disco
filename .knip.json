@@ -1,10 +1,27 @@
 {
   "workspaces": {
     ".": {
-      "ignore": ["docs/**"]
+      "ignore": ["docs/**"],
+      "ignoreDependencies": ["typescript-eslint"]
     },
     "webapp": {
-      "ignore": ["env.d.ts"]
+      "ignore": ["env.d.ts"],
+      "ignoreDependencies": ["buffer"]
+    },
+    "isomorphic-wrtc": {},
+    "cli": {
+      "entry": [
+        "src/benchmark_gpt.ts",
+        "src/hellaswag_gpt.ts",
+        "src/train_gpt.ts"
+      ]
+    },
+    "onnx-converter": {
+      "entry": [
+        "src/convert_onnx.ts",
+        "src/protobuf/onnx-proto.d.ts",
+        "src/protobuf/onnx.d.ts"
+      ]
     }
   }
 }

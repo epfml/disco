@@ -68,6 +68,3 @@ export class EventEmitter<I extends Record<string, unknown>> {
     });
   }
 }
-
-/** `EventEmitter` for all events */
-export class Sink extends EventEmitter<Record<string, unknown>> {}
