@@ -55,7 +55,7 @@ git clone git@github.com:epfml/disco.git
 cd disco
 ```
 
-**2.** Install Node.js
+**2.** Install Node.js and pnpm
 
 We recommend using [nvm](https://github.com/nvm-sh/nvm) (Node Version Manager) to handle multiple Node.js versions. Start by installing `nvm` by following [their installation instructions](https://github.com/nvm-sh/nvm#installing-and-updating).
 After installation, you should be able to run
@@ -71,7 +71,15 @@ Use it to install the version we use in DISCO.
 nvm install # it reads `.nvmrc` to select the correct version
 ```
 
+To use pnpm, you can use corepack, which usually comes bundled with Node.js
+```
+corepack enable
+corepack use pnpm
+```
+
 `nvm` manages your different Node.js versions while `pnpm` handles your different Node.js project packages within one version.
+
+There are many possible way to install those programs, feel free to pick the one that suits you.
 
 **3.** Install the dependencies
 
