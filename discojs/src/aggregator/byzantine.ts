@@ -147,9 +147,7 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
       oldV.dispose();
     }
 
-    eps.dispose();
-    one.dispose();
-    radius.dispose();
+    tf.dispose([eps, one, radius]);
     // Step 3: Update history
     this.prevAggregate = v;
     return v;
