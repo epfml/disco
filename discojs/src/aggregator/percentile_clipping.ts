@@ -83,7 +83,6 @@ export class PercentileClippingAggregator extends MultiRoundAggregator {
     // Step 5: Clip weights based on tau
     // Each peer gets one scale factor based on their Frobenius norm
     const clippedWeights = centeredWeights.map((w, peerIdx) => {
-      //const scaleFactor = Math.min(1, tau / normArray[peerIdx]);
       const norm = normArray[peerIdx];
       const safeNorm = Math.max(norm, 1e-12);
 
