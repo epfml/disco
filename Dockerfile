@@ -13,8 +13,6 @@ COPY server/package.json server/
 RUN pnpm ci
 
 COPY isomorphic-wrtc/ isomorphic-wrtc/
-# Necessary for syncing workspace injected dependencies
-RUN pnpm ci
 COPY discojs/ discojs/
 COPY discojs-node/ discojs-node/
 COPY tsconfig.base.json .
@@ -35,10 +33,9 @@ COPY --link --from=builder /disco/discojs/package.json discojs/
 COPY --link --from=builder /disco/discojs-node/package.json discojs-node/
 COPY --link --from=builder /disco/server/package.json server/
 
-# We need to copy the file dependency before installing
-COPY --link --from=builder /disco/isomorphic-wrtc/ isomorphic-wrtc/
 RUN pnpm --prod ci
 
+COPY --link --from=builder /disco/isomorphic-wrtc/ isomorphic-wrtc/
 COPY --link --from=builder /disco/discojs/dist/ discojs/dist/
 COPY --link --from=builder /disco/discojs-node/dist/ discojs-node/dist/
 COPY --link --from=builder /disco/server/dist/ server/dist/
