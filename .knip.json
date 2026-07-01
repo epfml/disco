@@ -2,7 +2,7 @@
   "workspaces": {
     ".": {
       "ignore": ["docs/**"],
-      "ignoreDependencies": ["typescript-eslint"]
+      "ignoreDependencies": ["typescript-eslint", "supports-color"]
     },
     "webapp": {
       "ignore": ["env.d.ts"],
