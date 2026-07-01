@@ -28,6 +28,10 @@ catalogs:
 importers:
 
   .:
+    dependencies:
+      '@tensorflow/tfjs-node':
+        specifier: 'catalog:'
+        version: 4.22.0(seedrandom@3.0.5)(supports-color@8.1.1)
     devDependencies:
       '@types/debug':
         specifier: 4.1.13
@@ -100,8 +104,8 @@ importers:
   discojs:
     dependencies:
       '@epfml/isomorphic-wrtc':
-        specifier: file:../isomorphic-wrtc
-        version: file:isomorphic-wrtc(@roamhq/wrtc@0.10.0)
+        specifier: workspace:*
+        version: link:../isomorphic-wrtc
       '@jimp/core':
         specifier: 1.6.1
         version: 1.6.1(supports-color@8.1.1)
@@ -232,6 +236,15 @@ importers:
       typescript:
         specifier: '6'
         version: 6.0.3
+
+  isomorphic-wrtc:
+    dependencies:
+      '@roamhq/wrtc':
+        specifier: '*'
+        version: 0.10.0
+      get-browser-rtc:
+        specifier: 1.1.0
+        version: 1.1.0
 
   onnx-converter:
     dependencies:
@@ -547,11 +560,6 @@ packages:
 
   '@emnapi/wasi-threads@1.2.1':
     resolution: {integrity: sha512-uTII7OYF+/Mes/MrcIOYp5yOtSMLBWSIoLPpcgwipoiKbli6k322tcoFsxoIIxPDqW01SQGAgko4EzZi2BNv2w==}
-
-  '@epfml/isomorphic-wrtc@file:isomorphic-wrtc':
-    resolution: {directory: isomorphic-wrtc, type: directory}
-    peerDependencies:
-      '@roamhq/wrtc': '*'
 
   '@eslint-community/eslint-utils@4.9.1':
     resolution: {integrity: sha512-phrYmNiYppR7znFEdqgfWHXR6NCkZEK7hwWDHZUjit/2/U0r6XvkDl0SYnoM51Hq7FhCGdLDT6zxCCOY1hexsQ==}
@@ -4722,11 +4730,6 @@ snapshots:
     dependencies:
       tslib: 2.8.1
     optional: true
-
-  '@epfml/isomorphic-wrtc@file:isomorphic-wrtc(@roamhq/wrtc@0.10.0)':
-    dependencies:
-      '@roamhq/wrtc': 0.10.0
-      get-browser-rtc: 1.1.0
 
   '@eslint-community/eslint-utils@4.9.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))':
     dependencies:

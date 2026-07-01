@@ -6,6 +6,7 @@ packages:
   - "onnx-converter"
   - "server"
   - "webapp"
+  - "isomorphic-wrtc"
   - "docs/examples"
 
 catalog:
