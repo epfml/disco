@@ -19,12 +19,10 @@
     "@epfml/discojs-node": "workspace:",
     "@tensorflow/tfjs-node": "catalog:",
     "immutable": "catalog:",
-    "server": "workspace:",
-    "tslib": "2.8.1"
+    "server": "workspace:"
   },
   "devDependencies": {
     "nodemon": "3.1.14",
-    "ts-command-line-args": "2.5.1",
-    "vitest": "catalog:"
+    "ts-command-line-args": "2.5.1"
   }
 }

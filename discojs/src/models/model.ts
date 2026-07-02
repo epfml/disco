@@ -43,8 +43,8 @@ export abstract class Model<D extends DataType> implements Disposable {
    * Return validation metrics
    */
   abstract evaluate(
-    _validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>
-  ): Promise<ValidationMetrics>
+    _validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+  ): Promise<ValidationMetrics>;
 
   /**
    * This method is automatically called to cleanup the memory occupied by the model

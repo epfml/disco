@@ -13,6 +13,9 @@
     "lint": ": nothing",
     "test": ": nothing"
   },
+  "dependencies": {
+    "get-browser-rtc": "1.1.0"
+  },
   "peerDependencies": {
     "@roamhq/wrtc": "*"
   }
