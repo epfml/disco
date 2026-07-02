@@ -7,7 +7,6 @@ import {
   addOptimalNoise,
   getClippingRadius,
 } from "./privacy.js";
-import { WeightNormHistory } from "./training/trainer.js";
 import * as tf from "@tensorflow/tfjs";
 import { List } from "immutable";
 
@@ -79,17 +78,13 @@ describe("getClippingRadius", () => {
       List([10]),
     ]);
 
-    expect(
-      getClippingRadius(weightNormHistory as WeightNormHistory, 5),
-    ).toEqual([4, 5]);
+    expect(getClippingRadius(weightNormHistory, 5)).toEqual([4, 5]);
   });
 
   it("uses smaller window size automatically if needed", () => {
     const weightNormHistory = List([List([2, 4])]);
 
     // Automatically use window size of 2 instead of 10
-    expect(
-      getClippingRadius(weightNormHistory as WeightNormHistory, 10),
-    ).toEqual([3]);
+    expect(getClippingRadius(weightNormHistory, 10)).toEqual([3]);
   });
 });
