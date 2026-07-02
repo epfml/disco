@@ -46,8 +46,8 @@ importers:
         specifier: 10.2.0
         version: 10.2.0(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(prettier@3.6.2)
       '@vue/eslint-config-typescript':
-        specifier: 14.7.0
-        version: 14.7.0(eslint-plugin-vue@10.8.0(@typescript-eslint/parser@8.62.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(typescript@6.0.3))(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(vue-eslint-parser@10.4.0(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))))(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(typescript@6.0.3)
+        specifier: 14.9.0
+        version: 14.9.0(eslint-plugin-vue@10.8.0(@typescript-eslint/parser@8.62.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(typescript@6.0.3))(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(vue-eslint-parser@10.4.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))))(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(typescript@6.0.3)
       eslint:
         specifier: 10.0.3
         version: 10.0.3(jiti@2.7.0)(supports-color@8.1.1)
@@ -56,7 +56,7 @@ importers:
         version: 6.2.0(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))
       eslint-plugin-vue:
         specifier: 10.8.0
-        version: 10.8.0(@typescript-eslint/parser@8.62.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(typescript@6.0.3))(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(vue-eslint-parser@10.4.0(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1)))
+        version: 10.8.0(@typescript-eslint/parser@8.62.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(typescript@6.0.3))(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(vue-eslint-parser@10.4.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1)))
       knip:
         specifier: 6.17.1
         version: 6.17.1
@@ -1846,9 +1846,10 @@ packages:
       eslint: '>= 8.21.0'
       prettier: '>= 3.0.0'
 
-  '@vue/eslint-config-typescript@14.7.0':
-    resolution: {integrity: sha512-iegbMINVc+seZ/QxtzWiOBozctrHiF2WvGedruu2EbLujg9VuU0FQiNcN2z1ycuaoKKpF4m2qzB5HDEMKbxtIg==}
+  '@vue/eslint-config-typescript@14.9.0':
+    resolution: {integrity: sha512-E3j9hDlfVf10F30MRcLTPY2IIhWIx1nsvkVukk14kTcuA+oBVot9zsP1hzsO+PAMDxV3Fd9FimBJtUBNBL5KFA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    hasBin: true
     peerDependencies:
       eslint: ^9.10.0 || ^10.0.0
       eslint-plugin-vue: ^9.28.0 || ^10.0.0
@@ -2808,8 +2809,8 @@ packages:
   fast-levenshtein@2.0.6:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
 
-  fastq@1.19.1:
-    resolution: {integrity: sha512-GwLTyxkCXjXbxqIhTsMI2Nui8huMPtnxg7krajPJAjnEG/iiOS7i+zCtWGZR9G0NBKbXKh6X9m9UIsYX/N6vvQ==}
+  fastq@1.20.1:
+    resolution: {integrity: sha512-GGToxJ/w1x32s/D2EKND7kTil4n8OVk/9mycTc4VDza13lOvpUZTGX3mFSCtV9ksdGBVzvsyAVLM6mHFThxXxw==}
 
   fd-package-json@2.0.0:
     resolution: {integrity: sha512-jKmm9YtsNXN789RS/0mSzOC1NUq9mkVd65vbSSVsKdjGvYXBuE4oWe2QOEoFeRmJg+lPuZxpmrfFclNhoRMneQ==}
@@ -4467,8 +4468,8 @@ packages:
   vue-component-type-helpers@2.2.12:
     resolution: {integrity: sha512-YbGqHZ5/eW4SnkPNR44mKVc6ZKQoRs/Rux1sxC6rdwXb4qpbOSYfDr9DsTHolOTGmIKgM9j141mZbBeg05R1pw==}
 
-  vue-eslint-parser@10.4.0:
-    resolution: {integrity: sha512-Vxi9pJdbN3ZnVGLODVtZ7y4Y2kzAAE2Cm0CZ3ZDRvydVYxZ6VrnBhLikBsRS+dpwj4Jv4UCv21PTEwF5rQ9WXg==}
+  vue-eslint-parser@10.4.1:
+    resolution: {integrity: sha512-Gk6gRDj0n/fkRa3C3l0bBheoBckUq/Rs0F/TvMWIS6nzzx67amAViMe9CkNgsP2tXyQONvGiHQESHwFtZ3aYDA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
@@ -5078,7 +5079,7 @@ snapshots:
   '@nodelib/fs.walk@1.2.8':
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
-      fastq: 1.19.1
+      fastq: 1.20.1
 
   '@one-ini/wasm@0.1.1': {}
 
@@ -6058,14 +6059,14 @@ snapshots:
     transitivePeerDependencies:
       - '@types/eslint'
 
-  '@vue/eslint-config-typescript@14.7.0(eslint-plugin-vue@10.8.0(@typescript-eslint/parser@8.62.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(typescript@6.0.3))(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(vue-eslint-parser@10.4.0(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))))(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(typescript@6.0.3)':
+  '@vue/eslint-config-typescript@14.9.0(eslint-plugin-vue@10.8.0(@typescript-eslint/parser@8.62.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(typescript@6.0.3))(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(vue-eslint-parser@10.4.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))))(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(typescript@6.0.3)':
     dependencies:
-      '@typescript-eslint/utils': 8.58.0(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3)
+      '@typescript-eslint/utils': 8.62.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(typescript@6.0.3)
       eslint: 10.0.3(jiti@2.7.0)(supports-color@8.1.1)
-      eslint-plugin-vue: 10.8.0(@typescript-eslint/parser@8.62.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(typescript@6.0.3))(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(vue-eslint-parser@10.4.0(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1)))
+      eslint-plugin-vue: 10.8.0(@typescript-eslint/parser@8.62.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(typescript@6.0.3))(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(vue-eslint-parser@10.4.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1)))
       fast-glob: 3.3.3
       typescript-eslint: 8.62.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(typescript@6.0.3)
-      vue-eslint-parser: 10.4.0(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))
+      vue-eslint-parser: 10.4.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))
     optionalDependencies:
       typescript: 6.0.3
     transitivePeerDependencies:
@@ -6901,7 +6902,7 @@ snapshots:
     optionalDependencies:
       eslint-config-prettier: 10.1.8(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))
 
-  eslint-plugin-vue@10.8.0(@typescript-eslint/parser@8.62.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(typescript@6.0.3))(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(vue-eslint-parser@10.4.0(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))):
+  eslint-plugin-vue@10.8.0(@typescript-eslint/parser@8.62.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(typescript@6.0.3))(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(vue-eslint-parser@10.4.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))):
     dependencies:
       '@eslint-community/eslint-utils': 4.9.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))
       eslint: 10.0.3(jiti@2.7.0)(supports-color@8.1.1)
@@ -6909,7 +6910,7 @@ snapshots:
       nth-check: 2.1.1
       postcss-selector-parser: 7.1.1
       semver: 7.7.3
-      vue-eslint-parser: 10.4.0(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))
+      vue-eslint-parser: 10.4.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))
       xml-name-validator: 4.0.0
     optionalDependencies:
       '@typescript-eslint/parser': 8.62.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1))(typescript@6.0.3)
@@ -7097,7 +7098,7 @@ snapshots:
 
   fast-levenshtein@2.0.6: {}
 
-  fastq@1.19.1:
+  fastq@1.20.1:
     dependencies:
       reusify: 1.1.0
 
@@ -8777,7 +8778,7 @@ snapshots:
 
   vue-component-type-helpers@2.2.12: {}
 
-  vue-eslint-parser@10.4.0(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1)):
+  vue-eslint-parser@10.4.1(eslint@10.0.3(jiti@2.7.0)(supports-color@8.1.1)):
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       eslint: 10.0.3(jiti@2.7.0)(supports-color@8.1.1)
