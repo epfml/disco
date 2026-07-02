@@ -13,6 +13,8 @@ COPY server/package.json server/
 RUN pnpm ci
 
 COPY isomorphic-wrtc/ isomorphic-wrtc/
+# Necessary for syncing workspace injected dependencies
+RUN pnpm ci
 COPY discojs/ discojs/
 COPY discojs-node/ discojs-node/
 COPY tsconfig.base.json .

@@ -1,5 +1,4 @@
 # Prettier also ignores everything from .gitignore
-package-lock.json
 pnpm-lock.yaml
 
 # File formats that are not filtered by default
