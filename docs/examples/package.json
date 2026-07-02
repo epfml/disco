@@ -19,9 +19,5 @@
     "@tensorflow/tfjs-node": "catalog:",
     "immutable": "catalog:",
     "server": "workspace:"
-  },
-  "devDependencies": {
-    "@types/node": "22.19.15",
-    "typescript": "6"
   }
 }
