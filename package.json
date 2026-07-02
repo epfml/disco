@@ -6,9 +6,6 @@
     "format:check": "prettier -c .",
     "format:fix": "prettier -w ."
   },
-  "dependencies": {
-    "@tensorflow/tfjs-node": "catalog:"
-  },
   "devDependencies": {
     "@types/debug": "4.1.13",
     "@types/node": "22.19.15",
