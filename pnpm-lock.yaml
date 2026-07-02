@@ -31,7 +31,7 @@ importers:
     dependencies:
       '@tensorflow/tfjs-node':
         specifier: 'catalog:'
-        version: 4.22.0(seedrandom@3.0.5)
+        version: 4.22.0(supports-color@8.1.1)
     devDependencies:
       '@types/debug':
         specifier: 4.1.13
@@ -4347,6 +4347,11 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
+  typescript@6.0.3:
+    resolution: {integrity: sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
   typical@4.0.0:
     resolution: {integrity: sha512-VAH4IvQ7BDFYglMd7BPRDfLgxZZX4O4TFcRDA6EN5X7erNJJq+McIEp8np9aVtxrCJ6qx4GTYVfOWNjcqwZgRw==}
     engines: {node: '>=8'}
@@ -5088,10 +5093,10 @@ snapshots:
 
   '@kurkle/color@0.3.4': {}
 
-  '@mapbox/node-pre-gyp@1.0.9':
+  '@mapbox/node-pre-gyp@1.0.9(supports-color@8.1.1)':
     dependencies:
       detect-libc: 2.1.2
-      https-proxy-agent: 5.0.1
+      https-proxy-agent: 5.0.1(supports-color@8.1.1)
       make-dir: 3.1.0
       node-fetch: 2.7.0
       nopt: 5.0.0
@@ -5486,11 +5491,26 @@ snapshots:
 
   '@tensorflow/tfjs-node@4.22.0(seedrandom@3.0.5)':
     dependencies:
-      '@mapbox/node-pre-gyp': 1.0.9
+      '@mapbox/node-pre-gyp': 1.0.9(supports-color@8.1.1)
       '@tensorflow/tfjs': 4.22.0(seedrandom@3.0.5)
       adm-zip: 0.5.17
       google-protobuf: 3.21.4
-      https-proxy-agent: 2.2.4
+      https-proxy-agent: 2.2.4(supports-color@8.1.1)
+      progress: 2.0.3
+      rimraf: 2.7.1
+      tar: 6.2.1
+    transitivePeerDependencies:
+      - encoding
+      - seedrandom
+      - supports-color
+
+  '@tensorflow/tfjs-node@4.22.0(supports-color@8.1.1)':
+    dependencies:
+      '@mapbox/node-pre-gyp': 1.0.9(supports-color@8.1.1)
+      '@tensorflow/tfjs': 4.22.0(seedrandom@3.0.5)
+      adm-zip: 0.5.17
+      google-protobuf: 3.21.4
+      https-proxy-agent: 2.2.4(supports-color@8.1.1)
       progress: 2.0.3
       rimraf: 2.7.1
       tar: 6.2.1
@@ -6191,7 +6211,7 @@ snapshots:
     dependencies:
       es6-promisify: 5.0.0
 
-  agent-base@6.0.2:
+  agent-base@6.0.2(supports-color@8.1.1):
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
@@ -6283,7 +6303,7 @@ snapshots:
     dependencies:
       follow-redirects: 1.16.0(debug@4.4.3(supports-color@8.1.1))
       form-data: 4.0.6
-      https-proxy-agent: 5.0.1
+      https-proxy-agent: 5.0.1(supports-color@8.1.1)
       proxy-from-env: 2.1.0
     transitivePeerDependencies:
       - debug
@@ -7382,16 +7402,16 @@ snapshots:
       jsprim: 2.0.2
       sshpk: 1.18.0
 
-  https-proxy-agent@2.2.4:
+  https-proxy-agent@2.2.4(supports-color@8.1.1):
     dependencies:
       agent-base: 4.3.0
       debug: 3.2.7(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
-  https-proxy-agent@5.0.1:
+  https-proxy-agent@5.0.1(supports-color@8.1.1):
     dependencies:
-      agent-base: 6.0.2
+      agent-base: 6.0.2(supports-color@8.1.1)
       debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
@@ -8726,6 +8746,8 @@ snapshots:
       - supports-color
 
   typescript@5.9.3: {}
+
+  typescript@6.0.3: {}
 
   typical@4.0.0: {}
 
