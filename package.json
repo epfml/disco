@@ -14,7 +14,7 @@
     "@types/node": "22.19.15",
     "@vitest/eslint-plugin": "1.6.12",
     "@vue/eslint-config-prettier": "10.2.0",
-    "@vue/eslint-config-typescript": "14.7.0",
+    "@vue/eslint-config-typescript": "14.9.0",
     "eslint": "10.0.3",
     "eslint-plugin-cypress": "6.2.0",
     "eslint-plugin-vue": "10.8.0",
@@ -22,7 +22,7 @@
     "prettier": "3.6.2",
     "supports-color": "8.1.1",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.62.0",
+    "typescript-eslint": "8.62.1",
     "vitest": "catalog:"
   },
   "packageManager": "pnpm@11.8.0+sha512.c1f5e7c4cb241c8f174b743851d82f42b802324afc8b0f116b96adb15aa06664948dde36960a3ba1079ba5b4b29dd0140135b94b5b5f5263592249d68e555f26"
