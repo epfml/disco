@@ -28,10 +28,6 @@ catalogs:
 importers:
 
   .:
-    dependencies:
-      '@tensorflow/tfjs-node':
-        specifier: 'catalog:'
-        version: 4.22.0(supports-color@8.1.1)
     devDependencies:
       '@types/debug':
         specifier: 4.1.13
@@ -83,7 +79,7 @@ importers:
         version: link:../discojs-node
       '@tensorflow/tfjs-node':
         specifier: 'catalog:'
-        version: 4.22.0(seedrandom@3.0.5)
+        version: 4.22.0(supports-color@8.1.1)
       immutable:
         specifier: 'catalog:'
         version: 5.1.6
@@ -253,13 +249,6 @@ importers:
       server:
         specifier: 'workspace:'
         version: link:../../server
-    devDependencies:
-      '@types/node':
-        specifier: 22.19.15
-        version: 22.19.15
-      typescript:
-        specifier: '6'
-        version: 6.0.3
 
   onnx-converter:
     dependencies:
@@ -4314,11 +4303,6 @@ packages:
 
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
-    engines: {node: '>=14.17'}
-    hasBin: true
-
-  typescript@6.0.3:
-    resolution: {integrity: sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -8665,8 +8649,6 @@ snapshots:
       - supports-color
 
   typescript@5.9.3: {}
-
-  typescript@6.0.3: {}
 
   typical@4.0.0: {}
 
