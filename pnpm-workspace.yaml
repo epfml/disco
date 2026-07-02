@@ -1,0 +1,31 @@
+packages:
+  - "cli"
+  - "discojs"
+  - "discojs-node"
+  - "discojs-web"
+  - "onnx-converter"
+  - "server"
+  - "webapp"
+  - "docs/examples"
+
+syncInjectedDepsAfterScripts:
+  - build
+
+catalog:
+  "debug": "4.4.3"
+  "immutable": "5.1.6"
+  "vitest": "4.1.9"
+  "zod": "4.3.6"
+  "@tensorflow/tfjs": "4.22.0"
+  "@tensorflow/tfjs-node": "4.22.0"
+
+allowBuilds:
+  "@koush/wrtc": true
+  "@tensorflow/tfjs-node": true
+  canvas: true
+  core-js: true
+  cypress: true
+  node-datachannel: true
+  protobufjs: true
+  sharp: true
+  wrtc: true

@@ -1,5 +1,7 @@
 # dependencies
 /node_modules/
+/docs/examples/node_modules/
+/*/node_modules/
 
 # stored trained models
 models/

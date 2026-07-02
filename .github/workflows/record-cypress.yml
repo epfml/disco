@@ -19,13 +19,13 @@ jobs:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/pull-dataset-artifacts
-      - run: npm --workspace=webapp run build
-      - run: npm --workspace=webapp run test:unit
+      - run: pnpm -F webapp run build
+      - run: pnpm -F webapp run test:unit
       - uses: cypress-io/github-action@v7
         with:
           working-directory: webapp
           install: false
-          start: npm start
+          start: pnpm start
           wait-on: "http://localhost:8081" # Waits for above
           # Records to Cypress Cloud
           # https://docs.cypress.io/guides/cloud/projects#Set-up-a-project-to-record

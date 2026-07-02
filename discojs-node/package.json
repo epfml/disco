@@ -5,7 +5,7 @@
   "exports": "./dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "watch": "nodemon --ext ts --ignore dist --watch ../discojs/dist --watch . --exec npm run",
+    "watch": "nodemon --ext ts --ignore dist --watch ../discojs/dist --watch . --exec pnpm run",
     "build": "tsc --build",
     "test": "cd .. && vitest --run --project=discojs-node"
   },
@@ -18,16 +18,20 @@
   },
   "homepage": "https://github.com/epfml/disco#readme",
   "dependencies": {
-    "@epfml/discojs": "*",
-    "@roamhq/wrtc": "0.10",
-    "@tensorflow/tfjs-node": "4",
-    "csv-parse": "6",
-    "sharp": "0.34"
+    "@epfml/discojs": "workspace:",
+    "@roamhq/wrtc": "0.10.0",
+    "@tensorflow/tfjs-node": "catalog:",
+    "csv-parse": "6.2.0",
+    "debug": "catalog:",
+    "node-fetch": "2.7.0",
+    "sharp": "0.34.5"
   },
   "devDependencies": {
-    "@types/node": "22",
-    "nodemon": "3",
-    "tmp-promise": "3",
-    "ts-node": "10"
+    "@types/node": "22.19.15",
+    "@types/node-fetch": "2.6.13",
+    "nodemon": "3.1.14",
+    "tmp-promise": "3.0.3",
+    "ts-node": "10.9.2",
+    "vitest": "catalog:"
   }
 }

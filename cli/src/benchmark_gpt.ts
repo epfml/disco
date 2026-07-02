@@ -183,5 +183,5 @@ async function main(args: Required<CLIArguments>): Promise<void> {
   });
 }
 
-// You can run this example with "npm start" from this folder
+// You can run this example with "pnpm start" from this folder
 main(args).catch(console.error);

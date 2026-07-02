@@ -1,3 +1,4 @@
+import "./buffer-polyfill";
 import createDebug from "debug";
 import { createApp } from "vue";
 import { createPinia } from "pinia";

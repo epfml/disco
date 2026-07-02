@@ -9,21 +9,21 @@ For example, the following command trains a model on CIFAR10, using 4 federated 
 
 ```
 # From the root folder
-npm -w cli start -- --testID test1 --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration 5
+pnpm -F cli start --testID test1 --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration 5
 # Or from the cli folder directly
-npm start -- --testID test1 --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration 5
+pnpm start --testID test1 --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration 5
 ```
 
 or using the shorter alias notation:
 
 ```
-npm -w cli start -- -i test1 -t cifar10 -u 4 -e 15 -r 5
+pnpm -F cli start -i test1 -t cifar10 -u 4 -e 15 -r 5
 ```
 
 You can find all the command arguments with:
 
 ```
-npm -w cli start -- --help # or -h
+pnpm -F cli start --help # or -h
 ```
 
 ## Command arguments
@@ -67,7 +67,7 @@ The last thing to add is to add the task as a CLI argument in [args.ts](./src/ar
 You should now be able to run your task as follows:
 
 ```
-npm -w cli start -- --task your_task --numberOfUsers 4 --epochs 15 --roundDuration 5
+pnpm -F cli start --task your_task --numberOfUsers 4 --epochs 15 --roundDuration 5
 ```
 
 ## Benchmarking GPT-TF.js
@@ -76,17 +76,17 @@ The CLI also allows benchmarking the time and memory requirements of the gpt-tfj
 
 In a few words, gpt-tfjs is 3 times slower than python during training; the memory requirements are the bottleneck: training gpt2 with batch size 8 and context length 256 requires 12GB, while gpt-nano (2.5M parameters) with batch size 8 and a context length of 2048 already requires 10GB. Choosing a batch size of 8 and context length of 512 on gpt-nano are sensible values. See the [PR description](https://github.com/epfml/disco/pull/659) for more details.
 
-CLI options can be listed with `npm -w cli run benchmark_gpt -- -h`.
+CLI options can be listed with `pnpm -F cli run benchmark_gpt -h`.
 
-To benchmark model training, you can run `npm -w cli run benchmark_gpt -- --modelType gpt-nano --contextLength 128 --batchSize 8`.
+To benchmark model training, you can run `pnpm -F cli run benchmark_gpt --modelType gpt-nano --contextLength 128 --batchSize 8`.
 
-For inference run `npm -w cli run benchmark_gpt -- --inference --modelPath <path to trained model json file>`. You can use the `docs/example/wikitext` example script to train a model. The model needs to be trained on the wikitext default task to ensure that model parameters such as vocab size, tokenizer, max sequence length are the same between training and inference.
+For inference run `pnpm -F cli run benchmark_gpt --inference --modelPath <path to trained model json file>`. You can use the `docs/example/wikitext` example script to train a model. The model needs to be trained on the wikitext default task to ensure that model parameters such as vocab size, tokenizer, max sequence length are the same between training and inference.
 
 ## Evaluating GPT Models on HellaSwag
 
 The CLI includes a script to evaluate GPT models on the [HellaSwag](https://rowanzellers.com/hellaswag/) dataset, a common benchmark for evaluating commonsense reasoning in language models.
 
-To run the evaluation: `npm -w cli run hellaswag_gpt`
+To run the evaluation: `pnpm -F cli run hellaswag_gpt`
 
 The script benchmarks the following models:
 

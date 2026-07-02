@@ -15,7 +15,7 @@ You can run the training example as follows:
 
 ```
 cd docs/example
-npm run train # compiles TypeScript and runs training.ts
+pnpm run train # compiles TypeScript and runs training.ts
 ```
 
 As you can see in `training.ts` a client is represented by a `Disco` object:
@@ -42,7 +42,7 @@ You can run the custom task example with:
 
 ```
 cd docs/examples
-npm run custom_task # compiles TypeScript and runs custom_task.ts
+pnpm run custom_task # compiles TypeScript and runs custom_task.ts
 ```
 
 ### Creating a CSV file to connect a dataset in DISCO

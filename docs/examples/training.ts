@@ -100,5 +100,5 @@ async function loadSimpleFaceData(): Promise<Dataset<[Image, string]>> {
   return adults.chain(childs);
 }
 
-// You can run this example with "npm run train" from this folder
+// You can run this example with "pnpm run train" from this folder
 main().catch(console.error);

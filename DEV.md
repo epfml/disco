@@ -55,7 +55,7 @@ git clone git@github.com:epfml/disco.git
 cd disco
 ```
 
-**2.** Install Node.js
+**2.** Install Node.js and pnpm
 
 We recommend using [nvm](https://github.com/nvm-sh/nvm) (Node Version Manager) to handle multiple Node.js versions. Start by installing `nvm` by following [their installation instructions](https://github.com/nvm-sh/nvm#installing-and-updating).
 After installation, you should be able to run
@@ -71,12 +71,21 @@ Use it to install the version we use in DISCO.
 nvm install # it reads `.nvmrc` to select the correct version
 ```
 
-`nvm` manages your different Node.js versions while `npm` handles your different Node.js project packages within one version.
+To use pnpm, you can use corepack, which usually comes bundled with Node.js
+
+```
+corepack enable
+corepack use pnpm
+```
+
+`nvm` manages your different Node.js versions while `pnpm` handles your different Node.js project packages within one version.
+
+There are many possible way to install those programs, feel free to pick the one that suits you.
 
 **3.** Install the dependencies
 
 ```
-npm ci
+pnpm ci
 ```
 
 **4.** Build the projects
@@ -84,11 +93,11 @@ npm ci
 Then we need to build the packages, which means to compile TypeScript into JavaScript.
 
 Disco is split in multiple packages, called workspaces in NPM, which are described in the [Structure Section](#structure).
-You can add `--workspaces` (or shorter as `-ws`) to many `npm` commands to act on all packages.
-Or you can select a specific workspace via `--workspace=$name-or-path-to-package` (`-w $name-or-path-to-package`).
+You can add `-r` to many `pnpm` commands to act on all packages.
+Or you can select a specific workspace via `--filter=$name-or-path-to-package` (`-F $name-or-path-to-package`).
 
 ```
-npm -ws run build
+pnpm -r run build
 ```
 
 **5.** Download and extract the sample training datasets. These datasets are used in the automated tests.
@@ -104,7 +113,7 @@ As you may have seen, there are many ways to use DISCO. Here we will run a serve
 - First launch a `server` instance, which is used for federated and decentralized learning tasks, e.g. to list peers participating in a decentralized task.
 
 ```
-npm -w server start
+pnpm -F server start
 ```
 
 The server should be listening on `http://localhost:8080/`.
@@ -112,7 +121,7 @@ The server should be listening on `http://localhost:8080/`.
 - Secondly, start a web client, which will allow you to use DISCO from your browser. You will have to do so **from another terminal** since the previous one is now used by the server.
 
 ```
-npm -w webapp start # from another terminal
+pnpm -F webapp start # from another terminal
 ```
 
 The web client should be running on `http://localhost:1351`, if not first restart the server and then the web client.
@@ -136,7 +145,7 @@ The last step of the installation instructions describe how to start a web inter
 From the root level, launch a `server` instance:
 
 ```
-npm -w server start
+pnpm -F server start
 ```
 
 The server should be listening on `http://localhost:8080/`.
@@ -144,7 +153,7 @@ The server should be listening on `http://localhost:8080/`.
 Start the webapp:
 
 ```
-npm -w webapp start # from another terminal
+pnpm -F webapp start # from another terminal
 ```
 
 The web client should be running on `http://localhost:8081`. Running the last command should also output a Network address at which devices on the same network can access the UI. You can find more information in the [Contributing to the `webapp`](./docs/CONTRIBUTING.md#contributing-to-webapp) Section as well as the [server README](./server/README.md).
@@ -159,8 +168,8 @@ Training a model with the `cli` on pre-defined tasks is straightforward:
 
 ```
 # From the root folder
-npm -w cli start -- --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration 5
-npm -w cli start -- --help # for all options
+pnpm -F cli start --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration 5
+pnpm -F cli start --help # for all options
 ```
 
 Adding CLI support for another task is described in the [CLI README](./cli/README.md).
