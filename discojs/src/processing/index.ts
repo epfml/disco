@@ -108,26 +108,18 @@ export function postprocess<D extends DataType>(
 ): DataFormat.Inferred[D] {
   switch (task.dataType) {
     case "image": {
-      // cast as typescript doesn't reduce generic type
-      const index = encoded;
       const labels = List(task.trainingInformation.LABEL_LIST);
 
-      const v = labels.get(index);
+      const v = labels.get(encoded);
       if (v === undefined) throw new Error("index not found in labels");
       return v as DataFormat.Inferred[D];
     }
     case "tabular": {
-      // cast as typescript doesn't reduce generic type
-      const v = encoded;
-
-      return v as DataFormat.Inferred[D];
+      return encoded as DataFormat.Inferred[D];
     }
     case "text": {
-      // cast as typescript doesn't reduce generic type
-      const token = encoded;
-
       return task.trainingInformation.tokenizer.decode([
-        token,
+        encoded,
       ]) as DataFormat.Inferred[D];
     }
   }
