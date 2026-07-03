@@ -188,6 +188,7 @@ As there are many guides in the project, here is a table of contents referencing
   - [Privacy in DISCO](./docs/PRIVACY.md)
   - [Vue.js in DISCO](./docs/VUEJS.md)
   - [FAQ](./docs/FAQ.md)
+  - [Notes about tooling](./docs/TOOLING.md)
 - `README` files contain information relevant to their respective module:
   - [`server` README](./server/README.md), with API and deployment information
   - [`cli` README](./cli/README.md)
