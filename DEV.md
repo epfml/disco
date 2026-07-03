@@ -71,15 +71,7 @@ Use it to install the version we use in DISCO.
 nvm install # it reads `.nvmrc` to select the correct version
 ```
 
-To use pnpm, you can either use their install script, or install it through npm.
-
-```
-curl -fsSL https://get.pnpm.io/install.sh | sh -
-```
-
-```
-npm i -g pnpm
-```
+To use pnpm, you can follow their [installation instructions](https://pnpm.io/installation)
 
 `nvm` manages your different Node.js versions while `pnpm` handles your different Node.js project packages within one version.
 
