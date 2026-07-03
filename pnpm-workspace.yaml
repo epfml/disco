@@ -6,10 +6,8 @@ packages:
   - "onnx-converter"
   - "server"
   - "webapp"
+  - "isomorphic-wrtc"
   - "docs/examples"
-
-syncInjectedDepsAfterScripts:
-  - build
 
 catalog:
   "debug": "4.4.3"

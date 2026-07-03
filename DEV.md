@@ -71,12 +71,7 @@ Use it to install the version we use in DISCO.
 nvm install # it reads `.nvmrc` to select the correct version
 ```
 
-To use pnpm, you can use corepack, which usually comes bundled with Node.js
-
-```
-corepack enable
-corepack use pnpm
-```
+To use pnpm, you can follow their [installation instructions](https://pnpm.io/installation)
 
 `nvm` manages your different Node.js versions while `pnpm` handles your different Node.js project packages within one version.
 
@@ -193,6 +188,7 @@ As there are many guides in the project, here is a table of contents referencing
   - [Privacy in DISCO](./docs/PRIVACY.md)
   - [Vue.js in DISCO](./docs/VUEJS.md)
   - [FAQ](./docs/FAQ.md)
+  - [Notes about tooling](./docs/TOOLING.md)
 - `README` files contain information relevant to their respective module:
   - [`server` README](./server/README.md), with API and deployment information
   - [`cli` README](./cli/README.md)

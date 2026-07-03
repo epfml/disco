@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/epfml/disco#readme",
   "dependencies": {
-    "@epfml/isomorphic-wrtc": "file:../isomorphic-wrtc",
+    "@epfml/isomorphic-wrtc": "workspace:*",
     "@jimp/core": "1.6.1",
     "@jimp/plugin-resize": "1.6.1",
     "@msgpack/msgpack": "3.1.3",
