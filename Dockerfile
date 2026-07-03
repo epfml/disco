@@ -1,8 +1,7 @@
 # TODO freeze to 22 until tfjs#8425 is merged
 FROM node:22 AS builder
 
-# pnpm install (https://pnpm.io/installation#in-a-docker-container)
-RUN wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.bashrc" SHELL="$(which bash)" bash -
+RUN npm i -g pnpm
 
 WORKDIR /disco
 
@@ -28,7 +27,7 @@ FROM node:22-slim AS runner
 
 WORKDIR /disco
 
-RUN wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.bashrc" SHELL="$(which bash)" bash -
+RUN npm i -g pnpm
 
 COPY --link --from=builder /disco/package.json /disco/pnpm*.yaml /disco/
 COPY --link --from=builder /disco/isomorphic-wrtc/package.json isomorphic-wrtc/
