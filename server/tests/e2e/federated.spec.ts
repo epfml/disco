@@ -9,7 +9,7 @@ import type {
 	TaskProvider,
 	WeightsContainer,
 } from "@epfml/discojs";
-import { Disco, defaultTasks } from "@epfml/discojs";
+import { Disco, defaultTasks, models } from "@epfml/discojs";
 import { List } from "immutable";
 import { assert, afterEach, describe, expect, it } from "vitest";
 import { Server } from "../../src/index.js";
@@ -161,6 +161,11 @@ describe("end-to-end federated", () => {
 		};
 		const url = await startServer({
 			...defaultTasks.wikitext,
+			getModel: () =>
+				Promise.resolve(new models.GPT({
+					contextLength: task.trainingInformation.contextLength,
+					maxIter: 10,
+				})),
 			getTask: () => Promise.resolve(task),
 		});
 		const dataset = datasets.loadWikitext();
@@ -353,4 +358,3 @@ describe("end-to-end federated", () => {
 		assert.isTrue(m1.equals(m2) && m2.equals(m3));
 	})
 });
-
