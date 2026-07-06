@@ -103,11 +103,7 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
 
       debug("GPT model weights decoded, deserializing model... CONFIG MIGHT BE WRONG")
       debug("GPT model config: %O", config || "undefined, using default config")
-      try {
-        return models.GPT.deserialize({weights, config})
-      } finally {
-        weights.dispose()
-      }
+      return models.GPT.deserialize({weights, config})
     }
     default:
       throw new Error('invalid encoding, model type unrecognized')

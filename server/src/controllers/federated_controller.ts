@@ -57,14 +57,15 @@ export class FederatedController<D extends DataType> extends TrainingController<
 
     aggregator.on('aggregation', async (weightUpdate) => {
       try {
+        const recipients = this.#pendingUpdateRecipients
+        this.#pendingUpdateRecipients = new Map()
+
         debugProcessMemory(`round ${aggregator.round} before encoding aggregate`)
         const payload = await serialization.weights.encode(weightUpdate)
         debugProcessMemory(`round ${aggregator.round} after encoding aggregate`)
         debug("round %o aggregate payload byteLength=%d", aggregator.round, payload.byteLength)
         this.#latestGlobalWeights = payload
 
-        const recipients = this.#pendingUpdateRecipients
-        this.#pendingUpdateRecipients = new Map()
         const msg: FederatedMessages.ReceiveServerPayload = {
           type: MessageTypes.ReceiveServerPayload,
           round: aggregator.round,

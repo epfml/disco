@@ -335,7 +335,6 @@ export class Trainer<D extends DataType, N extends Network> {
 
       const networkWeights = await this.#client.onRoundEndCommunication(roundWeights);
       this.model.weights = networkWeights;
-      networkWeights.dispose();
 
       return this.#shouldValidateAfterAggregation && validationDataset !== undefined
         ? await this.model.evaluate(validationDataset)

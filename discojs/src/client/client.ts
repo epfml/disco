@@ -159,6 +159,7 @@ export abstract class Client<N extends Network> extends EventEmitter<{
         // Emit the last status emitted before waiting if defined
         if (this.#previousStatus !== undefined) this.emit("status", this.#previousStatus)
         this.nbOfParticipants = event.nbOfParticipants
+        this.promiseForMoreParticipants = undefined
         resolve()
       })
     })
