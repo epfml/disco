@@ -183,9 +183,9 @@ async function sampleGenerateGPT2(
     const logits = tf.tidy(() => {
       const output = tfModel.predict(input);
       if (Array.isArray(output)) {
-        return output[0] as tf.Tensor;
+        return output[0];
       }
-      return output as tf.Tensor;
+      return output;
     });
 
     const nextTokenTensor = tf.tidy(() => {
@@ -289,7 +289,6 @@ async function main() {
   if (!Number.isInteger(args.topK) || args.topK < 1) {
     throw new Error("topK must be a positive integer");
   }
-  const maxPromptLength = Math.max(...promptLengths);
   const random = seededRandom(args.seed);
 
   console.log("Loading tokenizer...");

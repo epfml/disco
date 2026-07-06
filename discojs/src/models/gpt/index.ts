@@ -277,13 +277,7 @@ export class GPT extends Model<"text"> {
 
     debug("GPT model deserialization started")
 
-    const config =
-      data.config === undefined
-        ? undefined
-        : {
-            ...data.config,
-            maxIter: DefaultGPTConfig.maxIter,
-          };
+    const config = data.config;
 
     const model = new GPT(config);
 

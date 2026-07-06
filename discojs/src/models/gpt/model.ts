@@ -114,7 +114,6 @@ export class GPTModel extends tf.LayersModel {
 
         let preprocessingTime = performance.now()
         await Promise.all([xs.data(), ys.data()])
-        // await Promise.resolve()
         preprocessingTime = performance.now() - preprocessingTime
         
         // TODO include as a tensor inside the model

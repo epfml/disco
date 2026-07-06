@@ -36,7 +36,7 @@ export type GoldfishLossConfig = {
 }
 // for a benchmark of performance, see https://github.com/epfml/disco/pull/659
 export const DefaultGPTConfig: Required<GPTConfig> = {
-  lr: 0.0001,
+  lr: 0.001,
   weightDecay: 0,
   // By default, iterate through the whole dataset and let dataset exhaustion stop the epoch.
   maxIter: Number.MAX_SAFE_INTEGER,
@@ -98,7 +98,7 @@ export interface GenerationConfig {
 
 export const DefaultGenerationConfig: Required<GenerationConfig> = {
   temperature: 1.0,
-  doSample: true,
+  doSample: false,
   seed: Math.random(),
   topk: 50
 }

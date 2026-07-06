@@ -188,7 +188,7 @@ async function scoreContinuations(
             return tf.gather(logProbs, continuationTokenIds);
         });
 
-        const scores = await optionScores.array() as number[];
+        const scores = await optionScores.array();
 
         inputTensor.dispose();
         optionScores.dispose();

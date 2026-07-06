@@ -44,8 +44,6 @@ export const privacyrun: TaskProvider<"text", "federated"> = {
     // The model should be in DiscoJS serialization format (created by onnx-converter)
     // const modelUrl = "https://storage.googleapis.com/deai-313515.appspot.com/model.json";
     
-    // const modelUrl = "https://storage.googleapis.com/deai-313515.appspot.com/model_ctx_512.json";
-
     const modelUrl = "https://storage.googleapis.com/deai-313515.appspot.com/model_ctx_512.json";
 
     try {
