@@ -157,14 +157,9 @@ export class Trainer<D extends DataType, N extends Network> {
         ? validationDataset
         : undefined;
 
-      yield this.#runRound(
-        dataset,
-        roundValidationDataset,
-        async () => this.#finishRoundCommunication(
-          totalRound,
-          roundValidationDataset,
-        ),
-      );
+      yield this.#runRound(dataset, roundValidationDataset);
+
+      await this.#finishRoundCommunication(totalRound);
     }
   }
 
@@ -223,11 +218,9 @@ export class Trainer<D extends DataType, N extends Network> {
           this.#roundIterations,
           roundValidationDataset,
           (roundDone) => done = roundDone,
-          async () => this.#finishRoundCommunication(
-            totalRound,
-            roundValidationDataset,
-          ),
         );
+
+        await this.#finishRoundCommunication(totalRound);
 
         round++;
         if (done) break;
@@ -240,7 +233,6 @@ export class Trainer<D extends DataType, N extends Network> {
   async *#runRound(
     dataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
-    onAfterTraining?: () => Promise<ValidationMetrics | undefined>,
   ): AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs> {
     let epochsLogs = List<EpochLogs>();
 
@@ -258,13 +250,10 @@ export class Trainer<D extends DataType, N extends Network> {
       epochsLogs = epochsLogs.push(await epochLogs);
     }
       
-    const postAggregationValidation = await onAfterTraining?.();
-
     return {
       epochs: epochsLogs,
       participants: this.#client.nbOfParticipants,
       preRoundValidation: validation,
-      postAggregationValidation,
     };
   }
 
@@ -273,7 +262,6 @@ export class Trainer<D extends DataType, N extends Network> {
     maxBatchCount: number,
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
     setDone?: (done: boolean) => void,
-    onAfterTraining?: () => Promise<ValidationMetrics | undefined>,
   ): AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs> {
     let epochsLogs = List<EpochLogs>();
 
@@ -298,13 +286,10 @@ export class Trainer<D extends DataType, N extends Network> {
     const epochLogs = await result;
     epochsLogs = epochsLogs.push(epochLogs);
 
-    const postAggregationValidation = await onAfterTraining?.();
-
     return {
       epochs: epochsLogs,
       participants: this.#client.nbOfParticipants,
       preRoundValidation: validation,
-      postAggregationValidation,
     };
   }
 
