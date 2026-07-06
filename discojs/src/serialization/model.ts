@@ -98,10 +98,10 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
           "invalid encoding, gpt-tfjs model weights should be an encoding of its weights",
         );
 
-      debug("GPT model weights decoding...")
+      debug("GPT model weights decoding")
       const weights = serialization.weights.decode(rawModel)
 
-      debug("GPT model weights decoded, deserializing model... CONFIG MIGHT BE WRONG")
+      debug("GPT model weights decoded")
       debug("GPT model config: %O", config || "undefined, using default config")
       return models.GPT.deserialize({weights, config})
     }
