@@ -71,14 +71,6 @@ function buildSummaryLog(roundNum: number, epochNum: number, roundLogs: RoundLog
     }
 }
 
-/**
- * Interface providing an access to trainer's model weights.
- * Used for model synchronization to retrieve and set the latest model.
- */
-export interface ModelWeightAccess{
-  getModelWeight(): WeightsContainer;
-  setModelWeight(weight: WeightsContainer): void;
-}
 
 /**
  * Top-level class handling distributed training from a client's perspective. It is meant to be
@@ -138,19 +130,14 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     this.#client = client;
     this.#task = task;
     this.trainer = new Trainer(task, client);
-    // Set ModelWeightAccess of the client
-    this.#client.setModelWeightAccess({
-      getModelWeight: () => {
-        return new WeightsContainer(this.trainer.model.weights.weights.map(t => t.clone()));
-      },
-      setModelWeight: (weights) => {
-        this.trainer.model.weights = weights;
-      }
-    });
+
     // Simply propagate the training status events emitted by the client
     this.#client.on("status", (status) => this.emit("status", status));
     this.#client.on("participants", (nbParticipants) => this.emit("participants", nbParticipants));
-    this.#client.on("modelSynced", (latestWeights) => this.emit("modelSynced", latestWeights));
+    this.#client.on("modelSynced", (latestWeights) => {
+      this.trainer.model.weights = latestWeights
+      this.emit("modelSynced", latestWeights)
+    });
   }
 
   /** Train on dataset, yielding logs of every round. */
@@ -289,6 +276,9 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
    * Completely stops the ongoing training instance.
    */
   async close(): Promise<void> {
+    // Dispose the model tensor
+    this.trainer.model.weights.dispose();
+
     await this.#client.disconnect();
   }
 

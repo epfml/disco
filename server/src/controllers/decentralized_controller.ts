@@ -167,9 +167,9 @@ export class DecentralizedController<
       debug("client [%s] left", shortId)
 
       // If this participant was a latest model provider node,
-      // replace the provider node to another node
+      // replace the provider node to another node and make sure this node is not newly joined node
       if (this.#providerNode === peerId) {
-        this.#providerNode = this.connections.keySeq().first()
+        this.#providerNode = this.connections.keySeq().find(nodeId => !this.#syncingNodes.has(nodeId))
       }
 
       // Check if we are already waiting for new participants to join
@@ -202,6 +202,23 @@ export class DecentralizedController<
     }
   }
 
+  private sendMessageToNode(nodeId: client.NodeID, message: messages.MessageFromServer): void{
+    const conn = this.connections.get(nodeId)
+    if (conn === undefined){
+      throw new Error(`peer ${nodeId} marked as ready but not connection to it`)
+    }
+    conn.send(msgpack.encode(message))
+  }
+
+  private broadcastMessageToNodes(
+    nodeIds: Iterable<client.NodeID>, 
+    createMessage: (nodeId: client.NodeID) => messages.MessageFromServer,
+  ): void {
+    for (const nodeId of nodeIds) {
+      this.sendMessageToNode(nodeId, createMessage(nodeId))
+    }
+  }
+
   /**
    * Check if we have enough participants to start the training
    * and if all peers that joined the round are ready to exchange weight updates
@@ -221,25 +238,18 @@ export class DecentralizedController<
     if (nbOfPeersReady < minNbOfParticipants
       || nbOfPeersReady != participatingPeers.size) return
     // Once every peer that joined the round is ready, we can start the round
-    this.#roundPeers.keySeq()
-    .map((id) => {
-      const readyPeerIDs: messages.PeersForRound = {
-        type: MessageTypes.PeersForRound,
-        peers: this.#roundPeers.delete(id).keySeq().toArray(),
-        aggregationRound: this.#aggregationRound
+    this.broadcastMessageToNodes(
+      this.#roundPeers.keySeq(),
+      (id): messages.PeersForRound => {
+        debug("Sending peer list to: %o", id.slice(0, 4))
+
+        return {
+          type: MessageTypes.PeersForRound,
+          peers: this.#roundPeers.delete(id).keySeq().toArray(),
+          aggregationRound: this.#aggregationRound,
+        }
       }
-      debug("Sending peer list to: %o", id.slice(0, 4))
-      
-      const encoded = msgpack.encode(readyPeerIDs)
-      return [id, encoded] as [client.NodeID, Buffer]
-    })
-    .map(([id, encoded]) => {
-      const conn = this.connections.get(id)
-      if (conn === undefined) {
-        throw new Error(`peer ${id} marked as ready but not connection to it`)
-      }
-      return [conn, encoded] as [WebSocket, Buffer]
-    }).forEach(([conn, encoded]) => { conn.send(encoded) })
+    )
 
     // Initialize connectFinishedNodes with all peers set to false
     this.#connectFinishedNodes = this.#roundPeers.map(() => false)
@@ -264,24 +274,16 @@ export class DecentralizedController<
     this.clearTimeout()
 
     // Send round participants StartWeightSharing messages
-    this.#roundPeers.keySeq()
-    .map((id) => {
-      const startSignal = {
-        type: MessageTypes.StartWeightSharing,
-      }
-      debug("Signaling weight sharing to: %o", id.slice(0, 4))
+    this.broadcastMessageToNodes(
+      this.#roundPeers.keySeq(),
+      (id): messages.StartWeightSharing => {
+        debug("Signaling weight sharing to: %o", id.slice(0, 4))
 
-      const encoded = msgpack.encode(startSignal)
-      return [id, encoded] as [client.NodeID, Buffer]
-    })
-    .map(([id, encoded]) => {
-      const conn = this.connections.get(id)
-      if (conn === undefined) {
-        throw new Error(`peer ${id} marked as ready but not connection to it`)
+        return {
+          type: MessageTypes.StartWeightSharing,
+        }
       }
-      return [conn, encoded] as [WebSocket, Buffer]
-    })
-    .forEach(([conn, encoded]) => {conn.send(encoded)})
+    )
 
     // empty the list of peers for the next round
     this.#roundPeers = Map()
@@ -292,7 +294,7 @@ export class DecentralizedController<
   /**
    * Set a timeout to check peer connections establishment
    */
-  private startTimeout(maxTime: number = 60_000): void {
+  private startTimeout(maxTime: number = this.task.trainingInformation.maxPeerConnectionTime): void {
     this.#timeout = setTimeout(() => {
       this.handleTimeout()
     }, maxTime)
@@ -322,7 +324,7 @@ export class DecentralizedController<
 
     // If the number of retries exceeds the threshold, exclude the failed peers from the round
     // and retry peer connection only with the remaining peers
-    if (this.#connectionRetry >= this.task.trainingInformation.maxConnectionRetry){
+    if (this.#connectionRetry > this.task.trainingInformation.maxConnectionRetry){
       // Exclude the failed peers
       this.#connectFinishedNodes.forEach((connected, nodeId) => {
         if (!connected){
@@ -330,15 +332,11 @@ export class DecentralizedController<
           this.#roundPeers = this.#roundPeers.delete(nodeId)
           this.#connectFinishedNodes = this.#connectFinishedNodes.delete(nodeId)
           // Signal the node that connection is failed for that node
-          const conn = this.connections.get(nodeId)
-          if (conn === undefined) {
-            throw new Error(`peer ${nodeId} marked as ready but not connection to it`)
-          }
-          const failSignal : messages.ConnectionFail = {
-            type: MessageTypes.ConnectionFail
-          }
-          const encoded = msgpack.encode(failSignal)
-          conn.send(encoded)
+          debug("Signaling connection failure to: %o", nodeId.slice(0, 4))
+
+          this.sendMessageToNode(nodeId, {
+            type: MessageTypes.ConnectionFail,
+          })
         }
       })
 

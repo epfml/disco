@@ -14,7 +14,6 @@ import type { EventConnection } from './event_connection.js'
 import type { Aggregator } from '../aggregator/index.js'
 import { EventEmitter } from '../utils/event_emitter.js'
 import { type } from "./messages.js";
-import { ModelWeightAccess } from "../training/disco.js";
 
 const debug = createDebug("discojs:client");
 
@@ -25,7 +24,7 @@ const debug = createDebug("discojs:client");
 export abstract class Client<N extends Network> extends EventEmitter<{
 	status: RoundStatus;
 	participants: number;
-  modelSynced: WeightsContainer | undefined;
+  modelSynced: WeightsContainer;
 }> {
   // Own ID provided by the network's server.
   protected _ownId?: NodeID
@@ -39,9 +38,6 @@ export abstract class Client<N extends Network> extends EventEmitter<{
    * until the server signals that the training can resume
    */
   protected promiseForMoreParticipants: Promise<void> | undefined = undefined;
-
-  // Interface to access trainer's model weights
-  protected modelWeightAccess?: ModelWeightAccess;
 
   /**
    * When the server notifies the client that they can resume training
@@ -60,15 +56,6 @@ export abstract class Client<N extends Network> extends EventEmitter<{
     public readonly aggregator: Aggregator,
   ) {
     super()
-  }
-  
-  /**
-   * Used for decentralized learning.
-   * Set the interface used by client to access to trainer's model weights.
-   * Disco object provides this access.
-   */
-  setModelWeightAccess(modelWeightAccess: ModelWeightAccess){
-    this.modelWeightAccess = modelWeightAccess
   }
 
   /**
@@ -207,7 +194,7 @@ export abstract class Client<N extends Network> extends EventEmitter<{
     return await serialization.model.decode(encoded)
   }
 
-  public finishRound(): void{
+  public finishRound(weights: WeightsContainer): void{
     // DecentralizedClient override the method to clean up round state
   }
 

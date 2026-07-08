@@ -103,6 +103,13 @@ export namespace TrainingInformation {
 
 				// Maximum number of retries for connection failures
 				maxConnectionRetry: z.number().nonnegative().int().default(3),
+
+				// Maximum time for waiting peer connection
+				maxPeerConnectionTime: z.number().nonnegative().int().default(60_000),
+
+				// Maximum time for waiting for the latest model syncing 
+				// (used when new client joins in the middle of the training)
+				maxModelSyncTime: z.number().nonnegative().int().default(30_000),
 			})
 			.and(nonLocalNetworkSchema),
 		federated: z

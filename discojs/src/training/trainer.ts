@@ -141,7 +141,7 @@ export class Trainer<D extends DataType, N extends Network> {
       
       // Update the local weights
       this.model.weights = networkWeights;
-      this.#client.finishRound();
+      this.#client.finishRound(networkWeights);
     }
   }
 

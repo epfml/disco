@@ -53,7 +53,6 @@ export interface StartWeightSharing {
 // Server signals peers to reestablish peer connections
 export interface RetryPeerConnections {
   type: type.RetryPeerConnections
-  aggregationRound: number
 }
 
 // Server signals a node that the connection with other peers failed 
@@ -136,14 +135,13 @@ export function isMessageFromServer (o: unknown): o is MessageFromServer {
         'signal' in o
     case type.PeersForRound:
       return 'peers' in o && Array.isArray(o.peers) && o.peers.every(isNodeID)
-    case type.SignalNewPeer:
-      return 'newNode' in o && isNodeID(o.newNode)
     case type.WaitingForMoreParticipants:
     case type.EnoughParticipants:
     case type.StartWeightSharing:
     case type.RetryPeerConnections:
     case type.ConnectionFail:
     case type.SignalModelProvider:
+    case type.SignalNewPeer:
           return true
   }
 

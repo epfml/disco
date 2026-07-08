@@ -1,7 +1,7 @@
 import createDebug from "debug";
 import { Map, Set } from 'immutable'
 
-import type { DataType, Model, WeightsContainer } from "../../index.js";
+import { DataType, Model, WeightsContainer } from "../../index.js";
 import { serialization } from "../../index.js";
 import { Client,  shortenId } from '../client.js'
 import { type NodeID } from '../index.js'
@@ -26,6 +26,10 @@ export class DecentralizedClient extends Client<"decentralized"> {
   #pool?: PeerPool
   #connections?: Map<NodeID, PeerConnection>
 
+  // Store the latest model
+  // This is used when the client becomes a model provider for a newcomer
+  #latestModel?: WeightsContainer
+
   // Flag if this model requires model synchronization 
   #modelSyncNeeded?: boolean
 
@@ -45,12 +49,20 @@ export class DecentralizedClient extends Client<"decentralized"> {
     this.nbOfParticipants = this.aggregator.nodes.size === 0 ? 1 : this.aggregator.nodes.size
   }
 
+  private cloneWeights(weights: WeightsContainer): WeightsContainer {
+    return new WeightsContainer(weights.weights.map(t => t.clone()))
+  }
+
   // Used by model provider peer during model syncing
   private async handleSignalNewPeer(event: NarrowMessage<type.SignalNewPeer>): Promise<void> {
       if (this.#pool === undefined){
         throw new Error('received signal about new peer but peer pool is undefined')
       }
       const roundFinishedPromise = this.#roundFinishedPromise
+
+      // Note:
+      // getPeers() keeps the temporary connection with model provider even after model synchronization. 
+      // This connection is not added to #connections so it is not used for aggregation.
       const syncConnection = await this.#pool.getPeers(Set([event.newNode]), this.server, ()=>{})
 
       const newcomerConn = syncConnection.get(event.newNode)
@@ -174,7 +186,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
       this.server.send({ type: type.ModelSyncRequest })
 
       // 2. Get the provider information from the server
-      const providerInfo = await waitMessageWithTimeout(this.server, type.SignalModelProvider, 30_000, "Timeout while waiting for the latest model provider")
+      const providerInfo = await waitMessageWithTimeout(this.server, type.SignalModelProvider, this.task.trainingInformation.maxModelSyncTime, "Timeout while waiting for the latest model provider")
       
       if (this.#pool === undefined) {
         throw new Error('peer pool is undefined, make sure to call `client.connect()` first')
@@ -193,9 +205,10 @@ export class DecentralizedClient extends Client<"decentralized"> {
       }
 
       const latestModel = await this.receiveModel(providerConn)
-      this.modelWeightAccess?.setModelWeight(latestModel)
 
-      this.emit("modelSynced", this.modelWeightAccess?.getModelWeight())
+      this.#latestModel = this.cloneWeights(latestModel)
+
+      this.emit("modelSynced", this.cloneWeights(latestModel))
       this.#modelSyncNeeded = false
     }
 
@@ -237,6 +250,9 @@ export class DecentralizedClient extends Client<"decentralized"> {
       // (3) After multiple retires, if the connection is still unsuccessful, the server starts excluding nodes from the round
       // and sends a ConnectionFail message to those nodes
       // (4) Upon receiving ConnectionFail, the client disconnects from the server
+      // TODO: Promise.race() does not close the waitMessage listeners that lost the race.
+      // Therefore, unsolved listeners may accumulate across rounds.
+      // We can add listener resolving if this becomes a problem later.
       const msg = await Promise.race([
         waitMessage(this.server, type.StartWeightSharing),
         waitMessage(this.server, type.RetryPeerConnections),
@@ -427,7 +443,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
    * Receive model from the model provider.
    */
   private async receiveModel(providerConn: PeerConnection): Promise<WeightsContainer>{
-    const message = await waitMessageWithTimeout(providerConn, type.SharedModel, 30_000, "Timeout while waiting for the latest model")
+    const message = await waitMessageWithTimeout(providerConn, type.SharedModel, this.task.trainingInformation.maxModelSyncTime, "Timeout while waiting for the latest model")
     
     const decoded = serialization.weights.decode(message.model)
     return decoded
@@ -444,13 +460,13 @@ export class DecentralizedClient extends Client<"decentralized"> {
       await roundFinishedPromise
     }
 
-    const model = this.modelWeightAccess?.getModelWeight()
+    const model = this.#latestModel
 
     if (model === undefined){
       debug("Failed to get the latest model from model provider client")
       return
     }
-    const encoded = await serialization.weights.encode(model)
+    const encoded = await serialization.weights.encode(this.cloneWeights(model))
 
     const message: messages.SharedModel = {
         type: type.SharedModel,
@@ -460,7 +476,10 @@ export class DecentralizedClient extends Client<"decentralized"> {
   }
 
   // Resolve the round finished promise and reset related state
-  override finishRound(): void{
+  override finishRound(latestWeights: WeightsContainer): void{
+    // Set the new latest model
+    this.#latestModel = this.cloneWeights(latestWeights)
+
     // Mark round as finished so that model synchronization can proceed
     this.#resolveRoundFinished?.()
     this.#roundFinishedPromise = undefined

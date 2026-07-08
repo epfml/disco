@@ -49,6 +49,8 @@ export const cifar10: TaskProvider<"image", "decentralized"> = {
         maxShareValue: 100,
         tensorBackend: 'tfjs',
         maxConnectionRetry: 3,
+        maxPeerConnectionTime: 60_000,
+        maxModelSyncTime: 30_000,
       }
     });
   },

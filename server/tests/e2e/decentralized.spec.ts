@@ -1,4 +1,5 @@
 import type * as http from "node:http";
+import * as tf from "@tensorflow/tfjs";
 import type { DataType, RoundStatus, Task, TaskProvider, EpochLogs } from "@epfml/discojs";
 import {
 	aggregator as aggregators,
@@ -8,7 +9,7 @@ import {
 	WeightsContainer,
 } from "@epfml/discojs";
 import { List } from "immutable";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Server } from "../../src/index.js";
 import { datasets, Queue } from "../utils.js";
 
@@ -152,6 +153,23 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
         async (current) => await expectWSToBeClose(consensus, current),
       ),
     );
+  }
+
+  // For task reset testing
+  const weightTensorShapes = (weights: WeightsContainer): number[][] =>
+    weights.weights.map((w) => [...w.shape]);
+
+  // Return tensor length to check model weight tensor reset
+  const modelTensorCount = (weights: WeightsContainer): number => weights.weights.length;
+
+  // Return tensor snapshot to check model weight reset
+  const tensorMemorySnapshot = () => {
+    const memory = tf.memory();
+
+    return {
+      numTensors: memory.numTensors,
+      numBytes: memory.numBytes,
+    }
   }
 
   it("single round of cifar 10 with three mean aggregators yields consensus", async () => {
@@ -326,6 +344,8 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
         roundDuration: 1,
         minNbOfParticipants: 2,
         maxConnectionRetry: 3,
+        maxPeerConnectionTime: 60_000,
+        maxModelSyncTime: 30_000,
       },
     };
 
@@ -510,6 +530,8 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
         roundDuration: 1,
         minNbOfParticipants: 2,
         maxConnectionRetry: 3,
+        maxPeerConnectionTime: 60_000,
+        maxModelSyncTime: 30_000,
       },
     };
 
@@ -613,5 +635,170 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
       await discoUser2.close();
       await discoUser3.close();
     }
+  });
+
+  it("resets decentralized session after all participants leave", { timeout: 200_000 }, async () => {
+    const baseTask = await defaultTasks.lusCovid.getTask();
+    const task: Task<"image", "decentralized"> = {
+      ...baseTask,
+      trainingInformation: {
+        ...baseTask.trainingInformation,
+        scheme: "decentralized",
+        aggregationStrategy: "mean",
+        roundDuration: 1,
+        minNbOfParticipants: 2,
+        maxConnectionRetry: 3,
+        maxPeerConnectionTime: 60_000,
+        maxModelSyncTime: 30_000,
+      },
+    };
+
+    const url = await startServer({
+      ...defaultTasks.lusCovid,
+      getTask: () => Promise.resolve(task),
+    });
+
+    const dataset = await datasets.loadLusCOVID();
+
+    let shapesBeforeReset: number[][];
+    let modelTensorCountBeforeReset: number;
+
+    const discoUser1 = new Disco(task, url, { preprocessOnce: true });
+    const discoUser2 = new Disco(task, url, { preprocessOnce: true });
+
+    try {
+      const generatorUser1 = discoUser1.trainByRound(dataset);
+      const generatorUser2 = discoUser2.trainByRound(dataset);
+
+      await Promise.all([
+        generatorUser1.next(),
+        generatorUser2.next(),
+      ]);
+
+      await Promise.all([
+        generatorUser1.next(),
+        generatorUser2.next(),
+      ]);
+
+      shapesBeforeReset = weightTensorShapes(discoUser1.trainer.model.weights);
+      modelTensorCountBeforeReset = modelTensorCount(
+        discoUser1.trainer.model.weights,
+      );
+
+      await expectWSToBeClose(
+        discoUser1.trainer.model.weights,
+        discoUser2.trainer.model.weights,
+      );
+    } finally {
+      await discoUser1.close().catch(() => {});
+      await discoUser2.close().catch(() => {});
+    }
+
+    const discoUser3 = new Disco(task, url, { preprocessOnce: true });
+    const discoUser4 = new Disco(task, url, { preprocessOnce: true });
+
+    let user3ModelSynced = false;
+    let user4ModelSynced = false;
+
+    discoUser3.on("modelSynced", () => {
+      user3ModelSynced = true;
+    });
+    discoUser4.on("modelSynced", () => {
+      user4ModelSynced = true;
+    });
+
+    try {
+      const generatorUser3 = discoUser3.trainByRound(dataset);
+      const generatorUser4 = discoUser4.trainByRound(dataset);
+
+      await Promise.all([
+        generatorUser3.next(),
+        generatorUser4.next(),
+      ]);
+
+      await Promise.all([
+        generatorUser3.next(),
+        generatorUser4.next(),
+      ]);
+
+      const shapesAfterReset = weightTensorShapes(discoUser3.trainer.model.weights);
+      const modelTensorCountAfterReset = modelTensorCount(discoUser3.trainer.model.weights);
+
+      expect(shapesAfterReset).to.deep.equal(shapesBeforeReset);
+      expect(modelTensorCountAfterReset).to.equal(modelTensorCountBeforeReset);
+
+      expect(user3ModelSynced).to.equal(false);
+      expect(user4ModelSynced).to.equal(false);
+
+      await expectWSToBeClose(
+        discoUser3.trainer.model.weights,
+        discoUser4.trainer.model.weights,
+      );
+    } finally {
+      await discoUser3.close().catch(() => {});
+      await discoUser4.close().catch(() => {});
+    }
+  });
+
+  it("does not accumulate excessive tensors during decentralized training", { timeout: 200_000 }, async () => {
+    const baseTask = await defaultTasks.lusCovid.getTask();
+    const task: Task<"image", "decentralized"> = {
+      ...baseTask,
+      trainingInformation: {
+        ...baseTask.trainingInformation,
+        scheme: "decentralized",
+        aggregationStrategy: "mean",
+        roundDuration: 1,
+        minNbOfParticipants: 2,
+        maxConnectionRetry: 3,
+        maxPeerConnectionTime: 60_000,
+        maxModelSyncTime: 30_000,
+      },
+    };
+
+    const url = await startServer({
+      ...defaultTasks.lusCovid,
+      getTask: () => Promise.resolve(task),
+    });
+
+    const dataset = await datasets.loadLusCOVID();
+
+    const discoUser1 = new Disco(task, url, { preprocessOnce: true });
+    const discoUser2 = new Disco(task, url, { preprocessOnce: true });
+
+    // Take the baseline after client/model initialization so expected model
+    const memoryBeforeTraining = tensorMemorySnapshot();
+
+    let modelTensorCountAfterTraining: number;
+
+    try {
+      const generatorUser1 = discoUser1.trainByRound(dataset);
+      const generatorUser2 = discoUser2.trainByRound(dataset);
+
+      await Promise.all([
+        generatorUser1.next(),
+        generatorUser2.next(),
+      ]);
+
+      await Promise.all([
+        generatorUser1.next(),
+        generatorUser2.next(),
+      ]);
+
+      await expectWSToBeClose(
+        discoUser1.trainer.model.weights,
+        discoUser2.trainer.model.weights,
+      );
+    } finally {
+      await discoUser1.close().catch(() => {});
+      await discoUser2.close().catch(() => {});
+    }
+
+    // Let pending close/disconnect microtasks finish before reading tf.memory().
+    await new Promise((resolve) => setImmediate(resolve));
+
+    const memoryAfterTraining = tensorMemorySnapshot();
+
+    expect(memoryAfterTraining.numTensors).to.be.at.most(memoryBeforeTraining.numTensors);
   });
 })
