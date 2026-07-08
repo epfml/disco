@@ -135,6 +135,10 @@ export class GPTModel extends tf.LayersModel {
         await callbacks.onEpochBegin?.(epoch);
         const { xs, ys } = next.value as { xs: tf.Tensor2D; ys: tf.Tensor3D };
 
+        let preprocessingTime = performance.now();
+        await Promise.all([xs.data(), ys.data()]);
+        preprocessingTime = performance.now() - preprocessingTime;
+
         // TODO include as a tensor inside the model
         // const accTensor = tf.tidy(() => {
         //   const logits = this.apply(xs)
