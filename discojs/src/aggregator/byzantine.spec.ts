@@ -41,7 +41,7 @@ describe("ByzantineRobustAggregator", () => {
   });
 
   it("reduces influence of a single outlier", async () => {
-    const agg = new ByzantineRobustAggregator(0, 3, 'absolute', 1.0, 10, 0);
+    const agg = new ByzantineRobustAggregator(0, 3, "absolute", 1.0, 10, 0);
     const [c1, c2, bad] = ["c1", "c2", "bad"];
     agg.setNodes(Set.of(c1, c2, bad));
 
@@ -62,7 +62,7 @@ describe("ByzantineRobustAggregator", () => {
   it("multiple iterations improve the estimate", async () => {
     const [c1, c2, bad] = ["c1", "c2", "bad"];
 
-    const agg1 = new ByzantineRobustAggregator(0, 3, 'absolute', 1.0, 1, 0);
+    const agg1 = new ByzantineRobustAggregator(0, 3, "absolute", 1.0, 1, 0);
     agg1.setNodes(Set.of(c1, c2, bad));
 
     const p1 = agg1.getPromiseForAggregation();
@@ -72,7 +72,7 @@ describe("ByzantineRobustAggregator", () => {
     const out1 = await p1;
     const arr1 = await WSIntoArrays(out1);
 
-    const agg3 = new ByzantineRobustAggregator(0, 3, 'absolute', 1.0, 3, 0);
+    const agg3 = new ByzantineRobustAggregator(0, 3, "absolute", 1.0, 3, 0);
     agg3.setNodes(Set.of(c1, c2, bad));
 
     const p3 = agg3.getPromiseForAggregation();
@@ -84,8 +84,9 @@ describe("ByzantineRobustAggregator", () => {
 
     const honest = 0;
 
-    expect(Math.abs(arr3[0][0] - honest))
-      .to.be.lessThanOrEqual(Math.abs(arr1[0][0] - honest));
+    expect(Math.abs(arr3[0][0] - honest)).to.be.lessThanOrEqual(
+      Math.abs(arr1[0][0] - honest),
+    );
   });
 
   it("uses momentum when beta > 0", async () => {
@@ -137,21 +138,27 @@ describe("ByzantineRobustAggregator", () => {
     const honest = Array(7).fill(1);
     const byzantine = Array(3).fill(100);
 
-    const agg = new ByzantineRobustAggregator(0, 10, 'absolute', 1.0, 5, 0);
+    const agg = new ByzantineRobustAggregator(0, 10, "absolute", 1.0, 5, 0);
     const ids = [...honest, ...byzantine].map((_, i) => `c${i}`);
     agg.setNodes(Set(ids));
 
     const p = agg.getPromiseForAggregation();
     honest.forEach((v, i) => agg.add(`c${i}`, WeightsContainer.of([v]), 0));
-    byzantine.forEach((v, i) => agg.add(`c${i + honest.length}`, WeightsContainer.of([v]), 0));
+    byzantine.forEach((v, i) =>
+      agg.add(`c${i + honest.length}`, WeightsContainer.of([v]), 0),
+    );
 
     const out = await p;
     const arr = await WSIntoArrays(out);
 
     const honestMean = honest.reduce((a, b) => a + b, 0) / honest.length;
-    const rawMean = [...honest, ...byzantine].reduce((a, b) => a + b, 0) / (honest.length + byzantine.length);
+    const rawMean =
+      [...honest, ...byzantine].reduce((a, b) => a + b, 0) /
+      (honest.length + byzantine.length);
 
-    expect(Math.abs(arr[0][0] - honestMean)).to.be.lessThan(Math.abs(rawMean - honestMean));
+    expect(Math.abs(arr[0][0] - honestMean)).to.be.lessThan(
+      Math.abs(rawMean - honestMean),
+    );
   });
 
   it("moves closer to the honest signal under constant input", async () => {
@@ -179,38 +186,57 @@ describe("ByzantineRobustAggregator", () => {
 
     await fc.assert(
       fc.asyncProperty(
-        fc.array(
-          fc.double({
-            min: -1,
-            max: 1,
-            noNaN: true,
-            noDefaultInfinity: true
-          }),
-          { minLength: 3, maxLength: 10 }
-        )
+        fc
+          .array(
+            fc.double({
+              min: -1,
+              max: 1,
+              noNaN: true,
+              noDefaultInfinity: true,
+            }),
+            { minLength: 3, maxLength: 10 },
+          )
           // avoid degenerate constant arrays (no signal)
-          .filter(arr => arr.some(v => Math.abs(v - arr[0]) > 1e-8)),
+          .filter((arr) => arr.some((v) => Math.abs(v - arr[0]) > 1e-8)),
 
         async (honest) => {
           const n = honest.length + 1;
 
           // clean aggregation
-          const aggClean = new ByzantineRobustAggregator(0, honest.length, "absolute", clipRadius, 1, 0);
+          const aggClean = new ByzantineRobustAggregator(
+            0,
+            honest.length,
+            "absolute",
+            clipRadius,
+            1,
+            0,
+          );
           const honestIds = honest.map((_, i) => `h${i}`);
           aggClean.setNodes(Set(honestIds));
 
           const pClean = aggClean.getPromiseForAggregation();
-          honest.forEach((v, i) => aggClean.add(`h${i}`, WeightsContainer.of([v]), 0));
+          honest.forEach((v, i) =>
+            aggClean.add(`h${i}`, WeightsContainer.of([v]), 0),
+          );
           const cleanOut = await pClean;
           const clean = (await cleanOut.weights[0].data())[0];
 
           // aggregation with Byzantine
-          const aggByz = new ByzantineRobustAggregator(0, n, "absolute", clipRadius, 1, 0);
+          const aggByz = new ByzantineRobustAggregator(
+            0,
+            n,
+            "absolute",
+            clipRadius,
+            1,
+            0,
+          );
           const ids = honestIds.concat("byz");
           aggByz.setNodes(Set(ids));
 
           const pByz = aggByz.getPromiseForAggregation();
-          honest.forEach((v, i) => aggByz.add(`h${i}`, WeightsContainer.of([v]), 0));
+          honest.forEach((v, i) =>
+            aggByz.add(`h${i}`, WeightsContainer.of([v]), 0),
+          );
           aggByz.add("byz", WeightsContainer.of([1e9]), 0);
 
           const byzOut = await pByz;
@@ -225,11 +251,11 @@ describe("ByzantineRobustAggregator", () => {
           const REL_EPS = 1e-6;
 
           expect(deviation).toBeLessThanOrEqual(
-            baseline * (1 + REL_EPS) + ABS_EPS
+            baseline * (1 + REL_EPS) + ABS_EPS,
           );
-        }
+        },
       ),
-      { numRuns: 500 }
+      { numRuns: 500 },
     );
   });
 
@@ -242,9 +268,7 @@ describe("ByzantineRobustAggregator", () => {
       const agg = new ByzantineRobustAggregator(0, 3, "absolute", 1.0, 3, 0);
       agg.setNodes(Set(ids));
       const p = agg.getPromiseForAggregation();
-      ids.forEach((id, i) =>
-        agg.add(id, WeightsContainer.of([values[i]]), 0)
-      );
+      ids.forEach((id, i) => agg.add(id, WeightsContainer.of([values[i]]), 0));
       return (await (await p).weights[0].data())[0];
     };
 
@@ -260,7 +284,7 @@ describe("ByzantineRobustAggregator", () => {
     agg.setNodes(Set(ids));
 
     const p = agg.getPromiseForAggregation();
-    ids.forEach(id => agg.add(id, WeightsContainer.of([3.14]), 0));
+    ids.forEach((id) => agg.add(id, WeightsContainer.of([3.14]), 0));
     const out = await p;
 
     const v = (await out.weights[0].data())[0];
@@ -280,7 +304,9 @@ describe("ByzantineRobustAggregator", () => {
     const out = await p;
     const v = (await out.weights[0].data())[0];
 
-    expect(Math.abs(v - 1)).to.be.lessThan(Math.abs((1 + 1 + 100 - 100)/4 - 1));
+    expect(Math.abs(v - 1)).to.be.lessThan(
+      Math.abs((1 + 1 + 100 - 100) / 4 - 1),
+    );
   });
 
   it("reduces influence of extreme outliers", async () => {
@@ -299,7 +325,9 @@ describe("ByzantineRobustAggregator", () => {
     const mean = (0 + 0.5 + 1 + 100) / 4;
     const honestCenter = (0 + 0.5 + 1) / 3;
 
-    expect(Math.abs(v - honestCenter)).to.be.lessThan(Math.abs(mean - honestCenter));
+    expect(Math.abs(v - honestCenter)).to.be.lessThan(
+      Math.abs(mean - honestCenter),
+    );
   });
 
   it("reset state when starting fresh aggregator", async () => {

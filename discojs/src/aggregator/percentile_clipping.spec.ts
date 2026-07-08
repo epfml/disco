@@ -5,15 +5,20 @@ import { WeightsContainer } from "../index.js";
 import { PercentileClippingAggregator } from "./percentile_clipping.js";
 
 async function WSIntoArrays(ws: WeightsContainer): Promise<number[][]> {
-  return Promise.all(ws.weights.map(async t => Array.from(await t.data())));
+  return Promise.all(ws.weights.map(async (t) => Array.from(await t.data())));
 }
 
 describe("PercentileClippingAggregator", () => {
-
   it("throws on invalid constructor parameters", () => {
-    expect(() => new PercentileClippingAggregator(0, 1, "absolute", 0)).to.throw();
-    expect(() => new PercentileClippingAggregator(0, 1, "absolute", 1)).to.throw();
-    expect(() => new PercentileClippingAggregator(0, 1, "absolute", -0.1)).to.throw();
+    expect(
+      () => new PercentileClippingAggregator(0, 1, "absolute", 0),
+    ).to.throw();
+    expect(
+      () => new PercentileClippingAggregator(0, 1, "absolute", 1),
+    ).to.throw();
+    expect(
+      () => new PercentileClippingAggregator(0, 1, "absolute", -0.1),
+    ).to.throw();
   });
 
   it("behaves like mean when no clipping occurs", async () => {
@@ -54,7 +59,9 @@ describe("PercentileClippingAggregator", () => {
     agg.setNodes(Set(["a", "b", "c", "d"]));
 
     const p = agg.getPromiseForAggregation();
-    ["a", "b", "c", "d"].forEach(id => agg.add(id, WeightsContainer.of([5]), 0));
+    ["a", "b", "c", "d"].forEach((id) =>
+      agg.add(id, WeightsContainer.of([5]), 0),
+    );
 
     const out = await p;
     const v = (await out.weights[0].data())[0];
@@ -71,9 +78,7 @@ describe("PercentileClippingAggregator", () => {
       const agg = new PercentileClippingAggregator(0, 3, "absolute", 0.5);
       agg.setNodes(Set(ids));
       const p = agg.getPromiseForAggregation();
-      ids.forEach((id, i) =>
-        agg.add(id, WeightsContainer.of([values[i]]), 0)
-      );
+      ids.forEach((id, i) => agg.add(id, WeightsContainer.of([values[i]]), 0));
       return (await (await p).weights[0].data())[0];
     };
 
@@ -165,5 +170,4 @@ describe("PercentileClippingAggregator", () => {
 
     expect(await run()).to.be.closeTo(await run(), 1e-6);
   });
-
 });

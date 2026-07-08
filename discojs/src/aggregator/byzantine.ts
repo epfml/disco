@@ -8,10 +8,10 @@ import { aggregation } from "../index.js";
 /**
  * Byzantine-robust aggregator using Centered Clipping (CC), based on the
  * "Learning from History for Byzantine Robust Optimization" paper: https://arxiv.org/abs/2012.10333
- * 
+ *
  * This class implements Centered Clipping (Algorithm 1) with an additional
  * server-side per-client momentum mechanism inspired by Algorithm 2.
- * 
+ *
  * We initialize using the mean of contributions when no previous
  * aggregate exists. This improves convergence compared to zero initialization.
  *
@@ -19,23 +19,23 @@ import { aggregation } from "../index.js";
  * - Momentum:
  *     m_i^t = (1 - β) g_i^t + β m_i^{t-1}
  * - Aggregation is then performed on {m_i}
- * 
+ *
  * WARNING:
  * This implementation requires stable client identities and is not
  * compatible with secure aggregation, since per-client momentum
  * must be tracked on the server.
- * 
+ *
  * Use Case:
- * 
+ *
  * Designed for federated or distributed learning with potentially malicious
  * (Byzantine) clients. Centered Clipping limits the influence of extreme or
  * corrupted updates by bounding each client's contribution.
- * 
+ *
  * CC alone can be sensitive to poor initialization (e.g., early extreme
  * Byzantine updates), as clipping limits updates but does not correct a
  * bad initial estimate. The added per-client momentum helps stabilize
  * training over time by leveraging historical information.
- * 
+ *
  */
 export class ByzantineRobustAggregator extends MultiRoundAggregator {
   private readonly clippingRadius: number;
@@ -96,8 +96,10 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
 
     const prevMomentum = this.historyMomentums.get(nodeId);
     const newMomentum = prevMomentum
-      ? contribution.mapWith(prevMomentum, (g, m) => g.mul(1 - this.beta).add(m.mul(this.beta)))
-      : contribution.map(g => g.mul(1 - this.beta));
+      ? contribution.mapWith(prevMomentum, (g, m) =>
+          g.mul(1 - this.beta).add(m.mul(this.beta)),
+        )
+      : contribution.map((g) => g.mul(1 - this.beta));
 
     this.historyMomentums = this.historyMomentums.set(nodeId, newMomentum);
     this.contributions = this.contributions.setIn([0, nodeId], newMomentum);
@@ -118,7 +120,7 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
     // Step 1: Initialize v using previous aggregate or mean of contributions
     let v: WeightsContainer;
     if (this.prevAggregate) {
-      v = this.prevAggregate.map(t => tf.clone(t)); // Clone to avoid in-place modifications
+      v = this.prevAggregate.map((t) => tf.clone(t)); // Clone to avoid in-place modifications
     } else {
       v = aggregation.avg(currentContributions.values());
     }
@@ -129,31 +131,30 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
 
     // Step 2: Iterative Centered Clipping
     for (let l = 0; l < this.maxIterations; l++) {
-      const clippedDiffs = Array.from(currentContributions.values()).map(m => {
-        const diff = m.sub(v);
+      const clippedDiffs = Array.from(currentContributions.values()).map(
+        (m) => {
+          const diff = m.sub(v);
 
-        const norm = euclideanNorm(diff);
+          const norm = euclideanNorm(diff);
 
-        const safeNorm = tf.maximum(norm, eps);
+          const safeNorm = tf.maximum(norm, eps);
 
-        const scale = tf.minimum(
-          one,
-          tf.div(radius, safeNorm)
-        );
+          const scale = tf.minimum(one, tf.div(radius, safeNorm));
 
-        const clipped = diff.mul(scale);
+          const clipped = diff.mul(scale);
 
-        norm.dispose();
-        safeNorm.dispose();
-        scale.dispose();
+          norm.dispose();
+          safeNorm.dispose();
+          scale.dispose();
 
-        return clipped;
-      });
+          return clipped;
+        },
+      );
 
       const avgClip = aggregation.avg(clippedDiffs);
       const newV = v.add(avgClip);
 
-      clippedDiffs.forEach(d => d.dispose());
+      clippedDiffs.forEach((d) => d.dispose());
 
       const oldV = v;
       v = newV;
@@ -177,7 +178,7 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
 function euclideanNorm(w: WeightsContainer): tf.Scalar {
   // Computes the Euclidean (L2) norm of all tensors in a WeightsContainer by summing the squares of their elements and taking the square root.
   return tf.tidy(() => {
-    const squaredSums = w.weights.map(t => tf.sum(tf.square(t)));
+    const squaredSums = w.weights.map((t) => tf.sum(tf.square(t)));
     const total = tf.addN(squaredSums);
     return tf.sqrt(total) as tf.Scalar;
   });
