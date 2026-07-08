@@ -13,8 +13,9 @@ type DatasetLike<T> =
   | (() => Iterator<T, void>);
 
 /** Convert a DatasetLike object to an async generator */
-async function* datasetLikeToGenerator<U>(content: DatasetLike<U>):
-  AsyncGenerator<U, void, undefined> {
+async function* datasetLikeToGenerator<U>(
+  content: DatasetLike<U>,
+): AsyncGenerator<U, void, undefined> {
   let iter: AsyncIterator<U, void> | Iterator<U, void>;
   if (typeof content === "function") iter = content();
   else if (Symbol.asyncIterator in content)
@@ -40,7 +41,7 @@ export class Dataset<T> implements AsyncIterable<T> {
   constructor(content: DatasetLike<T>) {
     this.#content = async function* () {
       yield* datasetLikeToGenerator(content);
-    }
+    };
   }
 
   [Symbol.asyncIterator](): AsyncIterator<T> {
@@ -120,11 +121,11 @@ export class Dataset<T> implements AsyncIterable<T> {
 
   /** Create batches of `size` elements with potential overlap.
    * Last batch is smaller if dataset isn't perfectly divisible
-   * 
-   * If overlap is set to a positive integer, the last `overlap` elements of a batch 
+   *
+   * If overlap is set to a positive integer, the last `overlap` elements of a batch
    * are the first `overlap` elements of the next batch.
-   * 
-   * This method is tailored to create text sequences where each token's label is the following token. 
+   *
+   * This method is tailored to create text sequences where each token's label is the following token.
    * In order to have a label for the last token of the input sequence, we include the first token
    * of the next sequence (i.e. with an overlap of 1).
    *
@@ -132,8 +133,7 @@ export class Dataset<T> implements AsyncIterable<T> {
    * @param overlap number of elements overlapping between two consecutive batches
    */
   batch(size: number, overlap = 0): Dataset<Batched<T>> {
-    if (size <= 0 || !Number.isInteger(size))
-      throw new Error("invalid size");
+    if (size <= 0 || !Number.isInteger(size)) throw new Error("invalid size");
     if (overlap >= size || !Number.isInteger(overlap))
       throw new Error("invalid overlap");
 
@@ -146,8 +146,8 @@ export class Dataset<T> implements AsyncIterable<T> {
           const batch = List(
             // get the first elements of the next batch
             await Promise.all(
-              Range(overlapped.size, size).map(() => iter.next())
-            )
+              Range(overlapped.size, size).map(() => iter.next()),
+            ),
           ).flatMap((res) => {
             if (res.done) return [];
             else return [res.value];
@@ -214,8 +214,8 @@ export class Dataset<T> implements AsyncIterable<T> {
         let loop = 0;
         do {
           yield* this;
-          loop++
-        } while (times === undefined || loop < times)
+          loop++;
+        } while (times === undefined || loop < times);
       }.bind(this),
     );
   }
@@ -238,59 +238,66 @@ export class Dataset<T> implements AsyncIterable<T> {
     return new CachingDataset(this.#content);
   }
 
-  /** Shuffles the Dataset instance within certain window size */
-  shuffle(windowSize: number){
-    if (!Number.isInteger(windowSize) || windowSize < 1){
+  /** Shuffle the dataset
+   *
+   * Shuffle within the sliding window
+   */
+  shuffle(windowSize: number) {
+    if (!Number.isInteger(windowSize) || windowSize < 1) {
       throw new Error("Shuffle window size should be a positive integer");
     }
 
     return new Dataset(
-      async function*(this: Dataset<T>){
+      async function* (this: Dataset<T>) {
         const iter = this[Symbol.asyncIterator]();
         const buffer: T[] = [];
 
         // 1. Construct the initial buffer
-        while (buffer.length < windowSize){
+        while (buffer.length < windowSize) {
           const n = await iter.next();
           if (n.done) break;
           buffer.push(n.value);
         }
 
         // 2. Shuffle
-        while (buffer.length > 0){
+        while (buffer.length > 0) {
           const pick = Math.floor(Math.random() * buffer.length);
           const chosen = buffer[pick];
 
           const n = await iter.next();
 
-          if (n.done){
+          if (n.done) {
             // move the last element to the pick position
             buffer[pick] = buffer.pop() as T;
-          }else{
+          } else {
             buffer[pick] = n.value;
           }
 
           yield chosen;
         }
-      }.bind(this)
+      }.bind(this),
     );
   }
 
-  /** filter the indices according to the splitting condition */
+  /** Filter the dataset using the condition
+   *
+   * Used for splitting dataset for each client (filter by client's id)
+   */
   filter(
-    condition: (value: T, index: number) => boolean | Promise<boolean>
-  ): Dataset<T>{
-    return new Dataset<T>(async function* (this: Dataset<T>): AsyncGenerator<T, void, unknown>{
-      let i = 0;
-      for await(const v of this){
-        if (await condition(v, i)){
-          yield v;
+    condition: (value: T, index: number) => boolean | Promise<boolean>,
+  ): Dataset<T> {
+    return new Dataset<T>(
+      async function* (this: Dataset<T>): AsyncGenerator<T, void, unknown> {
+        let i = 0;
+        for await (const v of this) {
+          if (await condition(v, i)) {
+            yield v;
+          }
+          i += 1;
         }
-        i += 1
-      }
-    }.bind(this));
+      }.bind(this),
+    );
   }
-
 }
 
 /**

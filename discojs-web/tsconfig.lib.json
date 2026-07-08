@@ -1,9 +1,15 @@
 {
-	"extends": "../tsconfig.base.json",
-	"compilerOptions": {
-		"lib": ["DOM"],
-		"outDir": "dist"
-	},
-	"include": ["src"],
-	"exclude": ["**/*.spec.ts"]
+  "extends": "../tsconfig.base.json",
+  "references": [
+    {
+      "path": "../discojs"
+    }
+  ],
+  "compilerOptions": {
+    "lib": ["DOM"],
+    "rootDir": "./src",
+    "outDir": "dist"
+  },
+  "include": ["src"],
+  "exclude": ["**/*.spec.ts"]
 }

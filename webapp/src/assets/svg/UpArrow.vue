@@ -13,8 +13,11 @@
 <script lang="ts">
 export default {
   props: {
-    customClass: { default: 'bi bi-ui-checks w-7 h-7 text-disco-cyan', type: String },
-    viewBox: { default: '0 0 30 30', type: String }
-  }
-}
+    customClass: {
+      default: "bi bi-ui-checks w-7 h-7 text-disco-cyan",
+      type: String,
+    },
+    viewBox: { default: "0 0 30 30", type: String },
+  },
+};
 </script>

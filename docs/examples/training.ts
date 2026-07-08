@@ -1,6 +1,6 @@
-import { Repeat } from 'immutable'
-import * as path from 'node:path'
-import '@tensorflow/tfjs-node'
+import { Repeat } from "immutable";
+import * as path from "node:path";
+import "@tensorflow/tfjs-node";
 
 import type {
   Dataset,
@@ -9,9 +9,9 @@ import type {
   Image,
   Task,
 } from "@epfml/discojs";
-import { Disco, fetchTasks, defaultTasks } from '@epfml/discojs'
-import { loadCSV, loadImagesInDir } from '@epfml/discojs-node'
-import { Server } from 'server'
+import { Disco, fetchTasks, defaultTasks } from "@epfml/discojs";
+import { loadCSV, loadImagesInDir } from "@epfml/discojs-node";
+import { Server } from "server";
 
 /**
  * Example of discojs API, we load data, build the appropriate loggers, the disco object
@@ -23,13 +23,13 @@ async function runUser<D extends DataType>(
   dataset: Dataset<DataFormat.Raw[D]>,
 ): Promise<void> {
   // Create Disco object associated with the server url, the training scheme
-  const disco = new Disco(task, url, { scheme: 'federated' })
+  const disco = new Disco(task, url, { scheme: "federated" });
 
   // Run training on the dataset
   await disco.trainFully(dataset);
 
   // Disconnect from the remote server
-  await disco.close()
+  await disco.close();
 }
 
 type TaskAndDataset<D extends DataType> = [
@@ -37,9 +37,9 @@ type TaskAndDataset<D extends DataType> = [
   Dataset<DataFormat.Raw[D]>,
 ];
 
-async function main (): Promise<void> {
+async function main(): Promise<void> {
   // Arbitrary chosen Task ID
-  const NAME: string = 'titanic'
+  const NAME: string = "titanic";
 
   // Launch a server instance
   const server = await Server.with(
@@ -49,26 +49,30 @@ async function main (): Promise<void> {
   const [handle, url] = await server.serve();
 
   // Get all pre-defined tasks
-  const tasks = await fetchTasks(url)
+  const tasks = await fetchTasks(url);
 
   // Choose the task and load local data
   // Make sure you first ran ./get_training_data
-  let taskAndDataset: TaskAndDataset<'image' | 'tabular'>
+  let taskAndDataset: TaskAndDataset<"image" | "tabular">;
   switch (NAME) {
     case "titanic": {
-      const task = tasks.get("titanic") as | Task<"tabular", "federated"> | undefined;
+      const task = tasks.get("titanic") as
+        | Task<"tabular", "federated">
+        | undefined;
       if (task === undefined) throw new Error("task not found");
       taskAndDataset = [task, loadCSV("../../datasets/titanic_train.csv")];
       break;
     }
     case "simple_face": {
-      const task = tasks.get("simple_face") as | Task<"image", "federated"> | undefined;
+      const task = tasks.get("simple_face") as
+        | Task<"image", "federated">
+        | undefined;
       if (task === undefined) throw new Error("task not found");
       taskAndDataset = [task, await loadSimpleFaceData()];
       break;
     }
     default:
-      throw new Error('task id not found')
+      throw new Error("task id not found");
   }
 
   // Add more users to the list to simulate more than 3 clients
@@ -76,7 +80,7 @@ async function main (): Promise<void> {
     runUser(url, ...taskAndDataset),
     runUser(url, ...taskAndDataset),
     runUser(url, ...taskAndDataset),
-  ])
+  ]);
 
   // Close server
   await new Promise((resolve, reject) => {
@@ -96,5 +100,5 @@ async function loadSimpleFaceData(): Promise<Dataset<[Image, string]>> {
   return adults.chain(childs);
 }
 
-// You can run this example with "npm run train" from this folder
-main().catch(console.error)
+// You can run this example with "pnpm run train" from this folder
+main().catch(console.error);

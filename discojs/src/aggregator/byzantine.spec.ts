@@ -7,19 +7,27 @@ import { ByzantineRobustAggregator } from "./byzantine.js";
 
 // Helper to convert WeightsContainer → number[][] for easy assertions
 async function WSIntoArrays(ws: WeightsContainer): Promise<number[][]> {
-  return Promise.all(ws.weights.map(async t => Array.from(await t.data())));
+  return Promise.all(ws.weights.map(async (t) => Array.from(await t.data())));
 }
 
 describe("ByzantineRobustAggregator", () => {
   it("throws on invalid constructor parameters", () => {
-    expect(() => new ByzantineRobustAggregator(0, 1, 'absolute', 0, 1, 0.5)).to.throw();
-    expect(() => new ByzantineRobustAggregator(0, 1, 'absolute', 1, 0, 0.5)).to.throw();
-    expect(() => new ByzantineRobustAggregator(0, 1, 'absolute', 1, 1.1, 0.5)).to.throw();
-    expect(() => new ByzantineRobustAggregator(0, 1, 'absolute', 1, 1, 1.5)).to.throw();
+    expect(
+      () => new ByzantineRobustAggregator(0, 1, "absolute", 0, 1, 0.5),
+    ).to.throw();
+    expect(
+      () => new ByzantineRobustAggregator(0, 1, "absolute", 1, 0, 0.5),
+    ).to.throw();
+    expect(
+      () => new ByzantineRobustAggregator(0, 1, "absolute", 1, 1.1, 0.5),
+    ).to.throw();
+    expect(
+      () => new ByzantineRobustAggregator(0, 1, "absolute", 1, 1, 1.5),
+    ).to.throw();
   });
 
   it("performs basic mean when clippingRadius is large and beta = 0", async () => {
-    const agg = new ByzantineRobustAggregator(0, 2, 'absolute', 1e6, 1, 0);
+    const agg = new ByzantineRobustAggregator(0, 2, "absolute", 1e6, 1, 0);
     const [id1, id2] = ["c1", "c2"];
     agg.setNodes(Set.of(id1, id2));
 
@@ -81,7 +89,7 @@ describe("ByzantineRobustAggregator", () => {
   });
 
   it("uses momentum when beta > 0", async () => {
-    const agg = new ByzantineRobustAggregator(0, 2, 'absolute', 1e6, 1, 0.5);
+    const agg = new ByzantineRobustAggregator(0, 2, "absolute", 1e6, 1, 0.5);
     const [c1, c2] = ["c1", "c2"];
     agg.setNodes(Set.of(c1, c2));
 
@@ -107,7 +115,7 @@ describe("ByzantineRobustAggregator", () => {
   });
 
   it("respects roundCutoff — ignores old contributions", async () => {
-    const agg = new ByzantineRobustAggregator(1, 1, 'absolute', 1e6, 1, 0);
+    const agg = new ByzantineRobustAggregator(1, 1, "absolute", 1e6, 1, 0);
     const id = "c1";
     agg.setNodes(Set.of(id));
 

@@ -1,5 +1,5 @@
 import { Map } from "immutable";
-import * as tf from '@tensorflow/tfjs';
+import * as tf from "@tensorflow/tfjs";
 import { AggregationStep } from "./aggregator.js";
 import { MultiRoundAggregator, ThresholdType } from "./multiround.js";
 import { WeightsContainer, client } from "../index.js";
@@ -64,13 +64,23 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
  *   - A higher beta gives more weight to past rounds (more smoothing), while a lower beta makes the aggregator more responsive to new updates.
  */
 
-
-  constructor(roundCutoff = 0, threshold = 1, thresholdType?: ThresholdType, clippingRadius = 1.0, maxIterations = 1, beta = 0.9) {
+  constructor(
+    roundCutoff = 0,
+    threshold = 1,
+    thresholdType?: ThresholdType,
+    clippingRadius = 1.0,
+    maxIterations = 1,
+    beta = 0.9,
+  ) {
     super(roundCutoff, threshold, thresholdType);
-    if (clippingRadius <= 0) throw new Error("Clipping radius needs to be positive number > 0.");
-    if (maxIterations < 1) throw new Error("There must be at least one iteration for clipping.");
-    if (!Number.isInteger(maxIterations)) throw new Error("Number of iterations must be an integer.");
-    if ((beta < 0) || (beta > 1)) throw new Error("Beta must be between 0 and 1, since it is coeficient.");
+    if (clippingRadius <= 0)
+      throw new Error("Clipping radius needs to be positive number > 0.");
+    if (maxIterations < 1)
+      throw new Error("There must be at least one iteration for clipping.");
+    if (!Number.isInteger(maxIterations))
+      throw new Error("Number of iterations must be an integer.");
+    if (beta < 0 || beta > 1)
+      throw new Error("Beta must be between 0 and 1, since it is coeficient.");
     this.clippingRadius = clippingRadius;
     this.maxIterations = maxIterations;
     this.beta = beta;
@@ -78,7 +88,9 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
 
   override _add(nodeId: client.NodeID, contribution: WeightsContainer): void {
     this.log(
-      this.contributions.hasIn([0, nodeId]) ? AggregationStep.UPDATE : AggregationStep.ADD,
+      this.contributions.hasIn([0, nodeId])
+        ? AggregationStep.UPDATE
+        : AggregationStep.ADD,
       nodeId,
     );
 
@@ -93,7 +105,8 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
 
   override aggregate(): WeightsContainer {
     const currentContributions = this.contributions.get(0);
-    if (!currentContributions) throw new Error("aggregating without any contribution");
+    if (!currentContributions)
+      throw new Error("aggregating without any contribution");
 
     this.log(AggregationStep.AGGREGATE);
 
@@ -153,8 +166,9 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
     return v;
   }
 
-
-  override makePayloads(weights: WeightsContainer): Map<client.NodeID, WeightsContainer> {
+  override makePayloads(
+    weights: WeightsContainer,
+  ): Map<client.NodeID, WeightsContainer> {
     // Communicate our local weights to every other node, be it a peer or a server
     return this.nodes.toMap().map(() => weights);
   }

@@ -4,9 +4,9 @@ import { MultiRoundAggregator, ThresholdType } from "./multiround.js";
 import type { WeightsContainer, client } from "../index.js";
 import { aggregation } from "../index.js";
 
-/** 
- * Mean aggregator whose aggregation step consists in computing the mean of the received weights. 
- * 
+/**
+ * Mean aggregator whose aggregation step consists in computing the mean of the received weights.
+ *
  */
 export class MeanAggregator extends MultiRoundAggregator {
   /**
@@ -20,7 +20,9 @@ export class MeanAggregator extends MultiRoundAggregator {
 
   override _add(nodeId: client.NodeID, contribution: WeightsContainer): void {
     this.log(
-      this.contributions.hasIn([0, nodeId]) ? AggregationStep.UPDATE : AggregationStep.ADD,
+      this.contributions.hasIn([0, nodeId])
+        ? AggregationStep.UPDATE
+        : AggregationStep.ADD,
       nodeId,
     );
     this.contributions = this.contributions.setIn([0, nodeId], contribution);
@@ -28,7 +30,8 @@ export class MeanAggregator extends MultiRoundAggregator {
 
   override aggregate(): WeightsContainer {
     const currentContributions = this.contributions.get(0);
-    if (!currentContributions) throw new Error("aggregating without any contribution");
+    if (!currentContributions)
+      throw new Error("aggregating without any contribution");
 
     this.log(AggregationStep.AGGREGATE);
 

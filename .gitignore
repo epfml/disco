@@ -1,11 +1,15 @@
 # dependencies
 /node_modules/
+/*/node_modules/
+/docs/examples/node_modules/
 
 # stored trained models
-models/
+/server/models/
+/models/
 
 # tsc built
-dist/
+/*/dist/
+/docs/examples/dist/
 # tsc --build state
 *.tsbuildinfo
 
@@ -14,3 +18,6 @@ dist/
 .idea/
 .vscode/
 *.DS_Store
+
+# python venv
+.venv/

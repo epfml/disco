@@ -1,9 +1,6 @@
 <template>
   <!-- Language model prompting is currently unavailable   -->
-  <div
-    v-if="task.dataType === 'text'"
-    v-show="validationStore.step !== 0"
-  >
+  <div v-if="task.dataType === 'text'" v-show="validationStore.step !== 0">
     <div class="flex justify-center items-center mb-4">
       <span
         class="shrink-0 py-4 px-4 bg-purple-100 dark:text-disco-dark-blue rounded-md flex flex-row gap-x-4 items-center"
@@ -24,9 +21,7 @@
     </UnlabeledDatasetInput>
   </div>
 
-  <div 
-    v-show="validationStore.step === 2" 
-  >
+  <div v-show="validationStore.step === 2">
     <div class="space-y-8 mb-8 w-full lg:max-w-[700px] mx-auto">
       <IconCard>
         <template #title> Run model inference </template>
@@ -41,7 +36,9 @@
         </div>
         <div v-show="generator !== undefined">
           <div class="flex justify-center">
-            <CustomButton @click="stopInference()"> stop inference </CustomButton>
+            <CustomButton @click="stopInference()">
+              stop inference
+            </CustomButton>
           </div>
         </div>
       </IconCard>
@@ -65,10 +62,7 @@
       </div>
 
       <!-- Image gallery -->
-      <div
-        v-if="task.dataType === 'image'"
-        class="grid grid-cols-6 gap-6"
-      >
+      <div v-if="task.dataType === 'image'" class="grid grid-cols-6 gap-6">
         <ImageCard
           v-for="(result, index) in predictions as Results['image']"
           :key="index"
@@ -76,8 +70,8 @@
         >
           <template #title>
             <span class="font-bold uppercase">
-            {{ result.output }}
-          </span>
+              {{ result.output }}
+            </span>
           </template>
         </ImageCard>
       </div>
@@ -108,7 +102,13 @@ import createDebug from "debug";
 import { List } from "immutable";
 import { computed, ref, toRaw } from "vue";
 
-import type { DataFormat, DataType, Model, Network, Task } from "@epfml/discojs";
+import type {
+  DataFormat,
+  DataType,
+  Model,
+  Network,
+  Task,
+} from "@epfml/discojs";
 import { Validator } from "@epfml/discojs";
 
 import InfoIcon from "@/assets/svg/InfoIcon.vue";

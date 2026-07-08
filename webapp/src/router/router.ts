@@ -1,16 +1,16 @@
 import createDebug from "debug";
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from "vue-router";
 import { scrollToTop } from "@/utils";
 
-import TrainingBar from '@/components/progress_bars/TrainingBar.vue'
-import TestingBar from '@/components/progress_bars/TestingBar.vue'
-import HomePage from '@/components/pages/HomePage.vue'
-import TaskCreationForm from '@/components/task_creation_form/TaskCreationForm.vue'
-import TaskList from '@/components/pages/TaskList.vue'
-import NotFound from '@/components/pages/NotFound.vue'
-import Training from '@/components/training/TrainingSteps.vue'
-import ModelLibrary from '@/components/testing/ModelLibrary.vue'
-import AboutUs from '@/components/pages/AboutUs.vue'
+import TrainingBar from "@/components/progress_bars/TrainingBar.vue";
+import TestingBar from "@/components/progress_bars/TestingBar.vue";
+import HomePage from "@/components/pages/HomePage.vue";
+import TaskCreationForm from "@/components/task_creation_form/TaskCreationForm.vue";
+import TaskList from "@/components/pages/TaskList.vue";
+import NotFound from "@/components/pages/NotFound.vue";
+import Training from "@/components/training/TrainingSteps.vue";
+import ModelLibrary from "@/components/testing/ModelLibrary.vue";
+import AboutUs from "@/components/pages/AboutUs.vue";
 
 const debug = createDebug("webapp:router");
 
@@ -21,70 +21,70 @@ const router = createRouter({
     // Because router is wrapped in a BaseLayout, returning { top: 0 } doesn't do anything
     // https://github.com/vuejs/vue-router/issues/3451#issuecomment-975637797
     scrollToTop();
-    return { top: 0 }
+    return { top: 0 };
   },
   routes: [
     {
-      path: '/',
-      name: 'HomePage',
-      component: HomePage
+      path: "/",
+      name: "HomePage",
+      component: HomePage,
     },
     {
-      path: '/create',
-      name: 'task-creation-form',
-      component: TaskCreationForm
+      path: "/create",
+      name: "task-creation-form",
+      component: TaskCreationForm,
     },
     {
-      path: '/about',
-      name: 'about',
-      component: AboutUs
+      path: "/about",
+      name: "about",
+      component: AboutUs,
     },
     {
-      path: '/list',
-      name: 'task-list',
+      path: "/list",
+      name: "task-list",
       components: {
         default: TaskList,
-        ProgressBar: TrainingBar
-      }
+        ProgressBar: TrainingBar,
+      },
     },
     {
-      path: '/evaluate',
-      name: 'evaluate',
+      path: "/evaluate",
+      name: "evaluate",
       components: {
         default: ModelLibrary,
-        ProgressBar: TestingBar
-      }
+        ProgressBar: TestingBar,
+      },
     },
     {
-      path: '/:id',
+      path: "/:id",
       components: {
         default: Training,
-        ProgressBar: TrainingBar
+        ProgressBar: TrainingBar,
       },
       props: {
         default: true,
-        ProgressBar: false
-      }
+        ProgressBar: false,
+      },
     },
     {
-      path: '/:pathMatch(.*)*',
-      name: 'not-found',
-      component: NotFound
+      path: "/:pathMatch(.*)*",
+      name: "not-found",
+      component: NotFound,
     },
     {
-      path: '/not-found',
-      name: 'not-found',
-      component: NotFound
-    }
-  ]
-})
+      path: "/not-found",
+      name: "not-found",
+      component: NotFound,
+    },
+  ],
+});
 
 // Handle router errors
 router.onError((err) => {
   // Handle the router error here
   debug("router error: %o", err);
   // Add code for reporting or other error handling logic
-  void router.push({ path: '/not-found' })
-})
+  void router.push({ path: "/not-found" });
+});
 
-export { router }
+export { router };
