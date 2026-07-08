@@ -14,8 +14,12 @@ import { BatchLogs, Model, EpochLogs } from "../index.js";
 
 import { GPTModel } from "./model.js";
 import evaluate from "./evaluate.js";
-import { DefaultGPTConfig, DefaultGenerationConfig } from './config.js'
-import type { GoldfishLossConfig, GPTConfig, GenerationConfig } from './config.js'
+import { DefaultGPTConfig, DefaultGenerationConfig } from "./config.js";
+import type {
+  GoldfishLossConfig,
+  GPTConfig,
+  GenerationConfig,
+} from "./config.js";
 
 const debug = createDebug("discojs:models:gpt");
 
@@ -109,7 +113,10 @@ export class GPT extends Model<"text"> {
         break;
       }
 
-      const batchLogs = await this.#runBatch(next.value, ++this.#iterationCount);
+      const batchLogs = await this.#runBatch(
+        next.value,
+        ++this.#iterationCount,
+      );
 
       yield batchLogs;
       batchesLogs = batchesLogs.push(batchLogs);
@@ -286,18 +293,17 @@ export class GPT extends Model<"text"> {
   }
 
   static deserialize(data: GPTSerialization): Model<"text"> {
-
-    debug("GPT model deserialization started")
+    debug("GPT model deserialization started");
 
     const config = data.config;
 
     const model = new GPT(config);
 
-    debug("GPT model config initialized: %O", config)
+    debug("GPT model config initialized: %O", config);
 
     model.weights = data.weights;
 
-    debug("GPT model weights initialized")
+    debug("GPT model weights initialized");
     return model;
   }
 

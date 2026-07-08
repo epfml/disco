@@ -1,13 +1,7 @@
 import path from "node:path";
 import { createReadStream } from "node:fs";
 import { Dataset, processing } from "@epfml/discojs";
-import {
-  DataFormat,
-  DataType,
-  Image,
-  Task,
-  Text,
-} from "@epfml/discojs";
+import { DataFormat, DataType, Image, Task, Text } from "@epfml/discojs";
 import { loadCSV, loadImage, loadImagesInDir } from "@epfml/discojs-node";
 import { Repeat } from "immutable";
 
@@ -31,7 +25,9 @@ function loadTextSamples(
 
       let delimiterIndex = buffer.indexOf(sampleDelimiter);
       while (delimiterIndex !== -1) {
-        const sample = buffer.slice(0, delimiterIndex + sampleDelimiter.length).trim();
+        const sample = buffer
+          .slice(0, delimiterIndex + sampleDelimiter.length)
+          .trim();
         const shouldYield =
           userIdx === undefined ||
           totalClient === undefined ||
@@ -59,7 +55,10 @@ function loadTextSamples(
   });
 }
 
-async function loadSimpleFaceData(userIdx: number, totalClient: number): Promise<Dataset<DataFormat.Raw["image"]>> {
+async function loadSimpleFaceData(
+  userIdx: number,
+  totalClient: number,
+): Promise<Dataset<DataFormat.Raw["image"]>> {
   const folder = path.join("..", "datasets", "simple_face");
 
   const [adults, childs]: Dataset<[Image, string]>[] = [
@@ -148,12 +147,12 @@ function loadData(
 }
 
 export async function getTaskData<D extends DataType>(
-	taskID: Task.ID,
-	userIdx: number,
+  taskID: Task.ID,
+  userIdx: number,
   totalClient: number,
   datasetPath?: string,
   isValidation?: boolean,
-  validationDatasetPath?: string
+  validationDatasetPath?: string,
 ): Promise<Dataset<DataFormat.Raw[D]>> {
   switch (taskID) {
     case "simple_face": // remove
@@ -186,18 +185,16 @@ export async function getTaskData<D extends DataType>(
       const filePath =
         isValidation && validationDatasetPath
           ? validationDatasetPath
-          : datasetPath ?? "../datasets/med_mcq/train.txt";
+          : (datasetPath ?? "../datasets/med_mcq/train.txt");
 
       // Keep validation shared, but shard training data across clients by MCQ sample.
       if (isValidation) {
         return loadTextSamples(filePath) as Dataset<DataFormat.Raw[D]>;
       }
 
-      return loadTextSamples(
-        filePath,
-        userIdx,
-        totalClient,
-      ) as Dataset<DataFormat.Raw[D]>;
+      return loadTextSamples(filePath, userIdx, totalClient) as Dataset<
+        DataFormat.Raw[D]
+      >;
     }
     default:
       throw new Error(`Data loader for ${taskID} not implemented.`);

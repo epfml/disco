@@ -11,7 +11,9 @@ export class LocalClient extends Client<"local"> {
   }
   // Return clones so the trainer can dispose the communication result without
   // disposing tensors owned by the model.
-  override onRoundEndCommunication(weights: WeightsContainer): Promise<WeightsContainer> {
+  override onRoundEndCommunication(
+    weights: WeightsContainer,
+  ): Promise<WeightsContainer> {
     return Promise.resolve(weights.map((weight) => weight.clone()));
   }
 }

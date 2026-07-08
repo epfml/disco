@@ -2,7 +2,7 @@ import { parse } from "ts-command-line-args";
 import { Map, Set } from "immutable";
 
 import type { DataType, Network, TaskProvider } from "@epfml/discojs";
-import { defaultTasks, models } from '@epfml/discojs'
+import { defaultTasks, models } from "@epfml/discojs";
 
 type AggregationStrategy = "mean" | "byzantine" | "secure";
 
@@ -12,23 +12,23 @@ function parseAggregator(raw: string): AggregationStrategy {
 }
 
 export interface BenchmarkArguments {
-	provider: TaskProvider<DataType, Network>;
-  testID: string
-  numberOfUsers: number
-  epochs: number
-  roundDuration: number
-  roundIterations?: number
-  batchSize: number
-  validationSplit: number
-  validationFrequency?: number
-  datasetPath?: string
-  validationDatasetPath?: string
-  outputPath?: string
-  goldfishLoss: boolean
-  goldfishK: number
-  goldfishH: number
-  goldfishPadTokenId?: number
-  learningRate?: number
+  provider: TaskProvider<DataType, Network>;
+  testID: string;
+  numberOfUsers: number;
+  epochs: number;
+  roundDuration: number;
+  roundIterations?: number;
+  batchSize: number;
+  validationSplit: number;
+  validationFrequency?: number;
+  datasetPath?: string;
+  validationDatasetPath?: string;
+  outputPath?: string;
+  goldfishLoss: boolean;
+  goldfishK: number;
+  goldfishH: number;
+  goldfishPadTokenId?: number;
+  learningRate?: number;
 
   // DP
   epsilon?: number;
@@ -43,43 +43,136 @@ export interface BenchmarkArguments {
   // Secure aggregator
   maxShareValue?: number;
 
-  saveLogs: boolean
-  saveModel: boolean
-  saveCheckpoints: boolean
-  host: URL
+  saveLogs: boolean;
+  saveModel: boolean;
+  saveCheckpoints: boolean;
+  host: URL;
 }
 
-type BenchmarkUnsafeArguments = Omit<BenchmarkArguments, 'provider'> & {
-  task: string
-  datasetPath?: string
-  validationDatasetPath?: string
-  help?: boolean
-}
+type BenchmarkUnsafeArguments = Omit<BenchmarkArguments, "provider"> & {
+  task: string;
+  datasetPath?: string;
+  validationDatasetPath?: string;
+  help?: boolean;
+};
 
 const argExample = "e.g. pnpm start -u 2 -e 3 # runs 2 users for 3 epochs";
 
 const unsafeArgs = parse<BenchmarkUnsafeArguments>(
   {
-    testID: { type: String, alias: 'i', description: 'ID of the testcase' },
-    task: { type: String, alias: 't', description: 'Task: tinder_dog, titanic, simple_face, cifar10 or lus_covid', defaultValue: 'tinder_dog' },
-    numberOfUsers: { type: Number, alias: 'u', description: 'Number of users', defaultValue: 2 },
-    epochs: { type: Number, alias: 'e', description: 'Number of epochs', defaultValue: 10 },
-    roundDuration: { type: Number, alias: 'r', description: 'Round duration (in epochs)', defaultValue: 2 },
-    roundIterations: { type: Number, description: 'For GPT text tasks, aggregate every N training batches without rewinding the dataset', optional: true },
-    batchSize: { type: Number, alias: 'b', description: 'Training batch size', defaultValue: 10 },
-    validationSplit : { type: Number, alias: 'v', description: 'Validation dataset ratio', defaultValue: 0.2 },
-    validationFrequency: { type: Number, description: 'Run validation every N aggregation rounds. Defaults to every round; use 0 to disable validation metrics.', optional: true },
-    datasetPath: { type: String, alias: 'd', description: 'Path to the dataset', optional: true },
-    validationDatasetPath: { type: String, alias: 'V', description: 'Path to the validation dataset', optional: true },
-    outputPath: { type: String, alias: 'o', description: 'Path to save logs and models. Defaults to ./<testID>', optional: true },
-    goldfishLoss: { type: Boolean, description: 'Use Goldfish loss for GPT text tasks', defaultValue: false },
-    goldfishK: { type: Number, description: 'Goldfish loss drop modulus k. Drops target if hash(context) mod k == 0', defaultValue: 4 },
-    goldfishH: { type: Number, description: 'Goldfish loss localized hash context length', defaultValue: 13 },
-    goldfishPadTokenId: { type: Number, description: 'Optional padding token id to exclude from Goldfish loss denominator', optional: true },
-    learningRate: { type: Number, description: 'Override learning rate for GPT text tasks', optional: true },
-    saveLogs: { type: Boolean, alias: 's', description: 'Save logs of benchmark', defaultValue: false },
-    saveModel: { type: Boolean, alias: 'm', description: 'Save trained model to disk', defaultValue: false },
-    saveCheckpoints: { type: Boolean, description: 'Save each client model after every completed round/aggregation', defaultValue: false },
+    testID: { type: String, alias: "i", description: "ID of the testcase" },
+    task: {
+      type: String,
+      alias: "t",
+      description:
+        "Task: tinder_dog, titanic, simple_face, cifar10 or lus_covid",
+      defaultValue: "tinder_dog",
+    },
+    numberOfUsers: {
+      type: Number,
+      alias: "u",
+      description: "Number of users",
+      defaultValue: 2,
+    },
+    epochs: {
+      type: Number,
+      alias: "e",
+      description: "Number of epochs",
+      defaultValue: 10,
+    },
+    roundDuration: {
+      type: Number,
+      alias: "r",
+      description: "Round duration (in epochs)",
+      defaultValue: 2,
+    },
+    roundIterations: {
+      type: Number,
+      description:
+        "For GPT text tasks, aggregate every N training batches without rewinding the dataset",
+      optional: true,
+    },
+    batchSize: {
+      type: Number,
+      alias: "b",
+      description: "Training batch size",
+      defaultValue: 10,
+    },
+    validationSplit: {
+      type: Number,
+      alias: "v",
+      description: "Validation dataset ratio",
+      defaultValue: 0.2,
+    },
+    validationFrequency: {
+      type: Number,
+      description:
+        "Run validation every N aggregation rounds. Defaults to every round; use 0 to disable validation metrics.",
+      optional: true,
+    },
+    datasetPath: {
+      type: String,
+      alias: "d",
+      description: "Path to the dataset",
+      optional: true,
+    },
+    validationDatasetPath: {
+      type: String,
+      alias: "V",
+      description: "Path to the validation dataset",
+      optional: true,
+    },
+    outputPath: {
+      type: String,
+      alias: "o",
+      description: "Path to save logs and models. Defaults to ./<testID>",
+      optional: true,
+    },
+    goldfishLoss: {
+      type: Boolean,
+      description: "Use Goldfish loss for GPT text tasks",
+      defaultValue: false,
+    },
+    goldfishK: {
+      type: Number,
+      description:
+        "Goldfish loss drop modulus k. Drops target if hash(context) mod k == 0",
+      defaultValue: 4,
+    },
+    goldfishH: {
+      type: Number,
+      description: "Goldfish loss localized hash context length",
+      defaultValue: 13,
+    },
+    goldfishPadTokenId: {
+      type: Number,
+      description:
+        "Optional padding token id to exclude from Goldfish loss denominator",
+      optional: true,
+    },
+    learningRate: {
+      type: Number,
+      description: "Override learning rate for GPT text tasks",
+      optional: true,
+    },
+    saveLogs: {
+      type: Boolean,
+      alias: "s",
+      description: "Save logs of benchmark",
+      defaultValue: false,
+    },
+    saveModel: {
+      type: Boolean,
+      alias: "m",
+      description: "Save trained model to disk",
+      defaultValue: false,
+    },
+    saveCheckpoints: {
+      type: Boolean,
+      description:
+        "Save each client model after every completed round/aggregation",
+      defaultValue: false,
+    },
     host: {
       type: (raw: string) => new URL(raw),
       typeLabel: "URL",
@@ -194,17 +287,24 @@ export const args: BenchmarkArguments = {
       task.trainingInformation.roundDuration = unsafeArgs.roundDuration;
       task.trainingInformation.epochs = unsafeArgs.epochs;
       task.trainingInformation.validationSplit = unsafeArgs.validationSplit;
-      (task.trainingInformation as typeof task.trainingInformation & {
-        roundIterations?: number;
-        validationFrequency?: number;
-      }).roundIterations = unsafeArgs.roundIterations;
-      (task.trainingInformation as typeof task.trainingInformation & {
-        roundIterations?: number;
-        validationFrequency?: number;
-      }).validationFrequency = unsafeArgs.validationFrequency;
+      (
+        task.trainingInformation as typeof task.trainingInformation & {
+          roundIterations?: number;
+          validationFrequency?: number;
+        }
+      ).roundIterations = unsafeArgs.roundIterations;
+      (
+        task.trainingInformation as typeof task.trainingInformation & {
+          roundIterations?: number;
+          validationFrequency?: number;
+        }
+      ).validationFrequency = unsafeArgs.validationFrequency;
 
       if (unsafeArgs.goldfishLoss) {
-        if (task.dataType !== "text" || task.trainingInformation.tensorBackend !== "gpt")
+        if (
+          task.dataType !== "text" ||
+          task.trainingInformation.tensorBackend !== "gpt"
+        )
           throw new Error("Goldfish loss is only supported for GPT text tasks");
         if (!Number.isInteger(unsafeArgs.goldfishK) || unsafeArgs.goldfishK < 1)
           throw new Error("goldfishK must be a positive integer");
@@ -220,9 +320,17 @@ export const args: BenchmarkArguments = {
       }
 
       if (unsafeArgs.learningRate !== undefined) {
-        if (task.dataType !== "text" || task.trainingInformation.tensorBackend !== "gpt")
-          throw new Error("learningRate override is only supported for GPT text tasks");
-        if (!Number.isFinite(unsafeArgs.learningRate) || unsafeArgs.learningRate <= 0)
+        if (
+          task.dataType !== "text" ||
+          task.trainingInformation.tensorBackend !== "gpt"
+        )
+          throw new Error(
+            "learningRate override is only supported for GPT text tasks",
+          );
+        if (
+          !Number.isFinite(unsafeArgs.learningRate) ||
+          unsafeArgs.learningRate <= 0
+        )
           throw new Error("learningRate must be a positive finite number");
 
         task.trainingInformation.learningRate = unsafeArgs.learningRate;
@@ -305,12 +413,19 @@ export const args: BenchmarkArguments = {
 
       if (unsafeArgs.learningRate !== undefined) {
         if (!(model instanceof models.GPT))
-          throw new Error("learningRate override is only supported for GPT models");
-        if (!Number.isFinite(unsafeArgs.learningRate) || unsafeArgs.learningRate <= 0)
+          throw new Error(
+            "learningRate override is only supported for GPT models",
+          );
+        if (
+          !Number.isFinite(unsafeArgs.learningRate) ||
+          unsafeArgs.learningRate <= 0
+        )
           throw new Error("learningRate must be a positive finite number");
 
         model.setLearningRate(unsafeArgs.learningRate);
-        console.log(`Overriding GPT learning rate to ${unsafeArgs.learningRate}`);
+        console.log(
+          `Overriding GPT learning rate to ${unsafeArgs.learningRate}`,
+        );
       }
 
       return model;

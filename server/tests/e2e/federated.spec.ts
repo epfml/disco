@@ -151,24 +151,26 @@ describe("end-to-end federated", () => {
     assert.isTrue(m1.equals(m2));
   });
 
-	it("two wikitext reach consensus", { timeout: 500_000 }, async () => {
-		const task = await defaultTasks.wikitext.getTask();
-		task.trainingInformation = {
-			...task.trainingInformation,
-			epochs: 2,
-			roundDuration: 2,
-			minNbOfParticipants: 2,
-		};
-		const url = await startServer({
-			...defaultTasks.wikitext,
-			getModel: () =>
-				Promise.resolve(new models.GPT({
-					contextLength: task.trainingInformation.contextLength,
-					maxIter: 10,
-				})),
-			getTask: () => Promise.resolve(task),
-		});
-		const dataset = datasets.loadWikitext();
+  it("two wikitext reach consensus", { timeout: 500_000 }, async () => {
+    const task = await defaultTasks.wikitext.getTask();
+    task.trainingInformation = {
+      ...task.trainingInformation,
+      epochs: 2,
+      roundDuration: 2,
+      minNbOfParticipants: 2,
+    };
+    const url = await startServer({
+      ...defaultTasks.wikitext,
+      getModel: () =>
+        Promise.resolve(
+          new models.GPT({
+            contextLength: task.trainingInformation.contextLength,
+            maxIter: 10,
+          }),
+        ),
+      getTask: () => Promise.resolve(task),
+    });
+    const dataset = datasets.loadWikitext();
 
     const [r1, r2] = await Promise.all([
       runUser(url, task, dataset, false),

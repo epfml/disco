@@ -8,8 +8,8 @@ import { models, serialization } from "@epfml/discojs";
 const OUTPUT_FILENAME = "model.json";
 const GPT2_N_LAYER = 12;
 const GPT2_CONTEXT_LENGTH = 1024;
-const ONNX_URL = "https://huggingface.co/Xenova/gpt2/resolve/main/onnx/decoder_model.onnx?download=true"
-
+const ONNX_URL =
+  "https://huggingface.co/Xenova/gpt2/resolve/main/onnx/decoder_model.onnx?download=true";
 
 async function main() {
   console.log(`Downloading ONNX model from ${ONNX_URL}...`);
@@ -33,7 +33,10 @@ async function main() {
   console.log("ONNX model loaded successfully");
 
   // Init empty TF.js model
-  const gptModel = new models.GPT({ modelType: 'gpt2', contextLength: GPT2_CONTEXT_LENGTH });
+  const gptModel = new models.GPT({
+    modelType: "gpt2",
+    contextLength: GPT2_CONTEXT_LENGTH,
+  });
   if (gptModel.config.nLayer != GPT2_N_LAYER)
     throw new Error(
       `ONNX conversion only supports GPT-2 with 12 layers, instead found ${gptModel.config.nLayer}.`,
@@ -59,12 +62,16 @@ async function main() {
       throw new Error(`Undefined layer dimensions for ${tensor.name}`);
     const dims = tensor.dims.map((d) => Number(d));
     const flatData = parseTensorData(tensor);
-    let tfTensor = tf.tensor(flatData).reshape(dims)
+    let tfTensor = tf.tensor(flatData).reshape(dims);
     if (tensor.name === "transformer.wpe.weight") {
       if (dims.length !== 2)
-        throw new Error(`Expected transformer.wpe.weight to be a 2D tensor, got ${dims.length}D.`);
+        throw new Error(
+          `Expected transformer.wpe.weight to be a 2D tensor, got ${dims.length}D.`,
+        );
       if (dims[0] < GPT2_CONTEXT_LENGTH)
-        throw new Error(`ONNX positional embeddings only support context length ${dims[0]}, requested ${GPT2_CONTEXT_LENGTH}.`);
+        throw new Error(
+          `ONNX positional embeddings only support context length ${dims[0]}, requested ${GPT2_CONTEXT_LENGTH}.`,
+        );
       tfTensor = tfTensor.slice([0, 0], [GPT2_CONTEXT_LENGTH, dims[1]]);
     }
     preTrainedWeights = preTrainedWeights.set(tfjsName, tfTensor);

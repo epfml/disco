@@ -19,12 +19,12 @@ export type MessageFederated =
   | EnoughParticipants;
 
 export interface NewFederatedNodeInfo {
-  type: type.NewFederatedNodeInfo
-  id: NodeID
-  waitForMoreParticipants: boolean
+  type: type.NewFederatedNodeInfo;
+  id: NodeID;
+  waitForMoreParticipants: boolean;
   payload?: serialization.Encoded | null;
-  round: number
-  nbOfParticipants: number
+  round: number;
+  nbOfParticipants: number;
 }
 
 export interface SendPayload {

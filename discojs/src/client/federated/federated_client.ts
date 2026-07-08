@@ -93,12 +93,15 @@ export class FederatedClient extends Client<"federated"> {
     this.nbOfParticipants = nbOfParticipants;
     // Upon connecting, the server answers with a boolean
     // which indicates whether there are enough participants or not
-    debug(`[${shortenId(this.ownId)}] upon connecting, wait for participant flag %o`, this.waitingForMoreParticipants)
+    debug(
+      `[${shortenId(this.ownId)}] upon connecting, wait for participant flag %o`,
+      this.waitingForMoreParticipants,
+    );
     if (payload != null) {
-      const latestWeights = serialization.weights.decode(payload)
-      model.weights = latestWeights
+      const latestWeights = serialization.weights.decode(payload);
+      model.weights = latestWeights;
     }
-    return model
+    return model;
   }
 
   /**
@@ -145,17 +148,21 @@ export class FederatedClient extends Client<"federated"> {
     this.saveAndEmit("updating model");
     // Send our local contribution to the server
     // and receive the server global update for this round as an answer to our contribution
-		const payloadToServer = this.aggregator
-			.makePayloads(weights)
-			.get(SERVER_NODE_ID);
-		if (payloadToServer === undefined)
-			throw new Error("aggregator didn't make a payload for the server");
+    const payloadToServer = this.aggregator
+      .makePayloads(weights)
+      .get(SERVER_NODE_ID);
+    if (payloadToServer === undefined)
+      throw new Error("aggregator didn't make a payload for the server");
 
     const round = this.aggregator.round;
     {
-      debugProcessMemory(`[${shortenId(this.ownId)}] round ${round} before encode`);
+      debugProcessMemory(
+        `[${shortenId(this.ownId)}] round ${round} before encode`,
+      );
       const payload = await serialization.weights.encode(payloadToServer);
-      debugProcessMemory(`[${shortenId(this.ownId)}] round ${round} after encode`);
+      debugProcessMemory(
+        `[${shortenId(this.ownId)}] round ${round} after encode`,
+      );
       debug(
         "[%s] encoded payload for round %d byteLength=%d",
         shortenId(this.ownId),
@@ -171,21 +178,33 @@ export class FederatedClient extends Client<"federated"> {
 
       // Need to await the resulting global model right after sending our local contribution
       // to make sure we don't miss it
-      debugProcessMemory(`[${shortenId(this.ownId)}] round ${round} before send`);
+      debugProcessMemory(
+        `[${shortenId(this.ownId)}] round ${round} before send`,
+      );
       this.server.send(msg);
-      debugProcessMemory(`[${shortenId(this.ownId)}] round ${round} after send`);
+      debugProcessMemory(
+        `[${shortenId(this.ownId)}] round ${round} after send`,
+      );
     }
-    debug(`[${shortenId(this.ownId)}] sent its local update to the server for round ${round}`);
-    debug(`[${shortenId(this.ownId)}] is waiting for server update for round ${round + 1}`);
+    debug(
+      `[${shortenId(this.ownId)}] sent its local update to the server for round ${round}`,
+    );
+    debug(
+      `[${shortenId(this.ownId)}] is waiting for server update for round ${round + 1}`,
+    );
     const {
       payload: payloadFromServer,
       round: serverRound,
-      nbOfParticipants
-    } = await waitMessage( this.server, type.ReceiveServerPayload); // Wait indefinitely for the server update
-    this.nbOfParticipants = nbOfParticipants // Save the current participants
-    debugProcessMemory(`[${shortenId(this.ownId)}] round ${round} after receive`);
+      nbOfParticipants,
+    } = await waitMessage(this.server, type.ReceiveServerPayload); // Wait indefinitely for the server update
+    this.nbOfParticipants = nbOfParticipants; // Save the current participants
+    debugProcessMemory(
+      `[${shortenId(this.ownId)}] round ${round} after receive`,
+    );
     const serverResult = serialization.weights.decode(payloadFromServer);
-    debugProcessMemory(`[${shortenId(this.ownId)}] round ${round} after decode server payload`);
+    debugProcessMemory(
+      `[${shortenId(this.ownId)}] round ${round} after decode server payload`,
+    );
     this.aggregator.setRound(serverRound);
 
     return serverResult;

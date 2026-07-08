@@ -23,7 +23,7 @@ interface Args {
 }
 
 const DecodingStrategies = ["top-k", "greedy"] as const;
-type DecodingStrategy = typeof DecodingStrategies[number];
+type DecodingStrategy = (typeof DecodingStrategies)[number];
 
 type PromptResult = {
   recordIndex: number;
@@ -53,7 +53,9 @@ function parseIntegerList(raw: string): number[] {
     .filter((v) => !Number.isNaN(v));
 
   if (values.length === 0 || values.some((v) => v <= 0)) {
-    throw new Error("promptLengths must be a comma-separated list of positive integers");
+    throw new Error(
+      "promptLengths must be a comma-separated list of positive integers",
+    );
   }
 
   return values;
@@ -75,12 +77,18 @@ function seededRandom(seed: number): () => number {
   };
 }
 
-function randomInt(random: () => number, minInclusive: number, maxInclusive: number): number {
+function randomInt(
+  random: () => number,
+  minInclusive: number,
+  maxInclusive: number,
+): number {
   if (maxInclusive < minInclusive) {
     throw new Error("invalid random integer range");
   }
 
-  return minInclusive + Math.floor(random() * (maxInclusive - minInclusive + 1));
+  return (
+    minInclusive + Math.floor(random() * (maxInclusive - minInclusive + 1))
+  );
 }
 
 async function loadRecords(filePath: string, limit: number): Promise<string[]> {
@@ -157,7 +165,8 @@ function bleu1to4(reference: number[], candidate: number[]): number {
       ? 1
       : Math.exp(1 - reference.length / candidate.length);
   const geometricMean = Math.exp(
-    precisions.reduce((sum, precision) => sum + Math.log(precision), 0) / precisions.length,
+    precisions.reduce((sum, precision) => sum + Math.log(precision), 0) /
+      precisions.length,
   );
 
   return brevityPenalty * geometricMean;
@@ -191,21 +200,15 @@ async function sampleGenerateGPT2(
     const nextTokenTensor = tf.tidy(() => {
       const last = logits.slice([0, modelInput.length - 1, 0], [1, 1, -1]);
       const scaled = last.squeeze<tf.Tensor1D>().div(temperature);
-      const { values: topKLogits, indices: topKTokens } = tf.topk(
-        scaled,
-        topK,
-      );
+      const { values: topKLogits, indices: topKTokens } = tf.topk(scaled, topK);
 
       if (decodingStrategy === "greedy") {
         return topKTokens.gather(tf.scalar(0, "int32")).squeeze<tf.Scalar>();
       }
 
-      const sampledIndex = tf.multinomial(
-        topKLogits.expandDims<tf.Tensor2D>(0),
-        1,
-        seed + i,
-        false,
-      ).squeeze<tf.Scalar>();
+      const sampledIndex = tf
+        .multinomial(topKLogits.expandDims<tf.Tensor2D>(0), 1, seed + i, false)
+        .squeeze<tf.Scalar>();
 
       return topKTokens.gather(sampledIndex).squeeze<tf.Scalar>();
     });
@@ -226,16 +229,17 @@ async function sampleGenerateGPT2(
 function summarize(results: PromptResult[]) {
   const byPromptLength = new Map<number, PromptResult[]>();
   for (const result of results) {
-    byPromptLength.set(
-      result.promptLength,
-      [...(byPromptLength.get(result.promptLength) ?? []), result],
-    );
+    byPromptLength.set(result.promptLength, [
+      ...(byPromptLength.get(result.promptLength) ?? []),
+      result,
+    ]);
   }
 
   const summarizeGroup = (group: PromptResult[]) => ({
     count: group.length,
     exactMatchRate: group.filter((r) => r.exactMatch).length / group.length,
-    bleuMemorizationRate: group.filter((r) => r.memorizedByBleu).length / group.length,
+    bleuMemorizationRate:
+      group.filter((r) => r.memorizedByBleu).length / group.length,
     averageBleu: group.reduce((sum, r) => sum + r.bleu, 0) / group.length,
   });
 
@@ -253,30 +257,80 @@ function summarize(results: PromptResult[]) {
 async function main() {
   const args = parse<Args>(
     {
-      modelPath: { type: String, description: "Path to a saved Disco GPT model.json" },
-      dataPath: { type: String, description: "Path to records/canaries text file" },
-      maxRecords: { type: Number, description: "Maximum records to evaluate; -1 for all", defaultValue: 100 },
-      promptLengths: { type: String, description: "Comma-separated prompt lengths", defaultValue: "10,50,100,200,500" },
-      suffixLength: { type: Number, description: "Number of suffix tokens to generate and compare", defaultValue: 50 },
-      bleuThreshold: { type: Number, description: "BLEU threshold for approximate memorization", defaultValue: 0.75 },
+      modelPath: {
+        type: String,
+        description: "Path to a saved Disco GPT model.json",
+      },
+      dataPath: {
+        type: String,
+        description: "Path to records/canaries text file",
+      },
+      maxRecords: {
+        type: Number,
+        description: "Maximum records to evaluate; -1 for all",
+        defaultValue: 100,
+      },
+      promptLengths: {
+        type: String,
+        description: "Comma-separated prompt lengths",
+        defaultValue: "10,50,100,200,500",
+      },
+      suffixLength: {
+        type: Number,
+        description: "Number of suffix tokens to generate and compare",
+        defaultValue: 50,
+      },
+      bleuThreshold: {
+        type: Number,
+        description: "BLEU threshold for approximate memorization",
+        defaultValue: 0.75,
+      },
       decodingStrategy: {
         type: (raw: string) => castDecodingStrategy(raw),
         description: "Generation strategy: top-k or greedy",
         defaultValue: "top-k",
       },
-      temperature: { type: Number, description: "Generation temperature used with top-k sampling", defaultValue: 0.8 },
-      topK: { type: Number, description: "Number of most likely tokens considered for top-k sampling", defaultValue: 50 },
-      seed: { type: Number, description: "Random seed for choosing record split positions", defaultValue: 42 },
-      logEvery: { type: Number, description: "Print progress every N records; set 0 to disable per-record progress logs", defaultValue: 1 },
-      savePath: { type: String, description: "Optional JSON output path", optional: true },
-      help: { type: Boolean, optional: true, alias: "h", description: "Prints this usage guide" },
+      temperature: {
+        type: Number,
+        description: "Generation temperature used with top-k sampling",
+        defaultValue: 0.8,
+      },
+      topK: {
+        type: Number,
+        description:
+          "Number of most likely tokens considered for top-k sampling",
+        defaultValue: 50,
+      },
+      seed: {
+        type: Number,
+        description: "Random seed for choosing record split positions",
+        defaultValue: 42,
+      },
+      logEvery: {
+        type: Number,
+        description:
+          "Print progress every N records; set 0 to disable per-record progress logs",
+        defaultValue: 1,
+      },
+      savePath: {
+        type: String,
+        description: "Optional JSON output path",
+        optional: true,
+      },
+      help: {
+        type: Boolean,
+        optional: true,
+        alias: "h",
+        description: "Prints this usage guide",
+      },
     },
     {
       helpArg: "help",
       headerContentSections: [
         {
           header: "GPT-2 Unintended Memorization",
-          content: "Measures extractable memorization via greedy suffix generation.",
+          content:
+            "Measures extractable memorization via greedy suffix generation.",
         },
       ],
     },
@@ -305,7 +359,9 @@ async function main() {
   console.log(`Loaded ${records.length} records`);
 
   console.log("Tokenizing records...");
-  const tokenizedRecords = records.map((record) => tokenizer.tokenize(record).toArray());
+  const tokenizedRecords = records.map((record) =>
+    tokenizer.tokenize(record).toArray(),
+  );
   const tokenLengths = tokenizedRecords.map((ids) => ids.length);
   const requiredTokensByPromptLength = Object.fromEntries(
     promptLengths.map((promptLength) => [
@@ -322,7 +378,10 @@ async function main() {
     ]),
   );
   console.log("Token length stats:", summarizeTokenLengths(tokenLengths));
-  console.log("Eligible records by prompt length:", eligibleRecordsByPromptLength);
+  console.log(
+    "Eligible records by prompt length:",
+    eligibleRecordsByPromptLength,
+  );
   console.log("Starting memorization evaluation...");
 
   const results: PromptResult[] = [];
@@ -331,7 +390,11 @@ async function main() {
     promptLengths.map((promptLength) => [promptLength, 0]),
   );
 
-  for (let recordIndex = 0; recordIndex < tokenizedRecords.length; recordIndex++) {
+  for (
+    let recordIndex = 0;
+    recordIndex < tokenizedRecords.length;
+    recordIndex++
+  ) {
     const ids = tokenizedRecords[recordIndex];
     const eligiblePromptLengths = promptLengths.filter(
       (promptLength) => ids.length >= promptLength + args.suffixLength + 1,
@@ -344,7 +407,10 @@ async function main() {
 
     if (shouldLogRecord) {
       console.log(
-        `Record ${recordIndex + 1}/${tokenizedRecords.length}: ${ids.length} tokens, eligible prompt lengths: ${eligiblePromptLengths.length > 0 ? eligiblePromptLengths.join(",") : "none"
+        `Record ${recordIndex + 1}/${tokenizedRecords.length}: ${ids.length} tokens, eligible prompt lengths: ${
+          eligiblePromptLengths.length > 0
+            ? eligiblePromptLengths.join(",")
+            : "none"
         }`,
       );
     }
@@ -358,7 +424,8 @@ async function main() {
     if (eligiblePromptLengths.length === 0) {
       if (shouldLogRecord) {
         console.log(
-          `Skipping record ${recordIndex + 1}; needs at least ${Math.min(...promptLengths) + args.suffixLength + 1
+          `Skipping record ${recordIndex + 1}; needs at least ${
+            Math.min(...promptLengths) + args.suffixLength + 1
           } tokens for the shortest prompt/suffix setting.`,
         );
       }
@@ -392,7 +459,10 @@ async function main() {
         args.topK,
         args.seed + recordIndex + promptLength,
       );
-      const generatedSuffix = generated.slice(prompt.length, prompt.length + args.suffixLength);
+      const generatedSuffix = generated.slice(
+        prompt.length,
+        prompt.length + args.suffixLength,
+      );
 
       console.log("================================");
       console.log("PROMPT LENGTH:", promptLength);

@@ -7,7 +7,7 @@ import { GPTConfig } from "../models/index.js";
 import * as coder from "./coder.js";
 import { Encoded, isEncoded } from "./coder.js";
 
-import createDebug from "debug"
+import createDebug from "debug";
 
 const debug = createDebug("discojs:serialization:model");
 
@@ -35,9 +35,9 @@ export async function encode(model: Model<DataType>): Promise<Encoded> {
 }
 
 export async function decode(encoded: Encoded): Promise<Model<DataType>> {
-  const raw = coder.decode(encoded)
- 
-  debug("IMPORTANT:model decoded")
+  const raw = coder.decode(encoded);
+
+  debug("IMPORTANT:model decoded");
 
   if (!Array.isArray(raw) || raw.length < 2) {
     throw new Error(
@@ -45,16 +45,18 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
     );
   }
 
-  debug("model encoding array length: %d", raw.length)
+  debug("model encoding array length: %d", raw.length);
 
-  const type = raw[0] as unknown
-  if (typeof type !== 'number') {
-    throw new Error('invalid encoding, first encoding field should be the model type')
+  const type = raw[0] as unknown;
+  if (typeof type !== "number") {
+    throw new Error(
+      "invalid encoding, first encoding field should be the model type",
+    );
   }
 
-  debug("model type: %d", type) 
+  debug("model type: %d", type);
 
-  const rawModel = raw[1] as unknown
+  const rawModel = raw[1] as unknown;
   switch (type) {
     case Type.TFJS: {
       debug("TFJS model decoding started");
@@ -87,8 +89,8 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
       if (raw.length == 2) {
         config = undefined;
       } else if (raw.length == 3) {
-        debug("GPT model config decoding")
-        config = raw[2] as GPTConfig
+        debug("GPT model config decoding");
+        config = raw[2] as GPTConfig;
       } else {
         throw new Error(
           "invalid encoding, gpt-tfjs model encoding should be an array of length 2 or 3",
@@ -100,12 +102,15 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
           "invalid encoding, gpt-tfjs model weights should be an encoding of its weights",
         );
 
-      debug("GPT model weights decoding")
-      const weights = serialization.weights.decode(rawModel)
+      debug("GPT model weights decoding");
+      const weights = serialization.weights.decode(rawModel);
 
-      debug("GPT model weights decoded")
-      debug("GPT model config: %O", config || "undefined, using default config")
-      return models.GPT.deserialize({weights, config})
+      debug("GPT model weights decoded");
+      debug(
+        "GPT model config: %O",
+        config || "undefined, using default config",
+      );
+      return models.GPT.deserialize({ weights, config });
     }
     default:
       throw new Error("invalid encoding, model type unrecognized");

@@ -18,7 +18,9 @@ export class MeanAggregator extends MultiRoundAggregator {
   }
 
   override _add(nodeId: client.NodeID, contribution: WeightsContainer): void {
-    const previous = this.contributions.getIn([0, nodeId]) as WeightsContainer | undefined;
+    const previous = this.contributions.getIn([0, nodeId]) as
+      | WeightsContainer
+      | undefined;
     this.log(
       this.contributions.hasIn([0, nodeId])
         ? AggregationStep.UPDATE
@@ -41,7 +43,8 @@ export class MeanAggregator extends MultiRoundAggregator {
 
     const contributions = Array.from(currentContributions.values());
     let summed = contributions[0]?.map((weight) => weight.clone());
-    if (summed === undefined) throw new Error("aggregating without any contribution");
+    if (summed === undefined)
+      throw new Error("aggregating without any contribution");
 
     try {
       for (const contribution of contributions.slice(1)) {

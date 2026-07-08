@@ -121,12 +121,13 @@ export class WebSocketServer
   static async connect(
     url: URL,
     validateReceived: (msg: unknown) => msg is Message,
-    validateSent: (msg: Message) => boolean): Promise<WebSocketServer> {
+    validateSent: (msg: Message) => boolean,
+  ): Promise<WebSocketServer> {
     const ws = new WebSocket(url, {
       // Federated GPT updates can exceed the default ws payload limit.
       maxPayload: 1024 * 1024 * 1024,
-    })
-    ws.binaryType = 'arraybuffer'
+    });
+    ws.binaryType = "arraybuffer";
 
     const server: WebSocketServer = new WebSocketServer(ws, validateSent);
 
@@ -146,16 +147,23 @@ export class WebSocketServer
     };
 
     ws.onclose = (event) => {
-      debug("websocket closed: code=%o reason=%o wasClean=%o", event.code, event.reason, event.wasClean)
-    }
+      debug(
+        "websocket closed: code=%o reason=%o wasClean=%o",
+        event.code,
+        event.reason,
+        event.wasClean,
+      );
+    };
 
     return await new Promise((resolve, reject) => {
       ws.onerror = (err: WebSocket.ErrorEvent) => {
-        debug("websocket error while connecting/receiving: %o", err.message)
-        reject(new Error(`Server unreachable: ${err.message}`))
-      }
-      ws.onopen = () => { resolve(server) }
-    })
+        debug("websocket error while connecting/receiving: %o", err.message);
+        reject(new Error(`Server unreachable: ${err.message}`));
+      };
+      ws.onopen = () => {
+        resolve(server);
+      };
+    });
   }
 
   disconnect(): Promise<void> {

@@ -8,32 +8,32 @@ type GPTModelType =
   | "gpt-nano";
 
 export type GPTConfig = {
-  lr: number
-  contextLength: number
-  vocabSize?: number
-  modelType: GPTModelType
-  evaluate?: boolean
-  maxEvalBatches?: number
-  evaluateEvery?: number
-  maxIter?: number
-  weightDecay?: number
-  verbose?: 0 | 1
-  debug?: boolean
-  attnDrop?: number
-  residDrop?: number
-  embdDrop?: number
-  nLayer?: number
-  nHead?: number
-  nEmbd?: number
-  seed?: number,
-}
+  lr: number;
+  contextLength: number;
+  vocabSize?: number;
+  modelType: GPTModelType;
+  evaluate?: boolean;
+  maxEvalBatches?: number;
+  evaluateEvery?: number;
+  maxIter?: number;
+  weightDecay?: number;
+  verbose?: 0 | 1;
+  debug?: boolean;
+  attnDrop?: number;
+  residDrop?: number;
+  embdDrop?: number;
+  nLayer?: number;
+  nHead?: number;
+  nEmbd?: number;
+  seed?: number;
+};
 
 export type GoldfishLossConfig = {
-  enabled: boolean
-  k: number
-  h: number
-  padTokenId?: number
-}
+  enabled: boolean;
+  k: number;
+  h: number;
+  padTokenId?: number;
+};
 // for a benchmark of performance, see https://github.com/epfml/disco/pull/659
 export const DefaultGPTConfig: Required<GPTConfig> = {
   lr: 0.001,

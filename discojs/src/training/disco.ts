@@ -22,7 +22,7 @@ import { getAggregator } from "../aggregator/index.js";
 import { enumerate, split } from "../utils/async_iterator.js";
 import { EventEmitter } from "../utils/event_emitter.js";
 
-import createDebug from "debug"
+import createDebug from "debug";
 
 import { RoundLogs, Trainer } from "./trainer.js";
 
@@ -56,19 +56,19 @@ interface DiscoConfig<N extends Network> {
 }
 
 export type SummaryLogs = {
-  round: number,
-  epoch: number,
-  trainingLoss: number,
-  trainingAccuracy: number,
-  peakMemory: number,
-  epochTime: number,
-  roundValidationLoss?: number,
-  roundValidationAccuracy?: number,
-  validationLoss?: number,
-  validationAccuracy?: number,
-  postAggregationValidationLoss?: number,
-  postAggregationValidationAccuracy?: number
-}
+  round: number;
+  epoch: number;
+  trainingLoss: number;
+  trainingAccuracy: number;
+  peakMemory: number;
+  epochTime: number;
+  roundValidationLoss?: number;
+  roundValidationAccuracy?: number;
+  validationLoss?: number;
+  validationAccuracy?: number;
+  postAggregationValidationLoss?: number;
+  postAggregationValidationAccuracy?: number;
+};
 
 export type RoundStatus =
   | "not enough participants" // Server notification to wait for more participants
@@ -83,19 +83,20 @@ function buildSummaryLog(
   epochLogs: EpochLogs,
 ): SummaryLogs {
   return {
-      round: roundNum,
-      epoch: epochNum,
-      trainingLoss: epochLogs.training.loss,
-      trainingAccuracy: epochLogs.training.accuracy,
-      peakMemory: epochLogs.peakMemory,
-      epochTime: epochLogs.epochTime,
-      roundValidationLoss: roundLogs.preRoundValidation?.loss,
-      roundValidationAccuracy: roundLogs.preRoundValidation?.accuracy,
-      validationLoss: epochLogs.validation?.loss,
-      validationAccuracy: epochLogs.validation?.accuracy,
-      postAggregationValidationLoss: roundLogs.postAggregationValidation?.loss,
-      postAggregationValidationAccuracy: roundLogs.postAggregationValidation?.accuracy,
-    }
+    round: roundNum,
+    epoch: epochNum,
+    trainingLoss: epochLogs.training.loss,
+    trainingAccuracy: epochLogs.training.accuracy,
+    peakMemory: epochLogs.peakMemory,
+    epochTime: epochLogs.epochTime,
+    roundValidationLoss: roundLogs.preRoundValidation?.loss,
+    roundValidationAccuracy: roundLogs.preRoundValidation?.accuracy,
+    validationLoss: epochLogs.validation?.loss,
+    validationAccuracy: epochLogs.validation?.accuracy,
+    postAggregationValidationLoss: roundLogs.postAggregationValidation?.loss,
+    postAggregationValidationAccuracy:
+      roundLogs.postAggregationValidation?.accuracy,
+  };
 }
 
 /**
@@ -205,13 +206,15 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     dataset: Dataset<DataFormat.Raw[D]>,
     validationDataset?: Dataset<DataFormat.Raw[D]>,
   ): AsyncGenerator<SummaryLogs> {
-    for await (const [roundNum, round] of enumerate(this.train(dataset, validationDataset))) {
+    for await (const [roundNum, round] of enumerate(
+      this.train(dataset, validationDataset),
+    )) {
       const [roundGen, roundLogsPromise] = async_iterator.split(round);
 
       const epochResults: Array<{ epochNum: number; epochLogs: EpochLogs }> =
         [];
 
-      debug("Starting round %d", roundNum)
+      debug("Starting round %d", roundNum);
 
       for await (const [epochNum, epoch] of enumerate(roundGen)) {
         const [epochGen, epochLogsPromise] = async_iterator.split(epoch);
@@ -231,7 +234,10 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   }
 
   /** Run whole train on dataset. */
-  async trainFully(dataset: Dataset<DataFormat.Raw[D]>, validationDataset?: Dataset<DataFormat.Raw[D]>): Promise<void> {
+  async trainFully(
+    dataset: Dataset<DataFormat.Raw[D]>,
+    validationDataset?: Dataset<DataFormat.Raw[D]>,
+  ): Promise<void> {
     for await (const round of this.train(dataset, validationDataset))
       for await (const epoch of round) for await (const _ of epoch);
   }
@@ -263,7 +269,9 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     this.#setModelTrainingOptions(this.trainer.model);
     debug("Initial model fetched successfully");
     if (this.trainer.model === null) {
-      debug(`No pre-trained model provided for client, initializing randomly...`);
+      debug(
+        `No pre-trained model provided for client, initializing randomly...`,
+      );
     }
 
     for await (const [roundNum, round] of enumerate(
@@ -349,17 +357,23 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
       setLearningRate?: (learningRate: number) => void;
     };
 
-    configurableModel.setGoldfishLoss?.(this.#task.trainingInformation.goldfishLoss);
+    configurableModel.setGoldfishLoss?.(
+      this.#task.trainingInformation.goldfishLoss,
+    );
     if (this.#task.trainingInformation.goldfishLoss?.enabled === true) {
       const { k, h, padTokenId } = this.#task.trainingInformation.goldfishLoss;
       console.log(
-        `Using Goldfish loss with k=${k}, h=${h}`
-        + (padTokenId === undefined ? "" : `, padTokenId=${padTokenId}`),
+        `Using Goldfish loss with k=${k}, h=${h}` +
+          (padTokenId === undefined ? "" : `, padTokenId=${padTokenId}`),
       );
     }
     if (this.#task.trainingInformation.learningRate !== undefined) {
-      configurableModel.setLearningRate?.(this.#task.trainingInformation.learningRate);
-      console.log(`Using GPT learning rate ${this.#task.trainingInformation.learningRate}`);
+      configurableModel.setLearningRate?.(
+        this.#task.trainingInformation.learningRate,
+      );
+      console.log(
+        `Using GPT learning rate ${this.#task.trainingInformation.learningRate}`,
+      );
     }
   }
 
@@ -400,12 +414,22 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   > {
     const { batchSize } = this.#task.trainingInformation;
 
-    let preprocessedTraining = processing.preprocess(this.#task, trainingDataset);
-    let preprocessedValidation = processing.preprocess(this.#task, validationDataset);
+    let preprocessedTraining = processing.preprocess(
+      this.#task,
+      trainingDataset,
+    );
+    let preprocessedValidation = processing.preprocess(
+      this.#task,
+      validationDataset,
+    );
 
     if (this.#preprocessOnce) {
-      preprocessedTraining = new Dataset(await arrayFromAsync(preprocessedTraining));
-      preprocessedValidation = new Dataset(await arrayFromAsync(preprocessedValidation));
+      preprocessedTraining = new Dataset(
+        await arrayFromAsync(preprocessedTraining),
+      );
+      preprocessedValidation = new Dataset(
+        await arrayFromAsync(preprocessedValidation),
+      );
     }
 
     return [

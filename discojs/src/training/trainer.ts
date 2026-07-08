@@ -40,7 +40,10 @@ type IterationTrainableTextModel = Model<"text"> & {
   ): AsyncGenerator<BatchLogs, EpochLogs>;
 };
 
-function appendWeightHistory(weightNormHistory: WeightNormHistory, wc: number[]){
+function appendWeightHistory(
+  weightNormHistory: WeightNormHistory,
+  wc: number[],
+) {
   return wc.reduce((hist, t, i) => {
     const arr = hist.get(i, List<number>());
     return hist.set(i, arr.push(t));
@@ -86,21 +89,36 @@ export class Trainer<D extends DataType, N extends Network> {
     this.#epochs = task.trainingInformation.epochs;
     this.#roundIterations = task.trainingInformation.roundIterations;
     this.#validationFrequency = task.trainingInformation.validationFrequency;
-    this.#shouldValidateAfterAggregation = task.trainingInformation.scheme !== "local";
-		if ("privacy" in task.trainingInformation)
-			this.#privacy = task.trainingInformation.privacy;
+    this.#shouldValidateAfterAggregation =
+      task.trainingInformation.scheme !== "local";
+    if ("privacy" in task.trainingInformation)
+      this.#privacy = task.trainingInformation.privacy;
 
-    if (this.#roundIterations !== undefined && (task.dataType !== "text" || task.trainingInformation.tensorBackend !== "gpt"))
+    if (
+      this.#roundIterations !== undefined &&
+      (task.dataType !== "text" ||
+        task.trainingInformation.tensorBackend !== "gpt")
+    )
       throw new Error("roundIterations is only supported for GPT text tasks");
 
-    if (this.#roundIterations !== undefined && (!Number.isInteger(this.#roundIterations) || this.#roundIterations < 1))
+    if (
+      this.#roundIterations !== undefined &&
+      (!Number.isInteger(this.#roundIterations) || this.#roundIterations < 1)
+    )
       throw new Error("roundIterations must be a positive integer");
 
-    if (this.#validationFrequency !== undefined && (!Number.isInteger(this.#validationFrequency) || this.#validationFrequency < 0))
+    if (
+      this.#validationFrequency !== undefined &&
+      (!Number.isInteger(this.#validationFrequency) ||
+        this.#validationFrequency < 0)
+    )
       throw new Error("validationFrequency must be a non-negative integer");
 
     // if (!Number.isInteger(this.#epochs / this.#roundDuration))
-    if (this.#roundIterations === undefined && !Number.isInteger(this.#epochs / this.#roundDuration))
+    if (
+      this.#roundIterations === undefined &&
+      !Number.isInteger(this.#epochs / this.#roundDuration)
+    )
       throw new Error(
         `round duration ${this.#roundDuration} doesn't divide number of epochs ${this.#epochs}`,
       );
@@ -117,7 +135,7 @@ export class Trainer<D extends DataType, N extends Network> {
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
     void
   > {
-    debug("Start train")
+    debug("Start train");
     if (this.#training !== undefined)
       throw new Error(
         "training already running, stop it before launching a new one",
@@ -144,7 +162,7 @@ export class Trainer<D extends DataType, N extends Network> {
   > {
     const totalRound = Math.trunc(this.#epochs / this.#roundDuration);
 
-    debug("Run rounds")
+    debug("Run rounds");
 
     for (let round = 0; round < totalRound; round++) {
       await this.#client.onRoundBeginCommunication();
@@ -193,12 +211,17 @@ export class Trainer<D extends DataType, N extends Network> {
       while (pendingBatch !== undefined) {
         await this.#client.onRoundBeginCommunication();
 
-        this.#previousRoundWeights = new WeightsContainer(this.model.weights.weights.map(t => t.clone()));
+        this.#previousRoundWeights = new WeightsContainer(
+          this.model.weights.weights.map((t) => t.clone()),
+        );
 
-        let firstBatch: Batched<DataFormat.ModelEncoded[D]> | undefined = pendingBatch;
+        let firstBatch: Batched<DataFormat.ModelEncoded[D]> | undefined =
+          pendingBatch;
         pendingBatch = undefined;
         let done = false;
-        const prefixedIterator: AsyncIterator<Batched<DataFormat.ModelEncoded[D]>> = {
+        const prefixedIterator: AsyncIterator<
+          Batched<DataFormat.ModelEncoded[D]>
+        > = {
           next: async () => {
             if (firstBatch !== undefined) {
               const value = firstBatch;
@@ -218,7 +241,7 @@ export class Trainer<D extends DataType, N extends Network> {
           prefixedIterator,
           this.#roundIterations,
           roundValidationDataset,
-          (roundDone) => done = roundDone,
+          (roundDone) => (done = roundDone),
         );
 
         await this.#finishRoundCommunication(totalRound);
@@ -237,7 +260,7 @@ export class Trainer<D extends DataType, N extends Network> {
   ): AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs> {
     let epochsLogs = List<EpochLogs>();
 
-    debug("Run round")
+    debug("Run round");
 
     // Before starting the training, get the validation of global model
     const validation =
@@ -269,9 +292,12 @@ export class Trainer<D extends DataType, N extends Network> {
   ): AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs> {
     let epochsLogs = List<EpochLogs>();
 
-    debug("Run iteration-based round")
+    debug("Run iteration-based round");
 
-    const validation = validationDataset !== undefined ? await this.model.evaluate(validationDataset) : undefined;
+    const validation =
+      validationDataset !== undefined
+        ? await this.model.evaluate(validationDataset)
+        : undefined;
 
     const model = this.model as unknown as IterationTrainableTextModel;
     if (typeof model.trainNextBatches !== "function")
@@ -279,9 +305,13 @@ export class Trainer<D extends DataType, N extends Network> {
 
     const [gen, result] = async_iterator.split(
       model.trainNextBatches(
-        datasetIterator as AsyncIterator<Batched<DataFormat.ModelEncoded["text"]>>,
+        datasetIterator as AsyncIterator<
+          Batched<DataFormat.ModelEncoded["text"]>
+        >,
         maxBatchCount,
-        validationDataset as Dataset<Batched<DataFormat.ModelEncoded["text"]>> | undefined,
+        validationDataset as
+          | Dataset<Batched<DataFormat.ModelEncoded["text"]>>
+          | undefined,
         setDone,
       ),
     );
@@ -311,7 +341,7 @@ export class Trainer<D extends DataType, N extends Network> {
     let disposeRoundWeightsAfterSend = false;
 
     try {
-      if (this.#privacy !== undefined){
+      if (this.#privacy !== undefined) {
         if (this.#previousRoundWeights === undefined)
           throw new Error("previous round weights were not captured");
 
@@ -319,28 +349,33 @@ export class Trainer<D extends DataType, N extends Network> {
         const roundUpdate = roundWeights.sub(previousRoundWeights);
         try {
           const updateNorm = await Promise.all(
-            roundUpdate.weights.map(privacy.frobeniusNorm)
+            roundUpdate.weights.map(privacy.frobeniusNorm),
           );
-          this.#weightNormHistory = appendWeightHistory(this.#weightNormHistory, updateNorm);
+          this.#weightNormHistory = appendWeightHistory(
+            this.#weightNormHistory,
+            updateNorm,
+          );
         } finally {
           roundUpdate.dispose();
         }
 
         const privateRoundWeights = await applyOptimalPrivacy(
-            previousRoundWeights,
-            roundWeights,
-            this.#privacy,
-            this.#weightNormHistory,
-            totalRound,
-          );
+          previousRoundWeights,
+          roundWeights,
+          this.#privacy,
+          this.#weightNormHistory,
+          totalRound,
+        );
         roundWeights = privateRoundWeights;
         disposeRoundWeightsAfterSend = true;
       }
 
-      const networkWeights = await this.#client.onRoundEndCommunication(roundWeights);
+      const networkWeights =
+        await this.#client.onRoundEndCommunication(roundWeights);
       this.model.weights = networkWeights;
 
-      return this.#shouldValidateAfterAggregation && validationDataset !== undefined
+      return this.#shouldValidateAfterAggregation &&
+        validationDataset !== undefined
         ? await this.model.evaluate(validationDataset)
         : undefined;
     } finally {
@@ -367,26 +402,26 @@ async function applyOptimalPrivacy(
 ): Promise<WeightsContainer> {
   let ret = current;
 
-	// Clipping radius for BFT
-	if ("byzantineFaultTolerance" in options) {
-		// might need to change the variable name
-		const previousRoundWeights =
-			previous ?? current.map((w) => tf.zerosLike(w));
-		const weightsProgress = current.sub(previousRoundWeights);
-		const clippedProgress = await privacy.clipNorm(
-			weightsProgress,
-			Repeat(options.byzantineFaultTolerance.clippingRadius)
-				.take(weightsProgress.weights.length)
-				.toArray(),
-		);
-		try {
-			ret = previousRoundWeights.add(clippedProgress);
-		} finally {
-			weightsProgress.dispose();
-			clippedProgress.dispose();
-			if (previous === undefined) previousRoundWeights.dispose();
-		}
-	}
+  // Clipping radius for BFT
+  if ("byzantineFaultTolerance" in options) {
+    // might need to change the variable name
+    const previousRoundWeights =
+      previous ?? current.map((w) => tf.zerosLike(w));
+    const weightsProgress = current.sub(previousRoundWeights);
+    const clippedProgress = await privacy.clipNorm(
+      weightsProgress,
+      Repeat(options.byzantineFaultTolerance.clippingRadius)
+        .take(weightsProgress.weights.length)
+        .toArray(),
+    );
+    try {
+      ret = previousRoundWeights.add(clippedProgress);
+    } finally {
+      weightsProgress.dispose();
+      clippedProgress.dispose();
+      if (previous === undefined) previousRoundWeights.dispose();
+    }
+  }
 
   // Adding Gaussian noise for DP
   const dpOptions = options.differentialPrivacy;
@@ -414,32 +449,32 @@ async function applyOptimalPrivacy(
           )
         : dpClippingRadius;
 
-		const sigmas = effectiveRadius.map((r) =>
-			(2 * r * Math.sqrt(2 * Math.log(1.25 / delta))) / epsilon,
-		);
-		debug("DP applied: %O", {
-			totalRound,
-			epsilon,
-			delta,
-			radiusMin: Math.min(...effectiveRadius),
-			radiusMax: Math.max(...effectiveRadius),
-			sigmaMin: Math.min(...sigmas),
-			sigmaMax: Math.max(...sigmas),
-		});
+    const sigmas = effectiveRadius.map(
+      (r) => (2 * r * Math.sqrt(2 * Math.log(1.25 / delta))) / epsilon,
+    );
+    debug("DP applied: %O", {
+      totalRound,
+      epsilon,
+      delta,
+      radiusMin: Math.min(...effectiveRadius),
+      radiusMax: Math.max(...effectiveRadius),
+      sigmaMin: Math.min(...sigmas),
+      sigmaMax: Math.max(...sigmas),
+    });
 
-		const noisyProgress = await privacy.addOptimalNoise(
-			weightsProgress,
-			epsilon,
-			delta,
-			effectiveRadius,
-		);
-		try {
-			ret = previousEpochWeights.add(noisyProgress);
-		} finally {
-			weightsProgress.dispose();
-			noisyProgress.dispose();
-			if (previous === undefined) previousEpochWeights.dispose();
-		}
-	}
-	return ret;
+    const noisyProgress = await privacy.addOptimalNoise(
+      weightsProgress,
+      epsilon,
+      delta,
+      effectiveRadius,
+    );
+    try {
+      ret = previousEpochWeights.add(noisyProgress);
+    } finally {
+      weightsProgress.dispose();
+      noisyProgress.dispose();
+      if (previous === undefined) previousEpochWeights.dispose();
+    }
+  }
+  return ret;
 }

@@ -1,11 +1,11 @@
 import createDebug from "debug";
 import * as tf from "@tensorflow/tfjs";
 
-import type { GoldfishLossConfig, GPTConfig } from './config.js'
-import { getModelSizes, DefaultGPTConfig } from './config.js'
-import { getCustomAdam, clipByGlobalNormObj } from './optimizers.js'
-import evaluate from './evaluate.js'
-import { GPTArchitecture } from './layers.js'
+import type { GoldfishLossConfig, GPTConfig } from "./config.js";
+import { getModelSizes, DefaultGPTConfig } from "./config.js";
+import { getCustomAdam, clipByGlobalNormObj } from "./optimizers.js";
+import evaluate from "./evaluate.js";
+import { GPTArchitecture } from "./layers.js";
 
 const debug = createDebug("discojs:models:gpt:model");
 
@@ -38,9 +38,9 @@ export declare abstract class Dataset<T> {
  *
  */
 export class GPTModel extends tf.LayersModel {
-  protected readonly config: Required<GPTConfig>
-  #debugLabel?: string
-  #goldfishLoss?: GoldfishLossConfig
+  protected readonly config: Required<GPTConfig>;
+  #debugLabel?: string;
+  #goldfishLoss?: GoldfishLossConfig;
 
   constructor(
     partialConfig?: Partial<GPTConfig>,
@@ -76,15 +76,17 @@ export class GPTModel extends tf.LayersModel {
   }
 
   setDebugLabel(label: string): void {
-    this.#debugLabel = label
+    this.#debugLabel = label;
   }
 
   setGoldfishLoss(config: GoldfishLossConfig | undefined): void {
-    this.#goldfishLoss = config?.enabled === true ? config : undefined
+    this.#goldfishLoss = config?.enabled === true ? config : undefined;
   }
 
   #debugMessage(message: string): string {
-    return this.#debugLabel === undefined ? message : `[${this.#debugLabel}] ${message}`
+    return this.#debugLabel === undefined
+      ? message
+      : `[${this.#debugLabel}] ${message}`;
   }
 
   override compile() {
@@ -98,33 +100,40 @@ export class GPTModel extends tf.LayersModel {
   setLearningRate(lr: number): void {
     this.config.lr = lr;
     this.optimizer?.dispose();
-    this.optimizer = this.config.weightDecay !== 0
-      ? getCustomAdam(this, this.config.lr, this.config.weightDecay)
-      : tf.train.adam(this.config.lr);
+    this.optimizer =
+      this.config.weightDecay !== 0
+        ? getCustomAdam(this, this.config.lr, this.config.weightDecay)
+        : tf.train.adam(this.config.lr);
   }
 
-  override async fitDataset<T>(dataset: Dataset<T>, trainingArgs: tf.ModelFitDatasetArgs<T> & { iterationOffset?: number }): Promise<tf.History> {
-    const callbacks = trainingArgs.callbacks as tf.CustomCallbackArgs
-    const evalDataset = trainingArgs.validationData as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>
-    const iterationOffset = trainingArgs.iterationOffset ?? 0
-    await callbacks.onTrainBegin?.()
+  override async fitDataset<T>(
+    dataset: Dataset<T>,
+    trainingArgs: tf.ModelFitDatasetArgs<T> & { iterationOffset?: number },
+  ): Promise<tf.History> {
+    const callbacks = trainingArgs.callbacks as tf.CustomCallbackArgs;
+    const evalDataset = trainingArgs.validationData as tf.data.Dataset<{
+      xs: tf.Tensor2D;
+      ys: tf.Tensor3D;
+    }>;
+    const iterationOffset = trainingArgs.iterationOffset ?? 0;
+    await callbacks.onTrainBegin?.();
 
     for (let epoch = 1; epoch <= trainingArgs.epochs; epoch++) {
       let accuracyFraction: [number, number] = [0, 0];
-      let averageLoss = 0
-      let iteration = 1
+      let averageLoss = 0;
+      let iteration = 1;
 
-      debug(this.#debugMessage("before iterator init"))
-      const iterator = await dataset.iterator()
-      debug(this.#debugMessage("after getting iterator, before next"))
-      let next = await iterator.next()
-      debug(this.#debugMessage("after next of iterator"))
+      debug(this.#debugMessage("before iterator init"));
+      const iterator = await dataset.iterator();
+      debug(this.#debugMessage("after getting iterator, before next"));
+      let next = await iterator.next();
+      debug(this.#debugMessage("after next of iterator"));
 
       while (next.done !== true && iteration <= this.config.maxIter) {
-        const reportedIteration = iterationOffset + iteration
-        let weightUpdateTime = performance.now()
-        await callbacks.onEpochBegin?.(epoch)
-        const { xs, ys } = next.value as { xs: tf.Tensor2D, ys: tf.Tensor3D }
+        const reportedIteration = iterationOffset + iteration;
+        let weightUpdateTime = performance.now();
+        await callbacks.onEpochBegin?.(epoch);
+        const { xs, ys } = next.value as { xs: tf.Tensor2D; ys: tf.Tensor3D };
 
         // TODO include as a tensor inside the model
         // const accTensor = tf.tidy(() => {
@@ -145,44 +154,55 @@ export class GPTModel extends tf.LayersModel {
         // tf.dispose([accTensor])
         accuracyFraction = [Number.NaN, Number.NaN];
 
-        const goldfishLoss = this.#goldfishLoss
+        const goldfishLoss = this.#goldfishLoss;
         const goldfishMask =
           goldfishLoss === undefined
             ? undefined
-            : this.#buildGoldfishMask(xs, goldfishLoss)
+            : this.#buildGoldfishMask(xs, goldfishLoss);
 
         const lossTensor = tf.tidy(() => {
-          const { grads, value: lossTensor } = this.optimizer.computeGradients(() => {
-            const logits = this.apply(xs)
-            if (Array.isArray(logits))
-              throw new Error('model outputs too many tensor')
-            if (logits instanceof tf.SymbolicTensor)
-              throw new Error('model outputs symbolic tensor')
-            return goldfishMask === undefined || goldfishLoss === undefined
-              ? tf.losses.softmaxCrossEntropy(ys, logits)
-              : this.#goldfishLossTensor(ys, logits, goldfishMask, goldfishLoss)
-          })
-          const gradsClipped = clipByGlobalNormObj(grads, 1)
-          this.optimizer.applyGradients(gradsClipped)
-          tf.dispose(Object.values(gradsClipped))
-          return lossTensor
-        })
-        goldfishMask?.dispose()
-        
-        const loss = await lossTensor.array()
-        averageLoss += loss
-        weightUpdateTime = performance.now() - weightUpdateTime
+          const { grads, value: lossTensor } = this.optimizer.computeGradients(
+            () => {
+              const logits = this.apply(xs);
+              if (Array.isArray(logits))
+                throw new Error("model outputs too many tensor");
+              if (logits instanceof tf.SymbolicTensor)
+                throw new Error("model outputs symbolic tensor");
+              return goldfishMask === undefined || goldfishLoss === undefined
+                ? tf.losses.softmaxCrossEntropy(ys, logits)
+                : this.#goldfishLossTensor(
+                    ys,
+                    logits,
+                    goldfishMask,
+                    goldfishLoss,
+                  );
+            },
+          );
+          const gradsClipped = clipByGlobalNormObj(grads, 1);
+          this.optimizer.applyGradients(gradsClipped);
+          tf.dispose(Object.values(gradsClipped));
+          return lossTensor;
+        });
+        goldfishMask?.dispose();
+
+        const loss = await lossTensor.array();
+        averageLoss += loss;
+        weightUpdateTime = performance.now() - weightUpdateTime;
 
         if (
           evalDataset !== undefined &&
           this.config.evaluateEvery !== undefined &&
           // iteration % this.config.evaluateEvery == 0
           reportedIteration % this.config.evaluateEvery == 0
-        ){
-          const iterationLogs = await evaluate(this, evalDataset, this.config.maxEvalBatches)
-          debug(this.#debugMessage('evaluation metrics: %O'), iterationLogs);
+        ) {
+          const iterationLogs = await evaluate(
+            this,
+            evalDataset,
+            this.config.maxEvalBatches,
+          );
+          debug(this.#debugMessage("evaluation metrics: %O"), iterationLogs);
         }
-        const memory = tf.memory().numBytes / 1024 / 1024 / 1024
+        const memory = tf.memory().numBytes / 1024 / 1024 / 1024;
         debug(this.#debugMessage("training metrics: %O"), {
           epoch,
           iteration: reportedIteration,
@@ -223,60 +243,61 @@ export class GPTModel extends tf.LayersModel {
     goldfishMask: tf.Tensor2D,
     config: GoldfishLossConfig,
   ): tf.Scalar {
-    if (Array.isArray(logits))
-      throw new Error('model outputs too many tensor')
-    if (logits.rank !== 3)
-      throw new Error('model outputs wrong shape')
+    if (Array.isArray(logits)) throw new Error("model outputs too many tensor");
+    if (logits.rank !== 3) throw new Error("model outputs wrong shape");
 
     const tokenLosses = tf.neg(
       tf.sum(tf.mul(ys, tf.logSoftmax(logits as tf.Tensor3D, -1)), -1),
-    ) as tf.Tensor2D
+    ) as tf.Tensor2D;
 
     const supervisedMask =
       config.padTokenId === undefined
         ? goldfishMask
         : tf.mul(
             goldfishMask,
-            tf.cast(tf.notEqual(tf.argMax(ys, -1), config.padTokenId), 'float32'),
-          )
+            tf.cast(
+              tf.notEqual(tf.argMax(ys, -1), config.padTokenId),
+              "float32",
+            ),
+          );
 
-    const denominator = tf.maximum(tf.sum(supervisedMask), tf.scalar(1))
-    return tf.div(tf.sum(tf.mul(tokenLosses, supervisedMask)), denominator)
+    const denominator = tf.maximum(tf.sum(supervisedMask), tf.scalar(1));
+    return tf.div(tf.sum(tf.mul(tokenLosses, supervisedMask)), denominator);
   }
 
   #buildGoldfishMask(
     inputIds: tf.Tensor2D,
     config: GoldfishLossConfig,
   ): tf.Tensor2D {
-    const rows = inputIds.arraySync()
+    const rows = inputIds.arraySync();
     const mask = rows.map((row) =>
       row.map((_, targetOffset) => {
-        const targetIndex = targetOffset + 1
-        const start = Math.max(0, targetIndex - config.h)
-        const context = row.slice(start, targetIndex)
-        return this.#hashTokenContext(context) % config.k === 0 ? 0 : 1
+        const targetIndex = targetOffset + 1;
+        const start = Math.max(0, targetIndex - config.h);
+        const context = row.slice(start, targetIndex);
+        return this.#hashTokenContext(context) % config.k === 0 ? 0 : 1;
       }),
-    )
+    );
 
-    return tf.tensor2d(mask, inputIds.shape, 'float32')
+    return tf.tensor2d(mask, inputIds.shape, "float32");
   }
 
   #hashTokenContext(tokens: number[]): number {
-    let hash = 0x811c9dc5
+    let hash = 0x811c9dc5;
 
     for (const token of tokens) {
-      hash ^= token & 0xff
-      hash = Math.imul(hash, 0x01000193)
-      hash ^= (token >>> 8) & 0xff
-      hash = Math.imul(hash, 0x01000193)
-      hash ^= (token >>> 16) & 0xff
-      hash = Math.imul(hash, 0x01000193)
-      hash ^= (token >>> 24) & 0xff
-      hash = Math.imul(hash, 0x01000193)
-      hash ^= 0xff
-      hash = Math.imul(hash, 0x01000193)
+      hash ^= token & 0xff;
+      hash = Math.imul(hash, 0x01000193);
+      hash ^= (token >>> 8) & 0xff;
+      hash = Math.imul(hash, 0x01000193);
+      hash ^= (token >>> 16) & 0xff;
+      hash = Math.imul(hash, 0x01000193);
+      hash ^= (token >>> 24) & 0xff;
+      hash = Math.imul(hash, 0x01000193);
+      hash ^= 0xff;
+      hash = Math.imul(hash, 0x01000193);
     }
 
-    return hash >>> 0
+    return hash >>> 0;
   }
 }
