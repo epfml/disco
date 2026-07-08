@@ -264,7 +264,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     // the client fetches the latest weights upon connection
     // TODO unsafe cast
     debug("Connecting to client and fetching initial model...");
-    this.trainer.model = (await this.#client.connect()) as Model<D>;
+    this.trainer.model = await this.#client.connect();
     this.#setModelDebugLabel(this.trainer.model);
     this.#setModelTrainingOptions(this.trainer.model);
     debug("Initial model fetched successfully");

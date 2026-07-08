@@ -289,6 +289,9 @@ importers:
       '@tensorflow/tfjs-node':
         specifier: 'catalog:'
         version: 4.22.0(seedrandom@3.0.5)(supports-color@8.1.1)
+      debug:
+        specifier: 'catalog:'
+        version: 4.4.3(supports-color@8.1.1)
       immutable:
         specifier: 'catalog:'
         version: 5.1.6

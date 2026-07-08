@@ -248,7 +248,7 @@ export class GPTModel extends tf.LayersModel {
 
     const tokenLosses = tf.neg(
       tf.sum(tf.mul(ys, tf.logSoftmax(logits as tf.Tensor3D, -1)), -1),
-    ) as tf.Tensor2D;
+    );
 
     const supervisedMask =
       config.padTokenId === undefined

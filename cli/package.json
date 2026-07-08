@@ -22,6 +22,7 @@
     "@epfml/discojs": "workspace:",
     "@epfml/discojs-node": "workspace:",
     "@tensorflow/tfjs-node": "catalog:",
+    "debug": "catalog:",
     "immutable": "catalog:",
     "server": "workspace:"
   },

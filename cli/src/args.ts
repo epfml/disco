@@ -287,18 +287,9 @@ export const args: BenchmarkArguments = {
       task.trainingInformation.roundDuration = unsafeArgs.roundDuration;
       task.trainingInformation.epochs = unsafeArgs.epochs;
       task.trainingInformation.validationSplit = unsafeArgs.validationSplit;
-      (
-        task.trainingInformation as typeof task.trainingInformation & {
-          roundIterations?: number;
-          validationFrequency?: number;
-        }
-      ).roundIterations = unsafeArgs.roundIterations;
-      (
-        task.trainingInformation as typeof task.trainingInformation & {
-          roundIterations?: number;
-          validationFrequency?: number;
-        }
-      ).validationFrequency = unsafeArgs.validationFrequency;
+      task.trainingInformation.roundIterations = unsafeArgs.roundIterations;
+      task.trainingInformation.validationFrequency =
+        unsafeArgs.validationFrequency;
 
       if (unsafeArgs.goldfishLoss) {
         if (
