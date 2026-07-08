@@ -22,7 +22,6 @@ import {
   client as clients,
 } from "@epfml/discojs";
 
-<<<<<<< HEAD
 import { saveModelToDisk } from "@epfml/discojs-node";
 import { getTaskData } from './data.js'
 import { args } from './args.js'
@@ -87,27 +86,6 @@ async function runUser<D extends DataType, N extends Network>(
   });
   
   const dir = getOutputDir();
-=======
-import { getTaskData } from "./data.js";
-import { args } from "./args.js";
-import { makeUserLogFile } from "./user_log.js";
-import type { UserLogFile } from "./user_log.js";
-
-async function runUser<D extends DataType, N extends Network>(
-  task: Task<D, N>,
-  url: URL,
-  data: Dataset<DataFormat.Raw[D]>,
-  userIndex: number,
-  numberOfUsers: number,
-): Promise<List<SummaryLogs>> {
-  // cast as typescript isn't good with generics
-  const trainingScheme = task.trainingInformation.scheme as N;
-  const aggregator = aggregators.getAggregator(task);
-  const client = clients.getClient(trainingScheme, url, task, aggregator);
-  const disco = new Disco(task, client, { scheme: trainingScheme });
-
-  const dir = path.join(".", `${args.testID}`);
->>>>>>> develop
   await fs.mkdir(dir, { recursive: true });
   const streamPath = path.join(dir, `client${userIndex}_local_log.jsonl`);
 
@@ -115,7 +93,6 @@ async function runUser<D extends DataType, N extends Network>(
   // create a write stream that saves learning logs during the train
   let jsonStream: ReturnType<typeof createWriteStream> | null = null;
 
-<<<<<<< HEAD
   if (args.saveLogs){
     jsonStream = createWriteStream(streamPath, {flags: "w"});
   }
@@ -126,14 +103,6 @@ async function runUser<D extends DataType, N extends Network>(
     let lastCheckpointRound: number | undefined = undefined;
 
     for await (const log of disco.trainSummary(data, validationData)){
-=======
-  if (args.save) {
-    jsonStream = createWriteStream(streamPath, { flags: "w" });
-  }
-
-  try {
-    for await (const log of disco.trainSummary(data)) {
->>>>>>> develop
       finalLog.push(log);
 
       if (jsonStream) {
@@ -148,7 +117,6 @@ async function runUser<D extends DataType, N extends Network>(
     }
     debug(`Training took ${Date.now() - trainStart}ms for client ${userIndex}`);
 
-<<<<<<< HEAD
     await new Promise((res, _) => setTimeout(() => res('timeout'), 1000)) // Wait for other peers to finish
   // Save the trained model if requested
   if (args.saveModel) {
@@ -158,27 +126,13 @@ async function runUser<D extends DataType, N extends Network>(
     runGarbageCollection(`client ${userIndex} final model save`);
     console.log(`Model saved for client ${userIndex} at ${modelDir}/${modelFileName}`);
   }
-=======
-    await new Promise((res, _) => setTimeout(() => res("timeout"), 1000)); // Wait for other peers to finish
-
->>>>>>> develop
     // saving the entire per-user logs
     if (args.saveLogs) {
       const finalPath = path.join(dir, `client${userIndex}_local_log.json`);
 
-<<<<<<< HEAD
       const clientId =
         trainingScheme === "local" ? `local-client-${userIndex}` : client.ownId;
       const userLog: UserLogFile = makeUserLogFile(task, numberOfUsers, userIndex, clientId, finalLog);
-=======
-      const userLog: UserLogFile = makeUserLogFile(
-        task,
-        numberOfUsers,
-        userIndex,
-        client.ownId,
-        finalLog,
-      );
->>>>>>> develop
 
       await fs.writeFile(finalPath, JSON.stringify(userLog, null, 2));
     }
@@ -224,26 +178,8 @@ async function main<D extends DataType, N extends Network>(
   console.log({ args });
 
   const dataSplits = await Promise.all(
-<<<<<<< HEAD
     Range(0, numberOfUsers).map(async i => getTaskData(task.id, i, numberOfUsers, args.datasetPath))
   )
-=======
-    Range(0, numberOfUsers).map(async (i) =>
-      getTaskData(task.id, i, numberOfUsers),
-    ),
-  );
-  const logs = await Promise.all(
-    dataSplits.map((data, i) =>
-      runUser(
-        task,
-        args.host,
-        data as Dataset<DataFormat.Raw[D]>,
-        i,
-        numberOfUsers,
-      ),
-    ),
-  );
->>>>>>> develop
 
   let validationData: Dataset<DataFormat.Raw[D]> | undefined = undefined;
   if (args.validationDatasetPath) {

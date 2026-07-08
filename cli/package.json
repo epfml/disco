@@ -1,34 +1,4 @@
 {
-<<<<<<< HEAD
-	"name": "cli",
-	"private": true,
-	"type": "module",
-	"main": "dist/cli.js",
-	"scripts": {
-		"watch": "nodemon --ext ts --ignore dist --watch ../discojs-node/dist --watch ../server/dist --watch . --exec npm run",
-		"start": "npm run build && node dist/cli.js",
-		"benchmark_gpt": "npm run build && node dist/benchmark_gpt.js",
-		"train_gpt": "npm run build && node dist/train_gpt.js",
-		"hellaswag_gpt": "npm run build && node dist/hellaswag_gpt.js",
-		"eval_finetuned_gpt2": "npm run build && node dist/evaluate_finetuned_gpt2.js",
-		"eval_finetuned_gpt2_full_answer": "npm run build && node dist/evaluate_finetuned_gpt2_full_answer.js",
-		"measure_memorization_gpt2": "npm run build && node dist/measure_memorization_gpt2.js",
-		"finetune_gpt": "npm run build && node dist/finetune_gpt.js",
-		"build": "tsc --build",
-		"test": ": nothing"
-	},
-	"author": "",
-	"license": "ISC",
-	"dependencies": {
-		"@epfml/discojs-node": "*",
-		"server": "*",
-		"tslib": "2"
-	},
-	"devDependencies": {
-		"nodemon": "3",
-		"ts-command-line-args": "2"
-	}
-=======
   "name": "cli",
   "private": true,
   "type": "module",
@@ -39,6 +9,10 @@
     "benchmark_gpt": "pnpm run build && node dist/benchmark_gpt.js",
     "train_gpt": "pnpm run build && node dist/train_gpt.js",
     "hellaswag_gpt": "pnpm run build && node dist/hellaswag_gpt.js",
+	"eval_finetuned_gpt2": "pnpm run build && node dist/evaluate_finetuned_gpt2.js",
+	"eval_finetuned_gpt2_full_answer": "pnpm run build && node dist/evaluate_finetuned_gpt2_full_answer.js",
+	"measure_memorization_gpt2": "pnpm run build && node dist/measure_memorization_gpt2.js",
+	"finetune_gpt": "pnpm run build && node dist/finetune_gpt.js",
     "build": "tsc --build",
     "test": ": nothing"
   },
@@ -55,5 +29,4 @@
     "nodemon": "3.1.14",
     "ts-command-line-args": "2.5.1"
   }
->>>>>>> develop
 }

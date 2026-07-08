@@ -14,13 +14,8 @@ import { BatchLogs, Model, EpochLogs } from "../index.js";
 
 import { GPTModel } from "./model.js";
 import evaluate from "./evaluate.js";
-<<<<<<< HEAD
 import { DefaultGPTConfig, DefaultGenerationConfig } from './config.js'
 import type { GoldfishLossConfig, GPTConfig, GenerationConfig } from './config.js'
-=======
-import { DefaultGPTConfig, DefaultGenerationConfig } from "./config.js";
-import type { GPTConfig, GenerationConfig } from "./config.js";
->>>>>>> develop
 
 const debug = createDebug("discojs:models:gpt");
 

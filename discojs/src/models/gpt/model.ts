@@ -1,19 +1,11 @@
 import createDebug from "debug";
 import * as tf from "@tensorflow/tfjs";
 
-<<<<<<< HEAD
 import type { GoldfishLossConfig, GPTConfig } from './config.js'
 import { getModelSizes, DefaultGPTConfig } from './config.js'
 import { getCustomAdam, clipByGlobalNormObj } from './optimizers.js'
 import evaluate from './evaluate.js'
 import { GPTArchitecture } from './layers.js'
-=======
-import type { GPTConfig } from "./config.js";
-import { getModelSizes, DefaultGPTConfig } from "./config.js";
-import { getCustomAdam, clipByGlobalNormObj } from "./optimizers.js";
-import evaluate from "./evaluate.js";
-import { GPTArchitecture } from "./layers.js";
->>>>>>> develop
 
 const debug = createDebug("discojs:models:gpt:model");
 
@@ -46,13 +38,9 @@ export declare abstract class Dataset<T> {
  *
  */
 export class GPTModel extends tf.LayersModel {
-<<<<<<< HEAD
   protected readonly config: Required<GPTConfig>
   #debugLabel?: string
   #goldfishLoss?: GoldfishLossConfig
-=======
-  protected readonly config: Required<GPTConfig>;
->>>>>>> develop
 
   constructor(
     partialConfig?: Partial<GPTConfig>,
@@ -107,7 +95,6 @@ export class GPTModel extends tf.LayersModel {
         : tf.train.adam(this.config.lr);
   }
 
-<<<<<<< HEAD
   setLearningRate(lr: number): void {
     this.config.lr = lr;
     this.optimizer?.dispose();
@@ -138,37 +125,8 @@ export class GPTModel extends tf.LayersModel {
         let weightUpdateTime = performance.now()
         await callbacks.onEpochBegin?.(epoch)
         const { xs, ys } = next.value as { xs: tf.Tensor2D, ys: tf.Tensor3D }
-=======
-  override async fitDataset<T>(
-    dataset: Dataset<T>,
-    trainingArgs: tf.ModelFitDatasetArgs<T>,
-  ): Promise<tf.History> {
-    const callbacks = trainingArgs.callbacks as tf.CustomCallbackArgs;
-    const evalDataset = trainingArgs.validationData as tf.data.Dataset<{
-      xs: tf.Tensor2D;
-      ys: tf.Tensor3D;
-    }>;
-    await callbacks.onTrainBegin?.();
-
-    for (let epoch = 1; epoch <= trainingArgs.epochs; epoch++) {
-      let accuracyFraction: [number, number] = [0, 0];
-      let averageLoss = 0;
-      let iteration = 1;
-      const iterator = await dataset.iterator();
-      let next = await iterator.next();
-
-      while (next.done !== true && iteration <= this.config.maxIter) {
-        let weightUpdateTime = performance.now();
-        await callbacks.onEpochBegin?.(epoch);
-        const { xs, ys } = next.value as { xs: tf.Tensor2D; ys: tf.Tensor3D };
-
-        let preprocessingTime = performance.now();
-        await Promise.all([xs.data(), ys.data()]);
-        preprocessingTime = performance.now() - preprocessingTime;
->>>>>>> develop
 
         // TODO include as a tensor inside the model
-<<<<<<< HEAD
         // const accTensor = tf.tidy(() => {
         //   const logits = this.apply(xs)
         //   if (Array.isArray(logits))
@@ -214,54 +172,10 @@ export class GPTModel extends tf.LayersModel {
         const loss = await lossTensor.array()
         averageLoss += loss
         weightUpdateTime = performance.now() - weightUpdateTime
-=======
-        const accTensor = tf.tidy(() => {
-          const logits = this.apply(xs);
-          if (Array.isArray(logits))
-            throw new Error("model outputs too many tensor");
-          if (logits instanceof tf.SymbolicTensor)
-            throw new Error("model outputs symbolic tensor");
-          return tf.metrics.categoricalAccuracy(ys, logits);
-        });
-        const accSize = accTensor.shape.reduce((l, r) => l * r, 1);
-        const accSumTensor = accTensor.sum();
-        const accSum = await accSumTensor.array();
-        tf.dispose(accSumTensor);
-        if (typeof accSum !== "number")
-          throw new Error("got multiple accuracy sum");
-        accuracyFraction = [
-          accuracyFraction[0] + accSum,
-          accuracyFraction[1] + accSize,
-        ];
-        tf.dispose([accTensor]);
-
-        const lossTensor = tf.tidy(() => {
-          const { grads, value: lossTensor } = this.optimizer.computeGradients(
-            () => {
-              const logits = this.apply(xs);
-              if (Array.isArray(logits))
-                throw new Error("model outputs too many tensor");
-              if (logits instanceof tf.SymbolicTensor)
-                throw new Error("model outputs symbolic tensor");
-              return tf.losses.softmaxCrossEntropy(ys, logits);
-            },
-          );
-          const gradsClipped = clipByGlobalNormObj(grads, 1);
-          this.optimizer.applyGradients(gradsClipped);
-          return lossTensor;
-        });
-
-        const loss = await lossTensor.array();
-        averageLoss += loss;
-        weightUpdateTime = performance.now() - weightUpdateTime;
-
-        tf.dispose([xs, ys, lossTensor]);
->>>>>>> develop
 
         if (
           evalDataset !== undefined &&
           this.config.evaluateEvery !== undefined &&
-<<<<<<< HEAD
           // iteration % this.config.evaluateEvery == 0
           reportedIteration % this.config.evaluateEvery == 0
         ){
@@ -270,19 +184,6 @@ export class GPTModel extends tf.LayersModel {
         }
         const memory = tf.memory().numBytes / 1024 / 1024 / 1024
         debug(this.#debugMessage("training metrics: %O"), {
-=======
-          iteration % this.config.evaluateEvery == 0
-        ) {
-          const iterationLogs = await evaluate(
-            this,
-            evalDataset,
-            this.config.maxEvalBatches,
-          );
-          debug("evaluation metrics: %O", iterationLogs);
-        }
-        const memory = tf.memory().numBytes / 1024 / 1024 / 1024;
-        debug("training metrics: %O", {
->>>>>>> develop
           epoch,
           iteration: reportedIteration,
           loss,

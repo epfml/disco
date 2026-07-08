@@ -121,19 +121,12 @@ export class WebSocketServer
   static async connect(
     url: URL,
     validateReceived: (msg: unknown) => msg is Message,
-<<<<<<< HEAD
     validateSent: (msg: Message) => boolean): Promise<WebSocketServer> {
     const ws = new WebSocket(url, {
       // Federated GPT updates can exceed the default ws payload limit.
       maxPayload: 1024 * 1024 * 1024,
     })
     ws.binaryType = 'arraybuffer'
-=======
-    validateSent: (msg: Message) => boolean,
-  ): Promise<WebSocketServer> {
-    const ws = new WebSocket(url);
-    ws.binaryType = "arraybuffer";
->>>>>>> develop
 
     const server: WebSocketServer = new WebSocketServer(ws, validateSent);
 
@@ -158,20 +151,11 @@ export class WebSocketServer
 
     return await new Promise((resolve, reject) => {
       ws.onerror = (err: WebSocket.ErrorEvent) => {
-<<<<<<< HEAD
         debug("websocket error while connecting/receiving: %o", err.message)
         reject(new Error(`Server unreachable: ${err.message}`))
       }
       ws.onopen = () => { resolve(server) }
     })
-=======
-        reject(new Error(`Server unreachable: ${err.message}`));
-      };
-      ws.onopen = () => {
-        resolve(server);
-      };
-    });
->>>>>>> develop
   }
 
   disconnect(): Promise<void> {

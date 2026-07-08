@@ -2,11 +2,7 @@ import { parse } from "ts-command-line-args";
 import { Map, Set } from "immutable";
 
 import type { DataType, Network, TaskProvider } from "@epfml/discojs";
-<<<<<<< HEAD
 import { defaultTasks, models } from '@epfml/discojs'
-=======
-import { defaultTasks } from "@epfml/discojs";
->>>>>>> develop
 
 type AggregationStrategy = "mean" | "byzantine" | "secure";
 
@@ -16,7 +12,6 @@ function parseAggregator(raw: string): AggregationStrategy {
 }
 
 export interface BenchmarkArguments {
-<<<<<<< HEAD
 	provider: TaskProvider<DataType, Network>;
   testID: string
   numberOfUsers: number
@@ -34,15 +29,6 @@ export interface BenchmarkArguments {
   goldfishH: number
   goldfishPadTokenId?: number
   learningRate?: number
-=======
-  provider: TaskProvider<DataType, Network>;
-  testID: string;
-  numberOfUsers: number;
-  epochs: number;
-  roundDuration: number;
-  batchSize: number;
-  validationSplit: number;
->>>>>>> develop
 
   // DP
   epsilon?: number;
@@ -57,7 +43,6 @@ export interface BenchmarkArguments {
   // Secure aggregator
   maxShareValue?: number;
 
-<<<<<<< HEAD
   saveLogs: boolean
   saveModel: boolean
   saveCheckpoints: boolean
@@ -70,22 +55,11 @@ type BenchmarkUnsafeArguments = Omit<BenchmarkArguments, 'provider'> & {
   validationDatasetPath?: string
   help?: boolean
 }
-=======
-  save: boolean;
-  host: URL;
-}
-
-type BenchmarkUnsafeArguments = Omit<BenchmarkArguments, "provider"> & {
-  task: string;
-  help?: boolean;
-};
->>>>>>> develop
 
 const argExample = "e.g. pnpm start -u 2 -e 3 # runs 2 users for 3 epochs";
 
 const unsafeArgs = parse<BenchmarkUnsafeArguments>(
   {
-<<<<<<< HEAD
     testID: { type: String, alias: 'i', description: 'ID of the testcase' },
     task: { type: String, alias: 't', description: 'Task: tinder_dog, titanic, simple_face, cifar10 or lus_covid', defaultValue: 'tinder_dog' },
     numberOfUsers: { type: Number, alias: 'u', description: 'Number of users', defaultValue: 2 },
@@ -106,56 +80,6 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     saveLogs: { type: Boolean, alias: 's', description: 'Save logs of benchmark', defaultValue: false },
     saveModel: { type: Boolean, alias: 'm', description: 'Save trained model to disk', defaultValue: false },
     saveCheckpoints: { type: Boolean, description: 'Save each client model after every completed round/aggregation', defaultValue: false },
-=======
-    testID: {
-      type: String,
-      alias: "i",
-      description: "ID of the testcase",
-    },
-    task: {
-      type: String,
-      alias: "t",
-      description:
-        "Task: tinder_dog, titanic, simple_face, cifar10 or lus_covid",
-      defaultValue: "tinder_dog",
-    },
-    numberOfUsers: {
-      type: Number,
-      alias: "u",
-      description: "Number of users",
-      defaultValue: 2,
-    },
-    epochs: {
-      type: Number,
-      alias: "e",
-      description: "Number of epochs",
-      defaultValue: 10,
-    },
-    roundDuration: {
-      type: Number,
-      alias: "r",
-      description: "Round duration (in epochs)",
-      defaultValue: 2,
-    },
-    batchSize: {
-      type: Number,
-      alias: "b",
-      description: "Training batch size",
-      defaultValue: 10,
-    },
-    validationSplit: {
-      type: Number,
-      alias: "v",
-      description: "Validation dataset ratio",
-      defaultValue: 0.2,
-    },
-    save: {
-      type: Boolean,
-      alias: "s",
-      description: "Save logs of benchmark",
-      defaultValue: false,
-    },
->>>>>>> develop
     host: {
       type: (raw: string) => new URL(raw),
       typeLabel: "URL",

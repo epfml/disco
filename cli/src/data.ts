@@ -1,7 +1,6 @@
 import path from "node:path";
 import { createReadStream } from "node:fs";
 import { Dataset, processing } from "@epfml/discojs";
-<<<<<<< HEAD
 import {
   DataFormat,
   DataType,
@@ -61,16 +60,6 @@ function loadTextSamples(
 }
 
 async function loadSimpleFaceData(userIdx: number, totalClient: number): Promise<Dataset<DataFormat.Raw["image"]>> {
-=======
-import { DataFormat, DataType, Image, Task } from "@epfml/discojs";
-import { loadCSV, loadImage, loadImagesInDir } from "@epfml/discojs-node";
-import { Repeat } from "immutable";
-
-async function loadSimpleFaceData(
-  userIdx: number,
-  totalClient: number,
-): Promise<Dataset<DataFormat.Raw["image"]>> {
->>>>>>> develop
   const folder = path.join("..", "datasets", "simple_face");
 
   const [adults, childs]: Dataset<[Image, string]>[] = [
@@ -159,18 +148,12 @@ function loadData(
 }
 
 export async function getTaskData<D extends DataType>(
-<<<<<<< HEAD
 	taskID: Task.ID,
 	userIdx: number,
   totalClient: number,
   datasetPath?: string,
   isValidation?: boolean,
   validationDatasetPath?: string
-=======
-  taskID: Task.ID,
-  userIdx: number,
-  totalClient: number,
->>>>>>> develop
 ): Promise<Dataset<DataFormat.Raw[D]>> {
   switch (taskID) {
     case "simple_face": // remove

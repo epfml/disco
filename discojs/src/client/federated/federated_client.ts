@@ -93,21 +93,12 @@ export class FederatedClient extends Client<"federated"> {
     this.nbOfParticipants = nbOfParticipants;
     // Upon connecting, the server answers with a boolean
     // which indicates whether there are enough participants or not
-<<<<<<< HEAD
     debug(`[${shortenId(this.ownId)}] upon connecting, wait for participant flag %o`, this.waitingForMoreParticipants)
     if (payload != null) {
       const latestWeights = serialization.weights.decode(payload)
       model.weights = latestWeights
     }
     return model
-=======
-    debug(
-      `[${shortenId(this.ownId)}] upon connecting, wait for participant flag %o`,
-      this.waitingForMoreParticipants,
-    );
-    model.weights = serialization.weights.decode(payload);
-    return model;
->>>>>>> develop
   }
 
   /**
@@ -154,7 +145,6 @@ export class FederatedClient extends Client<"federated"> {
     this.saveAndEmit("updating model");
     // Send our local contribution to the server
     // and receive the server global update for this round as an answer to our contribution
-<<<<<<< HEAD
 		const payloadToServer = this.aggregator
 			.makePayloads(weights)
 			.get(SERVER_NODE_ID);
@@ -194,34 +184,6 @@ export class FederatedClient extends Client<"federated"> {
     } = await waitMessage( this.server, type.ReceiveServerPayload); // Wait indefinitely for the server update
     this.nbOfParticipants = nbOfParticipants // Save the current participants
     debugProcessMemory(`[${shortenId(this.ownId)}] round ${round} after receive`);
-=======
-    const payloadToServer = this.aggregator
-      .makePayloads(weights)
-      .get(SERVER_NODE_ID);
-    if (payloadToServer === undefined)
-      throw new Error("aggregator didn't make a payload for the server");
-    const msg: messages.SendPayload = {
-      type: type.SendPayload,
-      payload: await serialization.weights.encode(payloadToServer),
-      round: this.aggregator.round,
-    };
-
-    // Need to await the resulting global model right after sending our local contribution
-    // to make sure we don't miss it
-    debug(
-      `[${shortenId(this.ownId)}] sent its local update to the server for round ${this.aggregator.round}`,
-    );
-    this.server.send(msg);
-    debug(
-      `[${shortenId(this.ownId)}] is waiting for server update for round ${this.aggregator.round + 1}`,
-    );
-    const {
-      payload: payloadFromServer,
-      round: serverRound,
-      nbOfParticipants,
-    } = await waitMessage(this.server, type.ReceiveServerPayload); // Wait indefinitely for the server update
-    this.nbOfParticipants = nbOfParticipants; // Save the current participants
->>>>>>> develop
     const serverResult = serialization.weights.decode(payloadFromServer);
     debugProcessMemory(`[${shortenId(this.ownId)}] round ${round} after decode server payload`);
     this.aggregator.setRound(serverRound);

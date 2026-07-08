@@ -165,21 +165,12 @@ export abstract class Client<N extends Network> extends EventEmitter<{
           `[${shortenId(this.ownId)}] received EnoughParticipants message from server`,
         );
         // Emit the last status emitted before waiting if defined
-<<<<<<< HEAD
         if (this.#previousStatus !== undefined) this.emit("status", this.#previousStatus)
         this.nbOfParticipants = event.nbOfParticipants
         this.promiseForMoreParticipants = undefined
         resolve()
       })
     })
-=======
-        if (this.#previousStatus !== undefined)
-          this.emit("status", this.#previousStatus);
-        this.nbOfParticipants = event.nbOfParticipants;
-        resolve();
-      });
-    });
->>>>>>> develop
   }
 
   protected async waitForParticipantsIfNeeded(): Promise<void> {
