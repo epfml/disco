@@ -286,6 +286,9 @@ importers:
       '@epfml/discojs-node':
         specifier: 'workspace:'
         version: link:../discojs-node
+      '@tensorflow/tfjs':
+        specifier: 'catalog:'
+        version: 4.22.0(seedrandom@3.0.5)
       '@tensorflow/tfjs-node':
         specifier: 'catalog:'
         version: 4.22.0(seedrandom@3.0.5)(supports-color@8.1.1)
