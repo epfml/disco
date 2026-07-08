@@ -18,7 +18,7 @@
               >here</a
             >. <br />
             <span>
-              {{task.displayInformation.sampleDataset.instructions}}
+              {{ task.displayInformation.sampleDataset.instructions }}
             </span>
           </div>
           <!-- Sample dataset link and instructions -->

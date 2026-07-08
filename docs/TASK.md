@@ -250,14 +250,14 @@ export const task: Task = {
 ```
 
 > [!TIP]
-> Note that you need to rebuild discojs every time you make changes to it (`cd discojs; rm -rf dist/; npm run build`).
+> Note that you need to rebuild discojs every time you make changes to it (`rm -rf discojs/dist/; pnpm -F discojs run build`).
 
 ## Summary
 
 - In `discojs/src/default_tasks/` define your new custom task by implementing the `TaskProvider` interface.
 - In `discojs/src/default_tasks/index.ts` export your newly defined task
-- Run `npm -ws run build`
-- Instantiate a Disco server by running `npm start` from `server`
-- Instantiate a Disco client by running `npm start` from `webapp`
+- Run `pnpm -r run build`
+- Instantiate a Disco server by running `pnpm start` from `server`
+- Instantiate a Disco client by running `pnpm start` from `webapp`
 
 Your task has been successfully uploaded.

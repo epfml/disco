@@ -1,6 +1,14 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
   "include": ["./e2e/**/*", "./support/**/*"],
+  "references": [
+    {
+      "path": "../../discojs"
+    },
+    {
+      "path": "../../discojs-web"
+    }
+  ],
   "compilerOptions": {
     "isolatedModules": false,
     "target": "es2022",

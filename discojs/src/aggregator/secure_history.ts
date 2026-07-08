@@ -1,5 +1,5 @@
 import type { WeightsContainer } from "../index.js";
-import { SecureAggregator } from "./secure.js"; 
+import { SecureAggregator } from "./secure.js";
 import { aggregation } from "../index.js";
 
 /**
@@ -40,7 +40,8 @@ export class SecureHistoryAggregator extends SecureAggregator {
 
     // For communication round 1, do average + momentum smoothing
     const currentContributions = this.contributions.get(1);
-    if (!currentContributions) throw new Error("aggregating without any contribution");
+    if (!currentContributions)
+      throw new Error("aggregating without any contribution");
 
     const avg = aggregation.avg(currentContributions.values());
 
@@ -50,11 +51,11 @@ export class SecureHistoryAggregator extends SecureAggregator {
     }
 
     const updatedMomentum = this.prevAggregate.mapWith(avg, (prevT, currT) =>
-      prevT.mul(this.beta).add(currT.mul(1 - this.beta))
+      prevT.mul(this.beta).add(currT.mul(1 - this.beta)),
     );
 
     // Dispose old tensors to avoid memory leaks
-    this.prevAggregate.weights.forEach(t => t.dispose());
+    this.prevAggregate.weights.forEach((t) => t.dispose());
     this.prevAggregate = updatedMomentum;
 
     return updatedMomentum;

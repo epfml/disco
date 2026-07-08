@@ -1,0 +1,16 @@
+name: Download datasets
+runs:
+  using: composite
+  steps:
+    - id: cache
+      uses: actions/cache@v5
+      with:
+        path: datasets
+        key: datasets-${{ hashFiles('datasets/populate') }} # Only invalidate cache when download script changes
+    - if: steps.cache.outputs.cache-hit == '' || steps.cache.outputs.cache-hit == 'false'
+      run: datasets/populate
+      shell: bash
+    - uses: actions/upload-artifact@v7
+      with:
+        name: datasets
+        path: datasets/

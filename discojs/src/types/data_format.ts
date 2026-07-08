@@ -1,6 +1,12 @@
 import { List } from "immutable";
 
-import type { Image, processing, Tabular, Text, TokenizedText } from "../index.js";
+import type {
+  Image,
+  processing,
+  Tabular,
+  Text,
+  TokenizedText,
+} from "../index.js";
 
 /**
  * The data & label format goes through various stages.

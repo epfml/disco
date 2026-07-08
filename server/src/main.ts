@@ -15,14 +15,14 @@ const providers = Object.values(defaultTasks);
 
 console.info("Server loaded the tasks below");
 console.table(
-	(await Promise.all(providers.map((p) => p.getTask()))).map(
-		(task: Task<DataType, Network>) => ({
-			ID: task.id,
-			Title: task.displayInformation.title,
-			"Data Type": task.dataType,
-			Scheme: task.trainingInformation.scheme,
-		}),
-	),
+  (await Promise.all(providers.map((p) => p.getTask()))).map(
+    (task: Task<DataType, Network>) => ({
+      ID: task.id,
+      Title: task.displayInformation.title,
+      "Data Type": task.dataType,
+      Scheme: task.trainingInformation.scheme,
+    }),
+  ),
 );
 
 // Init the server with default tasks

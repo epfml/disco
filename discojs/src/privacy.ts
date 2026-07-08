@@ -6,24 +6,33 @@ import type { WeightNormHistory } from "./training/trainer.js";
 
 /** Computes the Frobenius norm of the given weights. */
 export async function frobeniusNorm(weights: tf.Tensor): Promise<number> {
+<<<<<<< HEAD
 	const squaredTensor = tf.tidy(() => weights.square().sum());
 	const squared = await squaredTensor.data();
 	squaredTensor.dispose();
 	if (squared.length !== 1) throw new Error("unexpected weights shape");
 	return Math.sqrt(squared[0]);
+=======
+  const squared = await weights.square().sum().data();
+  if (squared.length !== 1) throw new Error("unexpected weights shape");
+  return Math.sqrt(squared[0]);
+>>>>>>> develop
 }
 
 /** ALDP-FL implementation */
 // Conditions need to be added for the first three epochs -> get the avg update from all of the available previous updates
-export function getClippingRadius(weightNormHistory: WeightNormHistory, defaultClippingRadius:number): number[]{
+export function getClippingRadius(
+  weightNormHistory: WeightNormHistory,
+  defaultClippingRadius: number,
+): number[] {
   const WINDOW_SIZE = 3;
-  const MIN_RADIUS =  1e-12;
+  const MIN_RADIUS = 1e-12;
 
   const radii = weightNormHistory.map((norms) => {
     const recent = norms.slice(-WINDOW_SIZE);
-    const avg = recent.reduce((sum, n) => sum+n, 0) / recent.size;
+    const avg = recent.reduce((sum, n) => sum + n, 0) / recent.size;
 
-    return Math.max(MIN_RADIUS, Math.min(avg, defaultClippingRadius))
+    return Math.max(MIN_RADIUS, Math.min(avg, defaultClippingRadius));
   });
 
   // Convert List<number> to number[]
@@ -37,7 +46,7 @@ export async function addOptimalNoise(
   weightUpdates: WeightsContainer,
   epsilon: number,
   delta: number,
-  clippingRadius: number[],  
+  clippingRadius: number[],
 ): Promise<WeightsContainer> {
   /**
    * In the original paper, the sensitivity is given as 2 * clippingRadius / d, though the meaning of d is unclear.
@@ -45,10 +54,13 @@ export async function addOptimalNoise(
    */
   // apply different sensitivity and noise to each of the layer
   // clippingRadius is now number[]
-  const sens = clippingRadius.map((r)=>(2*r)); 
-  const sigmas = sens.map((s)=>(s * Math.sqrt(2*Math.log(1.25/delta))/epsilon));
+  const sens = clippingRadius.map((r) => 2 * r);
+  const sigmas = sens.map(
+    (s) => (s * Math.sqrt(2 * Math.log(1.25 / delta))) / epsilon,
+  );
   const clippedWeights = await clipNorm(weightUpdates, clippingRadius);
 
+<<<<<<< HEAD
   try {
     return clippedWeights.map((w, i) =>
       tf.tidy(() => w.add(tf.randomNormal(w.shape, 0, sigmas[i])))
@@ -56,6 +68,11 @@ export async function addOptimalNoise(
   } finally {
     clippedWeights.dispose();
   }
+=======
+  return clippedWeights.map((w, i) =>
+    w.add(tf.randomNormal(w.shape, 0, sigmas[i])),
+  );
+>>>>>>> develop
 }
 
 /**
@@ -71,7 +88,9 @@ export async function clipNorm(
    */
   const layers = weights.weights;
   if (radius.length !== layers.length)
-    throw new Error(`radius length mismatch: got ${radius.length}, expected ${layers.length}`);
+    throw new Error(
+      `radius length mismatch: got ${radius.length}, expected ${layers.length}`,
+    );
 
   /** Apply different clipping radius to each layer in the WeightsContainer */
   const clipped = await Promise.all(
@@ -81,10 +100,10 @@ export async function clipNorm(
 
       // Check the invalid radius value
       if (!Number.isFinite(r) || r <= 0)
-        throw new Error("Invalid radius value")
+        throw new Error("Invalid radius value");
       const scaling = Math.max(1, norm / r);
       return l.div(scaling);
-    })
+    }),
   );
 
   return new WeightsContainer(clipped);

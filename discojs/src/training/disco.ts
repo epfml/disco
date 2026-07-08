@@ -70,12 +70,18 @@ export type SummaryLogs = {
   postAggregationValidationAccuracy?: number
 }
 
-export type RoundStatus = 'not enough participants' | // Server notification to wait for more participants
-  'updating model' | // fetching/aggregating local updates into a global model
-  'local training' | // Training the model locally
-  'connecting to peers' // for decentralized only, fetch the server's list of participating peers
+export type RoundStatus =
+  | "not enough participants" // Server notification to wait for more participants
+  | "updating model" // fetching/aggregating local updates into a global model
+  | "local training" // Training the model locally
+  | "connecting to peers"; // for decentralized only, fetch the server's list of participating peers
 
-function buildSummaryLog(roundNum: number, epochNum: number, roundLogs: RoundLogs, epochLogs: EpochLogs): SummaryLogs {
+function buildSummaryLog(
+  roundNum: number,
+  epochNum: number,
+  roundLogs: RoundLogs,
+  epochLogs: EpochLogs,
+): SummaryLogs {
   return {
       round: roundNum,
       epoch: epochNum,
@@ -99,7 +105,7 @@ function buildSummaryLog(roundNum: number, epochNum: number, roundLogs: RoundLog
  */
 export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   status: RoundStatus;
-  participants: number
+  participants: number;
 }> {
   public readonly trainer: Trainer<D, N>;
   readonly #client: clients.Client<N>;
@@ -117,7 +123,10 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
    */
   constructor(
     task: Task<D, N>,
-    clientConfig: clients.Client<N> | URL | { aggregator: Aggregator; url: URL },
+    clientConfig:
+      | clients.Client<N>
+      | URL
+      | { aggregator: Aggregator; url: URL },
     config: Partial<DiscoConfig<N>>,
   ) {
     super();
@@ -153,7 +162,9 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     this.trainer = new Trainer(task, client);
     // Simply propagate the training status events emitted by the client
     this.#client.on("status", (status) => this.emit("status", status));
-    this.#client.on("participants", (nbParticipants) => this.emit("participants", nbParticipants));
+    this.#client.on("participants", (nbParticipants) =>
+      this.emit("participants", nbParticipants),
+    );
   }
 
   /** Train on dataset, yielding logs of every round. */
@@ -189,7 +200,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
       for await (const epoch of round) yield* epoch;
   }
 
-  /** Train on dataset, yielding summary logs */  
+  /** Train on dataset, yielding summary logs */
   async *trainSummary(
     dataset: Dataset<DataFormat.Raw[D]>,
     validationDataset?: Dataset<DataFormat.Raw[D]>,
@@ -197,7 +208,8 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     for await (const [roundNum, round] of enumerate(this.train(dataset, validationDataset))) {
       const [roundGen, roundLogsPromise] = async_iterator.split(round);
 
-      const epochResults: Array<{epochNum: number; epochLogs: EpochLogs}> = [];
+      const epochResults: Array<{ epochNum: number; epochLogs: EpochLogs }> =
+        [];
 
       debug("Starting round %d", roundNum)
 
@@ -212,7 +224,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
       const roundLogs = await roundLogsPromise;
       debugProcessMemory(`round ${roundNum} after round logs resolved`);
 
-      for (const {epochNum, epochLogs} of epochResults) {
+      for (const { epochNum, epochLogs } of epochResults) {
         yield buildSummaryLog(roundNum, epochNum, roundLogs, epochLogs);
       }
     }
@@ -259,7 +271,8 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     )) {
       yield async function* (this: Disco<D, N>) {
         const [roundGen, roundLogsPromise] = split(round);
-        const epochResults: Array<{epochNum: number; epochLogs: EpochLogs}> = []; 
+        const epochResults: Array<{ epochNum: number; epochLogs: EpochLogs }> =
+          [];
 
         for await (const [epochNum, epoch] of enumerate(roundGen)) {
           const [epochGen, epochLogsPromise] = split(epoch);
@@ -279,7 +292,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
           ].join("\n"),
         );
 
-        for (const {epochNum, epochLogs} of epochResults){
+        for (const { epochNum, epochLogs } of epochResults) {
           this.#logger.success(
             [
               `Round: ${roundNum}`,
@@ -362,13 +375,12 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
 
     let preprocessed = processing.preprocess(this.#task, dataset);
 
-    preprocessed = (
-      this.#preprocessOnce
-        ? new Dataset(await arrayFromAsync(preprocessed))
-        : preprocessed
-    )
-    if (validationSplit === 0) return [preprocessed.batch(batchSize).cached(), undefined];
-    
+    preprocessed = this.#preprocessOnce
+      ? new Dataset(await arrayFromAsync(preprocessed))
+      : preprocessed;
+    if (validationSplit === 0)
+      return [preprocessed.batch(batchSize).cached(), undefined];
+
     const [training, validation] = preprocessed.split(validationSplit);
 
     return [

@@ -1,43 +1,56 @@
 import type { serialization } from "../../index.js";
 
-import { type NodeID } from '..//types.js'
+import { type NodeID } from "..//types.js";
 
-import { type, hasMessageType } from '../messages.js'
- import type { ClientConnected, WaitingForMoreParticipants, EnoughParticipants } from '../messages.js'
+import { type, hasMessageType } from "../messages.js";
+import type {
+  ClientConnected,
+  WaitingForMoreParticipants,
+  EnoughParticipants,
+} from "../messages.js";
 
- // See ../messages.ts for doc
+// See ../messages.ts for doc
 export type MessageFederated =
-  ClientConnected |
-  NewFederatedNodeInfo |
-  SendPayload |
-  ReceiveServerPayload |
-  WaitingForMoreParticipants |
-  EnoughParticipants
+  | ClientConnected
+  | NewFederatedNodeInfo
+  | SendPayload
+  | ReceiveServerPayload
+  | WaitingForMoreParticipants
+  | EnoughParticipants;
 
 export interface NewFederatedNodeInfo {
+<<<<<<< HEAD
   type: type.NewFederatedNodeInfo
   id: NodeID
   waitForMoreParticipants: boolean
   payload?: serialization.Encoded | null;
   round: number
   nbOfParticipants: number
+=======
+  type: type.NewFederatedNodeInfo;
+  id: NodeID;
+  waitForMoreParticipants: boolean;
+  payload: serialization.Encoded;
+  round: number;
+  nbOfParticipants: number;
+>>>>>>> develop
 }
 
 export interface SendPayload {
-  type: type.SendPayload
+  type: type.SendPayload;
   payload: serialization.Encoded;
-  round: number
+  round: number;
 }
 export interface ReceiveServerPayload {
-  type: type.ReceiveServerPayload
+  type: type.ReceiveServerPayload;
   payload: serialization.Encoded;
-  round: number,
-  nbOfParticipants: number // number of peers contributing to a federated training
+  round: number;
+  nbOfParticipants: number; // number of peers contributing to a federated training
 }
 
-export function isMessageFederated (raw: unknown): raw is MessageFederated {
+export function isMessageFederated(raw: unknown): raw is MessageFederated {
   if (!hasMessageType(raw)) {
-    return false
+    return false;
   }
 
   switch (raw.type) {
@@ -47,8 +60,8 @@ export function isMessageFederated (raw: unknown): raw is MessageFederated {
     case type.ReceiveServerPayload:
     case type.WaitingForMoreParticipants:
     case type.EnoughParticipants:
-      return true
+      return true;
   }
 
-  return false
+  return false;
 }

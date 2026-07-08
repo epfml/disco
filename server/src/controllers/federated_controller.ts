@@ -1,6 +1,6 @@
 import createDebug from "debug";
-import WebSocket from 'ws'
-import { v4 as randomUUID } from 'uuid'
+import WebSocket from "ws";
+import { v4 as randomUUID } from "uuid";
 import * as msgpack from "@msgpack/msgpack";
 
 import type { DataType, Task } from "@epfml/discojs";
@@ -8,14 +8,14 @@ import {
   aggregator as aggregators,
   client,
   serialization,
-} from '@epfml/discojs'
+} from "@epfml/discojs";
 
 import { TrainingController } from "./training_controller.js";
 
-import MessageTypes = client.messages.type
-import FederatedMessages = client.federated.messages
+import MessageTypes = client.messages.type;
+import FederatedMessages = client.federated.messages;
 
-const debug = createDebug("server:controllers:federated")
+const debug = createDebug("server:controllers:federated");
 
 function debugProcessMemory(label: string): void {
   const m = process.memoryUsage()
@@ -28,8 +28,8 @@ function debugProcessMemory(label: string): void {
 }
 
 export class FederatedController<D extends DataType> extends TrainingController<
-	D,
-	"federated"
+  D,
+  "federated"
 > {
   #pendingUpdateRecipients = new Map<client.NodeID, WebSocket>()
   /**
@@ -38,8 +38,8 @@ export class FederatedController<D extends DataType> extends TrainingController<
    */
   #aggregator = this.#makeAggregator()
   /**
-   * The most up to date global weights. The model weights are already serialized and 
-   * can be sent to participants, before starting training, or when joining mid-training 
+   * The most up to date global weights. The model weights are already serialized and
+   * can be sent to participants, before starting training, or when joining mid-training
    * or staled participants
    */
   #latestGlobalWeights: serialization.Encoded;
@@ -104,42 +104,43 @@ export class FederatedController<D extends DataType> extends TrainingController<
    * It registers what the server will do upon receiving messages from the participant.
    * Note that `this.handle` is only called once to setup the logic. It is `ws.on()`
    * that is called upon receiving messages (and not `this.handle`)
-   * 
+   *
    * @param task the task associated with the current websocket (= participant)
    * @param ws the websocket connection through which the participant and the server communicate
    */
   handle(ws: WebSocket): void {
-    const minNbOfParticipants = this.task.trainingInformation.minNbOfParticipants
-    this.#aggregator.minNbOfParticipants = minNbOfParticipants
+    const minNbOfParticipants =
+      this.task.trainingInformation.minNbOfParticipants;
+    this.#aggregator.minNbOfParticipants = minNbOfParticipants;
     // Try generating a new Client id until there no collision with existing ones
-    let clientId = randomUUID()
+    let clientId = randomUUID();
     while (!this.#aggregator.registerNode(clientId)) {
-      clientId = randomUUID()
+      clientId = randomUUID();
     }
-    const shortId = clientId.slice(0, 4)
+    const shortId = clientId.slice(0, 4);
 
     ws.on('error', (err) => {
       debug("websocket error for client [%s]: %o", shortId, err)
     })
 
     // Setup callbacks triggered upon receiving the different client messages
-    ws.on('message', (data: Buffer) => {
-      const msg: unknown = msgpack.decode(data)
+    ws.on("message", (data: Buffer) => {
+      const msg: unknown = msgpack.decode(data);
       if (!FederatedMessages.isMessageFederated(msg)) {
         debug("invalid federated message received on WebSocket: %o", msg);
-        return // TODO send back error
+        return; // TODO send back error
       }
 
-      // Currently expect two types of message: 
+      // Currently expect two types of message:
       // - the client connects to the task
       // - the client sends a weight update
       switch (msg.type) {
-        /* 
-        * A new participant joins the task 
-        */
+        /*
+         * A new participant joins the task
+         */
         case MessageTypes.ClientConnected: {
-          debug(`client [%s] joined ${this.task.id}`, shortId)
-          this.connections = this.connections.set(clientId, ws) // add the new client
+          debug(`client [%s] joined ${this.task.id}`, shortId);
+          this.connections = this.connections.set(clientId, ws); // add the new client
 
           const msg: FederatedMessages.NewFederatedNodeInfo = {
             type: MessageTypes.NewFederatedNodeInfo,
@@ -147,18 +148,18 @@ export class FederatedController<D extends DataType> extends TrainingController<
             waitForMoreParticipants: this.connections.size < minNbOfParticipants,
             payload: this.#aggregator.round === 0 ? undefined : this.#latestGlobalWeights,
             round: this.#aggregator.round,
-            nbOfParticipants: this.connections.size
-          }
-          ws.send(msgpack.encode(msg))
+            nbOfParticipants: this.connections.size,
+          };
+          ws.send(msgpack.encode(msg));
           // Send an update to participants if we can start/resume training
-          this.sendEnoughParticipantsMsgIfNeeded(clientId)
-          break
+          this.sendEnoughParticipantsMsgIfNeeded(clientId);
+          break;
         }
-        /* 
-        * A client sends a weight update to the server
-        */
+        /*
+         * A client sends a weight update to the server
+         */
         case MessageTypes.SendPayload: {
-          const { payload, round } = msg
+          const { payload, round } = msg;
           if (this.#aggregator.isValidContribution(clientId, round)) {
             debug(
               "Received valid contribution from client [%s] for round %d (participants=%d)",
@@ -182,26 +183,29 @@ export class FederatedController<D extends DataType> extends TrainingController<
           } else {
             // If the client sent an invalid or outdated contribution
             // the server answers with the current round and last global model update
-            debug(`Dropped contribution from client [%s] for round ${round} ` +
-              `Sending last global model from round ${this.#aggregator.round - 1}`, shortId)
+            debug(
+              `Dropped contribution from client [%s] for round ${round} ` +
+                `Sending last global model from round ${this.#aggregator.round - 1}`,
+              shortId,
+            );
             // no latest model at the first round
-            if (this.#latestGlobalWeights === undefined) return
-            
+            if (this.#latestGlobalWeights === undefined) return;
+
             const msg: FederatedMessages.ReceiveServerPayload = {
               type: MessageTypes.ReceiveServerPayload,
               round: this.#aggregator.round - 1, // send the model from the previous round
               payload: this.#latestGlobalWeights,
-              nbOfParticipants: this.connections.size
-            }
-            ws.send(msgpack.encode(msg))
+              nbOfParticipants: this.connections.size,
+            };
+            ws.send(msgpack.encode(msg));
           }
-          break
+          break;
         }
       }
-    })
+    });
 
     // Setup callback for client leaving the session
-    ws.on('close', () => {
+    ws.on("close", () => {
       // Remove the participant when the websocket is closed
       this.connections = this.connections.delete(clientId)
       this.#pendingUpdateRecipients.delete(clientId)
@@ -218,12 +222,14 @@ export class FederatedController<D extends DataType> extends TrainingController<
 
       // Check if we dropped below the minimum number of participant required
       // or if we are already waiting for new participants to join
-      if (this.connections.size >= minNbOfParticipants ||
+      if (
+        this.connections.size >= minNbOfParticipants ||
         this.waitingForMoreParticipants
-      ) return
+      )
+        return;
 
       // tell remaining participants to wait until more participants join
-      this.sendWaitForMoreParticipantsMsg()
-    })
+      this.sendWaitForMoreParticipantsMsg();
+    });
   }
 }

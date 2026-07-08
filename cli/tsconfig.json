@@ -12,9 +12,9 @@
     }
   ],
   "compilerOptions": {
-    "outDir": "dist"
+    "rootDir": "./src",
+    "outDir": "dist",
+    "types": ["node"]
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }

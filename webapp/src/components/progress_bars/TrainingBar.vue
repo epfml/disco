@@ -4,12 +4,11 @@
       v-if="title !== undefined && displayTitle"
       class="flex flex-wrap font-disco text-3xl justify-center"
     >
-      <span class="text-disco-blue dark:text-disco-light-cyan">{{ title }}</span>
+      <span class="text-disco-blue dark:text-disco-light-cyan">{{
+        title
+      }}</span>
     </div>
-    <div
-      v-else
-      class="flex flex-wrap text-3xl justify-center"
-    >
+    <div v-else class="flex flex-wrap text-3xl justify-center">
       <DISCOllaboratives />
     </div>
     <div id="tuto-training-bar" class="hidden md:inline-block w-full py-6">
@@ -18,15 +17,13 @@
         <ProgressIcon
           class="w-1/5"
           :active="true"
-          :current-step="(trainingStore.step?? 0) == 0"
+          :current-step="(trainingStore.step ?? 0) == 0"
           :has-left-line="false"
           @click="toStep(0)"
         >
-          <template #text>
-            Task Selection
-          </template>
+          <template #text> Task Selection </template>
           <template #icon>
-            <TasksIcon class="w-full w-7 h-7" view-box="-4 -4 24 24"/>
+            <TasksIcon class="w-full w-7 h-7" view-box="-4 -4 24 24" />
           </template>
         </ProgressIcon>
         <!-- Step 2 -->
@@ -37,9 +34,7 @@
           :has-left-line="true"
           @click="toStep(1)"
         >
-          <template #text>
-            Task Description
-          </template>
+          <template #text> Task Description </template>
           <template #icon>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -67,11 +62,9 @@
           :has-left-line="true"
           @click="toStep(2)"
         >
-          <template #text>
-            Connect Your Data
-          </template>
+          <template #text> Connect Your Data </template>
           <template #icon>
-            <PlugIcon custom-class="w-full w-5 h-5"/>
+            <PlugIcon custom-class="w-full w-5 h-5" />
           </template>
         </ProgressIcon>
         <!-- Step 4 -->
@@ -82,11 +75,9 @@
           :has-left-line="true"
           @click="toStep(3)"
         >
-          <template #text>
-            Model Training
-          </template>
+          <template #text> Model Training </template>
           <template #icon>
-            <ModelIcon custom-class="w-full w-6 w-6" view-box="-6 -6 36 36"/>
+            <ModelIcon custom-class="w-full w-6 w-6" view-box="-6 -6 36 36" />
           </template>
         </ProgressIcon>
         <!-- Step 5 -->
@@ -97,11 +88,12 @@
           :has-left-line="true"
           @click="toStep(4)"
         >
-          <template #text>
-            Model Evaluation
-          </template>
+          <template #text> Model Evaluation </template>
           <template #icon>
-            <PerformanceIcon custom-class="w-full w-7 h-7" viewBox="2 -4 12 24"/>
+            <PerformanceIcon
+              custom-class="w-full w-7 h-7"
+              viewBox="2 -4 12 24"
+            />
           </template>
         </ProgressIcon>
       </div>
@@ -112,26 +104,26 @@
 
 <script lang="ts" setup>
 import { storeToRefs } from "pinia";
-import { computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { computed } from "vue";
+import { useRouter, useRoute } from "vue-router";
 
 import { useTasksStore } from "@/store";
 import { useTrainingStore } from "@/store";
-import { useToaster } from '@/composables/toaster'
-import ProgressIcon from './ProgressIcon.vue'
-import PlugIcon from '@/assets/svg/PlugIcon.vue'
-import ModelIcon from '@/assets/svg/ModelIcon.vue'
-import TasksIcon from '@/assets/svg/TasksIcon.vue'
-import PerformanceIcon from '@/assets/svg/PerformanceIcon.vue'
+import { useToaster } from "@/composables/toaster";
+import ProgressIcon from "./ProgressIcon.vue";
+import PlugIcon from "@/assets/svg/PlugIcon.vue";
+import ModelIcon from "@/assets/svg/ModelIcon.vue";
+import TasksIcon from "@/assets/svg/TasksIcon.vue";
+import PerformanceIcon from "@/assets/svg/PerformanceIcon.vue";
 
-import DISCOllaboratives from '@/components/simple/DISCOllaboratives.vue'
-import TrainingButtons from './TrainingButtons.vue'
+import DISCOllaboratives from "@/components/simple/DISCOllaboratives.vue";
+import TrainingButtons from "./TrainingButtons.vue";
 
-const router = useRouter()
-const route = useRoute()
-const toaster = useToaster()
+const router = useRouter();
+const route = useRoute();
+const toaster = useToaster();
 const { tasks } = storeToRefs(useTasksStore());
-const trainingStore = useTrainingStore()
+const trainingStore = useTrainingStore();
 
 const title = computed(() => {
   if (trainingStore.task === undefined) return undefined;
@@ -140,26 +132,25 @@ const title = computed(() => {
   return task?.displayInformation.title;
 });
 
-const displayTitle = computed(() => route.fullPath !== '/list')
+const displayTitle = computed(() => route.fullPath !== "/list");
 
 const isActive = (step: number): boolean => {
-  const currentStep = trainingStore.step
-  if (currentStep === undefined || route.fullPath === '/list') {
-    return false
+  const currentStep = trainingStore.step;
+  if (currentStep === undefined || route.fullPath === "/list") {
+    return false;
   } else {
-    return step <= currentStep
+    return step <= currentStep;
   }
-}
+};
 
 async function toStep(step: number): Promise<void> {
-  if (route.fullPath === '/list') {
-    toaster.info('Choose a DISCOllaborative first')
+  if (route.fullPath === "/list") {
+    toaster.info("Choose a DISCOllaborative first");
   } else if (step === 0) {
-    await router.push('/list')
-    trainingStore.setStep(0)
+    await router.push("/list");
+    trainingStore.setStep(0);
   } else {
-    trainingStore.setStep(step)
+    trainingStore.setStep(step);
   }
 }
-
 </script>

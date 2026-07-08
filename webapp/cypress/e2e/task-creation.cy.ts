@@ -10,7 +10,7 @@ it("submits with tabular task", () => {
 
   cy.visit("/create");
 
-  cy.get('form').should('be.visible'); // Wait for the form to be fully loaded
+  cy.get("form").should("be.visible"); // Wait for the form to be fully loaded
 
   cy.get("input[name='id']").type("id");
   cy.get("select[name='dataType']").select("tabular");
@@ -88,7 +88,7 @@ it("submits with tabular task", () => {
         outputColumn: "output",
         tensorBackend: "tfjs",
       },
-		} satisfies Task<"tabular", "federated">);
+    } satisfies Task<"tabular", "federated">);
 });
 
 async function getArtifacts(

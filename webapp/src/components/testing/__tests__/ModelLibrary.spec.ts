@@ -7,7 +7,12 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import { createPersistedStatePlugin } from "pinia-plugin-persistedstate-2";
 
-import { models as discoModels, serialization, Task, Tokenizer } from "@epfml/discojs";
+import {
+  models as discoModels,
+  serialization,
+  Task,
+  Tokenizer,
+} from "@epfml/discojs";
 
 import { CONFIG } from "@/config";
 import { useModelsStore } from "@/store";
@@ -52,7 +57,7 @@ it("shows stored models", async () => {
 
   const { tasks } = storeToRefs(useTasksStore());
   await flushPromises();
-  tasks.value = Map([[TASK.id, TASK]])
+  tasks.value = Map([[TASK.id, TASK]]);
 
   const models = useModelsStore();
   await models.add("task", new discoModels.GPT());
@@ -86,9 +91,9 @@ it("allows to download server's models", async () => {
     },
   });
 
-	// load tasks
-	const { tasks } = storeToRefs(useTasksStore());
-	while (tasks.value === "loading") await flushPromises();
+  // load tasks
+  const { tasks } = storeToRefs(useTasksStore());
+  while (tasks.value === "loading") await flushPromises();
 
   expect(wrapper.get("button").text()).to.equal("download");
   await wrapper.get("button").trigger("click");

@@ -29,9 +29,9 @@ CODEC.register({
   type: 0x12,
   encode(obj: unknown): Uint8Array | null {
     if (!(obj instanceof Uint8Array)) return null;
-    return obj
+    return obj;
   },
-  decode: (raw: Uint8Array): Uint8Array => raw
+  decode: (raw: Uint8Array): Uint8Array => raw,
 });
 // used by TFJS's weights
 CODEC.register({
@@ -54,7 +54,7 @@ CODEC.register({
   },
   decode: (raw: Uint8Array): ArrayBuffer =>
     // need to copy as backing ArrayBuffer might be larger
-    copy(raw).buffer
+    copy(raw).buffer,
 });
 
 type Encodable =

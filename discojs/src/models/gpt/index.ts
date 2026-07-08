@@ -14,8 +14,13 @@ import { BatchLogs, Model, EpochLogs } from "../index.js";
 
 import { GPTModel } from "./model.js";
 import evaluate from "./evaluate.js";
+<<<<<<< HEAD
 import { DefaultGPTConfig, DefaultGenerationConfig } from './config.js'
 import type { GoldfishLossConfig, GPTConfig, GenerationConfig } from './config.js'
+=======
+import { DefaultGPTConfig, DefaultGenerationConfig } from "./config.js";
+import type { GPTConfig, GenerationConfig } from "./config.js";
+>>>>>>> develop
 
 const debug = createDebug("discojs:models:gpt");
 
@@ -32,14 +37,18 @@ export class GPT extends Model<"text"> {
   readonly #vocabSize: number;
   #iterationCount = 0;
 
-  constructor(partialConfig?: Partial<GPTConfig>, layersModel?: tf.LayersModel) {
+  constructor(
+    partialConfig?: Partial<GPTConfig>,
+    layersModel?: tf.LayersModel,
+  ) {
     super();
 
     const model = new GPTModel(partialConfig, layersModel);
     model.compile();
     this.model = model;
 
-    this.#contextLength = partialConfig?.contextLength ?? DefaultGPTConfig.contextLength;
+    this.#contextLength =
+      partialConfig?.contextLength ?? DefaultGPTConfig.contextLength;
     this.#maxBatchCount = partialConfig?.maxIter ?? DefaultGPTConfig.maxIter;
     this.#vocabSize = partialConfig?.vocabSize ?? DefaultGPTConfig.vocabSize;
   }
@@ -192,7 +201,7 @@ export class GPT extends Model<"text"> {
     options?: Partial<GenerationConfig>,
   ): Promise<Batched<DataFormat.ModelEncoded["text"][1]>> {
     // overwrite default with user config
-    const config = Object.assign({}, DefaultGenerationConfig, options)
+    const config = Object.assign({}, DefaultGenerationConfig, options);
 
     return List(
       await Promise.all(
@@ -204,7 +213,7 @@ export class GPT extends Model<"text"> {
   /**
    * Generate the next token after the input sequence.
    * In other words, takes an input tensor of shape (prompt length T) and returns a tensor of shape (T+1)
-   * 
+   *
    * @param token input tokens of shape (T,). T is truncated to the model's context length
    * @param config generation config: temperature, doSample, topk
    * @returns the next token predicted by the model
@@ -240,22 +249,30 @@ export class GPT extends Model<"text"> {
 
     const next = tf.tidy(() => {
       if (config.doSample) {
-        // returns topk biggest values among the `vocab_size` probabilities and the corresponding tokens indices 
+        // returns topk biggest values among the `vocab_size` probabilities and the corresponding tokens indices
         // both shapes are (config.topk,)
-        const { values: topkProbs, indices: topkTokens } = tf.topk(probs, config.topk);
+        const { values: topkProbs, indices: topkTokens } = tf.topk(
+          probs,
+          config.topk,
+        );
         // sample an index from the top-k probabilities
         // e.g. [[0.1, 0.4, 0.3], [0.1, 0.2, 0.5]] -> [[1], [2]]
         // note: multinomial does not need the input to sum to 1
-        const selectedIndices = tf.multinomial(topkProbs, 1, config.seed, false) // (B, )
+        const selectedIndices = tf.multinomial(
+          topkProbs,
+          1,
+          config.seed,
+          false,
+        ); // (B, )
         // return the corresponding token from the sampled indices (one per sequence in the batch).
         // if for some reason the probabilities are NaN, selectedIndices will be out of bounds
-        return topkTokens.gather(selectedIndices).squeeze<tf.Scalar>([0]) // (1)
+        return topkTokens.gather(selectedIndices).squeeze<tf.Scalar>([0]); // (1)
       } else {
         // greedy decoding: return the token with the highest probability
-        return probs.argMax<tf.Scalar>()
+        return probs.argMax<tf.Scalar>();
       }
-    })
-    probs.dispose()
+    });
+    probs.dispose();
 
     const ret = await next.array();
     next.dispose();

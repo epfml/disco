@@ -14,4 +14,3 @@ export interface Infos {
 export type State = {
   idToModel: Map<ModelID, Infos>;
 };
-

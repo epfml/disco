@@ -50,7 +50,7 @@
       "maxIterations": 1,
       "beta": 0.9
     },
-    
+
     {
       "testID": "lus_covid_fed_mean_cnn2_p3_d32_e30_r2",
       "task": "lus_covid",
@@ -68,7 +68,7 @@
       "maxIterations": 1,
       "beta": 0.9
     },
-    
+
     {
       "testID": "cifar10_dec_mean_cnn4_p3_d600_e500_r5",
       "task": "cifar10",

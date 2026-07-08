@@ -53,11 +53,11 @@ export class Trainer<D extends DataType, N extends Network> {
   readonly #roundDuration: number;
   readonly #epochs: number;
   readonly #privacy:
-   | Task<
-      DataType,
-      "decentralized" | "federated"
-     >["trainingInformation"]["privacy"]
-   | undefined;
+    | Task<
+        DataType,
+        "decentralized" | "federated"
+      >["trainingInformation"]["privacy"]
+    | undefined;
   #model: Model<D> | undefined;
   #training?: AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
@@ -66,7 +66,7 @@ export class Trainer<D extends DataType, N extends Network> {
   readonly #roundIterations?: number;
   readonly #validationFrequency?: number;
   // Map of weight Index and weight update
-  #weightNormHistory : WeightNormHistory = List();
+  #weightNormHistory: WeightNormHistory = List();
   #previousRoundWeights?: WeightsContainer;
   readonly #shouldValidateAfterAggregation: boolean;
 
@@ -147,11 +147,12 @@ export class Trainer<D extends DataType, N extends Network> {
     debug("Run rounds")
 
     for (let round = 0; round < totalRound; round++) {
-
       await this.#client.onRoundBeginCommunication();
 
       // Store the clean weight before starting the communication
-      this.#previousRoundWeights = new WeightsContainer(this.model.weights.weights.map(t => t.clone()));
+      this.#previousRoundWeights = new WeightsContainer(
+        this.model.weights.weights.map((t) => t.clone()),
+      );
 
       const roundValidationDataset = this.#shouldValidateRound(round)
         ? validationDataset
@@ -239,7 +240,10 @@ export class Trainer<D extends DataType, N extends Network> {
     debug("Run round")
 
     // Before starting the training, get the validation of global model
-    const validation = validationDataset !== undefined ? await this.model.evaluate(validationDataset) : undefined;
+    const validation =
+      validationDataset !== undefined
+        ? await this.model.evaluate(validationDataset)
+        : undefined;
 
     for (let epoch = 0; epoch < this.#roundDuration; epoch++) {
       const [gen, epochLogs] = async_iterator.split(
@@ -249,7 +253,7 @@ export class Trainer<D extends DataType, N extends Network> {
       yield gen;
       epochsLogs = epochsLogs.push(await epochLogs);
     }
-      
+
     return {
       epochs: epochsLogs,
       participants: this.#client.nbOfParticipants,
@@ -349,19 +353,19 @@ export class Trainer<D extends DataType, N extends Network> {
 
 /** ALDP-FL implementation */
 async function applyOptimalPrivacy(
-	previous: WeightsContainer | undefined,
-	current: WeightsContainer,
-	options: Exclude<
-		Task<
-			DataType,
-			"decentralized" | "federated"
-		>["trainingInformation"]["privacy"],
-		undefined
-	>,
-	weightNormHistory: WeightNormHistory,
-	totalRound: number,
+  previous: WeightsContainer | undefined,
+  current: WeightsContainer,
+  options: Exclude<
+    Task<
+      DataType,
+      "decentralized" | "federated"
+    >["trainingInformation"]["privacy"],
+    undefined
+  >,
+  weightNormHistory: WeightNormHistory,
+  totalRound: number,
 ): Promise<WeightsContainer> {
-	let ret = current;
+  let ret = current;
 
 	// Clipping radius for BFT
 	if ("byzantineFaultTolerance" in options) {
@@ -384,31 +388,31 @@ async function applyOptimalPrivacy(
 		}
 	}
 
-	// Adding Gaussian noise for DP
-	const dpOptions = options.differentialPrivacy;
-	if (dpOptions !== undefined) {
-		const dpDefaultRadius = dpOptions.clippingRadius; // options.dpDefaultClippingRadius should be a number
+  // Adding Gaussian noise for DP
+  const dpOptions = options.differentialPrivacy;
+  if (dpOptions !== undefined) {
+    const dpDefaultRadius = dpOptions.clippingRadius; // options.dpDefaultClippingRadius should be a number
 
-		// Divide privacy budget across all rounds (conservative composition)
-		const delta = dpOptions.delta / totalRound;
-		const epsilon = dpOptions.epsilon / totalRound;
+    // Divide privacy budget across all rounds (conservative composition)
+    const delta = dpOptions.delta / totalRound;
+    const epsilon = dpOptions.epsilon / totalRound;
 
-		const dpClippingRadius = privacy.getClippingRadius(
-			weightNormHistory,
-			dpDefaultRadius,
-		);
+    const dpClippingRadius = privacy.getClippingRadius(
+      weightNormHistory,
+      dpDefaultRadius,
+    );
 
-		const previousEpochWeights =
-			previous ?? current.map((w) => tf.zerosLike(w));
-		const weightsProgress = current.sub(previousEpochWeights);
+    const previousEpochWeights =
+      previous ?? current.map((w) => tf.zerosLike(w));
+    const weightsProgress = current.sub(previousEpochWeights);
 
-		/** Need to use tighter clipping radius for noise calibration */
-		const effectiveRadius =
-			"byzantineFaultTolerance" in options
-				? dpClippingRadius.map((r) =>
-						Math.min(r, options.byzantineFaultTolerance.clippingRadius),
-					)
-				: dpClippingRadius;
+    /** Need to use tighter clipping radius for noise calibration */
+    const effectiveRadius =
+      "byzantineFaultTolerance" in options
+        ? dpClippingRadius.map((r) =>
+            Math.min(r, options.byzantineFaultTolerance.clippingRadius),
+          )
+        : dpClippingRadius;
 
 		const sigmas = effectiveRadius.map((r) =>
 			(2 * r * Math.sqrt(2 * Math.log(1.25 / delta))) / epsilon,

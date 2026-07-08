@@ -39,9 +39,8 @@ describe("split", () => {
 
   it("throws returned when iterator throws", async () => {
     const [gen, ret] = split(
-      (
       // eslint-disable-next-line @typescript-eslint/require-await
-      async function* () {
+      (async function* () {
         throw new Error();
       })(),
     );
