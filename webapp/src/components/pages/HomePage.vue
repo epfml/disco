@@ -1,9 +1,7 @@
 <template>
   <div class="lg:mx-8">
     <!-- First screen -->
-    <div
-      class="mb-40 lg:mb-0 h-dvh gap-16 lg:gap-0 flex flex-col justify-around pb-12"
-    >
+    <div class="h-dvh flex flex-col justify-around">
       <!-- Disco logo -->
       <div class="flex flex-col justify-center items-center space-y-4">
         <div
@@ -43,7 +41,7 @@
 
     <!-- 2nd screen -->
     <div
-      class="mb-40 lg:mb-0 lg:h-dvh flex flex-col lg:flex-row gap-16 justify-center items-center"
+      class="h-dvh flex flex-col lg:flex-row gap-16 justify-center items-center"
     >
       <div class="flex flex-col justify-center text-center items-center">
         <span
@@ -63,7 +61,7 @@
       />
     </div>
     <!-- 3nd screen -->
-    <div class="mb-40 lg:pb-40 lg:mb-0 lg:h-dvh flex flex-col justify-center">
+    <div class="h-dvh flex flex-col justify-center">
       <div class="flex flex-col items-around justify-start w-full">
         <div class="mb-8 lg:mb-20 w-full text-center lg:text-center">
           <span
@@ -128,7 +126,7 @@
       </div>
     </div>
     <!-- 4th screen -->
-    <div class="mb-40 lg:mb-0 lg:h-dvh flex flex-col justify-center gap-16">
+    <div class="h-dvh flex flex-col justify-center gap-16">
       <div class="flex flex-col gap-4 items-center text-center">
         <span
           class="font-disco text-4xl lg:text-5xl font-bold text-heading-light dark:text-heading-dark"
@@ -169,9 +167,7 @@
     </div>
 
     <!-- 5th screen -->
-    <div
-      class="mb-40 lg:mb-0 lg:h-dvh flex flex-col gap-16 justify-center items-center"
-    >
+    <div class="h-dvh flex flex-col gap-16 justify-center items-center">
       <div class="w-full flex flex-col justify-center text-center items-center">
         <span
           class="font-disco text-4xl lg:text-5xl font-bold text-heading-light dark:text-heading-dark"
@@ -204,10 +200,8 @@
       </div>
     </div>
     <!-- 6th screen -->
-    <div class="lg:h-dvh flex flex-col gap-16 justify-start items-center">
-      <div
-        class="w-full flex flex-col justify-center text-center items-center lg:items-start lg:text-left"
-      >
+    <div class="h-dvh flex flex-col gap-16 justify-center items-center">
+      <div class="w-full flex flex-col justify-center text-center items-center">
         <span
           class="font-disco text-4xl lg:text-5xl font-bold text-heading-light dark:text-heading-dark"
         >
@@ -265,7 +259,7 @@
     </div>
     <!-- 7th screen -->
     <div
-      class="mt-32 lg:mt-0 mb-32 w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center"
+      class="h-dvh flex flex-col lg:flex-row gap-16 justify-center items-center"
     >
       <div class="flex justify-center">
         <DiscoParticlesIcon class="w-full max-w-[200px] lg:max-w-[400px]" />
