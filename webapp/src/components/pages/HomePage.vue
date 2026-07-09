@@ -36,6 +36,9 @@
       <div class="flex justify-center">
         <CTAButton> Start training </CTAButton>
       </div>
+      <div class="flex justify-center">
+        <ScrollIndicator />
+      </div>
     </div>
 
     <!-- 2nd screen -->
@@ -291,20 +294,10 @@
         </div>
       </div>
     </div>
-
-    <!-- End of content -->
-    <div ref="bottomSentinel" class="h-px"></div>
-
-    <!-- Scroll indicator -->
-    <div v-if="showScrollIndicator" class="flex justify-center">
-      <ScrollIndicator />
-    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onBeforeUnmount, useTemplateRef } from "vue";
-
 import DiscoGIF from "@/assets/gif/DiscoGIF.vue";
 import DiscoLogo from "@/assets/logos/DiscoLogo.vue";
 import TensorflowLogo from "@/assets/logos/TensorflowLogo.vue";
@@ -326,21 +319,4 @@ import DiscoParticlesIcon from "@/assets/svg/DiscoParticlesIcon.vue";
 import ScrollIndicator from "../simple/ScrollIndicator.vue";
 
 const themeStore = useThemeStore();
-
-// Scroll indicator. Disappears when scrolling to the bottom of the page.
-const bottomSentinel = useTemplateRef<HTMLElement>("bottomSentinel");
-const showScrollIndicator = ref(true);
-let observer: IntersectionObserver;
-
-onMounted(() => {
-  if (!bottomSentinel.value) return;
-  observer = new IntersectionObserver(([entry]) => {
-    showScrollIndicator.value = !entry.isIntersecting;
-  });
-  observer.observe(bottomSentinel.value);
-});
-
-onBeforeUnmount(() => {
-  observer?.disconnect();
-});
 </script>
