@@ -71,14 +71,16 @@
         class="pt-4 flex flex-col items-center pb-5"
       >
         <div
-          class="mb-4 flex justify-center items-center text-center md:text-left sm:text-lg text-disco-blue dark:text-disco-light-cyan"
+          class="flex justify-center items-center text-center md:text-left sm:text-lg text-disco-blue dark:text-disco-light-cyan"
         >
           <i v-if="noUpload" class="fas fa-folder-open mr-2" />
-          <span v-if="multiple"
-            >Number of selected files:
-            <span class="pl-1 text-xl">{{ files.size }}</span></span
-          >
-          <span v-else class="pl-1">{{ files.first()?.name ?? "none" }}</span>
+          <span v-if="multiple">
+            Number of selected files:
+            <span class="text-xl">{{ files.size }}</span>
+          </span>
+        </div>
+        <div class="flex flex-col py-4">
+          <span v-for="(name, i) in fileNamesDisplay" :key="i">{{ name }}</span>
         </div>
         <div>
           <CustomButton @click="clearFiles">
@@ -153,6 +155,16 @@ const acceptFilter = computed(() => {
   // vuejs/eslint-plugin-vue#2142
   props.type satisfies never;
   throw new TypeError("invalid value");
+});
+
+const fileNamesDisplay = computed(() => {
+  if (!files.value) return "";
+  const arr = files.value.map((f) => f.name);
+  if (arr.size < 5) {
+    return arr;
+  } else {
+    return [...arr.slice(0, 3), "...", arr.last()];
+  }
 });
 
 // we use an event counter to test whether the user is dragging a file over the field
