@@ -43,7 +43,6 @@
           Drag and drop or browse for the images referenced in the connected CSV
           file.
           <br />
-          {{ browsingTip }}
         </FileSelection>
       </IconCard>
     </div>
@@ -64,7 +63,6 @@ import { useToaster } from "@/composables/toaster";
 import FileSelection from "../FileSelection.vue";
 
 import type { NamedLabeledImageDataset } from "../types.js";
-import { browsingTip } from "./strings.js";
 
 const toaster = useToaster();
 
