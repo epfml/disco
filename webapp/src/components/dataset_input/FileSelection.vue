@@ -8,7 +8,7 @@
   >
     <section>
       <!-- Hide the file input field when already submitted-->
-      <div v-if="noUpload" class="flex justify-center items-center mt-1">
+      <div v-if="noUpload" class="flex justify-center items-center my-1">
         <span
           v-tippy="{
             content: 'Data always stays on your device and is never shared.',
