@@ -8,6 +8,17 @@
   >
     <section>
       <!-- Hide the file input field when already submitted-->
+      <div v-if="noUpload" class="flex justify-center items-center mt-1">
+        <span
+          v-tippy="{
+            content: 'Data always stays on your device and is never shared.',
+          }"
+          class="bg-green-200 text-green-500 rounded-full hover:cursor-pointer px-2 py-1"
+        >
+          <i class="fa fa-lock mr-1" />
+          <span> Stays on your device </span>
+        </span>
+      </div>
       <div
         v-if="!hideConnectField"
         class="border-dashed rounded-xl border-disco-cyan flex flex-col justify-center items-center min-h-48"
@@ -39,20 +50,6 @@
             @blur="() => emit('blur')"
           />
         </label>
-      </div>
-      <!-- Display what has been connected -->
-      <div
-        v-if="files === undefined && noUpload"
-        class="flex justify-end items-center mt-1"
-      >
-        <span
-          v-tippy="{
-            content: 'Data always stays on your device and is never shared.',
-          }"
-          class="hover:cursor-pointer"
-        >
-          <i class="fa fa-lock mr-1" />
-        </span>
       </div>
 
       <!-- Display some text if specified -->
