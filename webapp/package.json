@@ -22,7 +22,6 @@
     "immutable": "catalog:",
     "pinia": "3.0.4",
     "pinia-plugin-persistedstate-2": "2.0.32",
-    "tailwind-cn": "1.0.3",
     "tippy.js": "6.3.7",
     "vee-validate": "5.0.0-beta.0",
     "vue": "3.5.34",
