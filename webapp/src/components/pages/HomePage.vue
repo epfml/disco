@@ -18,7 +18,7 @@
           Train AI Models Together.<br />
           Keep Data Private.
         </p>
-        <p class="lg:text-lg">
+        <p class="lg:text-lg mt-4">
           Build and train AI models without sharing any data.<br />
           Machine Learning directly in your browser.
         </p>
@@ -32,13 +32,13 @@
     </div>
 
     <!-- 2nd screen -->
-    <div :class="cn(paneTw, 'lg:flex-row')">
+    <div class="lg:flex-row" :class="paneTw">
       <div class="flex flex-col text-center">
         <span :class="headingTw">
           Training in the privacy<br />
           of your browser.
         </span>
-        <span class="lg:text-lg mt-2">
+        <span class="lg:text-lg mt-4">
           Disco runs fully in your browser.<br />
           No need to install anything.<br />
           No need to code anything.
@@ -55,12 +55,8 @@
         <span :class="headingTw"> 3 steps. </span>
       </div>
       <div
-        :class="
-          cn(
-            bigTextTw,
-            'flex flex-col lg:flex-row gap-8 items-center text-center',
-          )
-        "
+        class="flex flex-col lg:flex-row gap-8 items-center text-center"
+        :class="subHeadingTw"
       >
         <div>
           <span> Connect your data </span>
@@ -99,7 +95,7 @@
     </div>
     <!-- 4th screen -->
     <div :class="paneTw">
-      <div class="flex flex-col gap-4 text-center">
+      <div class="flex flex-col self-start gap-4">
         <span :class="headingTw"> Your data, your rules. </span>
         <span class="lg:text-lg">
           <b>Your data is never shared and never leaves your device.</b><br />
@@ -108,7 +104,7 @@
       </div>
       <div class="flex flex-col lg:flex-row gap-8">
         <div class="flex flex-col items-center text-center">
-          <span :class="bigTextTw"> Federated Learning </span>
+          <span :class="subHeadingTw"> Federated Learning </span>
           <span class="lg:text-lg">
             More efficient, orchestrated by on a central server
           </span>
@@ -117,7 +113,7 @@
           />
         </div>
         <div class="flex flex-col items-center text-center">
-          <span :class="bigTextTw"> Decentralized Learning </span>
+          <span :class="subHeadingTw"> Decentralized Learning </span>
           <span class="lg:text-lg"> More secure, peer-to-peer technology </span>
           <DecentralizedGIF
             class="w-full md:w-2/3 lg:w-full rounded-lg bg-slate-50 border-slate-300 border-4"
@@ -136,7 +132,7 @@
         </span>
       </div>
       <div class="flex flex-col lg:flex-row items-center justify-center gap-8">
-        <span :class="bigTextTw"> Powered by </span>
+        <span :class="subHeadingTw"> Powered by </span>
         <a href="https://www.tensorflow.org/js" target="_blank">
           <TensorflowLogo class="w-2/3 min-w-[50px] mx-auto" />
         </a>
@@ -146,15 +142,18 @@
       </div>
     </div>
     <!-- 6th screen -->
-    <div :class="cn(paneTw, '[&_svg]:size-50 gap-2')">
-      <div class="flex flex-col text-center gap-2 mb-8">
+    <div
+      :class="paneTw"
+      class="[&_svg]:size-25 md:[&_svg]:size-35 lg:[&_svg]:size-50 gap-2"
+    >
+      <div class="flex flex-col self-start gap-2 mb-8">
         <span :class="headingTw"> Free and open source. </span>
         <span class="lg:text-lg max-lg:max-w-[500px]">
           Disco is a non-profit academic initiative. <br />
           Open-source and free to use.
         </span>
       </div>
-      <span :class="bigTextTw"> A joint project of </span>
+      <span :class="subHeadingTw"> A joint project of </span>
       <div class="flex flex-row items-center gap-8">
         <a href="https://www.epfl.ch/labs/mlo/" target="_blank">
           <MLOLogo />
@@ -163,7 +162,7 @@
           <LightLogo />
         </a>
       </div>
-      <span :class="bigTextTw"> Supported by </span>
+      <span :class="subHeadingTw"> Supported by </span>
       <div class="flex flex-row items-center gap-8">
         <a href="https://www.epfl.ch/en/" target="_blank">
           <EPFL />
@@ -174,7 +173,7 @@
       </div>
     </div>
     <!-- 7th screen -->
-    <div :class="cn(paneTw, 'lg:flex-row')">
+    <div :class="paneTw" class="lg:flex-row">
       <div>
         <DiscoParticlesIcon class="max-w-[200px] lg:max-w-[400px]" />
       </div>
@@ -221,10 +220,10 @@ import DISCO from "../simple/DISCO.vue";
 import EPFL from "@/assets/logos/EPFL.vue";
 import DiscoParticlesIcon from "@/assets/svg/DiscoParticlesIcon.vue";
 import ScrollIndicator from "../simple/ScrollIndicator.vue";
-import { cn } from "tailwind-cn";
 
 const themeStore = useThemeStore();
-const paneTw = "h-dvh flex flex-col justify-center gap-16 items-center";
-const headingTw = "font-disco font-bold text-4xl lg:text-5xl";
-const bigTextTw = "font-bold text-3xl";
+const paneTw =
+  "min-h-dvh flex flex-col justify-center gap-16 items-center py-8";
+const headingTw = "font-disco font-bold text-3xl md:text-4xl lg:text-5xl";
+const subHeadingTw = "font-bold text-xl md:text-2xl lg:text-3xl";
 </script>
