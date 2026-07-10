@@ -42,7 +42,7 @@
       </div>
       <!-- Display what has been connected -->
       <div
-        v-if="files === undefined && lockIcon"
+        v-if="files === undefined && noUpload"
         class="flex justify-end items-center mt-1"
       >
         <span
@@ -101,11 +101,11 @@ const props = withDefaults(
   defineProps<{
     type: "image" | "json" | "tabular" | "text";
     multiple?: boolean; // accept one or multiple files
-    lockIcon?: boolean;
+    noUpload?: boolean;
   }>(),
   {
     multiple: false,
-    lockIcon: false,
+    noUpload: false,
   },
 );
 
