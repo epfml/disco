@@ -562,6 +562,9 @@ importers:
       pinia-plugin-persistedstate-2:
         specifier: 2.0.32
         version: 2.0.32(pinia@3.0.4(typescript@6.0.3)(vue@3.5.34(typescript@6.0.3)))
+      tailwind-cn:
+        specifier: 1.0.3
+        version: 1.0.3
       tippy.js:
         specifier: 6.3.7
         version: 6.3.7
@@ -4283,6 +4286,9 @@ packages:
   table-layout@1.0.2:
     resolution: {integrity: sha512-qd/R7n5rQTRFi+Zf2sk5XVVd9UQl6ZkduPFC3S7WEGJAmetDTjY3qPN50eSKzwuzEyQKy5TN2TiZdkIjos2L6A==}
     engines: {node: '>=8.0.0'}
+
+  tailwind-cn@1.0.3:
+    resolution: {integrity: sha512-GgqNt0SvajbakZmSPFq1xeqTN2v49k9BG1ZJnl0pn3f1aMXyp6IPMKP0SKEfvo5U2WU/6wcDO2Jmt4H1P5ZGYQ==}
 
   tailwindcss@4.3.1:
     resolution: {integrity: sha512-hk+TB1m+K8CYNrP6rjQaq/Y+4Zylwpa87mLYBKCunwnnQ9p+fHb7kmSfGqyEJoxF/O6CDyABWVFEafNSYKll+Q==}
@@ -8557,6 +8563,8 @@ snapshots:
       deep-extend: 0.6.0
       typical: 5.2.0
       wordwrapjs: 4.0.1
+
+  tailwind-cn@1.0.3: {}
 
   tailwindcss@4.3.1: {}
 
