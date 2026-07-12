@@ -169,6 +169,9 @@ export class FederatedController<D extends DataType> extends TrainingController<
   reset(): void {
     this.resetConnectionState()
 
+    // Dispose first before generating a new aggregator
+    this.#aggregator.dispose()
+
     this.#aggregator = new aggregators.MeanAggregator(undefined, 1, 'relative')
     this.#latestGlobalWeights = this.initialWeights
 
@@ -176,7 +179,5 @@ export class FederatedController<D extends DataType> extends TrainingController<
     this.#aggregator.on("aggregation", async (weightUpdate) => {
       this.#latestGlobalWeights = await serialization.weights.encode(weightUpdate)
     })
-
-    this.#aggregator.dispose()
   }
 }
