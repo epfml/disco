@@ -185,7 +185,7 @@
         <span class="lg:text-lg">
           Start training your AI models privately today.
         </span>
-        <div class="flex flex-row justify-center gap-4">
+        <div class="flex flex-row justify-center gap-4 mt-4">
           <CTAButton> Get started </CTAButton>
           <a
             href="mailto:discolab@listes.epfl.ch"
