@@ -143,8 +143,8 @@
     </div>
     <!-- 6th screen -->
     <div
-      class="[&_svg]:size-25 md:[&_svg]:size-35 lg:[&_svg]:size-50 gap-2"
       :class="paneTw"
+      class="[&_svg]:size-25 md:[&_svg]:size-35 lg:[&_svg]:size-50 !gap-2"
     >
       <div class="flex flex-col self-start gap-2 mb-16">
         <span :class="headingTw"> Free and open source. </span>
