@@ -1,5 +1,7 @@
 <template>
   <svg
+    width="100%"
+    height="100%"
     preserveAspectRatio="xMidYMid meet"
     data-bbox="35.22 28.28 319.76 143.36"
     xmlns="http://www.w3.org/2000/svg"
