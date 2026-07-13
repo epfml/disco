@@ -62,7 +62,8 @@ describe("training page", () => {
         cy
           .contains("h4", "COVID-Positive")
           .parents()
-          .get('[data-testid="select-image-button"]')
+          .eq(1)
+          .find('[data-testid="select-image-button"]')
           .selectFile(files),
     );
     cy.task<string[]>("readdir", "../datasets/lus_covid/COVID-/").then(
@@ -70,7 +71,8 @@ describe("training page", () => {
         cy
           .contains("h4", "COVID-Negative")
           .parents()
-          .get('[data-testid="select-image-button"]')
+          .eq(1)
+          .find('[data-testid="select-image-button"]')
           .selectFile(files),
     );
     cy.contains("button", "next").click();
