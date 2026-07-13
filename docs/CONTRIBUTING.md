@@ -104,10 +104,10 @@ pnpm -F webapp test
 
 The webapp tests rely on `cypress` and the test suite is located in the `webapp/cypress` folder.
 
-Note that you can also run test interactively in the browser of your choice. To do so, run
+Note that you can also run test interactively in the browser of your choice. To do so, run from the `webapp` folder
 
 ```
-VITE_SERVER_URL=http://server npx -w webapp start-server-and-test start http://localhost:8081 'cypress open --e2e'
+pnpm run test:e2e-interactive
 ```
 
 which should open the Cypress UI and let you choose the browser you wand to use and which tests to run. More information on [the Cypress docs](https://docs.cypress.io/app/get-started/open-the-app).
