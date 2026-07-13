@@ -123,16 +123,20 @@ const inputFileElement = ref<HTMLInputElement | null>(null);
 const hideConnectField = computed(() => files.value !== undefined);
 
 const fileType = computed(() => {
-  switch (props.type) {
-    case "image":
-      return `image${props.multiple ? "s" : ""}`;
-    case "json":
-      return `JSON file${props.multiple ? "s" : ""}`;
-    case "tabular":
-      return `CSV${props.multiple ? "s" : ""}`;
-    case "text":
-      return `text file${props.multiple ? "s" : ""}`;
-  }
+  const name = (() => {
+    switch (props.type) {
+      case "image":
+        return "image";
+      case "json":
+        return "JSON file";
+      case "tabular":
+        return "CSV";
+      case "text":
+        return "text file";
+    }
+  })();
+
+  return `${name}${props.multiple ? "s" : ""}`;
 });
 
 const acceptFilter = computed(() => {
