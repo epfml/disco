@@ -123,22 +123,18 @@ const inputFileElement = ref<HTMLInputElement | null>(null);
 const hideConnectField = computed(() => files.value !== undefined);
 
 const fileType = computed(() => {
-  const name = (() => {
-    // need function wrap vuejs/eslint-plugin-vue#2142
-    switch (props.type) {
-      case "image":
-        return "image";
-      case "json":
-        return "JSON file";
-      case "tabular":
-        return "CSV";
-      case "text":
-        return "text file";
-    }
-  })();
-
-  return `${name}${props.multiple ? "s" : ""}`;
+  switch (props.type) {
+    case "image":
+      return `image${props.multiple ? "s" : ""}`;
+    case "json":
+      return `JSON file${props.multiple ? "s" : ""}`;
+    case "tabular":
+      return `CSV${props.multiple ? "s" : ""}`;
+    case "text":
+      return `text file${props.multiple ? "s" : ""}`;
+  }
 });
+
 const acceptFilter = computed(() => {
   switch (props.type) {
     case "image":
@@ -150,10 +146,6 @@ const acceptFilter = computed(() => {
     case "text":
       return "text/plain";
   }
-
-  // vuejs/eslint-plugin-vue#2142
-  props.type satisfies never;
-  throw new TypeError("invalid value");
 });
 
 // we use an event counter to test whether the user is dragging a file over the field
