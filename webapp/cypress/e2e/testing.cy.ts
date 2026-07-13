@@ -9,9 +9,10 @@ it("can test titanic", () => {
   cy.contains("button", "download").click();
   cy.contains("button", "test").click();
 
-  cy.contains("label", "select CSV").selectFile(
-    "../datasets/titanic_train.csv",
-  );
+  cy.contains("Drop CSV");
+  cy.get('[data-testid="select-tabular-button"]')
+    .first()
+    .selectFile("../datasets/titanic_train.csv");
   cy.contains("button", "next").click();
 
   cy.contains("Validate your model")
@@ -31,7 +32,7 @@ it("can test lus_covid", () => {
   cy.contains("button", "test").click();
 
   cy.task<string[]>("readdir", "../datasets/lus_covid/COVID+/").then((files) =>
-    cy.contains("label", "select images").selectFile(files),
+    cy.get('[data-testid="select-image-button"]').first().selectFile(files),
   );
   cy.contains("button", "next").click();
 
@@ -51,9 +52,9 @@ it("can start and stop testing of wikitext", () => {
   cy.contains("button", "download").click();
   cy.contains("button", "test").click();
 
-  cy.contains("label", "select text").selectFile(
-    "../datasets/wikitext/wiki.test.tokens",
-  );
+  cy.get('[data-testid="select-text-button"]')
+    .first()
+    .selectFile("../datasets/wikitext/wiki.test.tokens");
   cy.contains("button", "next").click();
 
   cy.contains("Validate your model")
