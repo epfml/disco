@@ -8,12 +8,13 @@
   >
     <section>
       <!-- Hide the file input field when already submitted-->
-      <div v-if="noUpload" class="flex justify-center items-center my-1">
+      <div v-if="noUpload" class="flex justify-center items-center mb-4">
         <span
           v-tippy="{
-            content: 'Data always stays on your device and is never shared.',
+            content:
+              'Your files are read locally in your browser, who can only read them if you manually select them first. They are never sent to our servers or anyone else\'s. To convince yourself, you can start a training session (without collaboration) while turning off your machine\'s wifi !',
           }"
-          class="bg-green-200 text-green-500 rounded-full hover:cursor-pointer px-2 py-1"
+          class="bg-green-200 text-green-800 dark:text-green-200 dark:bg-green-800 rounded-full hover:cursor-pointer px-2 py-1"
         >
           <i class="fa fa-lock mr-1" />
           <span> Stays on your device </span>
@@ -30,7 +31,7 @@
         @drop="(e: DragEvent) => dragFiles(e)"
       >
         <p
-          class="p-4 text-lg text-disco-blue dark:text-disco-light-blue flex-wrap justify-center"
+          class="p-4 text-lg text-disco-blue dark:text-white flex-wrap justify-center"
         >
           <span>Drop {{ fileType }} here or</span>
         </p>
@@ -71,7 +72,7 @@
         class="pt-4 flex flex-col items-center pb-5"
       >
         <div
-          class="flex justify-center items-center text-center md:text-left sm:text-lg text-disco-blue dark:text-disco-light-cyan"
+          class="flex justify-center items-center text-center md:text-left sm:text-lg text-disco-blue dark:text-white"
         >
           <i v-if="noUpload" class="fas fa-folder-open mr-2" />
           <span v-if="multiple">
