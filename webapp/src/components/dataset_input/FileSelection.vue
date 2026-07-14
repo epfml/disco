@@ -12,7 +12,7 @@
         <span
           v-tippy="{
             content:
-              'Your files are read locally in your browser, who can only read them if you manually select them first. They are never sent to our servers or anyone else\'s. To convince yourself, you can start a training session (without collaboration) while turning off your machine\'s wifi !',
+              'Your files are read locally in your browser, they are never sent to our servers or anyone else\'s. To convince yourself, you can start a local training while turning off your machine\'s Wi-Fi!',
           }"
           class="bg-green-200 text-green-800 dark:text-green-200 dark:bg-green-800 rounded-full hover:cursor-pointer px-2 py-1"
         >
