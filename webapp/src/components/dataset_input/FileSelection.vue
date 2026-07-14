@@ -126,7 +126,6 @@ const hideConnectField = computed(() => files.value !== undefined);
 
 const fileType = computed(() => {
   const name = (() => {
-    // need function wrap vuejs/eslint-plugin-vue#2142
     switch (props.type) {
       case "image":
         return "image";
@@ -153,10 +152,6 @@ const acceptFilter = computed(() => {
     case "text":
       return "text/plain";
   }
-
-  // vuejs/eslint-plugin-vue#2142
-  props.type satisfies never;
-  throw new TypeError("invalid value");
 });
 
 const fileNamesDisplay = computed(() => {
