@@ -30,9 +30,10 @@ describe("training page", () => {
     goToTaskOverview();
     cy.contains("button", "next").click();
 
-    cy.contains("label", "select CSV").selectFile(
-      "../datasets/titanic_train.csv",
-    );
+    cy.contains("Drop CSV");
+    cy.get('[data-testid="select-tabular-button"]')
+      .first()
+      .selectFile("../datasets/titanic_train.csv");
     cy.contains("button", "next").click();
 
     cy.contains("button", "locally").click();
@@ -61,7 +62,8 @@ describe("training page", () => {
         cy
           .contains("h4", "COVID-Positive")
           .parents()
-          .contains("select images")
+          .eq(1)
+          .find('[data-testid="select-image-button"]')
           .selectFile(files),
     );
     cy.task<string[]>("readdir", "../datasets/lus_covid/COVID-/").then(
@@ -69,7 +71,8 @@ describe("training page", () => {
         cy
           .contains("h4", "COVID-Negative")
           .parents()
-          .contains("select images")
+          .eq(1)
+          .find('[data-testid="select-image-button"]')
           .selectFile(files),
     );
     cy.contains("button", "next").click();

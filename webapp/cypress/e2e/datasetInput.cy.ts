@@ -39,11 +39,14 @@ describe("image dataset input by group", () => {
 
     goToDatasetInputStep();
     cy.get("button").contains("group").click();
-    cy.contains("select images").selectFile([
-      { fileName: "first.png", contents: new Uint8Array() },
-      { fileName: "second.png", contents: new Uint8Array() },
-      { fileName: "third.png", contents: new Uint8Array() },
-    ]);
+    cy.contains("Drop images");
+    cy.get('[data-testid="select-image-button"]')
+      .first()
+      .selectFile([
+        { fileName: "first.png", contents: new Uint8Array() },
+        { fileName: "second.png", contents: new Uint8Array() },
+        { fileName: "third.png", contents: new Uint8Array() },
+      ]);
 
     cy.contains("Number of selected files: 3").should("exist");
   });
@@ -61,21 +64,27 @@ describe("image dataset input by csv", () => {
 
     goToDatasetInputStep();
     cy.get("button").contains("csv").click();
-    cy.contains("select CSV").selectFile({
-      fileName: "csv",
-      contents: new TextEncoder().encode(
-        "filename,label\n" +
-          "first,first\n" +
-          "second,second\n" +
-          "third,third\n",
-      ),
-    });
+    cy.contains("Drop CSV");
+    cy.get('[data-testid="select-tabular-button"]')
+      .first()
+      .selectFile({
+        fileName: "csv",
+        contents: new TextEncoder().encode(
+          "filename,label\n" +
+            "first,first\n" +
+            "second,second\n" +
+            "third,third\n",
+        ),
+      });
 
-    cy.contains("select images").selectFile([
-      { fileName: "first.png", contents: new Uint8Array() },
-      { fileName: "second.png", contents: new Uint8Array() },
-      { fileName: "third.png", contents: new Uint8Array() },
-    ]);
+    cy.contains("Drop images");
+    cy.get('[data-testid="select-image-button"]')
+      .first()
+      .selectFile([
+        { fileName: "first.png", contents: new Uint8Array() },
+        { fileName: "second.png", contents: new Uint8Array() },
+        { fileName: "third.png", contents: new Uint8Array() },
+      ]);
 
     cy.contains("Number of selected files: 3").should("exist");
   });
@@ -91,10 +100,13 @@ describe("tabular dataset input", () => {
     );
 
     goToDatasetInputStep();
-    cy.contains("select CSV").selectFile({
-      fileName: "filename",
-      contents: new TextEncoder().encode("a,b,c\n1,2,3\n"),
-    });
+    cy.contains("Drop CSV");
+    cy.get('[data-testid="select-tabular-button"]')
+      .first()
+      .selectFile({
+        fileName: "filename",
+        contents: new TextEncoder().encode("a,b,c\n1,2,3\n"),
+      });
 
     cy.contains("filename").should("exist");
   });
