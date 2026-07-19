@@ -203,10 +203,7 @@ export class Trainer<D extends DataType, N extends Network> {
     for (let epoch = 0; epoch < this.#epochs; epoch++) {
       const trainingIterator = dataset[Symbol.asyncIterator]();
       let next = await trainingIterator.next();
-      let pendingBatch: Batched<DataFormat.ModelEncoded[D]> | undefined =
-        next.done === true ? undefined : next.value;
-
-      while (pendingBatch !== undefined) {
+      while (next.done !== true) {
         await this.#client.onRoundBeginCommunication();
 
         this.#previousRoundWeights = new WeightsContainer(
