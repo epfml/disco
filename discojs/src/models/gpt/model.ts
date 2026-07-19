@@ -286,6 +286,12 @@ export class GPTModel extends tf.LayersModel {
     return tf.tensor2d(mask, inputIds.shape, "float32");
   }
 
+  /**
+   * Computes a deterministic 32-bit FNV-1a-style hash of a token context.
+   * Each token ID is mixed in little-endian byte order, followed by a separator
+   * byte to preserve token boundaries. Goldfish uses the unsigned result modulo
+   * `k` to consistently select which target-token losses to drop.
+   */
   #hashTokenContext(tokens: number[]): number {
     let hash = 0x811c9dc5;
 

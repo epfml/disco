@@ -211,8 +211,7 @@ export class Trainer<D extends DataType, N extends Network> {
         );
 
         let firstBatch: Batched<DataFormat.ModelEncoded[D]> | undefined =
-          pendingBatch;
-        pendingBatch = undefined;
+          next.value;
         let done = false;
         const prefixedIterator: AsyncIterator<
           Batched<DataFormat.ModelEncoded[D]>
@@ -244,7 +243,6 @@ export class Trainer<D extends DataType, N extends Network> {
         round++;
         if (done) break;
         next = await trainingIterator.next();
-        pendingBatch = next.done === true ? undefined : next.value;
       }
     }
   }
