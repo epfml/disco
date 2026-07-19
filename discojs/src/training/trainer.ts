@@ -114,7 +114,6 @@ export class Trainer<D extends DataType, N extends Network> {
     )
       throw new Error("validationFrequency must be a non-negative integer");
 
-    // if (!Number.isInteger(this.#epochs / this.#roundDuration))
     if (
       this.#roundIterations === undefined &&
       !Number.isInteger(this.#epochs / this.#roundDuration)
