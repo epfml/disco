@@ -141,7 +141,6 @@ export class Trainer<D extends DataType, N extends Network> {
       );
 
     try {
-      // this.#training = this.#runRounds(dataset, validationDataset);
       this.#training =
         this.#roundIterations === undefined
           ? this.#runRounds(dataset, validationDataset)
