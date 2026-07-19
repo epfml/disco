@@ -301,7 +301,7 @@ export class Trainer<D extends DataType, N extends Network> {
     if (typeof model.trainNextBatches !== "function")
       throw new Error("model does not support iteration-based training");
 
-    const [gen, result] = async_iterator.split(
+    const [gen, epochLogs] = async_iterator.split(
       model.trainNextBatches(
         datasetIterator as AsyncIterator<
           Batched<DataFormat.ModelEncoded["text"]>
@@ -315,8 +315,7 @@ export class Trainer<D extends DataType, N extends Network> {
     );
 
     yield gen;
-    const epochLogs = await result;
-    epochsLogs = epochsLogs.push(epochLogs);
+    epochsLogs = epochsLogs.push(await epochLogs);
 
     return {
       epochs: epochsLogs,
