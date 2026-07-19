@@ -20,13 +20,11 @@ export async function encode(model: Model<DataType>): Promise<Encoded> {
   switch (true) {
     case model instanceof models.TFJS: {
       const serialized = await model.serialize();
-      debug("TFJS model serialized");
       return coder.encode([Type.TFJS, ...serialized]);
     }
     case model instanceof models.GPT: {
       const { weights, config } = model.serialize();
       const serializedWeights = await serialization.weights.encode(weights);
-      debug("GPT model weights serialized");
       return coder.encode([Type.GPT, serializedWeights, config]);
     }
     default:
@@ -37,15 +35,11 @@ export async function encode(model: Model<DataType>): Promise<Encoded> {
 export async function decode(encoded: Encoded): Promise<Model<DataType>> {
   const raw = coder.decode(encoded);
 
-  debug("IMPORTANT:model decoded");
-
   if (!Array.isArray(raw) || raw.length < 2) {
     throw new Error(
       "invalid encoding, encoding isn't an array or doesn't contain enough values",
     );
   }
-
-  debug("model encoding array length: %d", raw.length);
 
   const type = raw[0] as unknown;
   if (typeof type !== "number") {
@@ -54,19 +48,14 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
     );
   }
 
-  debug("model type: %d", type);
-
   const rawModel = raw[1] as unknown;
   switch (type) {
     case Type.TFJS: {
-      debug("TFJS model decoding started");
       if (raw.length !== 3)
         throw new Error(
           "invalid TFJS model encoding: should be an array of length 3",
         );
       const [rawDatatype, rawModel] = raw.slice(1) as unknown[];
-
-      debug("TFJS model datatype: %s", rawDatatype);
 
       let datatype;
       switch (rawDatatype) {
@@ -89,7 +78,6 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
       if (raw.length == 2) {
         config = undefined;
       } else if (raw.length == 3) {
-        debug("GPT model config decoding");
         config = raw[2] as GPTConfig;
       } else {
         throw new Error(
@@ -102,10 +90,8 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
           "invalid encoding, gpt-tfjs model weights should be an encoding of its weights",
         );
 
-      debug("GPT model weights decoding");
       const weights = serialization.weights.decode(rawModel);
 
-      debug("GPT model weights decoded");
       debug(
         "GPT model config: %O",
         config || "undefined, using default config",
