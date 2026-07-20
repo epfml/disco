@@ -341,24 +341,16 @@ export class DecentralizedController<
       })
 
       // Restart the round with remaining clients
-      this.#roundPeers.keySeq()
-      .map((id) => {
-        const retrySignal = {
-          type: MessageTypes.RetryPeerConnections,
-        }
-        debug("Signaling connection retry to: %o", id.slice(0, 4))
+      this.broadcastMessageToNodes(
+        this.#roundPeers.keySeq(),
+        (id): messages.RetryPeerConnections => {
+          debug("Signaling connection retry to: %o", id.slice(0, 4))
 
-        const encoded = msgpack.encode(retrySignal)
-        return [id, encoded] as [client.NodeID, Buffer]
-      })
-      .map(([id, encoded]) => {
-        const conn = this.connections.get(id)
-        if (conn === undefined) {
-          throw new Error(`peer ${id} marked as ready but not connection to it`)
+          return {
+            type: MessageTypes.RetryPeerConnections,
+          }
         }
-        return [conn, encoded] as [WebSocket, Buffer]
-      })
-      .forEach(([conn, encoded]) => {conn.send(encoded)})
+      )
 
       // Reset the ready and connection status of roundPeers
       this.#roundPeers = this.#roundPeers.map(() => false)
@@ -376,24 +368,16 @@ export class DecentralizedController<
     this.#roundPeers = this.#roundPeers.map(() => false)
     this.#connectFinishedNodes = this.#roundPeers.map(() => false)
 
-    this.#roundPeers.keySeq()
-    .map((id) => {
-      const retrySignal = {
-        type: MessageTypes.RetryPeerConnections,
-      }
-      debug("Signaling connection retry to: %o", id.slice(0, 4))
+    this.broadcastMessageToNodes(
+      this.#roundPeers.keySeq(),
+      (id): messages.RetryPeerConnections => {
+        debug("Signaling connection retry to: %o", id.slice(0, 4))
 
-      const encoded = msgpack.encode(retrySignal)
-      return [id, encoded] as [client.NodeID, Buffer]
-    })
-    .map(([id, encoded]) => {
-      const conn = this.connections.get(id)
-      if (conn === undefined) {
-        throw new Error(`peer ${id} marked as ready but not connection to it`)
+        return {
+          type: MessageTypes.RetryPeerConnections,
+        }
       }
-      return [conn, encoded] as [WebSocket, Buffer]
-    })
-    .forEach(([conn, encoded]) => {conn.send(encoded)})
+    )
     
     // Restart the timeout after sending retry messages
     this.startTimeout()
