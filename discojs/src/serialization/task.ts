@@ -25,17 +25,14 @@ export async function deserializeFromJSON(
   serialized: JSON,
 ): Promise<Task<DataType, Network>> {
   return await z
-    .object({
-      trainingInformation: z
-        .object({
-          tokenizer: z
-            .string()
-            .transform((name) => Tokenizer.from_pretrained(name))
-            .optional(),
-        })
-        .passthrough(),
+    .looseObject({
+      trainingInformation: z.looseObject({
+        tokenizer: z
+          .string()
+          .transform((name) => Tokenizer.from_pretrained(name))
+          .optional(),
+      }),
     })
-    .passthrough()
     .pipe(Task.schema)
     .parseAsync(serialized);
 }
