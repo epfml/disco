@@ -3,7 +3,7 @@ import type { Request, Response } from "express";
 import express from "express";
 import { Set } from "immutable";
 
-import type { Task } from "@epfml/discojs";
+import { Task } from "@epfml/discojs";
 import { serialization } from "@epfml/discojs";
 
 import type { TaskSet } from "../task_set.js";
@@ -27,6 +27,13 @@ export class TaskRouter {
           .map(([t, _]) => serialization.task.serializeToJSON(t))
           .toArray(),
       );
+    });
+
+    // Return the task schema to advertise available options
+    this.#expressRouter.get("/schema", (_, res) => {
+      res
+        .status(200)
+        .send(Task.schema.toJSONSchema({ unrepresentable: "any" }));
     });
 
     this.#expressRouter.use(express.json());
