@@ -16,7 +16,7 @@ export function setupServerWith(
       Promise.all(
         providers.map(async (p) => {
           if ("id" in p) return [p, undefined] as const;
-          return [await p.getTask(), await p.getModel()] as const;
+          return [await p.getTask(), await p.modelCard.getModel()] as const;
         }),
       ),
     )

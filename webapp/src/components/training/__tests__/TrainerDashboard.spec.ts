@@ -17,7 +17,7 @@ async function setupForTask() {
       url.toString() ===
       new URL("tasks/titanic/model.json", CONFIG.serverUrl).href
     ) {
-      const model = await provider.getModel();
+      const model = await provider.modelCard.getModel();
       const encoded = await serialization.model.encode(model);
       return new Response(new Uint8Array(encoded));
     }

@@ -83,7 +83,6 @@ describe("end-to-end federated", () => {
       },
     };
     const url = await startServer({
-      getModel: () => defaultTasks.cifar10.getModel(),
       getTask: () => Promise.resolve(cifar10Task),
       modelCard: defaultModels.CIFAR10Classifier,
     });

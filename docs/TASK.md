@@ -51,10 +51,10 @@ The [task creation form](https://discolab.ai/#/create) lets users create a custo
 ## 3. Implementing custom tasks
 
 Programming skills are necessary to add a custom task not supported by the task creation UI.
-A task is mainly defined by a `TaskProvider` which needs to implement two methods:
+A task is mainly defined by a `TaskProvider` which needs to implement two things:
 
 - `getTask` which returns a `Task` as defined by the [Task interface](../discojs/src/task/task.ts). The `Task` contains all the crucial information from training to the mode
-- `getModel` which returns a `Promise<tf.LayersModel>` specifying a model architecture for the task
+- `modelCard` which itself implements `getModel`, returning a `Promise<tf.LayersModel>` specifying a model architecture for the task. It also has information about the model.
 
 You can add a new task in two different ways:
 
@@ -76,11 +76,18 @@ const customTask: TaskProvider = {
     };
   },
 
-  async getModel(): Promise<tf.LayersModel> {
-    const model = tf.sequential();
-    // Configure your model architecture
-    return model;
-  },
+  modelCard: {
+    {
+      card: {
+        // information here
+      };
+      getModel(): : Promise<tf.LayersModel> {
+        const model = tf.sequential();
+        // Configure your model architecture
+        return model;
+      },
+    }
+  }
 };
 
 async function runServer() {
@@ -177,8 +184,15 @@ export const customTask: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<tf.LayersModel> {
-    throw new Error('Not implemented')
+  modelCard: {
+    {
+      card: {
+        // information here
+      };
+      getModel(): : Promise<tf.LayersModel> {
+        throw new Error('Not implemented')
+      },
+    }
   }
 }
 ```
