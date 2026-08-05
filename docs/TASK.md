@@ -6,7 +6,7 @@ DISCO currently allows learning of arbitrary machine learning tasks, where tasks
 2. **Task creation UI**: new tasks can be defined via the [**task creation form**](https://discolab.ai/#/create)
 3. **Implementing custom tasks**: tasks too specific for the UI form need to be implemented in the repository directly.
 
-In any case, one user needs to upload the initial model that is going to be trained collaboratively.
+In either case, one user needs to upload the initial model that is going to be trained collaboratively.
 
 ### Uploading ML models
 

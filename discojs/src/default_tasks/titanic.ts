@@ -1,7 +1,5 @@
-import * as tf from "@tensorflow/tfjs";
-
-import type { Model, TaskProvider } from "../index.js";
-import { models } from "../index.js";
+import type { TaskProvider } from "#task/index";
+import { cards } from "#models/index";
 
 export const titanic: TaskProvider<"tabular", "federated"> = {
   getTask() {
@@ -76,8 +74,8 @@ export const titanic: TaskProvider<"tabular", "federated"> = {
       metrics: ["accuracy"],
     });
 
-    return Promise.resolve(new models.TFJS("tabular", model));
+    return Promise.resolve(new TFJS("tabular", model));
   },
 
-  modelCard: models.cards.TitanicClassifier,
+  modelCard: cards.TitanicClassifier,
 };

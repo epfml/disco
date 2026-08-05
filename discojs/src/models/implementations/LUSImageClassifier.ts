@@ -1,6 +1,7 @@
 import * as tf from "@tensorflow/tfjs";
 
-import { Model, TFJS } from "../index.js";
+import { Model } from "#models/model";
+import { TFJS } from "#models/tfjs";
 
 // Model architecture from tensorflow.js docs:
 // https://codelabs.developers.google.com/codelabs/tfjs-training-classfication/index.html#4

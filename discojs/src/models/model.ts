@@ -1,10 +1,6 @@
-import type {
-  Batched,
-  Dataset,
-  DataFormat,
-  DataType,
-  WeightsContainer,
-} from "../index.js";
+import { WeightsContainer } from "#weights/index";
+import { Dataset, Batched } from "#dataset/index";
+import type { DataFormat, DataType } from "#dtypes/index";
 
 import type { BatchLogs, EpochLogs, ValidationMetrics } from "./logs.js";
 

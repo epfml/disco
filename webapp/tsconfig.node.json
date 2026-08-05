@@ -7,19 +7,10 @@
     "nightwatch.conf.*",
     "playwright.config.*"
   ],
-  "references": [
-    {
-      "path": "../discojs"
-    },
-    {
-      "path": "../discojs-web"
-    }
-  ],
   "compilerOptions": {
     "composite": true,
     "noEmit": true,
     "tsBuildInfoFile": "tsconfig.node.tsbuildinfo",
-
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "types": ["node"]

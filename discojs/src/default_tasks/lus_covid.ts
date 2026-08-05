@@ -1,7 +1,5 @@
-import * as tf from "@tensorflow/tfjs";
-
-import type { Model, TaskProvider } from "../index.js";
-import { models } from "../index.js";
+import type { TaskProvider } from "#task/index";
+import { cards } from "#models/index";
 
 export const lusCovid: TaskProvider<"image", "federated"> = {
   getTask() {
@@ -105,8 +103,8 @@ export const lusCovid: TaskProvider<"image", "federated"> = {
       metrics: ["accuracy"],
     });
 
-    return Promise.resolve(new models.TFJS("image", model));
+    return Promise.resolve(new TFJS("image", model));
   },
 
-  modelCard: models.cards.LUSClassifier,
+  modelCard: cards.LUSClassifier,
 };

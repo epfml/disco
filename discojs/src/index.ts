@@ -18,12 +18,12 @@ export { Validator } from "./validator.js";
 
 export {
   Model,
+  ModelCard,
   BatchLogs,
   EpochLogs,
   Tokenizer,
   ValidationMetrics,
 } from "./models/index.js";
-export { ModelCard } from "./models/index.js";
 export * as models from "./models/index.js";
 
 export * from "./task/index.js";

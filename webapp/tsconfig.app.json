@@ -4,16 +4,15 @@
   "exclude": ["src/**/__tests__/*"],
   "references": [
     {
-      "path": "../discojs"
+      "path": "../discojs/tsconfig.lib.json"
     },
     {
-      "path": "../discojs-web"
+      "path": "../discojs-web/tsconfig.lib.json"
     }
   ],
   "compilerOptions": {
     "composite": true,
     "tsBuildInfoFile": "tsconfig.app.tsbuildinfo",
-
     "paths": {
       "@/*": ["./src/*"]
     }

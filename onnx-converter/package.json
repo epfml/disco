@@ -6,7 +6,7 @@
   "scripts": {
     "convert_onnx": "pnpm run build && node dist/convert_onnx.js",
     "watch": "nodemon --ext ts --ignore dist --exec pnpm run",
-    "build": "tsc --build && cp -r src/protobuf dist",
+    "build": "tsc --build tsconfig.lib.json && cp -r src/protobuf dist",
     "lint": "pnpm exec eslint .",
     "test": ": nothing"
   },
