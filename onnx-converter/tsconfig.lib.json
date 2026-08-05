@@ -1,5 +1,10 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "../tsconfig.base.lib.json",
+  "references": [
+    {
+      "path": "../discojs/tsconfig.lib.json"
+    }
+  ],
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "dist",

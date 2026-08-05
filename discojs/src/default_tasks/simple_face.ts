@@ -1,8 +1,5 @@
-import * as tf from "@tensorflow/tfjs";
-
-import type { Model, TaskProvider } from "../index.js";
-import { models } from "../index.js";
-import baseModel from "../models/implementations/mobileNetV2_35_alpha_2_classes.js";
+import type { TaskProvider } from "#task/index";
+import { cards } from "#models/index";
 
 export const simpleFace: TaskProvider<"image", "federated"> = {
   getTask() {
@@ -53,8 +50,8 @@ export const simpleFace: TaskProvider<"image", "federated"> = {
       metrics: ["accuracy"],
     });
 
-    return new models.TFJS("image", model);
+    return new TFJS("image", model);
   },
 
-  modelCard: models.cards.FaceClassifier,
+  modelCard: cards.FaceClassifier,
 };

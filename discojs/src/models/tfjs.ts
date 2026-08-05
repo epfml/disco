@@ -1,17 +1,12 @@
 import { List, Map, Range } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 
-import {
-  Batched,
-  Dataset,
-  DataFormat,
-  DataType,
-  WeightsContainer,
-} from "../index.js";
+import { WeightsContainer } from "#weights/index";
+import { Dataset, Batched } from "#dataset/index";
+import type { DataFormat, DataType } from "#dtypes/index";
 
-import { BatchLogs } from "./index.js";
-import { Model } from "./index.js";
-import { EpochLogs } from "./logs.js";
+import { Model } from "./model.js";
+import { BatchLogs, EpochLogs } from "./logs.js";
 
 type Serialized<D extends DataType> = [D, tf.io.ModelArtifacts];
 

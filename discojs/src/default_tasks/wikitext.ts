@@ -1,5 +1,5 @@
-import type { TaskProvider } from "../index.js";
-import { Tokenizer, models } from "../index.js";
+import type { TaskProvider } from "#task/index";
+import { Tokenizer, cards } from "#models/index";
 
 export const wikitext: TaskProvider<"text", "federated"> = {
   async getTask() {
@@ -51,10 +51,10 @@ export const wikitext: TaskProvider<"text", "federated"> = {
   async getModel() {
     const task = await this.getTask();
 
-    return new models.GPT({
+    return new GPT({
       contextLength: task.trainingInformation.contextLength,
     });
   },
 
-  modelCard: models.cards.Wikitext,
+  modelCard: cards.Wikitext,
 };

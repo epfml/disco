@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "vite",
+    "prebuild": "pnpm -F webapp^... run build",
     "build": "vue-tsc --build && vite build",
     "test": "pnpm run test:unit && pnpm run test:e2e",
     "test:unit": "vitest --run",
@@ -49,7 +50,7 @@
     "typescript": "catalog:",
     "vite": "8.0.16",
     "vitest": "catalog:",
-    "vue-tsc": "3.2.6",
+    "vue-tsc": "3.3.9",
     "vue3-spinners": "1.3.3"
   }
 }

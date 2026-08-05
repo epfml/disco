@@ -1,15 +1,17 @@
+import type { CausalLMOutput } from "@xenova/transformers";
 import {
   AutoModelForCausalLM,
   PreTrainedModel,
   Tensor,
 } from "@xenova/transformers";
-import { Model } from "./index.js";
-import type { WeightsContainer } from "../index.js";
 import { List } from "immutable";
-import type { CausalLMOutput } from "@xenova/transformers";
+
+import type { WeightsContainer } from "#weights/index";
+import type { Batched } from "#dataset/index";
+import type { DataFormat } from "#dtypes/index";
 import type { GenerationConfig as TFJSGenerationConfig } from "./implementations/gpt/config.js";
+import { Model } from "#models/model";
 import { DefaultGenerationConfig } from "./implementations/gpt/config.js";
-import type { Batched, DataFormat } from "../index.js";
 
 export class ONNXModel extends Model<"text"> {
   private model: PreTrainedModel;

@@ -3,10 +3,10 @@
   "include": ["./e2e/**/*", "./support/**/*"],
   "references": [
     {
-      "path": "../../discojs"
+      "path": "../../discojs/tsconfig.lib.json"
     },
     {
-      "path": "../../discojs-web"
+      "path": "../../discojs-web/tsconfig.lib.json"
     }
   ],
   "compilerOptions": {

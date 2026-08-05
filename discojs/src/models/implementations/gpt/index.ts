@@ -7,10 +7,10 @@ import createDebug from "debug";
 import { List, Range } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 
-import type { Batched, Dataset, DataFormat } from "../../../index.js";
-import { WeightsContainer } from "../../../index.js";
-
-import { BatchLogs, Model, EpochLogs } from "../../index.js";
+import { WeightsContainer } from "#weights/index";
+import { Dataset, Batched } from "#dataset/index";
+import { Model, BatchLogs, EpochLogs } from "#models/index";
+import type { DataFormat } from "#dtypes/index";
 
 import { GPTModel } from "./model.js";
 import evaluate from "./evaluate.js";

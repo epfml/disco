@@ -1,9 +1,5 @@
-import * as tf from "@tensorflow/tfjs";
-
-import type { Model, TaskProvider } from "../index.js";
-import { models } from "../index.js";
-
-import baseModel from "../models/implementations/mobileNet_v1_025_224.js";
+import type { TaskProvider } from "#task/index";
+import { cards } from "#models/index";
 
 export const cifar10: TaskProvider<"image", "decentralized"> = {
   getTask() {
@@ -89,8 +85,8 @@ export const cifar10: TaskProvider<"image", "decentralized"> = {
       metrics: ["accuracy"],
     });
 
-    return new models.TFJS("image", model);
+    return new TFJS("image", model);
   },
 
-  modelCard: models.cards.CIFAR10Classifier,
+  modelCard: cards.CIFAR10Classifier,
 };
