@@ -9,7 +9,7 @@ import type {
   TaskProvider,
   WeightsContainer,
 } from "@epfml/discojs";
-import { Disco, defaultTasks } from "@epfml/discojs";
+import { Disco, defaultTasks, defaultModels } from "@epfml/discojs";
 import { List } from "immutable";
 import { assert, afterEach, describe, expect, it } from "vitest";
 import { Server } from "../../src/index.js";
@@ -85,6 +85,7 @@ describe("end-to-end federated", () => {
     const url = await startServer({
       getModel: () => defaultTasks.cifar10.getModel(),
       getTask: () => Promise.resolve(cifar10Task),
+      modelCard: defaultModels.CIFAR10Classifier,
     });
     const dataset = await datasets.loadCifar10();
 

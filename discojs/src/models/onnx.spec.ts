@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { List } from "immutable";
 import { AutoTokenizer } from "@xenova/transformers";
 import { ONNXModel } from "./onnx.js";
-import { DefaultGenerationConfig } from "./gpt/config.js";
+import { DefaultGenerationConfig } from "./implementations/gpt/config.js";
 
 describe("ONNXModel.predict", { timeout: 50_000 }, () => {
   it("should generate the next token ID from a prompt", async () => {

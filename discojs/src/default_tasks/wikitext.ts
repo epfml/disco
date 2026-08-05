@@ -55,4 +55,6 @@ export const wikitext: TaskProvider<"text", "federated"> = {
       contextLength: task.trainingInformation.contextLength,
     });
   },
+
+  modelCard: models.cards.Wikitext,
 };

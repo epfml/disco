@@ -1,8 +1,40 @@
 import tf from "@tensorflow/tfjs-node";
 
-import type { TaskProvider } from "@epfml/discojs";
+import type { TaskProvider, ModelCard } from "@epfml/discojs";
 import { defaultTasks, models } from "@epfml/discojs";
 import { Server as DiscoServer } from "server";
+
+// Define your own model card
+const customModelCard: ModelCard<"tabular"> = {
+  card: {
+    id: "custom_model_id",
+    name: "Custom name",
+    preTrained: false,
+  },
+
+  async getModel() {
+    const model = tf.sequential();
+
+    model.add(
+      tf.layers.dense({
+        inputShape: [1],
+        units: 124,
+        activation: "relu",
+        kernelInitializer: "leCunNormal",
+      }),
+    );
+    model.add(tf.layers.dense({ units: 32, activation: "relu" }));
+    model.add(tf.layers.dense({ units: 1, activation: "sigmoid" }));
+
+    model.compile({
+      optimizer: "rmsprop",
+      loss: "binaryCrossentropy",
+      metrics: ["accuracy"],
+    });
+
+    return Promise.resolve(new models.TFJS("tabular", model));
+  },
+};
 
 // Define your own task provider (task definition + model)
 const customTask: TaskProvider<"tabular", "federated"> = {
@@ -55,6 +87,8 @@ const customTask: TaskProvider<"tabular", "federated"> = {
 
     return Promise.resolve(new models.TFJS("tabular", model));
   },
+
+  modelCard: customModelCard,
 };
 
 async function runServer(): Promise<void> {

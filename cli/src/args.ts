@@ -280,5 +280,6 @@ export const args: BenchmarkArguments = {
       return task;
     },
     getModel: () => provider.getModel(),
+    modelCard: provider.modelCard,
   },
 };

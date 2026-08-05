@@ -1,8 +1,8 @@
 import { List } from "immutable";
 import { describe, expect, it } from "vitest";
 
-import type { DataFormat } from "../../index.js";
-import { Dataset, Tokenizer } from "../../index.js";
+import type { DataFormat } from "../../../index.js";
+import { Dataset, Tokenizer } from "../../../index.js";
 
 import { GPT } from "./index.js";
 
