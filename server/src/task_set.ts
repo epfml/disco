@@ -124,7 +124,7 @@ export class TaskSet extends EventEmitter<{
       // to get the model architecture definition
       throw new Error("saved model not found and no way to get it");
     }
-    const model = await taskOrProvider.getModel();
+    const model = await taskOrProvider.modelCard.getModel();
 
     // Save the model to disk
     await fs.mkdir(modelPath, { recursive: true });

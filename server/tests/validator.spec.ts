@@ -12,7 +12,7 @@ describe("validator", () => {
 
       const validator = new Validator(
         await provider.getTask(),
-        await provider.getModel(),
+        await provider.modelCard.getModel(),
       );
 
       let hits = 0;
@@ -35,7 +35,7 @@ describe("validator", () => {
 
       const validator = new Validator(
         await provider.getTask(),
-        await provider.getModel(),
+        await provider.modelCard.getModel(),
       );
 
       let hits = 0;
@@ -63,7 +63,7 @@ describe("validator", () => {
 
       const validator = new Validator(
         task,
-        await defaultTasks.lusCovid.getModel(),
+        await defaultTasks.lusCovid.modelCard.getModel(),
       );
 
       let hits = 0;

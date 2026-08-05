@@ -65,29 +65,6 @@ const customTask: TaskProvider<"tabular", "federated"> = {
     });
   },
 
-  getModel() {
-    const model = tf.sequential();
-
-    model.add(
-      tf.layers.dense({
-        inputShape: [1],
-        units: 124,
-        activation: "relu",
-        kernelInitializer: "leCunNormal",
-      }),
-    );
-    model.add(tf.layers.dense({ units: 32, activation: "relu" }));
-    model.add(tf.layers.dense({ units: 1, activation: "sigmoid" }));
-
-    model.compile({
-      optimizer: "rmsprop",
-      loss: "binaryCrossentropy",
-      metrics: ["accuracy"],
-    });
-
-    return Promise.resolve(new models.TFJS("tabular", model));
-  },
-
   modelCard: customModelCard,
 };
 

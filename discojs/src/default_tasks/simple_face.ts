@@ -39,19 +39,5 @@ export const simpleFace: TaskProvider<"image", "federated"> = {
     });
   },
 
-  async getModel(): Promise<Model<"image">> {
-    const model = await tf.loadLayersModel({
-      load: async () => Promise.resolve(baseModel),
-    });
-
-    model.compile({
-      optimizer: tf.train.sgd(0.001),
-      loss: "categoricalCrossentropy",
-      metrics: ["accuracy"],
-    });
-
-    return new TFJS("image", model);
-  },
-
   modelCard: cards.FaceClassifier,
 };

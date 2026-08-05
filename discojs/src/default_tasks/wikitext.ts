@@ -48,13 +48,5 @@ export const wikitext: TaskProvider<"text", "federated"> = {
     };
   },
 
-  async getModel() {
-    const task = await this.getTask();
-
-    return new GPT({
-      contextLength: task.trainingInformation.contextLength,
-    });
-  },
-
   modelCard: cards.Wikitext,
 };
