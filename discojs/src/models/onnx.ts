@@ -7,8 +7,8 @@ import { Model } from "./index.js";
 import type { WeightsContainer } from "../index.js";
 import { List } from "immutable";
 import type { CausalLMOutput } from "@xenova/transformers";
-import type { GenerationConfig as TFJSGenerationConfig } from "./gpt/config.js";
-import { DefaultGenerationConfig } from "./gpt/config.js";
+import type { GenerationConfig as TFJSGenerationConfig } from "./implementations/gpt/config.js";
+import { DefaultGenerationConfig } from "./implementations/gpt/config.js";
 import type { Batched, DataFormat } from "../index.js";
 
 export class ONNXModel extends Model<"text"> {

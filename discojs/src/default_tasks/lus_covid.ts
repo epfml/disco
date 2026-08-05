@@ -107,4 +107,6 @@ export const lusCovid: TaskProvider<"image", "federated"> = {
 
     return Promise.resolve(new models.TFJS("image", model));
   },
+
+  modelCard: models.cards.LUSClassifier,
 };

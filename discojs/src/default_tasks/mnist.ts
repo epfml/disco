@@ -84,4 +84,6 @@ export const mnist: TaskProvider<"image", "decentralized"> = {
 
     return Promise.resolve(new models.TFJS("image", model));
   },
+
+  modelCard: models.cards.PytorchMNISTClassifier,
 };

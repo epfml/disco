@@ -78,4 +78,6 @@ export const titanic: TaskProvider<"tabular", "federated"> = {
 
     return Promise.resolve(new models.TFJS("tabular", model));
   },
+
+  modelCard: models.cards.TitanicClassifier,
 };

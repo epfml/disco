@@ -2,7 +2,7 @@ import * as tf from "@tensorflow/tfjs";
 
 import type { Model, TaskProvider } from "../index.js";
 import { models } from "../index.js";
-import baseModel from "../models/mobileNetV2_35_alpha_2_classes.js";
+import baseModel from "../models/implementations/mobileNetV2_35_alpha_2_classes.js";
 
 export const simpleFace: TaskProvider<"image", "federated"> = {
   getTask() {
@@ -55,4 +55,6 @@ export const simpleFace: TaskProvider<"image", "federated"> = {
 
     return new models.TFJS("image", model);
   },
+
+  modelCard: models.cards.FaceClassifier,
 };

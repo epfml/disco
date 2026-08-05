@@ -97,4 +97,6 @@ export const tinderDog: TaskProvider<"image", "federated"> = {
 
     return Promise.resolve(new models.TFJS("image", model));
   },
+
+  modelCard: models.cards.DogClassifier,
 };
