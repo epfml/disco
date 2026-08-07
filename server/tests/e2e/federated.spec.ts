@@ -9,7 +9,7 @@ import type {
   TaskProvider,
   WeightsContainer,
 } from "@epfml/discojs";
-import { Disco, defaultTasks, defaultModels } from "@epfml/discojs";
+import { Disco, defaultTasks, defaultModels, ModelCard } from "@epfml/discojs";
 import { List } from "immutable";
 import { assert, afterEach, describe, expect, it } from "vitest";
 import { Server } from "../../src/index.js";
@@ -32,9 +32,10 @@ async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
 describe("end-to-end federated", () => {
   let handle: http.Server | undefined;
   async function startServer(
+    model: ModelCard<DataType>,
     task: TaskProvider<DataType, "federated">,
   ): Promise<URL> {
-    const server = await Server.with(task);
+    const server = await Server.with([model], [task]);
 
     let url: URL;
     [handle, url] = await server.serve();
@@ -82,10 +83,14 @@ describe("end-to-end federated", () => {
         minNbOfParticipants: 2,
       },
     };
-    const url = await startServer({
+    const cifar10TaskProvider = {
       getTask: () => Promise.resolve(cifar10Task),
       modelCard: defaultModels.CIFAR10Classifier,
-    });
+    };
+    const url = await startServer(
+      defaultModels.CIFAR10Classifier,
+      cifar10TaskProvider,
+    );
     const dataset = await datasets.loadCifar10();
 
     const [[m1, l1], [m2, l2], [m3, l3]] = await Promise.all([
@@ -107,10 +112,14 @@ describe("end-to-end federated", () => {
       ...task.trainingInformation,
       minNbOfParticipants: 2,
     };
-    const url = await startServer({
+    const taskProvider = {
       ...defaultTasks.titanic,
       getTask: () => Promise.resolve(task),
-    });
+    };
+    const url = await startServer(
+      defaultModels.TitanicClassifier,
+      taskProvider,
+    );
     const dataset = datasets.loadTitanic();
 
     const [[m1, l1], [m2, l2]] = await Promise.all([
@@ -133,10 +142,11 @@ describe("end-to-end federated", () => {
       roundDuration: 2,
       minNbOfParticipants: 2,
     };
-    const url = await startServer({
+    const taskProvider = {
       ...defaultTasks.lusCovid,
       getTask: () => Promise.resolve(task),
-    });
+    };
+    const url = await startServer(defaultModels.LUSClassifier, taskProvider);
     const dataset = await datasets.loadLusCOVID();
 
     const [[m1, l1], [m2, l2]] = await Promise.all([
@@ -159,10 +169,11 @@ describe("end-to-end federated", () => {
       roundDuration: 2,
       minNbOfParticipants: 2,
     };
-    const url = await startServer({
+    const taskProvider = {
       ...defaultTasks.wikitext,
       getTask: () => Promise.resolve(task),
-    });
+    };
+    const url = await startServer(defaultModels.Wikitext, taskProvider);
     const dataset = datasets.loadWikitext();
 
     const [r1, r2] = await Promise.all([
@@ -179,10 +190,11 @@ describe("end-to-end federated", () => {
       roundDuration: 1,
       minNbOfParticipants: 2,
     };
-    const url = await startServer({
+    const taskProvider = {
       ...defaultTasks.lusCovid,
       getTask: () => Promise.resolve(task),
-    });
+    };
+    const url = await startServer(defaultModels.LUSClassifier, taskProvider);
     const dataset = await datasets.loadLusCOVID();
 
     /**
@@ -337,10 +349,11 @@ describe("end-to-end federated", () => {
           },
         },
       };
-      const url = await startServer({
+      const taskProvider = {
         ...defaultTasks.lusCovid,
         getTask: () => Promise.resolve(task),
-      });
+      };
+      const url = await startServer(defaultModels.LUSClassifier, taskProvider);
       const dataset = await datasets.loadLusCOVID();
 
       const [[m1, l1], [m2, l2], [m3, l3]] = await Promise.all([

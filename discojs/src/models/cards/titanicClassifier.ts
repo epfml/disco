@@ -5,6 +5,7 @@ export const TitanicClassifier: ModelCard<"tabular"> = {
   card: {
     id: "titanic_classifier",
     name: "Titanic classifier",
+    dataType: "tabular",
     preTrained: false,
   },
 

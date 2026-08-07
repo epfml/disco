@@ -5,6 +5,7 @@ export const PytorchMNISTClassifier: ModelCard<"image"> = {
   card: {
     id: "mnist_classifier",
     name: "MNIST Classifier",
+    dataType: "image",
     preTrained: false,
   },
 

@@ -15,6 +15,6 @@ export {
   HELLASWAG_URL,
 } from "./implementations/hellaswag.js";
 export { TFJS } from "./tfjs.js";
-export type { ModelCard } from "./model_card.js";
+export type { ModelCard, ModelCardInfo } from "./model_card.js";
 
 export * as cards from "./cards/index.js";

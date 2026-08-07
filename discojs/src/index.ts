@@ -19,6 +19,7 @@ export { Validator } from "./validator.js";
 export {
   Model,
   ModelCard,
+  ModelCardInfo,
   BatchLogs,
   EpochLogs,
   Tokenizer,

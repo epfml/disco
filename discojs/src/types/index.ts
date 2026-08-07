@@ -1,4 +1,5 @@
 export * as DataFormat from "./data_format.js";
 
-export type DataType = "image" | "tabular" | "text";
+export const dataTypeValues = ["image", "tabular", "text"] as const;
+export type DataType = (typeof dataTypeValues)[number];
 export type Network = "decentralized" | "federated" | "local";

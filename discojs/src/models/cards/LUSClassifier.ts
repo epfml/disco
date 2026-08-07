@@ -6,6 +6,7 @@ export const LUSClassifier: ModelCard<"image"> = {
   card: {
     id: "lus_classifier",
     name: "LUS Classifier",
+    dataType: "image",
     preTrained: false,
   },
 

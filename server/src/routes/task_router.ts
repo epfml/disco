@@ -42,10 +42,7 @@ export class TaskRouter {
     this.#expressRouter.post("/", async (req, res) => {
       const parsed = await z
         .object({
-          model: z
-            .array(z.number())
-            .transform((arr) => Uint8Array.from(arr))
-            .transform(serialization.model.decode),
+          model: z.string(),
           task: z.any().transform(serialization.task.deserializeFromJSON),
         })
         .safeParseAsync(req.body);
@@ -58,10 +55,10 @@ export class TaskRouter {
       const { model, task } = parsed.data;
 
       try {
-        await this.#taskSet.addTask(task, model);
+        this.#taskSet.addTask(task, model);
       } catch (e) {
         debug("add task failed with: %o", e);
-        if (e instanceof Error && e.message === "already existing")
+        if (e instanceof Error && e.message === "added task already exists")
           res.status(409).end();
         else res.status(500).end();
         return;
