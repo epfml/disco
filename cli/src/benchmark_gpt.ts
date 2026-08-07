@@ -6,6 +6,7 @@ import type { Network, Task } from "@epfml/discojs";
 import {
   async_iterator,
   defaultTasks,
+  defaultModels,
   fetchTasks,
   models,
 } from "@epfml/discojs";
@@ -86,7 +87,10 @@ async function main(args: Required<CLIArguments>): Promise<void> {
   } = args;
 
   // Launch a server instance
-  const server = await Server.with(defaultTasks.wikitext);
+  const server = await Server.with(
+    [defaultModels.Wikitext],
+    [defaultTasks.wikitext],
+  );
   const [handle, url] = await server.serve();
 
   // Fetch the wikitext task from the server

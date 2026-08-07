@@ -5,6 +5,7 @@ export const DogClassifier: ModelCard<"image"> = {
   card: {
     id: "dog_classifier",
     name: "Dog Classifier",
+    dataType: "image",
     preTrained: false,
   },
 

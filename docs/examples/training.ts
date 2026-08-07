@@ -9,7 +9,7 @@ import type {
   Image,
   Task,
 } from "@epfml/discojs";
-import { Disco, fetchTasks, defaultTasks } from "@epfml/discojs";
+import { Disco, fetchTasks, defaultTasks, defaultModels } from "@epfml/discojs";
 import { loadCSV, loadImagesInDir } from "@epfml/discojs-node";
 import { Server } from "server";
 
@@ -43,8 +43,8 @@ async function main(): Promise<void> {
 
   // Launch a server instance
   const server = await Server.with(
-    defaultTasks.simpleFace,
-    defaultTasks.titanic,
+    [defaultModels.FaceClassifier, defaultModels.TitanicClassifier],
+    [(defaultTasks.simpleFace, defaultTasks.titanic)],
   );
   const [handle, url] = await server.serve();
 

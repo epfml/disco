@@ -1,7 +1,7 @@
 import tf from "@tensorflow/tfjs-node";
 
 import type { TaskProvider, ModelCard } from "@epfml/discojs";
-import { defaultTasks, models } from "@epfml/discojs";
+import { defaultTasks, defaultModels, models } from "@epfml/discojs";
 import { Server as DiscoServer } from "server";
 
 // Define your own model card
@@ -9,6 +9,7 @@ const customModelCard: ModelCard<"tabular"> = {
   card: {
     id: "custom_model_id",
     name: "Custom name",
+    dataType: "tabular",
     preTrained: false,
   },
 
@@ -71,8 +72,9 @@ const customTask: TaskProvider<"tabular", "federated"> = {
 async function runServer(): Promise<void> {
   // Create a server
   const server = await DiscoServer.with(
-    defaultTasks.titanic, // with some tasks provided by Disco
-    customTask, // or your own custom task
+    // with some tasks provided by Disco, or your own custom task
+    [defaultModels.TitanicClassifier, customModelCard],
+    [defaultTasks.titanic, customTask],
   );
 
   // Start the server

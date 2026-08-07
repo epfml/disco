@@ -5,6 +5,7 @@ export const FaceClassifier: ModelCard<"image"> = {
   card: {
     id: "face_classifier",
     name: "Face Classifier",
+    dataType: "image",
     preTrained: false,
   },
 

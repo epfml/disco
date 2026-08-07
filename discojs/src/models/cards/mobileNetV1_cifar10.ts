@@ -5,6 +5,7 @@ export const CIFAR10Classifier: ModelCard<"image"> = {
   card: {
     id: "mobile_net_v1_cifar10",
     name: "Pre-trained CIFAR-10 Classifier",
+    dataType: "image",
     preTrained: true,
   },
 

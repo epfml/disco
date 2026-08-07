@@ -1,21 +1,38 @@
 import { z } from "zod";
 import type { Model } from "#models/index";
-import type { DataType } from "#dtypes/index";
+import { DataType, dataTypeValues } from "#dtypes/index";
 
-namespace ModelCardInfo {
+export namespace ModelCardInfo {
   export type ID = string;
 
-  export const schema = z.object({
+  export const baseFields = {
     id: z.string(),
     name: z.string(),
     preTrained: z.boolean(),
     contextLength: z.number().optional(),
+  };
+
+  export const schema = z.object({
+    ...baseFields,
+    dataType: z.enum(dataTypeValues),
   });
+
+  // Runtime-checked schema for each data type
+  export function dataTypedSchema<D extends DataType>(dataType: D) {
+    return z.object({
+      ...baseFields,
+      dataType: z.literal(dataType),
+    });
+  }
+
+  export type Of<D extends DataType> = z.infer<
+    ReturnType<typeof dataTypedSchema<D>>
+  >;
 }
 
-type ModelCardInfo = z.infer<typeof ModelCardInfo.schema>;
+export type ModelCardInfo<D extends DataType> = ModelCardInfo.Of<D>;
 
 export interface ModelCard<D extends DataType> {
-  card: ModelCardInfo;
+  card: ModelCardInfo<D>;
   getModel(): Promise<Model<D>>;
 }

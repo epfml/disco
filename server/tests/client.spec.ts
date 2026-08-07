@@ -1,9 +1,15 @@
 import type * as http from "node:http";
-import type { DataType, Network, TaskProvider } from "@epfml/discojs";
+import type {
+  DataType,
+  Network,
+  TaskProvider,
+  ModelCard,
+} from "@epfml/discojs";
 import {
   aggregator as aggregators,
   client as clients,
   defaultTasks,
+  defaultModels,
 } from "@epfml/discojs";
 import { afterEach, describe, expect, it } from "vitest";
 import { Server } from "../src/index.js";
@@ -11,9 +17,10 @@ import { Server } from "../src/index.js";
 describe("decentralized client", () => {
   let handle: http.Server;
   async function startServer(
-    ...tasks: TaskProvider<DataType, Network>[]
+    models: ModelCard<DataType>[],
+    tasks: TaskProvider<DataType, Network>[],
   ): Promise<URL> {
-    const server = await Server.with(...tasks);
+    const server = await Server.with(models, tasks);
 
     let url: URL;
     [handle, url] = await server.serve();
@@ -30,7 +37,10 @@ describe("decentralized client", () => {
   );
 
   it("connects to valid task", async () => {
-    const url = await startServer(defaultTasks.cifar10);
+    const url = await startServer(
+      [defaultModels.CIFAR10Classifier],
+      [defaultTasks.cifar10],
+    );
 
     const client = new clients.decentralized.DecentralizedClient(
       url,
@@ -43,7 +53,7 @@ describe("decentralized client", () => {
   });
 
   it("fails to connect to invalid task", async () => {
-    const url = await startServer(); // no task
+    const url = await startServer([], []); // no models or tasks
 
     const client = new clients.decentralized.DecentralizedClient(
       url,
@@ -58,9 +68,10 @@ describe("decentralized client", () => {
 describe("federated client", () => {
   let handle: http.Server;
   async function startServer(
-    ...tasks: TaskProvider<DataType, Network>[]
+    models: ModelCard<DataType>[],
+    tasks: TaskProvider<DataType, Network>[],
   ): Promise<URL> {
-    const server = await Server.with(...tasks);
+    const server = await Server.with(models, tasks);
 
     let url: URL;
     [handle, url] = await server.serve();
@@ -77,7 +88,10 @@ describe("federated client", () => {
   );
 
   it("connects to valid task", async () => {
-    const url = await startServer(defaultTasks.titanic);
+    const url = await startServer(
+      [defaultModels.TitanicClassifier],
+      [defaultTasks.titanic],
+    );
 
     const client = new clients.federated.FederatedClient(
       url,
@@ -90,7 +104,7 @@ describe("federated client", () => {
   });
 
   it("fails to connect to invalid task", async () => {
-    const url = await startServer(); // no task
+    const url = await startServer([], []); // no task
 
     const client = new clients.federated.FederatedClient(
       url,
