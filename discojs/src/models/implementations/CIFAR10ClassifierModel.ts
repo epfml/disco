@@ -1,6 +1,6 @@
 import * as tf from "@tensorflow/tfjs";
 
-import { TFJS } from "../index.js";
+import { TFJS } from "#models/tfjs";
 
 import baseModel from "./mobileNet_v1_025_224.js";
 

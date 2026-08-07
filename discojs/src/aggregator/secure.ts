@@ -2,8 +2,9 @@ import { Map, List, Range } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 
 import { AggregationStep, Aggregator } from "./aggregator.js";
-import type { WeightsContainer, client } from "../index.js";
-import { aggregation } from "../index.js";
+import type { WeightsContainer } from "#weights/index";
+import { aggregation } from "#weights/index";
+import type * as client from "#client/index";
 
 /**
  * Aggregator implementing secure multi-party computation for decentralized learning.

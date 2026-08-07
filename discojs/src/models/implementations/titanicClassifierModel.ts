@@ -1,6 +1,6 @@
 import * as tf from "@tensorflow/tfjs";
 
-import { TFJS } from "../index.js";
+import { TFJS } from "#models/tfjs";
 
 export function model() {
   const model = tf.sequential();

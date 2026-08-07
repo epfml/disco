@@ -1,5 +1,6 @@
-import type { DataType, Network, Task } from "../index.js";
-import { aggregator } from "../index.js";
+import type { DataType, Network } from "#types/index";
+import type { Task } from "#task/index";
+import * as aggregator from "#aggregator/index";
 import { ByzantineRobustAggregator } from "./byzantine.js";
 
 type AggregatorOptions = Partial<{

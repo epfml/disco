@@ -1,8 +1,9 @@
 import type { Map } from "immutable";
 import { AggregationStep } from "./aggregator.js";
 import { MultiRoundAggregator, ThresholdType } from "./multiround.js";
-import type { WeightsContainer, client } from "../index.js";
-import { aggregation } from "../index.js";
+import type { WeightsContainer } from "#weights/index";
+import type * as client from "#client/index";
+import { aggregation } from "#weights/index";
 
 /**
  * Mean aggregator whose aggregation step consists in computing the mean of the received weights.

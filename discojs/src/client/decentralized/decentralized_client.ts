@@ -1,18 +1,20 @@
 import createDebug from "debug";
 import { Map, Set } from "immutable";
 
-import type { DataType, Model, WeightsContainer } from "../../index.js";
-import { serialization } from "../../index.js";
-import { Client, shortenId } from "../client.js";
-import { type NodeID } from "../index.js";
-import { type, type ClientConnected } from "../messages.js";
-import { timeout } from "../utils.js";
+import type { WeightsContainer } from "#weights/index";
+import type { Model } from "#models/index";
+import type { DataType } from "#types/index";
+import * as serialization from "#serialization/index";
+import { Client, shortenId } from "#client/client";
+import { type NodeID } from "#client/index";
+import { MType, type ClientConnected } from "#client/mtype";
+import { timeout } from "#client/utils";
 import {
   WebSocketServer,
   waitMessage,
   type PeerConnection,
   waitMessageWithTimeout,
-} from "../event_connection.js";
+} from "#client/event_connection";
 import { PeerPool } from "./peer_pool.js";
 import * as messages from "./messages.js";
 
@@ -73,7 +75,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
       messages.isMessageFromServer,
       messages.isMessageToServer,
     );
-    this.server.on(type.SignalForPeer, (event) => {
+    this.server.on(MType.SignalForPeer, (event) => {
       if (this.#pool === undefined)
         throw new Error("received signal but peer pool is undefined");
       // Create a WebRTC connection with the peer
@@ -85,13 +87,13 @@ export class DecentralizedClient extends Client<"decentralized"> {
     this.setupServerCallbacks(() => (receivedEnoughParticipants = true));
 
     const msg: ClientConnected = {
-      type: type.ClientConnected,
+      type: MType.ClientConnected,
     };
     this.server.send(msg);
 
     const { id, waitForMoreParticipants, nbOfParticipants } = await waitMessage(
       this.server,
-      type.NewDecentralizedNodeInfo,
+      MType.NewDecentralizedNodeInfo,
     );
 
     this.nbOfParticipants = nbOfParticipants;
@@ -145,7 +147,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
   override async onRoundBeginCommunication(): Promise<void> {
     // Notify the server we want to join the next round so that the server
     // waits for us to be ready before sending the list of peers for the round
-    this.server.send({ type: type.JoinRound });
+    this.server.send({ type: MType.JoinRound });
     // Store the promise for the current round's aggregation result.
     // We will await for it to resolve at the end of the round when exchanging weight updates.
     this.aggregationResult = this.aggregator.getPromiseForAggregation();
@@ -190,7 +192,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
     // Reset peers list at each round of training to make sure client works with an updated peers
     // list, maintained by the server. Adds any received weights to the aggregator.
     // Tell the server we are ready for the next round
-    const readyMessage: messages.PeerIsReady = { type: type.PeerIsReady };
+    const readyMessage: messages.PeerIsReady = { type: MType.PeerIsReady };
     this.server.send(readyMessage);
 
     // Wait for the server to answer with the list of peers for the round
@@ -200,7 +202,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
       );
       const receivedMessage = await waitMessage(
         this.server,
-        type.PeersForRound,
+        MType.PeersForRound,
       );
 
       const peers = Set(receivedMessage.peers);
@@ -250,7 +252,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
         try {
           const message = await waitMessageWithTimeout(
             connection,
-            type.Payload,
+            MType.Payload,
             60_000,
             "Timeout waiting for a contribution from peer " + peerId,
           );
@@ -337,7 +339,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
         if (peer !== undefined) {
           const encoded = await serialization.weights.encode(payload);
           const msg: messages.PeerMessage = {
-            type: type.Payload,
+            type: MType.Payload,
             peer: id,
             aggregationRound: this.aggregator.round,
             communicationRound,

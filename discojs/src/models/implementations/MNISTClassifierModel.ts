@@ -1,6 +1,6 @@
 import * as tf from "@tensorflow/tfjs";
 
-import { TFJS } from "../index.js";
+import { TFJS } from "#models/tfjs";
 
 export function model() {
   // Architecture from the PyTorch MNIST example (I made it slightly smaller, 650kB instead of 5MB)

@@ -2,8 +2,10 @@ import { Map } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 import { AggregationStep } from "./aggregator.js";
 import { MultiRoundAggregator, ThresholdType } from "./multiround.js";
-import { WeightsContainer, client } from "../index.js";
-import { aggregation } from "../index.js";
+import { aggregation } from "#weights/index";
+
+import type { WeightsContainer } from "#weights/index";
+import type * as client from "#client/index";
 
 /**
  * Byzantine-robust aggregator using Centered Clipping (CC), based on the

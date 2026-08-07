@@ -1,5 +1,6 @@
-import { Model, ModelCard } from "../index.js";
-import { model } from "../implementations/MNISTClassifierModel.js";
+import { Model } from "#models/model";
+import { ModelCard } from "#models/model_card";
+import { model } from "#models/implementations/MNISTClassifierModel";
 
 export const MNISTClassifier: ModelCard<"image"> = {
   card: {

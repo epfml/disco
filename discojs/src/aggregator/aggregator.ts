@@ -1,9 +1,10 @@
 import createDebug from "debug";
 import { Map, Set } from "immutable";
 
-import type { client, WeightsContainer } from "../index.js";
+import type { WeightsContainer } from "#weights/index";
+import type * as client from "#client/index";
 
-import { EventEmitter } from "../utils/event_emitter.js";
+import { EventEmitter } from "#utils/event_emitter";
 
 const debug = createDebug("discojs:aggregator");
 

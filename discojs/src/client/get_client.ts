@@ -4,23 +4,9 @@ import type * as aggregator from "#aggregator/index";
 
 // import * as clients from "#client/index";
 import { LocalClient } from "#client/local_client";
-import { Client } from "#client/client";
+import type { Client } from "#client/client";
 import { DecentralizedClient } from "#client/decentralized/decentralized_client";
 import { FederatedClient } from "#client/federated/federated_client";
-
-// Time to wait for the others in milliseconds.
-const MAX_WAIT_PER_ROUND = 15_000;
-
-export async function timeout(
-  ms = MAX_WAIT_PER_ROUND,
-  errorMsg: string = "timeout",
-): Promise<never> {
-  return await new Promise((_, reject) => {
-    setTimeout(() => {
-      reject(new Error(errorMsg));
-    }, ms);
-  });
-}
 
 export function getClient<D extends DataType, N extends Network>(
   scheme: N | "local",

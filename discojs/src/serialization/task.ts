@@ -1,10 +1,11 @@
 import { z } from "zod";
-import type { DataType, Network } from "../index.js";
-import { Task, Tokenizer } from "../index.js";
+import type { DataType, Network } from "#types/index";
+import { Task } from "#task/index";
+import { Tokenizer } from "#models/index";
 
-import type { JSON } from "./index.js";
+import type { JSONLike } from "./json_like.js";
 
-export function serializeToJSON(task: Task<DataType, Network>): JSON {
+export function serializeToJSON(task: Task<DataType, Network>): JSONLike {
   switch (task.dataType) {
     case "image":
     case "tabular":
@@ -23,7 +24,7 @@ export function serializeToJSON(task: Task<DataType, Network>): JSON {
 
 // Throws if an error serialized object is malformed
 export async function deserializeFromJSON(
-  serialized: JSON,
+  serialized: JSONLike,
 ): Promise<Task<DataType, Network>> {
   return await z
     .looseObject({

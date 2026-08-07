@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { DataType } from "../types/index.js";
+import type { DataType } from "#types/index";
 
 export namespace DisplayInformation {
   export const baseSchema = z.object({
