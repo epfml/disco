@@ -1,6 +1,6 @@
 import * as tf from "@tensorflow/tfjs";
 
-import { TFJS } from "../index.js";
+import { TFJS } from "#models/tfjs";
 import baseModel from "./mobileNetV2_35_alpha_2_classes.js";
 
 export async function getModel() {

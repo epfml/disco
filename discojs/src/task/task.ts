@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { DataType, Network } from "../index.js";
+import type { DataType, Network } from "#dtypes/index";
 
 import { DisplayInformation } from "./display_information.js";
 import { TrainingInformation } from "./training_information.js";

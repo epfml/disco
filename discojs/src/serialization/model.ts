@@ -1,8 +1,9 @@
 import type tf from "@tensorflow/tfjs";
 
-import type { DataType, Model } from "../index.js";
-import { models, serialization } from "../index.js";
-import { GPTConfig } from "../models/index.js";
+import { encode as w_encode, decode as w_decode } from "#serialization/weights";
+import { GPTConfig, GPT, TFJS } from "#models/index";
+import type { Model } from "#models/index";
+import type { DataType } from "#dtypes/index";
 
 import * as coder from "./coder.js";
 import { Encoded, isEncoded } from "./coder.js";
@@ -14,13 +15,13 @@ const Type = {
 
 export async function encode(model: Model<DataType>): Promise<Encoded> {
   switch (true) {
-    case model instanceof models.TFJS: {
+    case model instanceof TFJS: {
       const serialized = await model.serialize();
       return coder.encode([Type.TFJS, ...serialized]);
     }
-    case model instanceof models.GPT: {
+    case model instanceof GPT: {
       const { weights, config } = model.serialize();
-      const serializedWeights = await serialization.weights.encode(weights);
+      const serializedWeights = await w_encode(weights);
       return coder.encode([Type.GPT, serializedWeights, config]);
     }
     default:
@@ -61,7 +62,7 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
           throw new Error("invalid TFJS model encoding: invalid DataType");
       }
 
-      return await models.TFJS.deserialize([
+      return await TFJS.deserialize([
         datatype,
         // TODO totally unsafe casting
         rawModel as tf.io.ModelArtifacts,
@@ -83,8 +84,8 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
         throw new Error(
           "invalid encoding, gpt-tfjs model weights should be an encoding of its weights",
         );
-      const weights = serialization.weights.decode(rawModel);
-      return models.GPT.deserialize({ weights, config });
+      const weights = w_decode(rawModel);
+      return GPT.deserialize({ weights, config });
     }
     default:
       throw new Error("invalid encoding, model type unrecognized");

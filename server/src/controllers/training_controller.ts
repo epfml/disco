@@ -64,8 +64,8 @@ export abstract class TrainingController<
             "Sending enough-participant message to client [%s]",
             participantId.slice(0, 4),
           );
-          const msg: client.messages.EnoughParticipants = {
-            type: client.messages.type.EnoughParticipants,
+          const msg: client.mtype.EnoughParticipants = {
+            type: client.mtype.MType.EnoughParticipants,
             nbOfParticipants: this.connections.size,
           };
           participantWs.send(msgpack.encode(msg));
@@ -86,8 +86,8 @@ export abstract class TrainingController<
         "Telling remaining client [%s] to wait for participants",
         participantId.slice(0, 4),
       );
-      const msg: client.messages.WaitingForMoreParticipants = {
-        type: client.messages.type.WaitingForMoreParticipants,
+      const msg: client.mtype.WaitingForMoreParticipants = {
+        type: client.mtype.MType.WaitingForMoreParticipants,
         nbOfParticipants: this.connections.size,
       };
       participantWs.send(msgpack.encode(msg));

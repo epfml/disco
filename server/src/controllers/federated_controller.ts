@@ -12,7 +12,7 @@ import {
 
 import { TrainingController } from "./training_controller.js";
 
-import MessageTypes = client.messages.type;
+import MessageTypes = client.mtype.MType;
 import FederatedMessages = client.federated.messages;
 
 const debug = createDebug("server:controllers:federated");

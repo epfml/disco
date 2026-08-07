@@ -23,30 +23,70 @@
     "url": "https://github.com/epfml/disco/issues"
   },
   "imports": {
-    "#models/*": {
-      "@disco/source": "./src/models/*.ts",
-      "default": "./dist/models/*.js",
-      "types": "./dist/models/*.d.ts"
+    "#root/*": {
+      "@disco/source": "./src/*.ts",
+      "default": "./dist/*.js",
+      "types": "./dist/*.d.ts"
     },
-    "#task/*": {
-      "@disco/source": "./src/task/*.ts",
-      "default": "./dist/task/*.js",
-      "types": "./dist/task/*.d.ts"
+    "#aggregator/*": {
+      "@disco/source": "./src/aggregator/*.ts",
+      "default": "./dist/aggregator/*.js",
+      "types": "./dist/aggregator/*.d.ts"
     },
-    "#weights/*": {
-      "@disco/source": "./src/weights/*.ts",
-      "default": "./dist/weights/*.js",
-      "types": "./dist/weights/*.d.ts"
+    "#client/*": {
+      "@disco/source": "./src/client/*.ts",
+      "default": "./dist/client/*.js",
+      "types": "./dist/client/*.d.ts"
+    },
+    "#dataset/*": {
+      "@disco/source": "./src/dataset/*.ts",
+      "default": "./dist/dataset/*.js",
+      "types": "./dist/dataset/*.d.ts"
     },
     "#dtypes/*": {
       "@disco/source": "./src/types/*.ts",
       "default": "./dist/types/*.js",
       "types": "./dist/types/*.d.ts"
     },
-    "#dataset/*": {
-      "@disco/source": "./src/dataset/*.ts",
-      "default": "./dist/dataset/*.js",
-      "types": "./dist/dataset/*.d.ts"
+    "#logging/*": {
+      "@disco/source": "./src/logging/*.ts",
+      "default": "./dist/logging/*.js",
+      "types": "./dist/logging/*.d.ts"
+    },
+    "#models/*": {
+      "@disco/source": "./src/models/*.ts",
+      "default": "./dist/models/*.js",
+      "types": "./dist/models/*.d.ts"
+    },
+    "#processing/*": {
+      "@disco/source": "./src/processing/*.ts",
+      "default": "./dist/processing/*.js",
+      "types": "./dist/processing/*.d.ts"
+    },
+    "#serialization/*": {
+      "@disco/source": "./src/serialization/*.ts",
+      "default": "./dist/serialization/*.js",
+      "types": "./dist/serialization/*.d.ts"
+    },
+    "#task/*": {
+      "@disco/source": "./src/task/*.ts",
+      "default": "./dist/task/*.js",
+      "types": "./dist/task/*.d.ts"
+    },
+    "#training/*": {
+      "@disco/source": "./src/training/*.ts",
+      "default": "./dist/training/*.js",
+      "types": "./dist/training/*.d.ts"
+    },
+    "#utils/*": {
+      "@disco/source": "./src/utils/*.ts",
+      "default": "./dist/utils/*.js",
+      "types": "./dist/utils/*.d.ts"
+    },
+    "#weights/*": {
+      "@disco/source": "./src/weights/*.ts",
+      "default": "./dist/weights/*.js",
+      "types": "./dist/weights/*.d.ts"
     }
   },
   "homepage": "https://github.com/epfml/disco#readme",

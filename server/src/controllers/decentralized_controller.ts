@@ -9,7 +9,7 @@ import { client, DataType } from "@epfml/discojs";
 import { TrainingController } from "./training_controller.js";
 
 import messages = client.decentralized.messages;
-import MessageTypes = client.messages.type;
+import MessageTypes = client.mtype.MType;
 
 const debug = createDebug("server:controllers:decentralized");
 

@@ -1,7 +1,8 @@
 import { Map, Seq } from "immutable";
 
-import type { DataType, Model, Network } from "../index.js";
-import { serialization } from "../index.js";
+import type { DataType, Network } from "#dtypes/index";
+import type { Model } from "#models/index";
+import * as serialization from "#serialization/index";
 
 import type { Task } from "./task.js";
 
@@ -32,7 +33,7 @@ export async function fetchTasks(
 ): Promise<Map<Task.ID, Task<DataType, Network>>> {
   const response = await fetch(urlToTasks(base));
   if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`);
-  const json = (await response.json()) as serialization.JSON;
+  const json = (await response.json()) as serialization.JSONLike;
 
   if (!Array.isArray(json))
     throw new Error("invalid tasks response: expected a JSON array");

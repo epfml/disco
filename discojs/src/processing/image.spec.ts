@@ -1,6 +1,6 @@
 import { Repeat, Seq } from "immutable";
 import { describe, expect, it } from "vitest";
-import { Image } from "../index.js";
+import { Image } from "#dataset/index";
 import { removeAlpha, resize } from "./image.js";
 
 describe("resize", () => {

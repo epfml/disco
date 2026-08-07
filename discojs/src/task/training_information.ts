@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import type { DataType, Network } from "../index.js";
-import { Tokenizer } from "../index.js";
+import type { DataType, Network } from "#dtypes/index";
+import { Tokenizer } from "#models/index";
 
 const privacySchema = z.object({
   // reduce training accuracy and improve privacy.

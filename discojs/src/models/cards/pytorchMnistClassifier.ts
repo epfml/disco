@@ -1,5 +1,6 @@
-import { Model, ModelCard } from "../index.js";
-import { model } from "../implementations/pytorch_mnist_classifier.js";
+import { Model } from "#models/model";
+import { ModelCard } from "#models/model_card";
+import { model } from "#models/implementations/pytorch_mnist_classifier";
 
 export const PytorchMNISTClassifier: ModelCard<"image"> = {
   card: {

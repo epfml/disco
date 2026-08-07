@@ -2,7 +2,7 @@ import { List, Map, Range, Seq } from "immutable";
 import wrtc from "@epfml/isomorphic-wrtc";
 import SimplePeer from "simple-peer";
 
-import type { NodeID } from "../types.js";
+import type { NodeID } from "#client/types";
 
 type MessageID = number;
 type ChunkID = number;

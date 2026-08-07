@@ -1,25 +1,19 @@
-import {
-  async_iterator,
-  client as clients,
-  BatchLogs,
-  ConsoleLogger,
-  EpochLogs,
-  Logger,
-  processing,
-  Dataset,
-} from "../index.js";
-import type {
-  Batched,
-  DataFormat,
-  DataType,
-  Model,
-  Network,
-  Task,
-} from "../index.js";
-import type { Aggregator } from "../aggregator/index.js";
-import { getAggregator } from "../aggregator/index.js";
-import { enumerate, split } from "../utils/async_iterator.js";
-import { EventEmitter } from "../utils/event_emitter.js";
+import type { Model } from "#models/index";
+import type { DataType, DataFormat, Network } from "#dtypes/index";
+import type { Task } from "#task/index";
+import type { Batched } from "#dataset/index";
+import type { Aggregator } from "#aggregator/index";
+
+import { Dataset } from "#dataset/index";
+import { ConsoleLogger, Logger } from "#logging/index";
+import { BatchLogs, EpochLogs } from "#models/index";
+import { getAggregator } from "#aggregator/index";
+import { enumerate, split } from "#utils/async_iterator";
+import { EventEmitter } from "#utils/event_emitter";
+
+import * as clients from "#client/index";
+import * as processing from "#processing/index";
+import * as async_iterator from "#utils/async_iterator";
 
 import { RoundLogs, Trainer } from "./trainer.js";
 

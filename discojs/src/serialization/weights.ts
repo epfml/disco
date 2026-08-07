@@ -1,6 +1,6 @@
 import * as tf from "@tensorflow/tfjs";
 
-import { WeightsContainer } from "../index.js";
+import { WeightsContainer } from "#weights/index";
 
 import { Encoded } from "./coder.js";
 import * as coder from "./coder.js";

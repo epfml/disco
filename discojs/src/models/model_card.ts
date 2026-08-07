@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Model } from "#models/index";
+import type { Model } from "#models/model";
 import { DataType, dataTypeValues } from "#dtypes/index";
 
 export namespace ModelCardInfo {

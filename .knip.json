@@ -4,6 +4,9 @@
       "ignore": ["docs/**"],
       "ignoreDependencies": ["typescript-eslint", "supports-color"]
     },
+    "discojs": {
+      "ignoreExportsUsedInFile": true
+    },
     "webapp": {
       "ignoreDependencies": ["buffer"]
     },

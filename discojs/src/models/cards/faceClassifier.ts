@@ -1,5 +1,6 @@
-import { Model, ModelCard } from "../index.js";
-import { getModel } from "../implementations/mobileNetV2_face_classifier.js";
+import { Model } from "#models/model";
+import { ModelCard } from "#models/model_card";
+import { getModel } from "#models/implementations/mobileNetV2_face_classifier";
 
 export const FaceClassifier: ModelCard<"image"> = {
   card: {

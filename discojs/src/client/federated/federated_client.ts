@@ -1,11 +1,13 @@
 import createDebug from "debug";
 
-import { serialization } from "../../index.js";
-import type { DataType, Model, WeightsContainer } from "../../index.js";
-import { Client, shortenId } from "../client.js";
-import { type, type ClientConnected } from "../messages.js";
-import { waitMessage, WebSocketServer } from "../event_connection.js";
-import * as messages from "./messages.js";
+import type { Model } from "#models/index";
+import type { DataType } from "#dtypes/index";
+import type { WeightsContainer } from "#weights/index";
+import * as serialization from "#serialization/index";
+import { Client, shortenId } from "#client/client";
+import { MType, type ClientConnected } from "#client/mtype";
+import { waitMessage, WebSocketServer } from "#client/event_connection";
+import * as messages from "#client/federated/messages";
 
 const debug = createDebug("discojs:client:federated");
 
@@ -55,12 +57,12 @@ export class FederatedClient extends Client<"federated"> {
     this.aggregator.registerNode(SERVER_NODE_ID);
 
     const msg: ClientConnected = {
-      type: type.ClientConnected,
+      type: MType.ClientConnected,
     };
     this.server.send(msg);
 
     const { id, waitForMoreParticipants, payload, round, nbOfParticipants } =
-      await waitMessage(this.server, type.NewFederatedNodeInfo);
+      await waitMessage(this.server, MType.NewFederatedNodeInfo);
 
     // This should come right after receiving the message to make sure
     // we don't miss a subsequent message from the server
@@ -139,7 +141,7 @@ export class FederatedClient extends Client<"federated"> {
     if (payloadToServer === undefined)
       throw new Error("aggregator didn't make a payload for the server");
     const msg: messages.SendPayload = {
-      type: type.SendPayload,
+      type: MType.SendPayload,
       payload: await serialization.weights.encode(payloadToServer),
       round: this.aggregator.round,
     };
@@ -157,7 +159,7 @@ export class FederatedClient extends Client<"federated"> {
       payload: payloadFromServer,
       round: serverRound,
       nbOfParticipants,
-    } = await waitMessage(this.server, type.ReceiveServerPayload); // Wait indefinitely for the server update
+    } = await waitMessage(this.server, MType.ReceiveServerPayload); // Wait indefinitely for the server update
     this.nbOfParticipants = nbOfParticipants; // Save the current participants
     const serverResult = serialization.weights.decode(payloadFromServer);
     this.aggregator.setRound(serverRound);

@@ -2,7 +2,7 @@ import { Repeat, Seq } from "immutable";
 import { createJimp } from "@jimp/core";
 import * as jimpResize from "@jimp/plugin-resize";
 
-import { Image } from "../index.js";
+import { Image } from "#dataset/index";
 
 /** Image where intensity is represented in the range 0..1 */
 export class NormalizedImage<

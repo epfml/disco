@@ -2,7 +2,7 @@ import { Map, Range } from "immutable";
 import { assert, afterEach, beforeEach, describe, it } from "vitest";
 
 import type { EventConnection, PeerConnection } from "../event_connection.js";
-import { type } from "../messages.js";
+import { MType } from "../messages.js";
 import type { NodeID } from "../types.js";
 
 import type { messages } from "./index.js";
@@ -47,7 +47,7 @@ describe("peer pool", { timeout: 10_000 }, () => {
 
   function mockWeights(id: NodeID): messages.Payload {
     return {
-      type: type.Payload,
+      type: MType.Payload,
       peer: id,
       payload: Uint8Array.of(1, 2, 3),
       aggregationRound: 0,
@@ -112,7 +112,7 @@ describe("peer pool", { timeout: 10_000 }, () => {
                   .map(
                     async (peer) =>
                       await new Promise<messages.Payload>((resolve) => {
-                        peer.on(type.Payload, (data) => {
+                        peer.on(MType.Payload, (data) => {
                           resolve(data);
                         });
                       }),
