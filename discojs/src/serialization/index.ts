@@ -8,4 +8,4 @@ export { encode as weightsEncode, decode as weightsDecode } from "./weights.js";
 export type { Encoded } from "./coder.js";
 export { isEncoded } from "./coder.js";
 
-export { JSONLike } from "./json_like.js";
+export type { JSONLike } from "./json_like.js";

@@ -1,9 +1,9 @@
 import { Map, Range } from "immutable";
 import { assert, afterEach, beforeEach, describe, it } from "vitest";
 
-import type { EventConnection, PeerConnection } from "../event_connection.js";
-import { MType } from "../messages.js";
-import type { NodeID } from "../types.js";
+import type { EventConnection, PeerConnection } from "#client/event_connection";
+import { MType } from "#client/mtype";
+import type { NodeID } from "#client/types";
 
 import type { messages } from "./index.js";
 import { PeerPool } from "./peer_pool.js";

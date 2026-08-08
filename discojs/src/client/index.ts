@@ -11,7 +11,7 @@ export {
   messages as federatedMessages,
   FederatedClient,
 } from "./federated/index.js";
-export { Message, NarrowMessage } from "./messages.js";
+export type { Message, NarrowMessage } from "./messages.js";
 export * as mtype from "./mtype.js";
 export { getClient } from "./get_client.js";
 
