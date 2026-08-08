@@ -7,11 +7,11 @@
 </template>
 
 <script lang="ts" setup>
-import { Set } from "immutable";
+import type { Set } from "immutable";
 import { ref, watch } from "vue";
 
 import type { Text } from "@epfml/discojs";
-import { Dataset } from "@epfml/discojs";
+import type { Dataset } from "@epfml/discojs";
 import { loadText } from "@epfml/discojs-web";
 
 import DatasetInput from "./DatasetInput.vue";

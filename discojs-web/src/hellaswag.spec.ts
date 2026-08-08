@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { load as loadHellaSwag } from "./hellaswag.js";
-import { models } from "@epfml/discojs";
+import type { models } from "@epfml/discojs";
 
 describe("hellaswag parser", () => {
   it("loads the whole hellaswag dataset", async () => {

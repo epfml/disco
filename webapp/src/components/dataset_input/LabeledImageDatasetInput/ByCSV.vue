@@ -51,7 +51,8 @@
 
 <script lang="ts" setup>
 import * as d3 from "d3";
-import { Map, Set } from "immutable";
+import type { Set } from "immutable";
+import { Map } from "immutable";
 import { computed, ref, watch } from "vue";
 
 import { Dataset } from "@epfml/discojs";

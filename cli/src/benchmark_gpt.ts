@@ -2,13 +2,13 @@ import "@tensorflow/tfjs-node";
 import { List } from "immutable";
 import { parse } from "ts-command-line-args";
 
-import type { Network, Task } from "@epfml/discojs";
+import type { Network, Task ,
+  GPTConfig} from "@epfml/discojs";
 import {
   gather,
   defaultTasks,
   defaultModels,
   fetchTasks,
-  GPTConfig,
   GPT,
 } from "@epfml/discojs";
 import { loadModelFromDisk, loadText } from "@epfml/discojs-node";

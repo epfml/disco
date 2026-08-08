@@ -2,11 +2,12 @@ import { Map, Seq } from "immutable";
 
 import type { DataType, Network } from "#types/index";
 import type { Model } from "#models/index";
+import type {
+  JSONLike} from "#serialization/index";
 import {
   serializeTaskToJSON,
   deserializeTaskFromJSON,
-  modelEncode,
-  JSONLike,
+  modelEncode
 } from "#serialization/index";
 
 import type { Task } from "./task.js";

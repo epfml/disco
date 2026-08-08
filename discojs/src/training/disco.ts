@@ -5,8 +5,9 @@ import type { Batched } from "#dataset/index";
 import type { Aggregator } from "#aggregator/index";
 
 import { Dataset } from "#dataset/index";
-import { ConsoleLogger, Logger } from "#logging/index";
-import { BatchLogs, EpochLogs } from "#models/index";
+import type { Logger } from "#logging/index";
+import { ConsoleLogger } from "#logging/index";
+import type { BatchLogs, EpochLogs } from "#models/index";
 import { getAggregator } from "#aggregator/index";
 import { enumerate, split } from "#utils/async_iterator";
 import { EventEmitter } from "#utils/event_emitter";
@@ -15,7 +16,8 @@ import * as clients from "#client/index";
 import * as processing from "#processing/index";
 import * as async_iterator from "#utils/async_iterator";
 
-import { RoundLogs, Trainer } from "#training/trainer";
+import type { RoundLogs} from "#training/trainer";
+import { Trainer } from "#training/trainer";
 import type { RoundStatus, SummaryLogs } from "#training/types";
 
 interface DiscoConfig<N extends Network> {

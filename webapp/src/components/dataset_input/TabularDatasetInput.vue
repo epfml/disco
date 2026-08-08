@@ -7,7 +7,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Set } from "immutable";
+import type { Set } from "immutable";
 import { ref, watch } from "vue";
 
 import type { Dataset, Tabular } from "@epfml/discojs";

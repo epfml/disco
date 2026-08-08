@@ -1,4 +1,4 @@
-import { WeightsContainer } from "#weights/index";
+import type { WeightsContainer } from "#weights/index";
 import { Client } from "./client.js";
 
 /**

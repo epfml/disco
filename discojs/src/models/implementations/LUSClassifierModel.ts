@@ -1,6 +1,6 @@
 import * as tf from "@tensorflow/tfjs";
 
-import { Model } from "#models/model";
+import type { Model } from "#models/model";
 import { TFJS } from "#models/tfjs";
 
 // Model architecture from tensorflow.js docs:

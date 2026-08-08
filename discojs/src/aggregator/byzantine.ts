@@ -6,7 +6,8 @@ import type { NodeID } from "#client/types";
 import { avg } from "#weights/index";
 
 import { AggregationStep } from "#aggregator/aggregator";
-import { MultiRoundAggregator, ThresholdType } from "#aggregator/multiround";
+import type { ThresholdType } from "#aggregator/multiround";
+import { MultiRoundAggregator } from "#aggregator/multiround";
 
 /**
  * Byzantine-robust aggregator using Centered Clipping (CC), based on the

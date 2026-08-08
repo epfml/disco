@@ -1,4 +1,4 @@
-import { List } from "immutable";
+import type { List } from "immutable";
 
 export { Image } from "./image.js";
 

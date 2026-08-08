@@ -1,7 +1,7 @@
-import { List } from "immutable";
+import type { List } from "immutable";
 
 import type { Image, Tabular, Text, TokenizedText } from "#dataset/index";
-import { NormalizedImage } from "#processing/image";
+import type { NormalizedImage } from "#processing/image";
 
 /**
  * The data & label format goes through various stages.

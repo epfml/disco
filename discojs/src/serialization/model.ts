@@ -1,12 +1,13 @@
 import type tf from "@tensorflow/tfjs";
 
 import { encode as w_encode, decode as w_decode } from "#serialization/weights";
-import { GPTConfig, GPT, TFJS } from "#models/index";
-import type { Model } from "#models/index";
+import { GPT, TFJS } from "#models/index";
+import type { Model , GPTConfig} from "#models/index";
 import type { DataType } from "#types/index";
 
 import * as coder from "./coder.js";
-import { Encoded, isEncoded } from "./coder.js";
+import type { Encoded} from "./coder.js";
+import { isEncoded } from "./coder.js";
 
 const Type = {
   TFJS: 0,

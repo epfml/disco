@@ -23,7 +23,7 @@
 </template>
 
 <script lang="ts" setup>
-import { List } from "immutable";
+import type { List } from "immutable";
 
 defineProps<{
   columns: List<string>;

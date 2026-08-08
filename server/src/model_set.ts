@@ -1,11 +1,11 @@
 import { Map } from "immutable";
 import "@tensorflow/tfjs-node";
 
-import type { DataType, ModelCardInfo, ModelCard } from "@epfml/discojs";
+import type { DataType, ModelCardInfo, ModelCard ,
+  Model,
+  Encoded} from "@epfml/discojs";
 import {
   EventEmitter,
-  Model,
-  Encoded,
   modelEncode,
   isEncoded,
 } from "@epfml/discojs";

@@ -2,7 +2,7 @@ import * as tf from "@tensorflow/tfjs";
 
 import { WeightsContainer } from "#weights/index";
 
-import { Encoded } from "./coder.js";
+import type { Encoded } from "./coder.js";
 import * as coder from "./coder.js";
 
 type Serialized = {

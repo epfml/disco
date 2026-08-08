@@ -1,6 +1,6 @@
 import type { DataType, Network } from "#types/index";
 import type { Task } from "#task/index";
-import { Aggregator } from "#aggregator/aggregator";
+import type { Aggregator } from "#aggregator/aggregator";
 import { MeanAggregator } from "#aggregator/mean";
 import { SecureAggregator } from "#aggregator/secure";
 import { ByzantineRobustAggregator } from "#aggregator/byzantine";

@@ -5,13 +5,14 @@ import { parse } from "ts-command-line-args";
 
 import "@tensorflow/tfjs-node";
 import path from "node:path";
+import type {
+  HellaSwagDataset} from "@epfml/discojs";
 import {
   GPT,
   ONNXModel,
   modelDecode,
   Tokenizer,
-  evaluate_hellaswag,
-  HellaSwagDataset,
+  evaluate_hellaswag
 } from "@epfml/discojs";
 import { loadHellaSwag } from "@epfml/discojs-node";
 

@@ -94,7 +94,8 @@
 </template>
 
 <script lang="ts" setup>
-import { Range, Set } from "immutable";
+import type { Set } from "immutable";
+import { Range } from "immutable";
 import { computed, ref } from "vue";
 
 import CustomButton from "@/components/simple/CustomButton.vue";

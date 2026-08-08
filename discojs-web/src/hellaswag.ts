@@ -1,7 +1,8 @@
-import {
-  HELLASWAG_URL,
+import type {
   HellaSwagExample,
-  HellaSwagDataset,
+  HellaSwagDataset} from "@epfml/discojs";
+import {
+  HELLASWAG_URL
 } from "@epfml/discojs";
 
 /**
