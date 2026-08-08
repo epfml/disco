@@ -161,7 +161,7 @@ import {
   type ChartOptions,
   type TooltipPositionerFunction,
 } from "chart.js";
-import type { List} from "immutable";
+import type { List } from "immutable";
 import { Range } from "immutable";
 import { computed, ref } from "vue";
 import { Line } from "vue-chartjs";

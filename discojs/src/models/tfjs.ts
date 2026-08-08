@@ -6,7 +6,7 @@ import type { Dataset, Batched } from "#dataset/index";
 import type { DataFormat, DataType } from "#types/index";
 
 import { Model } from "./model.js";
-import type { BatchLogs} from "./logs.js";
+import type { BatchLogs } from "./logs.js";
 import { EpochLogs } from "./logs.js";
 
 type Serialized<D extends DataType> = [D, tf.io.ModelArtifacts];

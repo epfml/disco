@@ -11,7 +11,7 @@ import { WeightsContainer } from "#weights/index";
 import type { Dataset, Batched } from "#dataset/index";
 import type { DataFormat } from "#types/index";
 
-import type { BatchLogs} from "#models/logs";
+import type { BatchLogs } from "#models/logs";
 import { EpochLogs } from "#models/logs";
 import { Model } from "#models/model";
 import { GPTModel } from "./model.js";

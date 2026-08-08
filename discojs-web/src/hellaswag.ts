@@ -1,9 +1,5 @@
-import type {
-  HellaSwagExample,
-  HellaSwagDataset} from "@epfml/discojs";
-import {
-  HELLASWAG_URL
-} from "@epfml/discojs";
+import type { HellaSwagExample, HellaSwagDataset } from "@epfml/discojs";
+import { HELLASWAG_URL } from "@epfml/discojs";
 
 /**
  * Loads the HellaSwag dataset from the remote URL in the browser

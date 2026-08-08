@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { Dataset} from "@epfml/discojs";
+import type { Dataset } from "@epfml/discojs";
 import { extractColumn } from "@epfml/discojs";
 import type { DataFormat, DataType, Image, Task } from "@epfml/discojs";
 import { loadCSV, loadImage, loadImagesInDir } from "@epfml/discojs-node";

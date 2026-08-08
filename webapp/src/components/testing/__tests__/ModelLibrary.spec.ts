@@ -7,7 +7,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import { createPersistedStatePlugin } from "pinia-plugin-persistedstate-2";
 
-import type { Task} from "@epfml/discojs";
+import type { Task } from "@epfml/discojs";
 import { GPT, serializeTaskToJSON, Tokenizer } from "@epfml/discojs";
 
 import { CONFIG } from "@/config";

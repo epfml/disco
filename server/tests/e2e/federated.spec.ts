@@ -8,7 +8,8 @@ import type {
   Task,
   TaskProvider,
   WeightsContainer,
- ModelCard } from "@epfml/discojs";
+  ModelCard,
+} from "@epfml/discojs";
 import { Disco, defaultTasks, defaultModels } from "@epfml/discojs";
 import { List } from "immutable";
 import { assert, afterEach, describe, expect, it } from "vitest";

@@ -1,7 +1,7 @@
 import { Map } from "immutable";
 import "@tensorflow/tfjs-node";
 
-import type { DataType, Network, Task , Encoded } from "@epfml/discojs";
+import type { DataType, Network, Task, Encoded } from "@epfml/discojs";
 import { EventEmitter } from "@epfml/discojs";
 import type { ModelSet } from "./model_set.js";
 

@@ -1,7 +1,7 @@
 import * as tf from "@tensorflow/tfjs";
 import { assert, describe, expect, it } from "vitest";
 
-import type { DataType } from "#dtypes/index";
+import type { DataType } from "#types/index";
 import type { Model, GPTConfig } from "#models/index";
 import { GPT, TFJS } from "#models/index";
 

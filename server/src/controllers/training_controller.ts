@@ -4,7 +4,7 @@ import { Map } from "immutable";
 import * as msgpack from "@msgpack/msgpack";
 
 import { mtype } from "@epfml/discojs";
-import type { DataType, Network, Task , NodeID} from "@epfml/discojs";
+import type { DataType, Network, Task, NodeID } from "@epfml/discojs";
 
 const debug = createDebug("server:controllers");
 

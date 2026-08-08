@@ -1,9 +1,5 @@
-import type { CausalLMOutput ,
-  PreTrainedModel} from "@xenova/transformers";
-import {
-  AutoModelForCausalLM,
-  Tensor,
-} from "@xenova/transformers";
+import type { CausalLMOutput, PreTrainedModel } from "@xenova/transformers";
+import { AutoModelForCausalLM, Tensor } from "@xenova/transformers";
 import { List } from "immutable";
 
 import type { WeightsContainer } from "#weights/index";
