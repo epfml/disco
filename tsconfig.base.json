@@ -1,6 +1,6 @@
 {
-  "composite": true,
   "compilerOptions": {
+    "composite": true,
     "declaration": true,
     "declarationMap": true,
 
@@ -17,6 +17,11 @@
     "noEmitOnError": true,
 
     // enforce using the override keyword
-    "noImplicitOverride": true
+    "noImplicitOverride": true,
+
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+
+    "customConditions": ["@disco/source"]
   }
 }

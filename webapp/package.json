@@ -4,7 +4,6 @@
   "type": "module",
   "scripts": {
     "start": "vite",
-    "prebuild": "pnpm -F webapp^... run build",
     "build": "vue-tsc --build && vite build",
     "test": "pnpm run test:unit && pnpm run test:e2e",
     "test:unit": "vitest --run",

@@ -12,7 +12,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "watch": "nodemon --ext ts --ignore dist --exec pnpm run",
-    "build": "tsc --build tsconfig.lib.json",
+    "build": "tsc --build",
     "test": "cd .. && vitest --run --project=discojs"
   },
   "repository": {

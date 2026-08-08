@@ -10,7 +10,6 @@
     }
   ],
   "compilerOptions": {
-    "composite": true,
     "tsBuildInfoFile": "tsconfig.vitest.tsbuildinfo",
     "lib": [],
     "types": ["node", "jsdom"]
