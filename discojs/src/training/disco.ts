@@ -15,7 +15,8 @@ import * as clients from "#client/index";
 import * as processing from "#processing/index";
 import * as async_iterator from "#utils/async_iterator";
 
-import { RoundLogs, Trainer } from "./trainer.js";
+import { RoundLogs, Trainer } from "#training/trainer";
+import type { RoundStatus, SummaryLogs } from "#training/types";
 
 interface DiscoConfig<N extends Network> {
   scheme: N;
@@ -30,25 +31,6 @@ interface DiscoConfig<N extends Network> {
    */
   preprocessOnce: boolean;
 }
-
-export type SummaryLogs = {
-  round: number;
-  epoch: number;
-  trainingLoss: number;
-  trainingAccuracy: number;
-  peakMemory: number;
-  epochTime: number;
-  roundValidationLoss?: number;
-  roundValidationAccuracy?: number;
-  validationLoss?: number;
-  validationAccuracy?: number;
-};
-
-export type RoundStatus =
-  | "not enough participants" // Server notification to wait for more participants
-  | "updating model" // fetching/aggregating local updates into a global model
-  | "local training" // Training the model locally
-  | "connecting to peers"; // for decentralized only, fetch the server's list of participating peers
 
 function buildSummaryLog(
   roundNum: number,

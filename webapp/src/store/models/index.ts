@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 import { computed, shallowRef, toRaw } from "vue";
 
 import type { DataType, Model } from "@epfml/discojs";
-import { serialization } from "@epfml/discojs";
+import { modelEncode, modelDecode } from "@epfml/discojs";
 
 import { bestStorage } from "./storage";
 import type { ModelID, State } from "./types";
@@ -29,7 +29,7 @@ export const useModelsStore = defineStore(
       const infos = idToModel.value.get(id);
       if (infos === undefined) return undefined;
 
-      return await serialization.model.decode(toRaw(infos.encoded));
+      return await modelDecode(toRaw(infos.encoded));
     }
 
     async function add(
@@ -42,7 +42,7 @@ export const useModelsStore = defineStore(
       idToModel.value = idToModel.value.set(id, {
         taskID,
         dateSaved,
-        encoded: await serialization.model.encode(model),
+        encoded: await modelEncode(model),
       });
 
       return id;

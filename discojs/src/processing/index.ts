@@ -1,4 +1,14 @@
 /** Dataset shapers, convenient to map with */
-export * from "./image.js";
-export * from "./tabular.js";
-export * from "./processing.js";
+export {
+  NormalizedImage,
+  resize,
+  normalize,
+  removeAlpha,
+  expandToMulticolor,
+} from "./image.js";
+export { convertToNumber, extractColumn, indexInList } from "./tabular.js";
+export {
+  preprocess,
+  preprocessWithoutLabel,
+  postprocess,
+} from "./processing.js";

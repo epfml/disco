@@ -4,7 +4,7 @@ import type * as aggregator from "#aggregator/index";
 
 // import * as clients from "#client/index";
 import { LocalClient } from "#client/local_client";
-import type { Client } from "#client/client";
+import { Client } from "#client/client";
 import { DecentralizedClient } from "#client/decentralized/decentralized_client";
 import { FederatedClient } from "#client/federated/federated_client";
 

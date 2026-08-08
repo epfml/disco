@@ -1,12 +1,18 @@
 export { Client } from "./client.js";
 
-export * from "./types.js";
+export type { NodeID } from "./types.js";
+export { isNodeID } from "./types.js";
 
-export * as aggregator from "../aggregator/index.js";
-export * as decentralized from "./decentralized/index.js";
-export * as federated from "./federated/index.js";
-export * as messages from "./messages.js";
+export {
+  messages as decentralizedMessages,
+  DecentralizedClient,
+} from "./decentralized/index.js";
+export {
+  messages as federatedMessages,
+  FederatedClient,
+} from "./federated/index.js";
+export { Message, NarrowMessage } from "./messages.js";
 export * as mtype from "./mtype.js";
-export { getClient, timeout } from "./utils.js";
+export { getClient } from "./get_client.js";
 
 export { LocalClient } from "./local_client.js";

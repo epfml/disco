@@ -2,7 +2,12 @@ import { Map, Seq } from "immutable";
 
 import type { DataType, Network } from "#types/index";
 import type { Model } from "#models/index";
-import * as serialization from "#serialization/index";
+import {
+  serializeTaskToJSON,
+  deserializeTaskFromJSON,
+  modelEncode,
+  JSONLike,
+} from "#serialization/index";
 
 import type { Task } from "./task.js";
 
@@ -27,11 +32,11 @@ export async function pushTask<D extends DataType>(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      task: serialization.task.serializeToJSON(task),
+      task: serializeTaskToJSON(task),
       model:
         typeof model === "string"
           ? model
-          : [...(await serialization.model.encode(model))],
+          : [...(await modelEncode(model))],
     }),
   });
   if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`);
@@ -42,7 +47,7 @@ export async function fetchTasks(
 ): Promise<Map<Task.ID, Task<DataType, Network>>> {
   const response = await fetch(urlToTasks(base));
   if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`);
-  const json = (await response.json()) as serialization.JSONLike;
+  const json = (await response.json()) as JSONLike;
 
   if (!Array.isArray(json))
     throw new Error("invalid tasks response: expected a JSON array");
@@ -50,11 +55,9 @@ export async function fetchTasks(
 
   try {
     return Map(
-      Seq(
-        await Promise.all(
-          arr.map((t) => serialization.task.deserializeFromJSON(t)),
-        ),
-      ).map((t) => [t.id, t]),
+      Seq(await Promise.all(arr.map((t) => deserializeTaskFromJSON(t)))).map(
+        (t) => [t.id, t],
+      ),
     );
   } catch (cause) {
     throw new Error("invalid tasks response: unable to parse all tasks", {

@@ -5,7 +5,7 @@ import { Set } from "immutable";
 
 import type { DataType, ModelCardInfo, Network } from "@epfml/discojs";
 import { Task } from "@epfml/discojs";
-import { serialization } from "@epfml/discojs";
+import { serializeTaskToJSON, deserializeTaskFromJSON } from "@epfml/discojs";
 
 import type { TaskSet } from "../task_set.js";
 import type { ModelSet } from "../model_set.js";
@@ -45,7 +45,7 @@ export class TaskRouter {
       res.status(200).send(
         this.#taskSet.tasks
           .valueSeq()
-          .map(([t, _]) => serialization.task.serializeToJSON(t))
+          .map(([t, _]) => serializeTaskToJSON(t))
           .toArray(),
       );
     });
@@ -70,7 +70,7 @@ export class TaskRouter {
               z.string(),
               z.array(z.number()).transform((bytes) => Uint8Array.from(bytes)),
             ]),
-            task: z.any().transform(serialization.task.deserializeFromJSON),
+            task: z.any().transform(deserializeTaskFromJSON),
           })
           .safeParseAsync(req.body);
 

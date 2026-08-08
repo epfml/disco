@@ -1,7 +1,7 @@
 import express from "express";
 import type expressWS from "express-ws";
 import type { Task, DataType, Network } from "@epfml/discojs";
-import { serialization } from "@epfml/discojs";
+import { Encoded, modelDecode, weightsEncode } from "@epfml/discojs";
 
 import type { TaskSet } from "../task_set.js";
 import {
@@ -44,7 +44,7 @@ export class TrainingRouter<N extends Exclude<Network, "local">> {
   // websocket connections
   private async onNewTask<D extends DataType>(
     task: Task<D, N>,
-    encodedModel: serialization.Encoded,
+    encodedModel: Encoded,
   ): Promise<void> {
     // The controller handles the actual logic of collaborative training
     // in its `handle` method. Each task has a dedicated controller which
@@ -55,10 +55,8 @@ export class TrainingRouter<N extends Exclude<Network, "local">> {
 
       // The federated controller takes the initial model weights at initialization
       // so that it can send it to new clients
-      const model = serialization.model.decode(encodedModel);
-      const encodedWeights = await serialization.weights.encode(
-        (await model).weights,
-      );
+      const model = modelDecode(encodedModel);
+      const encodedWeights = await weightsEncode((await model).weights);
       taskController = new FederatedController(t, encodedWeights);
     } else {
       const t = task as Task<D, "decentralized">;

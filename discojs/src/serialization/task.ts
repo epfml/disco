@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { DataType, Network } from "#types/index";
-import { Task } from "#task/index";
+import { Task } from "#task/task";
 import { Tokenizer } from "#models/index";
 
 import type { JSONLike } from "./json_like.js";
