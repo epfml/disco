@@ -1,6 +1,7 @@
 import "@tensorflow/tfjs-node";
 
-import { Disco, fetchTasks, GPT, Task } from "@epfml/discojs";
+import type { GPT, Task } from "@epfml/discojs";
+import { Disco, fetchTasks } from "@epfml/discojs";
 import {
   saveModelToDisk,
   loadModelFromDisk,

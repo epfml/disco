@@ -3,7 +3,7 @@ import { describe, expect, it, assert } from "vitest";
 
 import * as tf from "@tensorflow/tfjs";
 
-import { aggregation, WeightsContainer } from "../index.js";
+import { sum, avg, WeightsContainer } from "#weights/index";
 
 import { SecureHistoryAggregator } from "./secure_history.js";
 import { SecureAggregator } from "./secure.js";
@@ -29,7 +29,7 @@ describe("Secure history aggregator", function () {
   }
 
   it("recovers secrets from shares", () => {
-    const recovered = buildShares().map((shares) => aggregation.sum(shares));
+    const recovered = buildShares().map((shares) => sum(shares));
     assert.isTrue(
       (
         recovered.zip(secrets) as List<[WeightsContainer, WeightsContainer]>
@@ -52,7 +52,7 @@ describe("Secure history aggregator", function () {
         const receivedShares = sharesRound0.map(
           (shares) => shares.get(receiverIdx)!,
         );
-        return aggregation.sum(receivedShares);
+        return sum(receivedShares);
       })
       .toList();
 
@@ -64,7 +64,7 @@ describe("Secure history aggregator", function () {
 
     const sumRound0 = await aggregationPromise;
 
-    const expectedSum = aggregation.sum(
+    const expectedSum = sum(
       sharesRound0.flatMap((x) => x), // flatten to List<WeightsContainer>
     );
     expect(sumRound0.equals(expectedSum, epsilon)).to.be.true;
@@ -79,7 +79,7 @@ describe("Secure history aggregator", function () {
     const sumRound1 = await aggregationPromise2;
 
     // First aggregation with momentum - no previous momentum, so just average
-    const avgPartialSum = aggregation.avg(partialSums);
+    const avgPartialSum = avg(partialSums);
     expect(sumRound1.equals(avgPartialSum, epsilon)).to.be.true;
 
     // Now we simulate a second round of aggregation with momentum smoothing
@@ -103,7 +103,7 @@ describe("Secure history aggregator", function () {
     });
     const sumRound2 = await aggregationPromise3;
 
-    const avgPartialSum2 = aggregation.avg(partialSums2);
+    const avgPartialSum2 = avg(partialSums2);
     const expectedSumRound2 = avgPartialSum.mapWith(
       avgPartialSum2,
       (prev, curr) => prev.mul(0.8).add(curr.mul(0.2)), // 0.8 = beta, 0.2 = (1 - beta)

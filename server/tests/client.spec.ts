@@ -6,8 +6,9 @@ import type {
   ModelCard,
 } from "@epfml/discojs";
 import {
-  aggregator as aggregators,
-  client as clients,
+  MeanAggregator,
+  DecentralizedClient,
+  FederatedClient,
   defaultTasks,
   defaultModels,
 } from "@epfml/discojs";
@@ -42,10 +43,10 @@ describe("decentralized client", () => {
       [defaultTasks.cifar10],
     );
 
-    const client = new clients.decentralized.DecentralizedClient(
+    const client = new DecentralizedClient(
       url,
       await defaultTasks.cifar10.getTask(),
-      new aggregators.MeanAggregator(),
+      new MeanAggregator(),
     );
 
     await client.connect();
@@ -55,10 +56,10 @@ describe("decentralized client", () => {
   it("fails to connect to invalid task", async () => {
     const url = await startServer([], []); // no models or tasks
 
-    const client = new clients.decentralized.DecentralizedClient(
+    const client = new DecentralizedClient(
       url,
       await defaultTasks.cifar10.getTask(),
-      new aggregators.MeanAggregator(),
+      new MeanAggregator(),
     );
 
     await expect(client.connect()).rejects.toThrow();
@@ -93,10 +94,10 @@ describe("federated client", () => {
       [defaultTasks.titanic],
     );
 
-    const client = new clients.federated.FederatedClient(
+    const client = new FederatedClient(
       url,
       await defaultTasks.titanic.getTask(),
-      new aggregators.MeanAggregator(),
+      new MeanAggregator(),
     );
 
     await client.connect();
@@ -106,10 +107,10 @@ describe("federated client", () => {
   it("fails to connect to invalid task", async () => {
     const url = await startServer([], []); // no task
 
-    const client = new clients.federated.FederatedClient(
+    const client = new FederatedClient(
       url,
       await defaultTasks.titanic.getTask(),
-      new aggregators.MeanAggregator(),
+      new MeanAggregator(),
     );
 
     await expect(client.connect()).rejects.toThrow();

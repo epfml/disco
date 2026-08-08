@@ -2,13 +2,15 @@ import type * as http from "node:http";
 import type {
   DataType,
   RoundStatus,
+  Client,
   Task,
   TaskProvider,
   ModelCard,
 } from "@epfml/discojs";
 import {
-  aggregator as aggregators,
-  client as clients,
+  MeanAggregator,
+  SecureAggregator,
+  DecentralizedClient,
   Disco,
   defaultTasks,
   defaultModels,
@@ -69,18 +71,14 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
     aggregatorType: "mean" | "secure",
     input: number[],
     rounds: number,
-  ): Promise<[WeightsContainer, clients.Client<"decentralized">]> {
+  ): Promise<[WeightsContainer, Client<"decentralized">]> {
     const task = await defaultTasks.cifar10.getTask();
     const aggregator =
       aggregatorType === "mean"
-        ? new aggregators.MeanAggregator(0, 1, "relative")
-        : new aggregators.SecureAggregator();
+        ? new MeanAggregator(0, 1, "relative")
+        : new SecureAggregator();
 
-    const client = new clients.decentralized.DecentralizedClient(
-      url,
-      task,
-      aggregator,
-    );
+    const client = new DecentralizedClient(url, task, aggregator);
     await client.connect();
 
     // Perform multiple training rounds
