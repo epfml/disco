@@ -5,8 +5,9 @@ import type {
   Task,
   TaskProvider,
   TrainingInformation,
+  Encoded,
 } from "@epfml/discojs";
-import { serialization } from "@epfml/discojs";
+import { serializeTaskToJSON, modelEncode } from "@epfml/discojs";
 
 export function setupServerWith(
   ...providers: (Task<DataType, Network> | TaskProvider<DataType, Network>)[]
@@ -23,9 +24,7 @@ export function setupServerWith(
     .as("taskAndModels");
 
   cy.get<Array<[Task<DataType, Network>, unknown]>>("@taskAndModels")
-    .then((taskAndModels) =>
-      taskAndModels.map(([t]) => serialization.task.serializeToJSON(t)),
-    )
+    .then((taskAndModels) => taskAndModels.map(([t]) => serializeTaskToJSON(t)))
     .then((tasks) =>
       cy.intercept({ hostname: "server", pathname: "tasks" }, tasks),
     );
@@ -42,9 +41,7 @@ export function setupServerWith(
         { hostname: "server", pathname: `/tasks/${task.id}/model.json` },
         { statusCode: 200 },
       );
-      cy.wrap<Promise<serialization.Encoded>, serialization.Encoded>(
-        serialization.model.encode(model),
-      ).then((encoded) =>
+      cy.wrap<Promise<Encoded>, Encoded>(modelEncode(model)).then((encoded) =>
         cy.intercept(
           { hostname: "server", pathname: `/tasks/${task.id}/model.json` },
           (req) =>

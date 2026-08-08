@@ -2,10 +2,10 @@ import { Map } from "immutable";
 import "@tensorflow/tfjs-node";
 
 import type { DataType, Network, Task } from "@epfml/discojs";
-import { EventEmitter, serialization } from "@epfml/discojs";
+import { EventEmitter, Encoded } from "@epfml/discojs";
 import { ModelSet } from "./model_set.js";
 
-type EncodedModel = serialization.Encoded;
+type EncodedModel = Encoded;
 type TaskAndModel = [Task<DataType, Network>, EncodedModel];
 
 /**

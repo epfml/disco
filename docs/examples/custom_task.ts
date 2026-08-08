@@ -1,7 +1,7 @@
 import tf from "@tensorflow/tfjs-node";
 
 import type { TaskProvider, ModelCard } from "@epfml/discojs";
-import { defaultTasks, defaultModels, models } from "@epfml/discojs";
+import { defaultTasks, defaultModels, TFJS } from "@epfml/discojs";
 import { Server as DiscoServer } from "server";
 
 // Define your own model card
@@ -33,7 +33,7 @@ const customModelCard: ModelCard<"tabular"> = {
       metrics: ["accuracy"],
     });
 
-    return Promise.resolve(new models.TFJS("tabular", model));
+    return Promise.resolve(new TFJS("tabular", model));
   },
 };
 

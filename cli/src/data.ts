@@ -1,5 +1,5 @@
 import path from "node:path";
-import { Dataset, processing } from "@epfml/discojs";
+import { Dataset, extractColumn } from "@epfml/discojs";
 import { DataFormat, DataType, Image, Task } from "@epfml/discojs";
 import { loadCSV, loadImage, loadImagesInDir } from "@epfml/discojs-node";
 import { Repeat } from "immutable";
@@ -49,10 +49,7 @@ function loadTinderDogData(split: number): Dataset<DataFormat.Raw["image"]> {
   return loadCSV(path.join(folder, "labels.csv"))
     .map(
       (row) =>
-        [
-          processing.extractColumn(row, "filename"),
-          processing.extractColumn(row, "label"),
-        ] as const,
+        [extractColumn(row, "filename"), extractColumn(row, "label")] as const,
     )
     .map(async ([filename, label]) => {
       try {
@@ -76,10 +73,7 @@ function loadData(
   return loadCSV(path.join(folder, "labels.csv"))
     .map(
       (row) =>
-        [
-          processing.extractColumn(row, "filename"),
-          processing.extractColumn(row, "label"),
-        ] as const,
+        [extractColumn(row, "filename"), extractColumn(row, "label")] as const,
     )
     .map(async ([filename, label]) => {
       try {

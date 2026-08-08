@@ -1,11 +1,12 @@
 import { Map } from "immutable";
 import * as tf from "@tensorflow/tfjs";
-import { AggregationStep } from "./aggregator.js";
-import { MultiRoundAggregator, ThresholdType } from "./multiround.js";
-import { aggregation } from "#weights/index";
 
 import type { WeightsContainer } from "#weights/index";
-import type * as client from "#client/index";
+import type { NodeID } from "#client/types";
+import { avg } from "#weights/index";
+
+import { AggregationStep } from "#aggregator/aggregator";
+import { MultiRoundAggregator, ThresholdType } from "#aggregator/multiround";
 
 /**
  * Byzantine-robust aggregator using Centered Clipping (CC), based on the
@@ -43,7 +44,7 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
   private readonly clippingRadius: number;
   private readonly maxIterations: number;
   private readonly beta: number;
-  private historyMomentums: Map<client.NodeID, WeightsContainer> = Map();
+  private historyMomentums: Map<NodeID, WeightsContainer> = Map();
   private prevAggregate: WeightsContainer | null = null;
 
   /** 
@@ -88,7 +89,7 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
     this.beta = beta;
   }
 
-  override _add(nodeId: client.NodeID, contribution: WeightsContainer): void {
+  override _add(nodeId: NodeID, contribution: WeightsContainer): void {
     this.log(
       this.contributions.hasIn([0, nodeId])
         ? AggregationStep.UPDATE
@@ -116,7 +117,7 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
 
     // If clipping radius is infinite, fall back to simple mean
     if (!isFinite(this.clippingRadius)) {
-      return aggregation.avg(currentContributions.values());
+      return avg(currentContributions.values());
     }
 
     // Step 1: Initialize v using previous aggregate or mean of contributions
@@ -124,7 +125,7 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
     if (this.prevAggregate) {
       v = this.prevAggregate.map((t) => tf.clone(t)); // Clone to avoid in-place modifications
     } else {
-      v = aggregation.avg(currentContributions.values());
+      v = avg(currentContributions.values());
     }
 
     const eps = tf.scalar(1e-12);
@@ -153,7 +154,7 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
         },
       );
 
-      const avgClip = aggregation.avg(clippedDiffs);
+      const avgClip = avg(clippedDiffs);
       const newV = v.add(avgClip);
 
       clippedDiffs.forEach((d) => d.dispose());
@@ -171,7 +172,7 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
 
   override makePayloads(
     weights: WeightsContainer,
-  ): Map<client.NodeID, WeightsContainer> {
+  ): Map<NodeID, WeightsContainer> {
     // Communicate our local weights to every other node, be it a peer or a server
     return this.nodes.toMap().map(() => weights);
   }

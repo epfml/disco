@@ -4,7 +4,7 @@ import express from "express";
 import { Set } from "immutable";
 
 import { Task } from "@epfml/discojs";
-import { serialization } from "@epfml/discojs";
+import { serializeTaskToJSON, deserializeTaskFromJSON } from "@epfml/discojs";
 
 import type { TaskSet } from "../task_set.js";
 import { z } from "zod";
@@ -24,7 +24,7 @@ export class TaskRouter {
       res.status(200).send(
         this.#taskSet.tasks
           .valueSeq()
-          .map(([t, _]) => serialization.task.serializeToJSON(t))
+          .map(([t, _]) => serializeTaskToJSON(t))
           .toArray(),
       );
     });
@@ -43,7 +43,7 @@ export class TaskRouter {
       const parsed = await z
         .object({
           model: z.string(),
-          task: z.any().transform(serialization.task.deserializeFromJSON),
+          task: z.any().transform(deserializeTaskFromJSON),
         })
         .safeParseAsync(req.body);
 

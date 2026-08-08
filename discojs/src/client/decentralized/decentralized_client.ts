@@ -4,9 +4,9 @@ import { Map, Set } from "immutable";
 import type { WeightsContainer } from "#weights/index";
 import type { Model } from "#models/index";
 import type { DataType } from "#dtypes/index";
-import * as serialization from "#serialization/index";
+import { weightsEncode, weightsDecode } from "#serialization/index";
 import { Client, shortenId } from "#client/client";
-import { type NodeID } from "#client/index";
+import type { NodeID } from "#client/types";
 import { MType, type ClientConnected } from "#client/mtype";
 import { timeout } from "#client/utils";
 import {
@@ -256,7 +256,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
             60_000,
             "Timeout waiting for a contribution from peer " + peerId,
           );
-          const decoded = serialization.weights.decode(message.payload);
+          const decoded = weightsDecode(message.payload);
 
           if (
             !this.aggregator.isValidContribution(
@@ -337,7 +337,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
         // Send our payload to each peer
         const peer = connections.get(id);
         if (peer !== undefined) {
-          const encoded = await serialization.weights.encode(payload);
+          const encoded = await weightsEncode(payload);
           const msg: messages.PeerMessage = {
             type: MType.Payload,
             peer: id,

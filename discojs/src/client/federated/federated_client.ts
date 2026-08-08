@@ -3,7 +3,7 @@ import createDebug from "debug";
 import type { Model } from "#models/index";
 import type { DataType } from "#dtypes/index";
 import type { WeightsContainer } from "#weights/index";
-import * as serialization from "#serialization/index";
+import { weightsEncode, weightsDecode } from "#serialization/index";
 import { Client, shortenId } from "#client/client";
 import { MType, type ClientConnected } from "#client/mtype";
 import { waitMessage, WebSocketServer } from "#client/event_connection";
@@ -87,7 +87,7 @@ export class FederatedClient extends Client<"federated"> {
       `[${shortenId(this.ownId)}] upon connecting, wait for participant flag %o`,
       this.waitingForMoreParticipants,
     );
-    model.weights = serialization.weights.decode(payload);
+    model.weights = weightsDecode(payload);
     return model;
   }
 
@@ -142,7 +142,7 @@ export class FederatedClient extends Client<"federated"> {
       throw new Error("aggregator didn't make a payload for the server");
     const msg: messages.SendPayload = {
       type: MType.SendPayload,
-      payload: await serialization.weights.encode(payloadToServer),
+      payload: await weightsEncode(payloadToServer),
       round: this.aggregator.round,
     };
 
@@ -161,7 +161,7 @@ export class FederatedClient extends Client<"federated"> {
       nbOfParticipants,
     } = await waitMessage(this.server, MType.ReceiveServerPayload); // Wait indefinitely for the server update
     this.nbOfParticipants = nbOfParticipants; // Save the current participants
-    const serverResult = serialization.weights.decode(payloadFromServer);
+    const serverResult = weightsDecode(payloadFromServer);
     this.aggregator.setRound(serverRound);
 
     return serverResult;

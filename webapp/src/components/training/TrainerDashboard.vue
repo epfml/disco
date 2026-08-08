@@ -151,7 +151,7 @@ import type {
   Task,
   Network,
 } from "@epfml/discojs";
-import { async_iterator, Disco } from "@epfml/discojs";
+import { split, Disco } from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster";
 import TrainingInformation from "@/components/training/TrainingInformation.vue";
@@ -249,11 +249,11 @@ async function startTraining(): Promise<void> {
 
     roundsLogs.value = List<RoundLogs>();
     for await (const round of trainingGenerator.value) {
-      const [roundGen, roundLogs] = async_iterator.split(round);
+      const [roundGen, roundLogs] = split(round);
 
       roundGenerator.value = roundGen;
       for await (const epoch of roundGenerator.value) {
-        const [epochGen, epochLogs] = async_iterator.split(epoch);
+        const [epochGen, epochLogs] = split(epoch);
 
         epochGenerator.value = epochGen;
         for await (const batch of epochGenerator.value)

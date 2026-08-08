@@ -2,7 +2,7 @@ import { Map } from "immutable";
 import * as msgpack from "@msgpack/msgpack";
 import type { IStorage } from "pinia-plugin-persistedstate-2";
 
-import { serialization } from "@epfml/discojs";
+import { isEncoded } from "@epfml/discojs";
 
 import type { Storage } from "./storage";
 import { UNSUPPORTED_STORAGE } from "./storage";
@@ -102,7 +102,7 @@ function isSerializedInfos(raw: unknown): raw is OPFS.Serialized[0][1] {
 
   if (
     typeof taskID !== "string" ||
-    !serialization.isEncoded(encoded) ||
+    !isEncoded(encoded) ||
     !(dateSaved instanceof Date)
   )
     return false;

@@ -1,14 +1,14 @@
 import createDebug from "debug";
 
 import type { Model } from "#models/index";
-import type { RoundStatus } from "#training/index";
 import type { DataType, Network } from "#dtypes/index";
 import type { Task } from "#task/index";
 import type { WeightsContainer } from "#weights/index";
 import type { Aggregator } from "#aggregator/index";
+import type { RoundStatus } from "#training/types";
 import { EventEmitter } from "#utils/event_emitter";
 
-import * as serialization from "#serialization/index";
+import { modelDecode } from "#serialization/index";
 
 import type { EventConnection } from "#client/event_connection";
 import type { NodeID } from "#client/types";
@@ -200,7 +200,7 @@ export abstract class Client<N extends Network> extends EventEmitter<{
     if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`);
 
     const encoded = new Uint8Array(await response.arrayBuffer());
-    return await serialization.model.decode(encoded);
+    return await modelDecode(encoded);
   }
 
   /**
