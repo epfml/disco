@@ -1,5 +1,5 @@
-import { Model } from "#models/model";
-import { ModelCard } from "#models/model_card";
+import type { Model } from "#models/model";
+import type { ModelCard } from "#models/model_card";
 import { model } from "#models/implementations/dog_classifier";
 
 export const DogClassifier: ModelCard<"image"> = {

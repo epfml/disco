@@ -1,9 +1,11 @@
-import { Map } from "immutable";
+import type { Map } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 import { AggregationStep } from "#aggregator/aggregator";
-import { MultiRoundAggregator, ThresholdType } from "#aggregator/multiround";
-import { NodeID } from "#client/index.js";
-import { WeightsContainer, avg } from "#weights/index";
+import type { ThresholdType } from "#aggregator/multiround";
+import { MultiRoundAggregator } from "#aggregator/multiround";
+import type { NodeID } from "#client/index.js";
+import type { WeightsContainer} from "#weights/index";
+import { avg } from "#weights/index";
 
 /**
  * Percentile-based clipping aggregator.

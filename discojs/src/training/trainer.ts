@@ -6,10 +6,10 @@ import type { DataFormat, DataType, Network } from "#dtypes/index";
 import type { Batched } from "#dataset/index";
 import type { Task } from "#task/index";
 
-import { Dataset } from "#dataset/index";
-import { BatchLogs, EpochLogs, ValidationMetrics } from "#models/index";
+import type { Dataset } from "#dataset/index";
+import type { BatchLogs, EpochLogs, ValidationMetrics } from "#models/index";
 import { WeightsContainer } from "#weights/index";
-import { Client } from "#client/index";
+import type { Client } from "#client/index";
 
 import * as async_iterator from "#utils/async_iterator";
 import * as privacy from "#root/privacy";

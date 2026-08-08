@@ -11,7 +11,8 @@
 </template>
 
 <script lang="ts" setup>
-import { Map, Set } from "immutable";
+import type { Set } from "immutable";
+import { Map } from "immutable";
 import type { Ref, WatchHandle } from "vue";
 import { computed, ref, watch } from "vue";
 

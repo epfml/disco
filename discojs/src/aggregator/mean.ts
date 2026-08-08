@@ -5,7 +5,8 @@ import type { NodeID } from "#client/types";
 import { avg } from "#weights/index";
 
 import { AggregationStep } from "#aggregator/aggregator";
-import { MultiRoundAggregator, ThresholdType } from "#aggregator/multiround";
+import type { ThresholdType } from "#aggregator/multiround";
+import { MultiRoundAggregator } from "#aggregator/multiround";
 
 /**
  * Mean aggregator whose aggregation step consists in computing the mean of the received weights.

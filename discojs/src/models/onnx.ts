@@ -1,7 +1,7 @@
-import type { CausalLMOutput } from "@xenova/transformers";
+import type { CausalLMOutput ,
+  PreTrainedModel} from "@xenova/transformers";
 import {
   AutoModelForCausalLM,
-  PreTrainedModel,
   Tensor,
 } from "@xenova/transformers";
 import { List } from "immutable";

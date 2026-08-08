@@ -2,10 +2,11 @@ import path from "node:path";
 import fetch from "node-fetch";
 import fs from "node:fs/promises";
 
-import {
-  HELLASWAG_URL,
+import type {
   HellaSwagExample,
-  HellaSwagDataset,
+  HellaSwagDataset} from "@epfml/discojs";
+import {
+  HELLASWAG_URL
 } from "@epfml/discojs";
 
 import { dirname } from "path";

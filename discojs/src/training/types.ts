@@ -1,4 +1,4 @@
-import { List } from "immutable";
+import type { List } from "immutable";
 
 export type WeightNormHistory = List<List<number>>;
 

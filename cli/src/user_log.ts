@@ -1,4 +1,5 @@
-import { args, BenchmarkArguments } from "./args.js";
+import type { BenchmarkArguments } from "./args.js";
+import { args } from "./args.js";
 import type { SummaryLogs, DataType, Network, Task } from "@epfml/discojs";
 
 type SerializableArguments = Omit<BenchmarkArguments, "provider" | "host"> & {

@@ -3,8 +3,8 @@ import type WebSocket from "ws";
 import { Map } from "immutable";
 import * as msgpack from "@msgpack/msgpack";
 
-import { NodeID, mtype } from "@epfml/discojs";
-import type { DataType, Network, Task } from "@epfml/discojs";
+import { mtype } from "@epfml/discojs";
+import type { DataType, Network, Task , NodeID} from "@epfml/discojs";
 
 const debug = createDebug("server:controllers");
 

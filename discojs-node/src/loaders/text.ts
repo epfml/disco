@@ -1,6 +1,7 @@
 import createDebug from "debug";
 import { createReadStream } from "node:fs";
-import { Dataset, Text } from "@epfml/discojs";
+import type { Text } from "@epfml/discojs";
+import { Dataset } from "@epfml/discojs";
 
 const debug = createDebug("discojs-node:loaders:text");
 

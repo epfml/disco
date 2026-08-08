@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Model } from "#models/model";
-import { DataType, dataTypeValues } from "#dtypes/index";
+import type { DataType} from "#dtypes/index";
+import { dataTypeValues } from "#dtypes/index";
 
 export namespace ModelCardInfo {
   export type ID = string;

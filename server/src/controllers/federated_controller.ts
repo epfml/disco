@@ -1,13 +1,13 @@
 import createDebug from "debug";
-import WebSocket from "ws";
+import type WebSocket from "ws";
 import { v4 as randomUUID } from "uuid";
 import * as msgpack from "@msgpack/msgpack";
 
-import type { DataType, Task } from "@epfml/discojs";
+import type { DataType, Task ,
+  Encoded} from "@epfml/discojs";
 import {
   mtype,
   federatedMessages,
-  Encoded,
   weightsEncode,
   weightsDecode,
   MeanAggregator,

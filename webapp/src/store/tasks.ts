@@ -1,5 +1,6 @@
 import createDebug from "debug";
-import { Map, Set } from "immutable";
+import type { Map} from "immutable";
+import { Set } from "immutable";
 import { defineStore } from "pinia";
 import { shallowRef } from "vue";
 

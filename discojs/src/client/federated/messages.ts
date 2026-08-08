@@ -1,4 +1,4 @@
-import * as serialization from "#serialization/index";
+import type * as serialization from "#serialization/index";
 import type { NodeID } from "#client/types";
 
 import { MType, hasMessageType } from "#client/mtype";

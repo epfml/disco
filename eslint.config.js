@@ -50,6 +50,7 @@ export default defineConfigWithVueTs(
           typesToIgnore: ["Model", "DataType"],
         },
       ],
+      "@typescript-eslint/consistent-type-imports": "error",
     },
   },
   {
