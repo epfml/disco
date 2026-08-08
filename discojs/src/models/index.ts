@@ -17,4 +17,5 @@ export { ONNXModel } from "./onnx.js";
 export { TFJS } from "./tfjs.js";
 export type { ModelCard, ModelCardInfo } from "./model_card.js";
 
+// eslint-disable-next-line no-restricted-syntax -- namespace re-export acceptable here
 export * as cards from "./cards/index.js";

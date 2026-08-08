@@ -1,6 +1,6 @@
 import * as serialization from "#serialization/index";
 
-import { type SignalData } from "./peer.js";
+import { type SignalData } from "#client/decentralized/peer";
 import { isNodeID, type NodeID } from "#client/types";
 import { MType, hasMessageType } from "#client/mtype";
 import type {

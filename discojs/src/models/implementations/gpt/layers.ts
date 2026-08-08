@@ -1,7 +1,6 @@
 import createDebug from "debug";
 import * as tf from "@tensorflow/tfjs";
-import type { GPTConfig } from "./config.js";
-import type { ModelSize } from "./config.js";
+import type { GPTConfig, ModelSize } from "#models/implementations/gpt/config";
 
 const debug = createDebug("discojs:models:gpt:layers");
 

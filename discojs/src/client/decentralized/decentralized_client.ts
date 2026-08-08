@@ -15,8 +15,8 @@ import {
   type PeerConnection,
   waitMessageWithTimeout,
 } from "#client/event_connection";
-import { PeerPool } from "./peer_pool.js";
-import * as messages from "./messages.js";
+import { PeerPool } from "#client/decentralized/peer_pool";
+import * as messages from "#client/decentralized/messages";
 
 const debug = createDebug("discojs:client:decentralized");
 

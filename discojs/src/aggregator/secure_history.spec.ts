@@ -5,10 +5,10 @@ import * as tf from "@tensorflow/tfjs";
 
 import { sum, avg, WeightsContainer } from "#weights/index";
 
-import { SecureHistoryAggregator } from "./secure_history.js";
-import { SecureAggregator } from "./secure.js";
+import { SecureHistoryAggregator } from "#aggregator/secure_history";
+import { SecureAggregator } from "#aggregator/secure";
 
-import { wsIntoArrays, communicate, setupNetwork } from "../aggregator.spec.js";
+import { wsIntoArrays, communicate, setupNetwork } from "#root/aggregator.spec";
 
 describe("Secure history aggregator", function () {
   const epsilon = 1e-4;

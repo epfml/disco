@@ -1,11 +1,15 @@
 import { List } from "immutable";
 
-import type { Task } from "#task/task";
+import type { Task } from "#task/index";
 import type { Dataset, Tabular } from "#dataset/index";
 import type { DataType, DataFormat, Network } from "#dtypes/index";
 
-import { normalize, removeAlpha, resize } from "./image.js";
-import { indexInList, extractColumn, convertToNumber } from "./tabular.js";
+import { normalize, removeAlpha, resize } from "#processing/image";
+import {
+  indexInList,
+  extractColumn,
+  convertToNumber,
+} from "#processing/tabular";
 
 export function preprocess<D extends DataType, N extends Network>(
   task: Task<D, N>,

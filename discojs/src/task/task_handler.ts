@@ -9,7 +9,7 @@ import {
   modelEncode,
 } from "#serialization/index";
 
-import type { Task } from "./task.js";
+import type { Task } from "#task/task";
 
 function urlToTasks(base: URL): URL {
   const ret = new URL(base);

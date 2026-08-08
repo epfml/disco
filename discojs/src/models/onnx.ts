@@ -5,9 +5,9 @@ import { List } from "immutable";
 import type { WeightsContainer } from "#weights/index";
 import type { Batched } from "#dataset/index";
 import type { DataFormat } from "#dtypes/index";
-import type { GenerationConfig as TFJSGenerationConfig } from "./implementations/gpt/config.js";
+import type { GenerationConfig as TFJSGenerationConfig } from "#models/implementations/gpt/config";
 import { Model } from "#models/model";
-import { DefaultGenerationConfig } from "./implementations/gpt/config.js";
+import { DefaultGenerationConfig } from "#models/implementations/gpt/config";
 
 export class ONNXModel extends Model<"text"> {
   private model: PreTrainedModel;

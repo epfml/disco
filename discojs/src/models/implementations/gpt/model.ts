@@ -1,11 +1,17 @@
 import createDebug from "debug";
 import * as tf from "@tensorflow/tfjs";
 
-import type { GPTConfig } from "./config.js";
-import { getModelSizes, DefaultGPTConfig } from "./config.js";
-import { getCustomAdam, clipByGlobalNormObj } from "./optimizers.js";
-import evaluate from "./evaluate.js";
-import { GPTArchitecture } from "./layers.js";
+import type { GPTConfig } from "#models/implementations/gpt/config";
+import {
+  getModelSizes,
+  DefaultGPTConfig,
+} from "#models/implementations/gpt/config";
+import {
+  getCustomAdam,
+  clipByGlobalNormObj,
+} from "#models/implementations/gpt/optimizers";
+import evaluate from "#models/implementations/gpt/evaluate";
+import { GPTArchitecture } from "#models/implementations/gpt/layers";
 
 const debug = createDebug("discojs:models:gpt:model");
 

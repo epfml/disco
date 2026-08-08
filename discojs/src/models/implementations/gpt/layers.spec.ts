@@ -1,14 +1,17 @@
 import * as tf from "@tensorflow/tfjs";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import type { CausalSelfAttentionConfig, MLPConfig } from "./layers.js";
+import type {
+  CausalSelfAttentionConfig,
+  MLPConfig,
+} from "#models/implementations/gpt/layers";
 import {
   CausalSelfAttention,
   GELU,
   LMEmbedding,
   MLP,
   Range,
-} from "./layers.js";
+} from "#models/implementations/gpt/layers";
 
 describe("GPT Layers", () => {
   // GELU Layer tests

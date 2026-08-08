@@ -1,6 +1,7 @@
-import type { WeightsContainer } from "../index.js";
-import { SecureAggregator } from "./secure.js";
-import { avg } from "../index.js";
+import type { WeightsContainer } from "#weights/index";
+import { avg } from "#weights/index";
+
+import { SecureAggregator } from "#aggregator/secure";
 
 /**
  * Aggregator that implements secure multi-party computation with history-based momentum smoothing.

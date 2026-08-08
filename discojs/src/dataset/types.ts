@@ -1,6 +1,6 @@
 import type { List } from "immutable";
 
-export { Image } from "./image.js";
+export { Image } from "#dataset/image";
 
 export type Batched<T> = List<T>;
 

@@ -2,7 +2,7 @@ import type { WeightsContainer } from "#weights/index";
 import type { Dataset, Batched } from "#dataset/index";
 import type { DataFormat, DataType } from "#dtypes/index";
 
-import type { BatchLogs, EpochLogs, ValidationMetrics } from "./logs.js";
+import type { BatchLogs, EpochLogs, ValidationMetrics } from "#models/logs";
 
 /**
  * Trainable predictor

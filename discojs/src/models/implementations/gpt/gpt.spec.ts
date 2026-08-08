@@ -1,10 +1,11 @@
 import { List } from "immutable";
 import { describe, expect, it } from "vitest";
 
-import type { DataFormat } from "../../../index.js";
-import { Dataset, Tokenizer } from "../../../index.js";
+import type { DataFormat } from "#dtypes/index";
+import { Dataset } from "#dataset/index";
 
-import { GPT } from "./index.js";
+import { Tokenizer } from "#models/tokenizer";
+import { GPT } from "#models/implementations/gpt/index";
 
 describe("gpt-tfjs", () => {
   it("can overfit one sentence", { timeout: 100_000 }, async () => {

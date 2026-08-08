@@ -1,7 +1,8 @@
 import * as tf from "@tensorflow/tfjs";
 
 import { TFJS } from "#models/tfjs";
-import baseModel from "./mobileNetV2_35_alpha_2_classes.js";
+
+import baseModel from "#models/implementations/mobileNetV2_35_alpha_2_classes";
 
 export async function getModel() {
   const model = await tf.loadLayersModel({
