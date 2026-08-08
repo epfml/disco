@@ -5,14 +5,14 @@
   "exports": {
     ".": {
       "@disco/source": "./src/index.ts",
-      "default": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
   "types": "dist/index.d.ts",
   "scripts": {
     "watch": "nodemon --ext ts --ignore dist --exec pnpm run",
-    "build": "tsc --build tsconfig.lib.json",
+    "build": "tsc --build",
     "test": "cd .. && vitest --run --project=discojs"
   },
   "repository": {
@@ -25,68 +25,68 @@
   "imports": {
     "#root/*": {
       "@disco/source": "./src/*.ts",
-      "default": "./dist/*.js",
-      "types": "./dist/*.d.ts"
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
     },
     "#aggregator/*": {
       "@disco/source": "./src/aggregator/*.ts",
-      "default": "./dist/aggregator/*.js",
-      "types": "./dist/aggregator/*.d.ts"
+      "types": "./dist/aggregator/*.d.ts",
+      "default": "./dist/aggregator/*.js"
     },
     "#client/*": {
       "@disco/source": "./src/client/*.ts",
-      "default": "./dist/client/*.js",
-      "types": "./dist/client/*.d.ts"
+      "types": "./dist/client/*.d.ts",
+      "default": "./dist/client/*.js"
     },
     "#dataset/*": {
       "@disco/source": "./src/dataset/*.ts",
-      "default": "./dist/dataset/*.js",
-      "types": "./dist/dataset/*.d.ts"
+      "types": "./dist/dataset/*.d.ts",
+      "default": "./dist/dataset/*.js"
     },
     "#dtypes/*": {
       "@disco/source": "./src/types/*.ts",
-      "default": "./dist/types/*.js",
-      "types": "./dist/types/*.d.ts"
+      "types": "./dist/types/*.d.ts",
+      "default": "./dist/types/*.js"
     },
     "#logging/*": {
       "@disco/source": "./src/logging/*.ts",
-      "default": "./dist/logging/*.js",
-      "types": "./dist/logging/*.d.ts"
+      "types": "./dist/logging/*.d.ts",
+      "default": "./dist/logging/*.js"
     },
     "#models/*": {
       "@disco/source": "./src/models/*.ts",
-      "default": "./dist/models/*.js",
-      "types": "./dist/models/*.d.ts"
+      "types": "./dist/models/*.d.ts",
+      "default": "./dist/models/*.js"
     },
     "#processing/*": {
       "@disco/source": "./src/processing/*.ts",
-      "default": "./dist/processing/*.js",
-      "types": "./dist/processing/*.d.ts"
+      "types": "./dist/processing/*.d.ts",
+      "default": "./dist/processing/*.js"
     },
     "#serialization/*": {
       "@disco/source": "./src/serialization/*.ts",
-      "default": "./dist/serialization/*.js",
-      "types": "./dist/serialization/*.d.ts"
+      "types": "./dist/serialization/*.d.ts",
+      "default": "./dist/serialization/*.js"
     },
     "#task/*": {
       "@disco/source": "./src/task/*.ts",
-      "default": "./dist/task/*.js",
-      "types": "./dist/task/*.d.ts"
+      "types": "./dist/task/*.d.ts",
+      "default": "./dist/task/*.js"
     },
     "#training/*": {
       "@disco/source": "./src/training/*.ts",
-      "default": "./dist/training/*.js",
-      "types": "./dist/training/*.d.ts"
+      "types": "./dist/training/*.d.ts",
+      "default": "./dist/training/*.js"
     },
     "#utils/*": {
       "@disco/source": "./src/utils/*.ts",
-      "default": "./dist/utils/*.js",
-      "types": "./dist/utils/*.d.ts"
+      "types": "./dist/utils/*.d.ts",
+      "default": "./dist/utils/*.js"
     },
     "#weights/*": {
       "@disco/source": "./src/weights/*.ts",
-      "default": "./dist/weights/*.js",
-      "types": "./dist/weights/*.d.ts"
+      "types": "./dist/weights/*.d.ts",
+      "default": "./dist/weights/*.js"
     }
   },
   "homepage": "https://github.com/epfml/disco#readme",

@@ -18,9 +18,7 @@
       "#weights/*": ["./src/weights/*"]
     },
     "rootDir": "./src",
-    "outDir": "dist",
-    "composite": true
+    "outDir": "dist"
   },
-  "include": ["src"],
-  "exclude": ["**/*.spec.ts"]
+  "include": ["src"]
 }

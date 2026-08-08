@@ -2,13 +2,12 @@
   "extends": "../tsconfig.base.json",
   "references": [
     {
-      "path": "../discojs/tsconfig.vitest.json"
+      "path": "../discojs/tsconfig.lib.json"
     }
   ],
   "compilerOptions": {
     "lib": ["DOM"],
-    "noEmit": true,
-    "composite": true
+    "noEmit": true
   },
   "include": ["src"]
 }

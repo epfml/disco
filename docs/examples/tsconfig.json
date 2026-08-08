@@ -12,13 +12,6 @@
     }
   ],
   "compilerOptions": {
-    "module": "node16",
-    "target": "es2022",
-
-    "strict": true,
-
-    "skipLibCheck": true,
-
     "outDir": "dist",
     "rootDir": ".",
     "types": ["node"]

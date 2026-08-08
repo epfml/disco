@@ -1,6 +1,5 @@
 {
   "extends": "./tsconfig.app.json",
-  // "include": ["src/**/__tests__/*", "env.d.ts"],
   "exclude": [],
   "references": [
     {
@@ -11,7 +10,6 @@
     }
   ],
   "compilerOptions": {
-    "composite": true,
     "tsBuildInfoFile": "tsconfig.vitest.tsbuildinfo",
     "lib": [],
     "types": ["node", "jsdom"]

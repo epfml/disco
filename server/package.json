@@ -11,7 +11,7 @@
   "scripts": {
     "watch": "nodemon --ext ts --ignore dist --watch ../discojs-node/dist --watch . --exec pnpm run",
     "start": "node dist/main.js",
-    "build": "tsc --build tsconfig.lib.json",
+    "build": "tsc --build",
     "test": "cd .. && vitest --run --project=server"
   },
   "author": "",
