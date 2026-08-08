@@ -5,9 +5,12 @@ import { GPT, TFJS } from "#models/index";
 import type { Model, GPTConfig } from "#models/index";
 import type { DataType } from "#types/index";
 
-import * as coder from "./coder.js";
-import type { Encoded } from "./coder.js";
-import { isEncoded } from "./coder.js";
+import type { Encoded } from "#serialization/coder";
+import {
+  encode as encodeGeneric,
+  decode as decodeGeneric,
+  isEncoded,
+} from "#serialization/coder";
 
 const Type = {
   TFJS: 0,
@@ -18,12 +21,12 @@ export async function encode(model: Model<DataType>): Promise<Encoded> {
   switch (true) {
     case model instanceof TFJS: {
       const serialized = await model.serialize();
-      return coder.encode([Type.TFJS, ...serialized]);
+      return encodeGeneric([Type.TFJS, ...serialized]);
     }
     case model instanceof GPT: {
       const { weights, config } = model.serialize();
       const serializedWeights = await w_encode(weights);
-      return coder.encode([Type.GPT, serializedWeights, config]);
+      return encodeGeneric([Type.GPT, serializedWeights, config]);
     }
     default:
       throw new Error("unknown model type");
@@ -31,7 +34,7 @@ export async function encode(model: Model<DataType>): Promise<Encoded> {
 }
 
 export async function decode(encoded: Encoded): Promise<Model<DataType>> {
-  const raw = coder.decode(encoded);
+  const raw = decodeGeneric(encoded);
 
   if (!Array.isArray(raw) || raw.length < 2) {
     throw new Error(

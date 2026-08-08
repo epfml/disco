@@ -1,7 +1,7 @@
 import createDebug from "debug";
 import { Map, type Set } from "immutable";
 
-import { Peer, type SignalData } from "./peer.js";
+import { Peer, type SignalData } from "#client/decentralized/peer";
 import type { NodeID } from "#client/types";
 import { PeerConnection, type EventConnection } from "#client/event_connection";
 

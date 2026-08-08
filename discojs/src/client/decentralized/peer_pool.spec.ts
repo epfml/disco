@@ -5,8 +5,8 @@ import type { EventConnection, PeerConnection } from "#client/event_connection";
 import { MType } from "#client/mtype";
 import type { NodeID } from "#client/types";
 
-import type { messages } from "./index.js";
-import { PeerPool } from "./peer_pool.js";
+import type * as messages from "#client/decentralized/messages";
+import { PeerPool } from "#client/decentralized/peer_pool";
 
 describe("peer pool", { timeout: 10_000 }, () => {
   let pools: Map<NodeID, PeerPool>;

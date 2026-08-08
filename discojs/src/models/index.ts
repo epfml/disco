@@ -19,4 +19,5 @@ export type { ModelCard } from "./model_card.js";
 export { ModelCardInfo } from "./model_card.js";
 export { fetchModels } from "./model_handler.js";
 
+// eslint-disable-next-line no-restricted-syntax -- namespace re-export acceptable here
 export * as cards from "./cards/index.js";

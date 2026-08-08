@@ -1,6 +1,6 @@
 import { List, Range, Set } from "immutable";
 import { assert, afterEach, beforeEach, describe, it } from "vitest";
-import { Peer } from "./peer.js";
+import { Peer } from "#client/decentralized/peer";
 
 describe("peer", () => {
   let peer1: Peer;

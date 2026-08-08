@@ -1,5 +1,5 @@
-import type * as decentralized from "./decentralized/messages.js";
-import type * as federated from "./federated/messages.js";
+import type * as decentralized from "#client/decentralized/messages";
+import type * as federated from "#client/federated/messages";
 
 export type Message =
   | decentralized.MessageFromServer

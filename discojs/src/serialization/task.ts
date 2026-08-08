@@ -3,7 +3,7 @@ import type { DataType, Network } from "#types/index";
 import { Task } from "#task/task";
 import { Tokenizer } from "#models/index";
 
-import type { JSONLike } from "./json_like.js";
+import type { JSONLike } from "#serialization/json_like";
 
 export function serializeToJSON(task: Task<DataType, Network>): JSONLike {
   switch (task.dataType) {

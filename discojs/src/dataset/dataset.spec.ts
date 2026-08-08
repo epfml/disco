@@ -1,6 +1,6 @@
 import { List, Range } from "immutable";
 import { describe, expect, it } from "vitest";
-import { Dataset } from "./dataset.js";
+import { Dataset } from "#dataset/dataset";
 
 // Array.fromAsync not yet widely used (2024)
 async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
