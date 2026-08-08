@@ -16,7 +16,7 @@ import * as clients from "#client/index";
 import * as processing from "#processing/index";
 import * as async_iterator from "#utils/async_iterator";
 
-import type { RoundLogs} from "#training/trainer";
+import type { RoundLogs } from "#training/trainer";
 import { Trainer } from "#training/trainer";
 import type { RoundStatus, SummaryLogs } from "#training/types";
 

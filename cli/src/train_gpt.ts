@@ -1,5 +1,5 @@
 import "@tensorflow/tfjs-node";
-import type { GPTConfig} from "@epfml/discojs";
+import type { GPTConfig } from "@epfml/discojs";
 import { GPT, Dataset, Tokenizer } from "@epfml/discojs";
 import { List } from "immutable";
 

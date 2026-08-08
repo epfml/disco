@@ -1,11 +1,10 @@
 import express from "express";
 import type expressWS from "express-ws";
-import type { Task, DataType, Network , Encoded} from "@epfml/discojs";
+import type { Task, DataType, Network, Encoded } from "@epfml/discojs";
 import { modelDecode, weightsEncode } from "@epfml/discojs";
 
 import type { TaskSet } from "../task_set.js";
-import type {
-  TrainingController} from "../controllers/index.js";
+import type { TrainingController } from "../controllers/index.js";
 import {
   FederatedController,
   DecentralizedController,
