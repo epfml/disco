@@ -233,13 +233,13 @@ The procedure for working on a feature is the following:
 
 ### 1. Creating a new branch
 
-Once you start working on a feature, create a new branch from the `develop` branch, and use the following convention: `IssueNumber-Key-Word-YourName`.
+Once you start working on a feature, create a new branch from the `main` branch, and use the following convention: `IssueNumber-Key-Word-YourName`.
 So for example, if I am working on issue #202, which is related to fixing a train bug I would call this branch: `202-train-bug-nacho`
 
 From your local repository:
 
 ```
-# currently in branch `develop`
+# currently on `main` branch
 git checkout -b 202-train-bug-nacho
 ```
 
@@ -270,7 +270,7 @@ Test the newly implemented features locally by following instructions in the [Co
 
 ### 4. Draft PR
 
-Once you have added a minimum number of content to your branch, you can create a [draft PR](https://github.blog/2019-02-14-introducing-draft-pull-requests/). Create a pull request to merge your branch (e.g., `202-train-bug-nacho`) into the `develop` branch. `develop` should always be functional and up to date with new working features. It is the equivalent of the `main`or `master` branch in DISCO.
+Once you have added a minimum number of content to your branch, you can create a [draft PR](https://github.blog/2019-02-14-introducing-draft-pull-requests/). Create a pull request to merge your branch (e.g., `202-train-bug-nacho`) into the `main` branch. `main` should always be functional and up to date with new working features.
 It is important to give a good description to your PR as this makes it easier for other people to go through it.
 
 > [!TIP]
@@ -283,13 +283,13 @@ Once you have finished your work on your draft PR, make sure to do the following
 1. Run the adequate test suites (server, webapp, discojs).
 2. Make sure you remove debugging comments / console outputs.
 3. Format your code (`pnpm run format:fix`)
-4. Merge (or rebase if you can do it properly) `develop` into your feature branch:
+4. Merge (or rebase if you can do it properly) `main` into your feature branch:
 
 ```
-git checkout develop
+git checkout main
 git pull
 git checkout 202-train-bug-nacho
-git merge develop
+git merge main
 # Solve potential merge conflicts
 git push
 ```

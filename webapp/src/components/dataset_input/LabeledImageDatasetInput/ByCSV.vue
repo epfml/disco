@@ -15,7 +15,7 @@
           <a
             class="underline text-blue-400"
             target="_blank"
-            href="https://github.com/epfml/disco/blob/develop/docs/examples/dataset_csv_creation.ipynb"
+            href="https://github.com/epfml/disco/blob/main/docs/examples/dataset_csv_creation.ipynb"
             >here</a
           >.
         </FileSelection>
