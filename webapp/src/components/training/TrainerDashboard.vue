@@ -107,7 +107,7 @@
         <a
           class="underline text-blue-400 font-bold"
           target="_blank"
-          href="https://github.com/epfml/disco/blob/develop/DEV.md"
+          href="https://github.com/epfml/disco/blob/main/DEV.md"
           >these steps</a
         >.
         <!-- Warning about the maximum nb of iteration per epoch for LLMs -->

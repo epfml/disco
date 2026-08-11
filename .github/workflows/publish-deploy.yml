@@ -1,7 +1,7 @@
 name: publish-deploy
 on:
   push:
-    branches: [develop]
+    branches: [main]
     tags: [v*]
 
 jobs:
