@@ -50,5 +50,5 @@ export const mnist: TaskProvider<"image", "decentralized"> = {
     });
   },
 
-  modelCard: cards.PytorchMNISTClassifier,
+  modelCard: cards.MNISTClassifier,
 };

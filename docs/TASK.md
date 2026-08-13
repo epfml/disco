@@ -157,8 +157,8 @@ scheme of distributed learning (federated or decentralized), along with other me
 
 The [`TrainingInformation` object](../discojs/src/task/training_information.ts) of a task contains all the customizable parameters and their descriptions.
 
-As an example, the task class for `simple-face` can be found [here](../discojs/src/default_tasks/simple_face.ts). Suppose
-our own task is a binary classification for age detection (similar to simple face), then we could write:
+As an example, the task class for `lus_covid` can be found [here](../discojs/src/default_tasks/lus_covid.ts). Suppose
+our own task is a binary classification for lung ultrasound COVID diagnostic , then we could write:
 
 ```js
 import { ImagePreprocessing } from '../dataset/preprocessing'
@@ -170,7 +170,7 @@ export const customTask: TaskProvider = {
       dataType: 'image',
       displayInformation: {
         title: 'My new task',
-        summary: 'Can you detect if the person in a picture is a child or an adult?',
+        summary: 'Can you detect if the lung ultra sound show COVID positive or negative?',
         ...
       },
       trainingInformation: {
