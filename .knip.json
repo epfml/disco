@@ -10,7 +10,6 @@
     "isomorphic-wrtc": {},
     "cli": {
       "entry": [
-        "src/cli.ts",
         "src/benchmark_gpt.ts",
         "src/hellaswag_gpt.ts",
         "src/train_gpt.ts"
