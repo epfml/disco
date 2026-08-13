@@ -67,7 +67,7 @@ export class Server {
     app.use(express.json({ limit: "50mb" }));
     app.use(express.urlencoded({ limit: "50mb", extended: false }));
 
-    const taskRouter = new TaskRouter(this.#taskSet);
+    const taskRouter = new TaskRouter(this.#taskSet, this.#modelSet);
     const modelRouter = new ModelRouter(this.#modelSet);
     const federatedRouter = new TrainingRouter(
       "federated",

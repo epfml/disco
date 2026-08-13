@@ -2,6 +2,7 @@ import { Map, Seq } from "immutable";
 
 import type { DataType, Model, Network } from "../index.js";
 import { serialization } from "../index.js";
+import type { ModelCardInfo } from "#models/model_card";
 
 import type { Task } from "./task.js";
 
@@ -11,17 +12,26 @@ function urlToTasks(base: URL): URL {
   return ret;
 }
 
+/**
+ * Add a task to a server.
+ *
+ * The model is either one to upload along with the task, or the ID of a model
+ * the server already knows about, as listed by `fetchModels`.
+ */
 export async function pushTask<D extends DataType>(
   base: URL,
   task: Task<D, Network>,
-  model: Model<D>,
+  model: Model<D> | ModelCardInfo.ID,
 ): Promise<void> {
   const response = await fetch(urlToTasks(base), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       task: serialization.task.serializeToJSON(task),
-      model: [...(await serialization.model.encode(model))],
+      model:
+        typeof model === "string"
+          ? model
+          : [...(await serialization.model.encode(model))],
     }),
   });
   if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`);
