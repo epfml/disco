@@ -14,6 +14,8 @@ import { Model } from "#models/model";
 import { DefaultGenerationConfig } from "./implementations/gpt/config.js";
 
 export class ONNXModel extends Model<"text"> {
+  readonly datatype = "text" as const;
+
   private model: PreTrainedModel;
 
   private constructor(model: PreTrainedModel) {

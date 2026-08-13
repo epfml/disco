@@ -11,6 +11,9 @@ import type { BatchLogs, EpochLogs, ValidationMetrics } from "./logs.js";
  **/
 // TODO make it typesafe: same shape of data/input/weights
 export abstract class Model<D extends DataType> implements Disposable {
+  /** Kind of data this predictor understands */
+  abstract readonly datatype: D;
+
   // TODO don't allow external access but upgrade train to return weights on every epoch
   /** Return training state */
   abstract get weights(): WeightsContainer;
