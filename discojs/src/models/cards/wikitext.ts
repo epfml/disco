@@ -10,7 +10,7 @@ export const Wikitext: ModelCard<"text"> = {
     contextLength: 64,
   },
 
-  async getModel(): Promise<Model<"tabular">> {
+  async getModel(): Promise<Model<"text">> {
     const model = new GPT({
       contextLength: this.card.contextLength,
     });
