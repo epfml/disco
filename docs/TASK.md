@@ -77,16 +77,14 @@ const customTask: TaskProvider = {
   },
 
   modelCard: {
-    {
-      card: {
-        // information here
-      };
-      getModel(): : Promise<tf.LayersModel> {
-        const model = tf.sequential();
-        // Configure your model architecture
-        return model;
-      },
-    }
+    card: {
+      // information here
+    },
+    getModel(): Promise<tf.LayersModel> {
+      const model = tf.sequential();
+      // Configure your model architecture
+      return model;
+    },
   }
 };
 
@@ -185,14 +183,12 @@ export const customTask: TaskProvider = {
   },
 
   modelCard: {
-    {
-      card: {
-        // information here
-      };
-      getModel(): : Promise<tf.LayersModel> {
-        throw new Error('Not implemented')
-      },
-    }
+    card: {
+      // information here
+    },
+    getModel(): Promise<tf.LayersModel> {
+      throw new Error('Not implemented')
+    },
   }
 }
 ```
