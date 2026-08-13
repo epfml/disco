@@ -40,30 +40,38 @@ export class TaskRouter {
 
     // POST request to add a new task
     this.#expressRouter.post("/", async (req, res) => {
-      const parsed = await z
+      try {
+        const parsed = await z
         .object({
           model: z.string(),
           task: z.any().transform(serialization.task.deserializeFromJSON),
         })
         .safeParseAsync(req.body);
-
-      if (!parsed.success) {
-        debug("posted task isn't valid: %s", parsed.error);
+      
+        if (!parsed.success) {
+          debug("posted task isn't valid: %s", parsed.error);
+          res.status(400).end();
+          return;
+        }
+        const { model, task } = parsed.data;
+        
+        try {
+          this.#taskSet.addTask(task, model);
+        } catch (e) {
+          debug("add task failed with: %o", e);
+          if (e instanceof Error && (
+            e.message === "added task already exists" ||
+            e.message === "referenced model unavailable" ||
+            e.message === "task and model data types do not match"
+          ))
+          res.status(409).end();
+          else res.status(500).end();
+          return;
+        }
+      } catch (_) {
         res.status(400).end();
         return;
       }
-      const { model, task } = parsed.data;
-
-      try {
-        this.#taskSet.addTask(task, model);
-      } catch (e) {
-        debug("add task failed with: %o", e);
-        if (e instanceof Error && e.message === "added task already exists")
-          res.status(409).end();
-        else res.status(500).end();
-        return;
-      }
-
       res.status(200).end("Successful task upload");
     });
 

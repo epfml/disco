@@ -21,6 +21,7 @@ export function serializeToJSON(task: Task<DataType, Network>): JSON {
   }
 }
 
+// Throws if an error serialized object is malformed
 export async function deserializeFromJSON(
   serialized: JSON,
 ): Promise<Task<DataType, Network>> {

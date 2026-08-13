@@ -50,14 +50,17 @@ export class TaskSet extends EventEmitter<{
    */
   addTask<D extends DataType>(task: Task<D, Network>, model_id: string): void {
     if (this.#tasks.has(task.id)) {
+      // Note: Error message is being matched in task_router.ts
       throw new Error("added task already exists");
     }
-
+    
     const model = this.#modelSet.models.get(model_id);
     if (model === undefined) {
+      // Note: Error message is being matched in task_router.ts
       throw new Error("referenced model unavailable");
     }
     if (model[0].dataType !== task.dataType) {
+      // Note: Error message is being matched in task_router.ts
       throw new Error("task and model data types do not match");
     }
     const encodedModel = model[1];
