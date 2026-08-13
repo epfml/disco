@@ -5,8 +5,8 @@
   "main": "dist/index.js",
   "exports": {
     "@disco/source": "./src/index.ts",
-    "default": "./dist/index.js",
-    "types": "./dist/index.d.ts"
+    "types": "./dist/index.d.ts",
+    "default": "./dist/index.js"
   },
   "scripts": {
     "watch": "nodemon --ext ts --ignore dist --watch ../discojs-node/dist --watch . --exec pnpm run",

@@ -5,8 +5,8 @@
   "exports": {
     ".": {
       "@disco/source": "./src/index.ts",
-      "default": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
   "types": "dist/index.d.ts",
@@ -25,28 +25,28 @@
   "imports": {
     "#models/*": {
       "@disco/source": "./src/models/*.ts",
-      "default": "./dist/models/*.js",
-      "types": "./dist/models/*.d.ts"
+      "types": "./dist/models/*.d.ts",
+      "default": "./dist/models/*.js"
     },
     "#task/*": {
       "@disco/source": "./src/task/*.ts",
-      "default": "./dist/task/*.js",
-      "types": "./dist/task/*.d.ts"
+      "types": "./dist/task/*.d.ts",
+      "default": "./dist/task/*.js"
     },
     "#weights/*": {
       "@disco/source": "./src/weights/*.ts",
-      "default": "./dist/weights/*.js",
-      "types": "./dist/weights/*.d.ts"
+      "types": "./dist/weights/*.d.ts",
+      "default": "./dist/weights/*.js"
     },
     "#types/*": {
       "@disco/source": "./src/types/*.ts",
-      "default": "./dist/types/*.js",
-      "types": "./dist/types/*.d.ts"
+      "types": "./dist/types/*.d.ts",
+      "default": "./dist/types/*.js"
     },
     "#dataset/*": {
       "@disco/source": "./src/dataset/*.ts",
-      "default": "./dist/dataset/*.js",
-      "types": "./dist/dataset/*.d.ts"
+      "types": "./dist/dataset/*.d.ts",
+      "default": "./dist/dataset/*.js"
     }
   },
   "homepage": "https://github.com/epfml/disco#readme",
