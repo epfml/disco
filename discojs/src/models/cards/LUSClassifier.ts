@@ -7,7 +7,6 @@ export const LUSClassifier: ModelCard<"image"> = {
     id: "lus_classifier",
     name: "LUS Classifier",
     dataType: "image",
-    preTrained: false,
   },
 
   async getModel(): Promise<Model<"image">> {

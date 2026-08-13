@@ -30,7 +30,6 @@ console.table(
     ID: m.card.id,
     Title: m.card.name,
     "Data Type": m.card.dataType,
-    Pretrained: m.card.preTrained,
   })),
 );
 

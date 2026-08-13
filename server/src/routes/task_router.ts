@@ -146,8 +146,6 @@ export class TaskRouter {
       id: `${task.id}-model`,
       name: task.displayInformation.title,
       dataType: uploaded.datatype,
-      // an upload is the initial model of a task, to be trained collaboratively
-      preTrained: false,
     };
 
     await this.#modelSet.addModel([info, encoded]);

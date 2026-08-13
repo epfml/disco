@@ -6,7 +6,6 @@ export const DogClassifier: ModelCard<"image"> = {
     id: "dog_classifier",
     name: "Dog Classifier",
     dataType: "image",
-    preTrained: false,
   },
 
   async getModel(): Promise<Model<"image">> {

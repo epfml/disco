@@ -6,7 +6,6 @@ export const PytorchMNISTClassifier: ModelCard<"image"> = {
     id: "mnist_classifier",
     name: "MNIST Classifier",
     dataType: "image",
-    preTrained: false,
   },
 
   async getModel(): Promise<Model<"image">> {

@@ -6,7 +6,6 @@ export const FaceClassifier: ModelCard<"image"> = {
     id: "face_classifier",
     name: "Face Classifier",
     dataType: "image",
-    preTrained: false,
   },
 
   async getModel(): Promise<Model<"image">> {

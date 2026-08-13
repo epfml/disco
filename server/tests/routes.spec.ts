@@ -54,7 +54,6 @@ const modelInfoSchema = z.strictObject({
   id: z.string(),
   name: z.string(),
   dataType: z.enum(dataTypeValues),
-  preTrained: z.boolean(),
   contextLength: z.number().optional(),
 });
 
@@ -325,7 +324,6 @@ describe("POST /tasks", { timeout: 20_000 }, () => {
       id: `${task.id}-model`,
       name: task.displayInformation.title,
       dataType: "tabular",
-      preTrained: false,
     });
 
     const served = await fetch(new URL(`tasks/${task.id}/model.json`, url));

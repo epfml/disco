@@ -6,7 +6,6 @@ export const TitanicClassifier: ModelCard<"tabular"> = {
     id: "titanic_classifier",
     name: "Titanic classifier",
     dataType: "tabular",
-    preTrained: false,
   },
 
   async getModel(): Promise<Model<"tabular">> {

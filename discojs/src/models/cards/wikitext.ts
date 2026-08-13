@@ -6,7 +6,6 @@ export const Wikitext: ModelCard<"text"> = {
     id: "wikitext",
     name: "Wikitext GPT-2",
     dataType: "text",
-    preTrained: false,
     contextLength: 64,
   },
 

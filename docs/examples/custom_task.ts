@@ -10,7 +10,6 @@ const customModelCard: ModelCard<"tabular"> = {
     id: "custom_model_id",
     name: "Custom name",
     dataType: "tabular",
-    preTrained: false,
   },
 
   async getModel() {

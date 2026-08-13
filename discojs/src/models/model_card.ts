@@ -8,7 +8,6 @@ export namespace ModelCardInfo {
   export const baseFields = {
     id: z.string(),
     name: z.string(),
-    preTrained: z.boolean(),
     contextLength: z.number().optional(),
   };
 
