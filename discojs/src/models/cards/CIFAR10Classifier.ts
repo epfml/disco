@@ -1,5 +1,5 @@
 import { Model, ModelCard } from "#models/index";
-import { getModel } from "#models/implementations/mobileNetV1_cifar10";
+import { getModel } from "#models/implementations/CIFAR10ClassifierModel";
 
 export const CIFAR10Classifier: ModelCard<"image"> = {
   card: {

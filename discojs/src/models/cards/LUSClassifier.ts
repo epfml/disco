@@ -1,6 +1,6 @@
 import { Model } from "#models/model";
 import { ModelCard } from "#models/model_card";
-import { model } from "#models/implementations/LUSImageClassifier";
+import { model } from "#models/implementations/LUSClassifierModel";
 
 export const LUSClassifier: ModelCard<"image"> = {
   card: {

@@ -1,5 +1,5 @@
 import { Model, ModelCard } from "../index.js";
-import { model } from "../implementations/titanic_classifier.js";
+import { model } from "../implementations/titanicClassifierModel.js";
 
 export const TitanicClassifier: ModelCard<"tabular"> = {
   card: {

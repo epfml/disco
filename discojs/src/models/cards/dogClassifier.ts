@@ -1,5 +1,5 @@
 import { Model, ModelCard } from "../index.js";
-import { model } from "../implementations/dog_classifier.js";
+import { model } from "../implementations/dogClassifierModel.js";
 
 export const DogClassifier: ModelCard<"image"> = {
   card: {
