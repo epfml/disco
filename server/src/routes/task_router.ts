@@ -96,12 +96,12 @@ export class TaskRouter {
 
     const file = request.params.file;
     if (!validModelFiles.has(file)) {
-      response.status(404);
+      response.status(404).end();
       return;
     }
     const taskAndModel = this.#taskSet.tasks.find(([t, _]) => t.id === id);
     if (taskAndModel === undefined) {
-      response.status(404);
+      response.status(404).end();
       return;
     }
     response.status(200).send(Buffer.from(taskAndModel[1]));
