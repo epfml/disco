@@ -24,6 +24,7 @@ export {
   EpochLogs,
   Tokenizer,
   ValidationMetrics,
+  fetchModels,
 } from "./models/index.js";
 export * as models from "./models/index.js";
 
