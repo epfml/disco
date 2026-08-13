@@ -38,7 +38,7 @@
       "default": "./dist/weights/*.js",
       "types": "./dist/weights/*.d.ts"
     },
-    "#dtypes/*": {
+    "#types/*": {
       "@disco/source": "./src/types/*.ts",
       "default": "./dist/types/*.js",
       "types": "./dist/types/*.d.ts"

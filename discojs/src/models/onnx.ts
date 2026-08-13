@@ -8,7 +8,7 @@ import { List } from "immutable";
 
 import type { WeightsContainer } from "#weights/index";
 import type { Batched } from "#dataset/index";
-import type { DataFormat } from "#dtypes/index";
+import type { DataFormat } from "#types/index";
 import type { GenerationConfig as TFJSGenerationConfig } from "./implementations/gpt/config.js";
 import { Model } from "#models/model";
 import { DefaultGenerationConfig } from "./implementations/gpt/config.js";

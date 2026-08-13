@@ -1,6 +1,6 @@
 import { WeightsContainer } from "#weights/index";
 import { Dataset, Batched } from "#dataset/index";
-import type { DataFormat, DataType } from "#dtypes/index";
+import type { DataFormat, DataType } from "#types/index";
 
 import type { BatchLogs, EpochLogs, ValidationMetrics } from "./logs.js";
 

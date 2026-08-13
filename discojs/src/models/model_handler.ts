@@ -1,7 +1,7 @@
 import { Map } from "immutable";
 import { z } from "zod";
 
-import type { DataType } from "#dtypes/index";
+import type { DataType } from "#types/index";
 
 import { ModelCardInfo } from "./model_card.js";
 
