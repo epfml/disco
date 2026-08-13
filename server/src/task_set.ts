@@ -38,9 +38,10 @@ export class TaskSet extends EventEmitter<{
 
   // send known tasks to new listener
   override on(
-    _: "newTask",
+    e: "newTask",
     listener: (_: TaskAndModel) => void | Promise<void>,
   ): void {
+    super.on(e, listener);
     this.#tasks.forEach(listener);
   }
 
@@ -53,7 +54,7 @@ export class TaskSet extends EventEmitter<{
       // Note: Error message is being matched in task_router.ts
       throw new Error("added task already exists");
     }
-    
+
     const model = this.#modelSet.models.get(model_id);
     if (model === undefined) {
       // Note: Error message is being matched in task_router.ts

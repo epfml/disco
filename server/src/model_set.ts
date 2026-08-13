@@ -35,9 +35,10 @@ export class ModelSet extends EventEmitter<{
 
   // send known models to new listener
   override on(
-    _: "newModel",
+    e: "newModel",
     listener: (_: AvailableModel) => void | Promise<void>,
   ): void {
+    super.on(e, listener);
     this.#models.forEach(listener);
   }
 
