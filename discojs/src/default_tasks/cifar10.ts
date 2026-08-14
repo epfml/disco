@@ -1,9 +1,5 @@
-import * as tf from "@tensorflow/tfjs";
-
-import type { Model, TaskProvider } from "../index.js";
-import { models } from "../index.js";
-
-import baseModel from "../models/mobileNet_v1_025_224.js";
+import type { TaskProvider } from "#task/index";
+import { cards } from "#models/index";
 
 export const cifar10: TaskProvider<"image", "decentralized"> = {
   getTask() {
@@ -67,28 +63,5 @@ export const cifar10: TaskProvider<"image", "decentralized"> = {
     });
   },
 
-  async getModel(): Promise<Model<"image">> {
-    const mobilenet = await tf.loadLayersModel({
-      load: async () => Promise.resolve(baseModel),
-    });
-
-    const x = mobilenet.getLayer("global_average_pooling2d_1");
-    const predictions = tf.layers
-      .dense({ units: 10, activation: "softmax", name: "denseModified" })
-      .apply(x.output) as tf.SymbolicTensor;
-
-    const model = tf.model({
-      inputs: mobilenet.input,
-      outputs: predictions,
-      name: "modelModified",
-    });
-
-    model.compile({
-      optimizer: "sgd",
-      loss: "categoricalCrossentropy",
-      metrics: ["accuracy"],
-    });
-
-    return new models.TFJS("image", model);
-  },
+  modelCard: cards.CIFAR10Classifier,
 };

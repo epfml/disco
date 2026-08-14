@@ -6,6 +6,7 @@
 # stored trained models
 /server/models/
 /models/
+/docs/examples/models/
 
 # tsc built
 /*/dist/

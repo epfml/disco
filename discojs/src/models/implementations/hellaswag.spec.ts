@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { evaluate } from "./hellaswag.js";
-import { GPT, Tokenizer } from "./index.js";
-import { ONNXModel } from "./onnx.js";
 import type { HellaSwagExample } from "./hellaswag.js";
+import { evaluate } from "./hellaswag.js";
+import { GPT, Tokenizer } from "#models/index";
+import { ONNXModel } from "#models/onnx";
 
 const exampleDataset: HellaSwagExample[] = [
   {

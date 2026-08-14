@@ -4,29 +4,6 @@ import { datasets } from "./utils.js";
 
 describe("validator", () => {
   it(
-    "can read and predict randomly on simple_face",
-    { timeout: 20_000 },
-    async () => {
-      const provider = defaultTasks.simpleFace;
-      const dataset = await datasets.loadSimpleFace();
-
-      const validator = new Validator(
-        await provider.getTask(),
-        await provider.getModel(),
-      );
-
-      let hits = 0;
-      let size = 0;
-      for await (const correct of validator.test(dataset)) {
-        if (correct) hits++;
-        size++;
-      }
-
-      expect(hits / size).to.be.greaterThan(0.3);
-    },
-  );
-
-  it(
     "can read and predict randomly on titanic",
     { timeout: 10_000 },
     async () => {
@@ -35,7 +12,7 @@ describe("validator", () => {
 
       const validator = new Validator(
         await provider.getTask(),
-        await provider.getModel(),
+        await provider.modelCard.getModel(),
       );
 
       let hits = 0;
@@ -63,7 +40,7 @@ describe("validator", () => {
 
       const validator = new Validator(
         task,
-        await defaultTasks.lusCovid.getModel(),
+        await defaultTasks.lusCovid.modelCard.getModel(),
       );
 
       let hits = 0;

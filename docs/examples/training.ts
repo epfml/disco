@@ -9,7 +9,7 @@ import type {
   Image,
   Task,
 } from "@epfml/discojs";
-import { Disco, fetchTasks, defaultTasks } from "@epfml/discojs";
+import { Disco, fetchTasks, defaultTasks, defaultModels } from "@epfml/discojs";
 import { loadCSV, loadImagesInDir } from "@epfml/discojs-node";
 import { Server } from "server";
 
@@ -40,11 +40,9 @@ type TaskAndDataset<D extends DataType> = [
 async function main(): Promise<void> {
   // Arbitrary chosen Task ID
   const NAME: string = "titanic";
-
-  // Launch a server instance
   const server = await Server.with(
-    defaultTasks.simpleFace,
-    defaultTasks.titanic,
+    [defaultModels.LUSClassifier, defaultModels.TitanicClassifier],
+    [defaultTasks.lusCovid, defaultTasks.titanic],
   );
   const [handle, url] = await server.serve();
 
@@ -56,19 +54,15 @@ async function main(): Promise<void> {
   let taskAndDataset: TaskAndDataset<"image" | "tabular">;
   switch (NAME) {
     case "titanic": {
-      const task = tasks.get("titanic") as
-        | Task<"tabular", "federated">
-        | undefined;
+      const task = tasks.get(NAME) as Task<"tabular", "federated"> | undefined;
       if (task === undefined) throw new Error("task not found");
       taskAndDataset = [task, loadCSV("../../datasets/titanic_train.csv")];
       break;
     }
-    case "simple_face": {
-      const task = tasks.get("simple_face") as
-        | Task<"image", "federated">
-        | undefined;
+    case "lus_covid": {
+      const task = tasks.get(NAME) as Task<"image", "federated"> | undefined;
       if (task === undefined) throw new Error("task not found");
-      taskAndDataset = [task, await loadSimpleFaceData()];
+      taskAndDataset = [task, await loadLUSCovidData()];
       break;
     }
     default:
@@ -89,12 +83,12 @@ async function main(): Promise<void> {
   });
 }
 
-async function loadSimpleFaceData(): Promise<Dataset<[Image, string]>> {
-  const folder = "../datasets/simple_face";
+async function loadLUSCovidData(): Promise<Dataset<[Image, string]>> {
+  const folder = "../datasets/lus_covid";
 
   const [adults, childs]: Dataset<[Image, string]>[] = [
-    (await loadImagesInDir(path.join(folder, "adult"))).zip(Repeat("adult")),
-    (await loadImagesInDir(path.join(folder, "child"))).zip(Repeat("child")),
+    (await loadImagesInDir(path.join(folder, "COVID+"))).zip(Repeat("COVID+")),
+    (await loadImagesInDir(path.join(folder, "COVID-"))).zip(Repeat("COVID-")),
   ];
 
   return adults.chain(childs);

@@ -57,7 +57,7 @@ Non-mandatory fields will automatically use values from the task specification.
 
 ## Adding new tasks
 
-The CLI can be used on several pre-defined tasks: titanic, simple-face and CIFAR10. In order
+The CLI can be used on several pre-defined tasks: titanic, lus_covid and CIFAR10. In order
 to understand how to add a new task have a look at [TASK.md](../docs/TASK.md).
 
 Once a new task has been defined in `discojs`, it can be loaded in [data.ts](./src/data.ts) as it is already implemented for current tasks. There are currently [multiple classes](../discojs-node/src/loaders) you can use to load data using Node.js and preprocess data: loadImagesInDir, loadCSV and loadText.

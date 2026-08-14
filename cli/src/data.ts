@@ -4,24 +4,6 @@ import { DataFormat, DataType, Image, Task } from "@epfml/discojs";
 import { loadCSV, loadImage, loadImagesInDir } from "@epfml/discojs-node";
 import { Repeat } from "immutable";
 
-async function loadSimpleFaceData(
-  userIdx: number,
-  totalClient: number,
-): Promise<Dataset<DataFormat.Raw["image"]>> {
-  const folder = path.join("..", "datasets", "simple_face");
-
-  const [adults, childs]: Dataset<[Image, string]>[] = [
-    (await loadImagesInDir(path.join(folder, "adult"))).zip(Repeat("adult")),
-    (await loadImagesInDir(path.join(folder, "child"))).zip(Repeat("child")),
-  ];
-
-  const combinded = adults.chain(childs);
-
-  const sharded = combinded.filter((_, i) => i % totalClient === userIdx);
-
-  return sharded;
-}
-
 async function loadLusCovidData(
   userIdx: number,
   totalClient: number,
@@ -101,10 +83,6 @@ export async function getTaskData<D extends DataType>(
   totalClient: number,
 ): Promise<Dataset<DataFormat.Raw[D]>> {
   switch (taskID) {
-    case "simple_face": // remove
-      return (await loadSimpleFaceData(userIdx, totalClient)) as Dataset<
-        DataFormat.Raw[D]
-      >;
     case "titanic":
     case "titanic_decentralized":
       const titanicData = loadCSV(

@@ -1,8 +1,7 @@
 import * as tf from "@tensorflow/tfjs";
 import { List } from "immutable";
-import type { Tokenizer } from "./index.js";
-import { GPT } from "./index.js";
-import type { ONNXModel } from "./onnx.js";
+import type { Tokenizer, ONNXModel } from "#models/index";
+import { GPT } from "#models/index";
 
 export const HELLASWAG_URL =
   "https://raw.githubusercontent.com/rowanz/hellaswag/master/data/hellaswag_val.jsonl";

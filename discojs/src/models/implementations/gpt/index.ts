@@ -7,10 +7,10 @@ import createDebug from "debug";
 import { List, Range } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 
-import type { Batched, Dataset, DataFormat } from "../../index.js";
-import { WeightsContainer } from "../../index.js";
-
-import { BatchLogs, Model, EpochLogs } from "../index.js";
+import { WeightsContainer } from "#weights/index";
+import { Dataset, Batched } from "#dataset/index";
+import { Model, BatchLogs, EpochLogs } from "#models/index";
+import type { DataFormat } from "#types/index";
 
 import { GPTModel } from "./model.js";
 import evaluate from "./evaluate.js";
@@ -25,6 +25,8 @@ export type GPTSerialization = {
 };
 
 export class GPT extends Model<"text"> {
+  readonly datatype = "text" as const;
+
   private readonly model: GPTModel;
 
   readonly #contextLength: number;

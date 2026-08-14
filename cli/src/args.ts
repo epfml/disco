@@ -54,8 +54,7 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     task: {
       type: String,
       alias: "t",
-      description:
-        "Task: tinder_dog, titanic, simple_face, cifar10 or lus_covid",
+      description: "Task: tinder_dog, titanic, cifar10 or lus_covid",
       defaultValue: "tinder_dog",
     },
     numberOfUsers: {
@@ -176,7 +175,6 @@ const supportedTasks = Map(
     Set.of<TaskProvider<"image" | "tabular", Network>>(
       defaultTasks.cifar10,
       defaultTasks.lusCovid,
-      defaultTasks.simpleFace,
       defaultTasks.titanic,
       defaultTasks.tinderDog,
       defaultTasks.mnist,
@@ -279,6 +277,6 @@ export const args: BenchmarkArguments = {
 
       return task;
     },
-    getModel: () => provider.getModel(),
+    modelCard: provider.modelCard,
   },
 };

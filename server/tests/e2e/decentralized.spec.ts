@@ -1,10 +1,17 @@
 import type * as http from "node:http";
-import type { DataType, RoundStatus, Task, TaskProvider } from "@epfml/discojs";
+import type {
+  DataType,
+  RoundStatus,
+  Task,
+  TaskProvider,
+  ModelCard,
+} from "@epfml/discojs";
 import {
   aggregator as aggregators,
   client as clients,
   Disco,
   defaultTasks,
+  defaultModels,
   WeightsContainer,
 } from "@epfml/discojs";
 import { List } from "immutable";
@@ -32,9 +39,10 @@ async function expectWSToBeClose(
 describe("end-to-end decentralized", { timeout: 50_000 }, () => {
   let handle: http.Server | undefined;
   async function startServer(
+    model: ModelCard<DataType>,
     task: TaskProvider<DataType, "decentralized">,
   ): Promise<URL> {
-    const server = await Server.with(task);
+    const server = await Server.with([model], [task]);
 
     let url: URL;
     [handle, url] = await server.serve();
@@ -123,22 +131,34 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
   }
 
   it("single round of cifar 10 with three mean aggregators yields consensus", async () => {
-    const url = await startServer(defaultTasks.cifar10);
+    const url = await startServer(
+      defaultModels.CIFAR10Classifier,
+      defaultTasks.cifar10,
+    );
     await reachConsensus(url, "mean");
   });
 
   it("several rounds of cifar 10 with three mean aggregators yields consensus", async () => {
-    const url = await startServer(defaultTasks.cifar10);
+    const url = await startServer(
+      defaultModels.CIFAR10Classifier,
+      defaultTasks.cifar10,
+    );
     await reachConsensus(url, "mean", 3);
   });
 
   it("single round of cifar 10 with three secure aggregators yields consensus", async () => {
-    const url = await startServer(defaultTasks.cifar10);
+    const url = await startServer(
+      defaultModels.CIFAR10Classifier,
+      defaultTasks.cifar10,
+    );
     await reachConsensus(url, "secure");
   });
 
   it("several rounds of cifar 10 with three secure aggregators yields consensus", async () => {
-    const url = await startServer(defaultTasks.cifar10);
+    const url = await startServer(
+      defaultModels.CIFAR10Classifier,
+      defaultTasks.cifar10,
+    );
     await reachConsensus(url, "secure", 3);
   });
 
@@ -154,10 +174,11 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
         minNbOfParticipants: 2,
       },
     };
-    const url = await startServer({
+    const taskProvider = {
       ...defaultTasks.lusCovid,
       getTask: () => Promise.resolve(task),
-    });
+    };
+    const url = await startServer(defaultModels.LUSClassifier, taskProvider);
     const dataset = await datasets.loadLusCOVID();
 
     /**

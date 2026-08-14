@@ -11,7 +11,7 @@ import { CONFIG } from "@/config";
 
 const debug = createDebug("webapp:store");
 
-const TASKS_TO_FILTER_OUT = Set.of("simple_face", "cifar10");
+const TASKS_TO_FILTER_OUT = Set.of("cifar10");
 
 export const useTasksStore = defineStore("tasks", () => {
   // 3-state variable used to test whether the tasks have been retrieved successfully,
