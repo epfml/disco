@@ -1,9 +1,11 @@
-import { Map } from "immutable";
+import type { Map } from "immutable";
 import * as tf from "@tensorflow/tfjs";
-import { AggregationStep } from "./aggregator.js";
-import { MultiRoundAggregator, ThresholdType } from "./multiround.js";
-import { WeightsContainer, client } from "../index.js";
-import { aggregation } from "../index.js";
+import { AggregationStep } from "#aggregator/aggregator";
+import type { ThresholdType } from "#aggregator/multiround";
+import { MultiRoundAggregator } from "#aggregator/multiround";
+import type { NodeID } from "#client/index";
+import type { WeightsContainer } from "#weights/index";
+import { avg } from "#weights/index";
 
 /**
  * Percentile-based clipping aggregator.
@@ -51,7 +53,7 @@ export class PercentileClippingAggregator extends MultiRoundAggregator {
     this.tauPercentile = tauPercentile;
   }
 
-  override _add(nodeId: client.NodeID, contribution: WeightsContainer): void {
+  override _add(nodeId: NodeID, contribution: WeightsContainer): void {
     this.log(
       this.contributions.hasIn([0, nodeId])
         ? AggregationStep.UPDATE
@@ -74,9 +76,9 @@ export class PercentileClippingAggregator extends MultiRoundAggregator {
     if (this.prevAggregate) {
       centerReference = this.prevAggregate.map((t) => tf.clone(t));
     } else {
-      centerReference = aggregation
-        .avg(currentContributions.values())
-        .map((t) => tf.clone(t));
+      centerReference = avg(currentContributions.values()).map((t) =>
+        tf.clone(t),
+      );
     }
 
     // Step 2: Center the weights with respect to the reference
@@ -103,7 +105,7 @@ export class PercentileClippingAggregator extends MultiRoundAggregator {
     centeredWeights.forEach((w) => w.dispose());
 
     // Step 6: Average the clipped weights and add back the reference
-    const clippedAvg = aggregation.avg(clippedWeights);
+    const clippedAvg = avg(clippedWeights);
     const result = centerReference.add(clippedAvg);
 
     centerReference.dispose();
@@ -134,7 +136,7 @@ export class PercentileClippingAggregator extends MultiRoundAggregator {
 
   override makePayloads(
     weights: WeightsContainer,
-  ): Map<client.NodeID, WeightsContainer> {
+  ): Map<NodeID, WeightsContainer> {
     return this.nodes.toMap().map(() => weights);
   }
 }

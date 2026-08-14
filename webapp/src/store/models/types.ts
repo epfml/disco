@@ -1,13 +1,13 @@
 import type { Map } from "immutable";
 
-import type { serialization } from "@epfml/discojs";
+import type { Encoded } from "@epfml/discojs";
 
 export type ModelID = number;
 
 export interface Infos {
   taskID: string;
   dateSaved: Date;
-  encoded: serialization.Encoded;
+  encoded: Encoded;
 }
 
 // only `ref` is `idToModel`

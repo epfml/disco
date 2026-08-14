@@ -3,8 +3,8 @@ import type WebSocket from "ws";
 import { Map } from "immutable";
 import * as msgpack from "@msgpack/msgpack";
 
-import { client } from "@epfml/discojs";
-import type { DataType, Network, Task } from "@epfml/discojs";
+import { mtype } from "@epfml/discojs";
+import type { DataType, Network, Task, NodeID } from "@epfml/discojs";
 
 const debug = createDebug("server:controllers");
 
@@ -37,7 +37,7 @@ export abstract class TrainingController<
    * the list allows updating participants about the training status
    * i.e. waiting for more participants or resuming training
    */
-  protected connections = Map<client.NodeID, WebSocket>();
+  protected connections = Map<NodeID, WebSocket>();
 
   constructor(protected readonly task: Task<D, N>) {}
 
@@ -48,7 +48,7 @@ export abstract class TrainingController<
    *
    * @param currentId the id of the participant that just joined
    */
-  protected sendEnoughParticipantsMsgIfNeeded(currentId: client.NodeID) {
+  protected sendEnoughParticipantsMsgIfNeeded(currentId: NodeID) {
     // If we are currently waiting for more participants to join and we now have enough,
     // broadcast to previously waiting participants that the training can start
     if (
@@ -64,8 +64,8 @@ export abstract class TrainingController<
             "Sending enough-participant message to client [%s]",
             participantId.slice(0, 4),
           );
-          const msg: client.messages.EnoughParticipants = {
-            type: client.messages.type.EnoughParticipants,
+          const msg: mtype.EnoughParticipants = {
+            type: mtype.MType.EnoughParticipants,
             nbOfParticipants: this.connections.size,
           };
           participantWs.send(msgpack.encode(msg));
@@ -86,8 +86,8 @@ export abstract class TrainingController<
         "Telling remaining client [%s] to wait for participants",
         participantId.slice(0, 4),
       );
-      const msg: client.messages.WaitingForMoreParticipants = {
-        type: client.messages.type.WaitingForMoreParticipants,
+      const msg: mtype.WaitingForMoreParticipants = {
+        type: mtype.MType.WaitingForMoreParticipants,
         nbOfParticipants: this.connections.size,
       };
       participantWs.send(msgpack.encode(msg));

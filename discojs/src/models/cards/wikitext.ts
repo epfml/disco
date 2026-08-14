@@ -1,5 +1,6 @@
-import { Model, ModelCard } from "../index.js";
-import { GPT } from "../index.js";
+import type { Model } from "#models/model";
+import type { ModelCard } from "#models/model_card";
+import { GPT } from "#models/implementations/index";
 
 export const Wikitext: ModelCard<"text"> = {
   card: {

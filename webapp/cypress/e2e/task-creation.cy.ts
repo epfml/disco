@@ -1,4 +1,4 @@
-import { serialization, type Task } from "@epfml/discojs";
+import { deserializeTaskFromJSON, type Task } from "@epfml/discojs";
 
 import * as tf from "@tensorflow/tfjs";
 
@@ -64,7 +64,7 @@ it("submits with tabular task", () => {
 
   cy.wait("@posted")
     .its("request.body.task")
-    .then(serialization.task.deserializeFromJSON)
+    .then(deserializeTaskFromJSON)
     .should("deep.equal", {
       id: "id",
       dataType: "tabular",

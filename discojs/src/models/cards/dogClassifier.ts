@@ -1,5 +1,6 @@
-import { Model, ModelCard } from "../index.js";
-import { model } from "../implementations/dogClassifierModel.js";
+import type { Model } from "#models/model";
+import type { ModelCard } from "#models/model_card";
+import { model } from "#models/implementations/dogClassifierModel";
 
 export const DogClassifier: ModelCard<"image"> = {
   card: {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { HellaSwagExample } from "./hellaswag.js";
-import { evaluate } from "./hellaswag.js";
+import type { HellaSwagExample } from "#models/implementations/hellaswag";
+import { evaluate } from "#models/implementations/hellaswag";
 import { GPT, Tokenizer } from "#models/index";
 import { ONNXModel } from "#models/onnx";
 

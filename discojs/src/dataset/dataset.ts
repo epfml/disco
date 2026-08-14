@@ -1,7 +1,7 @@
 import createDebug from "debug";
 import { List, Range } from "immutable";
 
-import { Batched } from "./types.js";
+import type { Batched } from "#dataset/types";
 
 const debug = createDebug("discojs:dataset");
 

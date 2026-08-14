@@ -1,9 +1,10 @@
 import createDebug from "debug";
 import { Map, Set } from "immutable";
 
-import type { client, WeightsContainer } from "../index.js";
+import type { WeightsContainer } from "#weights/index";
+import type { NodeID } from "#client/types";
 
-import { EventEmitter } from "../utils/event_emitter.js";
+import { EventEmitter } from "#utils/event_emitter";
 
 const debug = createDebug("discojs:aggregator");
 
@@ -27,14 +28,14 @@ export abstract class Aggregator extends EventEmitter<{
    * Contains the ids of all active nodes, i.e. members of the aggregation group at
    * a given round. It is a subset of all the nodes available in the network.
    */
-  protected _nodes: Set<client.NodeID>;
+  protected _nodes: Set<NodeID>;
   /**
    * Contains the contributions received from active nodes, accessible by node id.
    * It defines the effective aggregation group, which is possibly a subset
    * of all active nodes, depending on the aggregation scheme.
    */
   // communication round -> NodeID -> WeightsContainer
-  protected contributions: Map<number, Map<client.NodeID, WeightsContainer>>;
+  protected contributions: Map<number, Map<NodeID, WeightsContainer>>;
 
   /**
    * The current aggregation round, used for assessing whether a node contribution is recent enough
@@ -88,7 +89,7 @@ export abstract class Aggregator extends EventEmitter<{
    * @param contribution The node's contribution
    */
   add(
-    nodeId: client.NodeID,
+    nodeId: NodeID,
     contribution: WeightsContainer,
     aggregationRound: number,
     communicationRound?: number,
@@ -125,7 +126,7 @@ export abstract class Aggregator extends EventEmitter<{
   // Abstract method to be implemented by subclasses
   // Handles logging and adding the contribution to the list of the current round's contributions
   protected abstract _add(
-    nodeId: client.NodeID,
+    nodeId: NodeID,
     contribution: WeightsContainer,
     communicationRound?: number,
   ): void;
@@ -137,7 +138,7 @@ export abstract class Aggregator extends EventEmitter<{
    * @param nodeId the node id of the contribution to be added
    * @param round the aggregation round of the contribution to be added
    */
-  isValidContribution(nodeId: client.NodeID, round: number): boolean {
+  isValidContribution(nodeId: NodeID, round: number): boolean {
     if (!this.nodes.has(nodeId)) {
       debug("Contribution rejected because node id is not registered");
       return false;
@@ -172,7 +173,7 @@ export abstract class Aggregator extends EventEmitter<{
    * @param step The aggregation step
    * @param from The node which triggered the logging message
    */
-  log(step: AggregationStep, from?: client.NodeID): void {
+  log(step: AggregationStep, from?: NodeID): void {
     switch (step) {
       case AggregationStep.ADD:
         debug(
@@ -206,7 +207,7 @@ export abstract class Aggregator extends EventEmitter<{
    * @param nodeId The node to be added
    * @returns True is the node wasn't already in the list of nodes, False if already included
    */
-  registerNode(nodeId: client.NodeID): boolean {
+  registerNode(nodeId: NodeID): boolean {
     if (!this.nodes.has(nodeId)) {
       this._nodes = this._nodes.add(nodeId);
       return true;
@@ -218,7 +219,7 @@ export abstract class Aggregator extends EventEmitter<{
    * Remove a node's id from the set of active nodes.
    * @param nodeId The node to be removed
    */
-  removeNode(nodeId: client.NodeID): void {
+  removeNode(nodeId: NodeID): void {
     this._nodes = this._nodes.delete(nodeId);
   }
 
@@ -228,7 +229,7 @@ export abstract class Aggregator extends EventEmitter<{
    * during this aggregation round.
    * @param nodeIds The new set of nodes
    */
-  setNodes(nodeIds: Set<client.NodeID>): void {
+  setNodes(nodeIds: Set<NodeID>): void {
     this._nodes = nodeIds;
   }
 
@@ -247,16 +248,14 @@ export abstract class Aggregator extends EventEmitter<{
    * Constructs the payloads sent to other nodes as contribution.
    * @param base Object from which the payload is computed
    */
-  abstract makePayloads(
-    base: WeightsContainer,
-  ): Map<client.NodeID, WeightsContainer>;
+  abstract makePayloads(base: WeightsContainer): Map<NodeID, WeightsContainer>;
 
   abstract isFull(): boolean;
 
   /**
    * The set of node ids, representing our neighbors within the network.
    */
-  get nodes(): Set<client.NodeID> {
+  get nodes(): Set<NodeID> {
     return this._nodes;
   }
 

@@ -1,6 +1,7 @@
 import "@tensorflow/tfjs-node";
 
-import { Disco, fetchTasks, models, Task } from "@epfml/discojs";
+import type { GPT, Task } from "@epfml/discojs";
+import { Disco, fetchTasks } from "@epfml/discojs";
 import {
   saveModelToDisk,
   loadModelFromDisk,
@@ -37,14 +38,12 @@ async function main(): Promise<void> {
     await disco.trainFully(dataset);
 
     // Get the model and save the trained model
-    model = disco.trainer.model as models.GPT;
+    model = disco.trainer.model as GPT;
     await saveModelToDisk(model, modelFolder, modelFileName);
     await disco.close();
   } else {
     // Load the trained model
-    model = (await loadModelFromDisk(
-      `${modelFolder}/${modelFileName}`,
-    )) as models.GPT;
+    model = (await loadModelFromDisk(`${modelFolder}/${modelFileName}`)) as GPT;
   }
 
   // Preprocess prompt

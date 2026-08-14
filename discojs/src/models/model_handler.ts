@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import type { DataType } from "#types/index";
 
-import { ModelCardInfo } from "./model_card.js";
+import { ModelCardInfo } from "#models/model_card";
 
 function urlToModels(base: URL): URL {
   const ret = new URL(base);

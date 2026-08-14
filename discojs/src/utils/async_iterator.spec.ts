@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { gather, split } from "./async_iterator.js";
+import { gather, split } from "#utils/async_iterator";
 
 // Array.fromAsync not yet widely used (2024)
 async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {

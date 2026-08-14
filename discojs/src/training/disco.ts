@@ -1,27 +1,24 @@
-import {
-  async_iterator,
-  client as clients,
-  BatchLogs,
-  ConsoleLogger,
-  EpochLogs,
-  Logger,
-  processing,
-  Dataset,
-} from "../index.js";
-import type {
-  Batched,
-  DataFormat,
-  DataType,
-  Model,
-  Network,
-  Task,
-} from "../index.js";
-import type { Aggregator } from "../aggregator/index.js";
-import { getAggregator } from "../aggregator/index.js";
-import { enumerate, split } from "../utils/async_iterator.js";
-import { EventEmitter } from "../utils/event_emitter.js";
+import type { Model } from "#models/index";
+import type { DataType, DataFormat, Network } from "#types/index";
+import type { Task } from "#task/index";
+import type { Batched } from "#dataset/index";
+import type { Aggregator } from "#aggregator/index";
 
-import { RoundLogs, Trainer } from "./trainer.js";
+import { Dataset } from "#dataset/index";
+import type { Logger } from "#logging/index";
+import { ConsoleLogger } from "#logging/index";
+import type { BatchLogs, EpochLogs } from "#models/index";
+import { getAggregator } from "#aggregator/index";
+import { enumerate, split } from "#utils/async_iterator";
+import { EventEmitter } from "#utils/event_emitter";
+
+import * as clients from "#client/index";
+import * as processing from "#processing/index";
+import * as async_iterator from "#utils/async_iterator";
+
+import type { RoundLogs } from "#training/trainer";
+import { Trainer } from "#training/trainer";
+import type { RoundStatus, SummaryLogs } from "#training/types";
 
 interface DiscoConfig<N extends Network> {
   scheme: N;
@@ -36,25 +33,6 @@ interface DiscoConfig<N extends Network> {
    */
   preprocessOnce: boolean;
 }
-
-export type SummaryLogs = {
-  round: number;
-  epoch: number;
-  trainingLoss: number;
-  trainingAccuracy: number;
-  peakMemory: number;
-  epochTime: number;
-  roundValidationLoss?: number;
-  roundValidationAccuracy?: number;
-  validationLoss?: number;
-  validationAccuracy?: number;
-};
-
-export type RoundStatus =
-  | "not enough participants" // Server notification to wait for more participants
-  | "updating model" // fetching/aggregating local updates into a global model
-  | "local training" // Training the model locally
-  | "connecting to peers"; // for decentralized only, fetch the server's list of participating peers
 
 function buildSummaryLog(
   roundNum: number,

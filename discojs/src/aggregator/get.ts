@@ -1,6 +1,9 @@
-import type { DataType, Network, Task } from "../index.js";
-import { aggregator } from "../index.js";
-import { ByzantineRobustAggregator } from "./byzantine.js";
+import type { DataType, Network } from "#types/index";
+import type { Task } from "#task/index";
+import type { Aggregator } from "#aggregator/aggregator";
+import { MeanAggregator } from "#aggregator/mean";
+import { SecureAggregator } from "#aggregator/secure";
+import { ByzantineRobustAggregator } from "#aggregator/byzantine";
 
 type AggregatorOptions = Partial<{
   scheme: Task<DataType, Network>["trainingInformation"]["scheme"]; // if undefined, fallback on task.trainingInformation.scheme
@@ -30,7 +33,7 @@ type AggregatorOptions = Partial<{
 export function getAggregator(
   task: Task<DataType, Network>,
   options: AggregatorOptions = {},
-): aggregator.Aggregator {
+): Aggregator {
   const scheme = options.scheme ?? task.trainingInformation.scheme;
 
   // If options are not specified, we default to expecting a contribution from all peers, so we set the threshold to 100%
@@ -65,7 +68,7 @@ export function getAggregator(
       );
     }
     case "mean":
-      return new aggregator.MeanAggregator(
+      return new MeanAggregator(
         networkOptions.roundCutOff,
         networkOptions.threshold,
         networkOptions.thresholdType,
@@ -76,8 +79,6 @@ export function getAggregator(
           "secure aggregation is currently supported for decentralized only",
         );
       }
-      return new aggregator.SecureAggregator(
-        task.trainingInformation.maxShareValue,
-      );
+      return new SecureAggregator(task.trainingInformation.maxShareValue);
   }
 }

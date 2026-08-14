@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { Set } from "immutable";
+import type { Set } from "immutable";
 import { ref, watch } from "vue";
 
 import type { Image } from "@epfml/discojs";

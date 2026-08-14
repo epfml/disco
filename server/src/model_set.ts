@@ -1,10 +1,16 @@
 import { Map } from "immutable";
 import "@tensorflow/tfjs-node";
 
-import type { DataType, ModelCardInfo, ModelCard } from "@epfml/discojs";
-import { EventEmitter, Model, serialization } from "@epfml/discojs";
+import type {
+  DataType,
+  ModelCardInfo,
+  ModelCard,
+  Model,
+  Encoded,
+} from "@epfml/discojs";
+import { EventEmitter, modelEncode, isEncoded } from "@epfml/discojs";
 
-type EncodedModel = serialization.Encoded;
+type EncodedModel = Encoded;
 type AvailableModel = [ModelCardInfo<DataType>, EncodedModel];
 
 /**
@@ -77,13 +83,13 @@ export class ModelSet extends EventEmitter<{
     let encodedModel: EncodedModel;
     if (!Array.isArray(newModel)) {
       const model = await newModel.getModel();
-      encodedModel = await serialization.model.encode(model);
+      encodedModel = await modelEncode(model);
     } else {
       const model = newModel[1];
-      if (serialization.isEncoded(model)) {
+      if (isEncoded(model)) {
         encodedModel = model; // don't do anything if already encoded
       } else {
-        encodedModel = await serialization.model.encode(model);
+        encodedModel = await modelEncode(model);
       }
     }
 

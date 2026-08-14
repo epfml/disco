@@ -1,4 +1,5 @@
-import { Dataset, Text } from "@epfml/discojs";
+import type { Text } from "@epfml/discojs";
+import { Dataset } from "@epfml/discojs";
 
 export function load(file: Blob): Dataset<Text> {
   return new Dataset(async function* () {

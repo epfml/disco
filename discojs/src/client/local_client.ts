@@ -1,5 +1,5 @@
-import { WeightsContainer } from "../index.js";
-import { Client } from "./client.js";
+import type { WeightsContainer } from "#weights/index";
+import { Client } from "#client/client";
 
 /**
  * A LocalClient represents a Disco user training only on their local data without collaborating

@@ -1,6 +1,4 @@
 {
   "extends": "./tsconfig.base.json",
-  "compilerOptions": {
-    "customConditions": ["@disco/source"]
-  }
+  "exclude": ["**/*.spec.ts"]
 }

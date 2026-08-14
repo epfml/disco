@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { WeightsContainer } from "./index.js";
+import { WeightsContainer } from "#weights/index";
 import {
   frobeniusNorm,
   clipNorm,
   addOptimalNoise,
   getClippingRadius,
-} from "./privacy.js";
+} from "#root/privacy";
 import * as tf from "@tensorflow/tfjs";
 import { List } from "immutable";
 

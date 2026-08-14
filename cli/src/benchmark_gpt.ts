@@ -2,13 +2,13 @@ import "@tensorflow/tfjs-node";
 import { List } from "immutable";
 import { parse } from "ts-command-line-args";
 
-import type { Network, Task } from "@epfml/discojs";
+import type { Network, Task, GPTConfig } from "@epfml/discojs";
 import {
-  async_iterator,
+  gather,
   defaultTasks,
   defaultModels,
   fetchTasks,
-  models,
+  GPT,
 } from "@epfml/discojs";
 import { loadModelFromDisk, loadText } from "@epfml/discojs-node";
 
@@ -109,8 +109,8 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     const epochsCount = 1;
     const iterationsPerEpoch = 10;
 
-    const config: models.GPTConfig = {
-      modelType: modelType as models.GPTConfig["modelType"],
+    const config: GPTConfig = {
+      modelType: modelType as GPTConfig["modelType"],
       maxIter: iterationsPerEpoch,
       lr: 0.0001,
       contextLength,
@@ -130,16 +130,14 @@ async function main(args: Required<CLIArguments>): Promise<void> {
       .batch(batchSize);
 
     // Init and train the model
-    const model = new models.GPT(config);
+    const model = new GPT(config);
     console.log(
       `\tmodel type ${modelType} \n\tbatch size ${batchSize} \n\tcontext length ${contextLength}`,
     );
 
     let epochTime = performance.now();
     for (let epochsCounter = 1; epochsCounter <= epochsCount; epochsCounter++) {
-      const [_, logs] = await async_iterator.gather(
-        model.train(preprocessedDataset),
-      );
+      const [_, logs] = await gather(model.train(preprocessedDataset));
       epochTime = performance.now() - epochTime;
       const msPerToken =
         epochTime /
@@ -154,7 +152,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
      */
   } else {
     const model = await loadModelFromDisk(modelPath);
-    if (!(model instanceof models.GPT)) {
+    if (!(model instanceof GPT)) {
       throw new Error("Loaded model isn't a GPT model");
     }
 

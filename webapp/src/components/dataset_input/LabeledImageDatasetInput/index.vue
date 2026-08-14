@@ -47,7 +47,7 @@
 <script lang="ts" setup>
 defineOptions({ name: "LabeledImageDatasetInput" });
 
-import { Set } from "immutable";
+import type { Set } from "immutable";
 import { ref } from "vue";
 
 import DatasetInput from "../DatasetInput.vue";

@@ -1,8 +1,8 @@
 import { Set } from "immutable";
 import { describe, expect, it } from "vitest";
 
-import { WeightsContainer } from "../index.js";
-import { PercentileClippingAggregator } from "./percentile_clipping.js";
+import { WeightsContainer } from "#weights/index";
+import { PercentileClippingAggregator } from "#aggregator/percentile_clipping";
 
 async function WSIntoArrays(ws: WeightsContainer): Promise<number[][]> {
   return Promise.all(ws.weights.map(async (t) => Array.from(await t.data())));

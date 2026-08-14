@@ -2,7 +2,7 @@ import { Repeat, Seq } from "immutable";
 import { createJimp } from "@jimp/core";
 import * as jimpResize from "@jimp/plugin-resize";
 
-import { Image } from "../index.js";
+import { Image } from "#dataset/index";
 
 /** Image where intensity is represented in the range 0..1 */
 export class NormalizedImage<
@@ -90,15 +90,15 @@ export function removeAlpha<W extends number, H extends number>(
 }
 
 /** Convert monochrome images to multicolor */
-export function expandToMulticolor<W extends number, H extends number>(
+function expandToMulticolor<W extends number, H extends number>(
   image: Image<1, W, H>,
 ): Image<3, W, H>;
-export function expandToMulticolor<
+function expandToMulticolor<
   D extends 3 | 4,
   W extends number,
   H extends number,
 >(image: Image<1 | D, W, H>): Image<D, W, H>;
-export function expandToMulticolor<W extends number, H extends number>(
+function expandToMulticolor<W extends number, H extends number>(
   image: Image<1 | 3 | 4, W, H>,
 ): Image<3 | 4, W, H> {
   switch (image.depth) {

@@ -616,7 +616,7 @@ import * as z from "zod";
 import * as tf from "@tensorflow/tfjs";
 
 import {
-  models,
+  TFJS,
   pushTask,
   Task,
   Tokenizer,
@@ -941,7 +941,7 @@ async function onSubmit(form: unknown): Promise<void> {
           loss,
           optimizer: tf.train[optimizer.name](optimizer.learningRate),
         });
-        model = new models.TFJS(task.dataType, loaded);
+        model = new TFJS(task.dataType, loaded);
         break;
       }
       case "text":

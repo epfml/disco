@@ -1,10 +1,24 @@
 {
   "extends": "../tsconfig.base.lib.json",
   "compilerOptions": {
+    // Copied from `package.json` since some tools don't work without it
+    "paths": {
+      "#root/*": ["./src/*"],
+      "#aggregator/*": ["./src/aggregator/*"],
+      "#client/*": ["./src/client/*"],
+      "#dataset/*": ["./src/dataset/*"],
+      "#types/*": ["./src/types/*"],
+      "#logging/*": ["./src/logging/*"],
+      "#models/*": ["./src/models/*"],
+      "#processing/*": ["./src/processing/*"],
+      "#serialization/*": ["./src/serialization/*"],
+      "#task/*": ["./src/task/*"],
+      "#training/*": ["./src/training/*"],
+      "#utils/*": ["./src/utils/*"],
+      "#weights/*": ["./src/weights/*"]
+    },
     "rootDir": "./src",
-    "outDir": "dist",
-    "composite": true
+    "outDir": "dist"
   },
-  "include": ["src"],
-  "exclude": ["**/*.spec.ts"]
+  "include": ["src"]
 }

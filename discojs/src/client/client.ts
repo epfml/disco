@@ -1,19 +1,18 @@
 import createDebug from "debug";
 
-import type {
-  DataType,
-  Model,
-  Network,
-  RoundStatus,
-  Task,
-  WeightsContainer,
-} from "../index.js";
-import { serialization } from "../index.js";
-import type { NodeID } from "./types.js";
-import type { EventConnection } from "./event_connection.js";
-import type { Aggregator } from "../aggregator/index.js";
-import { EventEmitter } from "../utils/event_emitter.js";
-import { type } from "./messages.js";
+import type { Model } from "#models/index";
+import type { DataType, Network } from "#types/index";
+import type { Task } from "#task/index";
+import type { WeightsContainer } from "#weights/index";
+import type { Aggregator } from "#aggregator/index";
+import type { RoundStatus } from "#training/types";
+import { EventEmitter } from "#utils/event_emitter";
+
+import { modelDecode } from "#serialization/index";
+
+import type { EventConnection } from "#client/event_connection";
+import type { NodeID } from "#client/types";
+import { MType } from "#client/mtype";
 
 const debug = createDebug("discojs:client");
 
@@ -120,7 +119,7 @@ export abstract class Client<N extends Network> extends EventEmitter<{
   protected setupServerCallbacks(setMessageInversionFlag: () => void) {
     // Setup an event callback if the server signals that we should
     // wait for more participants
-    this.server.on(type.WaitingForMoreParticipants, (event) => {
+    this.server.on(MType.WaitingForMoreParticipants, (event) => {
       if (this.promiseForMoreParticipants !== undefined)
         throw new Error(
           "Server sent multiple WaitingForMoreParticipants messages",
@@ -143,7 +142,7 @@ export abstract class Client<N extends Network> extends EventEmitter<{
     // and directly follows with an EnoughParticipants message when the 2nd participant joins
     // However, the EnoughParticipants can arrive before the NewNodeInfo (which can be much bigger)
     // so we check whether we received the EnoughParticipants before being assigned a node ID
-    this.server.once(type.EnoughParticipants, (event) => {
+    this.server.once(MType.EnoughParticipants, (event) => {
       if (this._ownId === undefined) {
         setMessageInversionFlag();
         this.nbOfParticipants = event.nbOfParticipants;
@@ -160,7 +159,7 @@ export abstract class Client<N extends Network> extends EventEmitter<{
   protected async createPromiseForMoreParticipants(): Promise<void> {
     return new Promise<void>((resolve) => {
       // "once" is important because we can't resolve the same promise multiple times
-      this.server.once(type.EnoughParticipants, (event) => {
+      this.server.once(MType.EnoughParticipants, (event) => {
         debug(
           `[${shortenId(this.ownId)}] received EnoughParticipants message from server`,
         );
@@ -201,7 +200,7 @@ export abstract class Client<N extends Network> extends EventEmitter<{
     if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`);
 
     const encoded = new Uint8Array(await response.arrayBuffer());
-    return await serialization.model.decode(encoded);
+    return await modelDecode(encoded);
   }
 
   /**

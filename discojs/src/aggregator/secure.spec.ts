@@ -1,13 +1,10 @@
 import { List, Map, Range, Set } from "immutable";
 import { assert, describe, expect, it } from "vitest";
-import { communicate, setupNetwork, wsIntoArrays } from "../aggregator.spec.js";
-import {
-  WeightsContainer,
-  aggregation,
-  aggregator as aggregators,
-} from "../index.js";
-import { MeanAggregator } from "./mean.js";
-import { SecureAggregator } from "./secure.js";
+import { communicate, setupNetwork, wsIntoArrays } from "#root/aggregator.spec";
+import { sum, avg, WeightsContainer } from "#weights/index";
+
+import { MeanAggregator } from "#aggregator/mean";
+import { SecureAggregator } from "#aggregator/secure";
 
 describe("secret shares test", () => {
   const epsilon = 1e-4;
@@ -22,7 +19,7 @@ describe("secret shares test", () => {
   function buildShares(): List<List<WeightsContainer>> {
     const nodes = Set(secrets.keys()).map(String);
     return secrets.map((secret) => {
-      const aggregator = new aggregators.SecureAggregator();
+      const aggregator = new SecureAggregator();
       aggregator.setNodes(nodes);
       return aggregator.generateAllShares(secret);
     });
@@ -33,12 +30,12 @@ describe("secret shares test", () => {
   ): List<WeightsContainer> {
     return Range(0, secrets.size)
       .map((idx) => allShares.map((shares) => shares.get(idx)))
-      .map((shares) => aggregation.sum(shares as List<WeightsContainer>))
+      .map((shares) => sum(shares as List<WeightsContainer>))
       .toList();
   }
 
   it("recover secrets from shares", () => {
-    const recovered = buildShares().map((shares) => aggregation.sum(shares));
+    const recovered = buildShares().map((shares) => sum(shares));
     assert.isTrue(
       (
         recovered.zip(secrets) as List<[WeightsContainer, WeightsContainer]>
@@ -47,7 +44,7 @@ describe("secret shares test", () => {
   });
 
   it("derive aggregation result from partial sums", () => {
-    const actual = aggregation.avg(buildPartialSums(buildShares()));
+    const actual = avg(buildPartialSums(buildShares()));
     assert.isTrue(actual.equals(expected, epsilon));
   });
 });

@@ -1,6 +1,6 @@
 import { Repeat } from "immutable";
 import { describe, expect, it } from "vitest";
-import { Tokenizer } from "./tokenizer.js";
+import { Tokenizer } from "#models/tokenizer";
 
 describe("text processing", () => {
   const text = [

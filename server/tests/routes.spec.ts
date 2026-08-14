@@ -15,9 +15,11 @@ import {
   defaultTasks,
   fetchModels,
   fetchTasks,
-  models,
   pushTask,
-  serialization,
+  modelDecode,
+  modelEncode,
+  serializeTaskToJSON,
+  TFJS,
 } from "@epfml/discojs";
 
 import { Server } from "../src/index.js";
@@ -228,8 +230,8 @@ describe("GET /tasks/:id/model.json", { timeout: 20_000 }, () => {
     expect(res.status).toBe(200);
     const encoded = new Uint8Array(await res.arrayBuffer());
     expect(encoded.length).toBeGreaterThan(0);
-    const model = await serialization.model.decode(encoded);
-    expect(model).toBeInstanceOf(models.TFJS);
+    const model = await modelDecode(encoded);
+    expect(model).toBeInstanceOf(TFJS);
   });
 
   it("answers 404 for an unknown task", async () => {
@@ -275,7 +277,7 @@ describe("POST /tasks", { timeout: 20_000 }, () => {
     const task = await newTask();
 
     const res = await postTask(url, {
-      task: serialization.task.serializeToJSON(task),
+      task: serializeTaskToJSON(task),
       model: defaultModels.TitanicClassifier.card.id,
     });
 
@@ -291,9 +293,7 @@ describe("POST /tasks", { timeout: 20_000 }, () => {
     );
 
     const res = await postTask(url, {
-      task: serialization.task.serializeToJSON(
-        await defaultTasks.titanic.getTask(),
-      ),
+      task: serializeTaskToJSON(await defaultTasks.titanic.getTask()),
       model: defaultModels.TitanicClassifier.card.id,
     });
 
@@ -306,12 +306,12 @@ describe("POST /tasks", { timeout: 20_000 }, () => {
       [defaultTasks.titanic],
     );
     const task = await newTask();
-    const encoded = await serialization.model.encode(
+    const encoded = await modelEncode(
       await defaultModels.TitanicClassifier.getModel(),
     );
 
     const res = await postTask(url, {
-      task: serialization.task.serializeToJSON(task),
+      task: serializeTaskToJSON(task),
       model: [...encoded],
     });
 
@@ -335,7 +335,7 @@ describe("POST /tasks", { timeout: 20_000 }, () => {
       [defaultModels.TitanicClassifier],
       [defaultTasks.titanic],
     );
-    const task = serialization.task.serializeToJSON(await newTask());
+    const task = serializeTaskToJSON(await newTask());
 
     // no model at all
     expect((await postTask(url, { task })).status).toBe(400);
@@ -350,12 +350,12 @@ describe("POST /tasks", { timeout: 20_000 }, () => {
     );
     // an image model, while the task is tabular. The mismatch is caught from
     // the model itself, nothing in the request states its data type
-    const encoded = await serialization.model.encode(
+    const encoded = await modelEncode(
       await defaultModels.LUSClassifier.getModel(),
     );
 
     const res = await postTask(url, {
-      task: serialization.task.serializeToJSON(await newTask()),
+      task: serializeTaskToJSON(await newTask()),
       model: [...encoded],
     });
 
@@ -373,7 +373,7 @@ describe("POST /tasks", { timeout: 20_000 }, () => {
     );
 
     const res = await postTask(url, {
-      task: serialization.task.serializeToJSON(await newTask()),
+      task: serializeTaskToJSON(await newTask()),
       model: "not-a-model",
     });
 
@@ -387,7 +387,7 @@ describe("POST /tasks", { timeout: 20_000 }, () => {
     );
 
     const res = await postTask(url, {
-      task: serialization.task.serializeToJSON(await newTask()), // tabular
+      task: serializeTaskToJSON(await newTask()), // tabular
       model: defaultModels.LUSClassifier.card.id, // image
     });
 
@@ -416,7 +416,7 @@ describe("POST /tasks", { timeout: 20_000 }, () => {
     const task = await newTask();
 
     const posted = await postTask(url, {
-      task: serialization.task.serializeToJSON(task),
+      task: serializeTaskToJSON(task),
       model: defaultModels.TitanicClassifier.card.id,
     });
     expect(posted.status).toBe(200);

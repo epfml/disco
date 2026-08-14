@@ -1,6 +1,7 @@
-import type { WeightsContainer } from "../index.js";
-import { SecureAggregator } from "./secure.js";
-import { aggregation } from "../index.js";
+import type { WeightsContainer } from "#weights/index";
+import { avg } from "#weights/index";
+
+import { SecureAggregator } from "#aggregator/secure";
 
 /**
  * Aggregator that implements secure multi-party computation with history-based momentum smoothing.
@@ -43,15 +44,16 @@ export class SecureHistoryAggregator extends SecureAggregator {
     if (!currentContributions)
       throw new Error("aggregating without any contribution");
 
-    const avg = aggregation.avg(currentContributions.values());
+    const contribAvg = avg(currentContributions.values());
 
     if (this.prevAggregate === null) {
-      this.prevAggregate = avg;
-      return avg;
+      this.prevAggregate = contribAvg;
+      return contribAvg;
     }
 
-    const updatedMomentum = this.prevAggregate.mapWith(avg, (prevT, currT) =>
-      prevT.mul(this.beta).add(currT.mul(1 - this.beta)),
+    const updatedMomentum = this.prevAggregate.mapWith(
+      contribAvg,
+      (prevT, currT) => prevT.mul(this.beta).add(currT.mul(1 - this.beta)),
     );
 
     // Dispose old tensors to avoid memory leaks

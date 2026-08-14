@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-import type { DataType, Network } from "../index.js";
+import type { DataType, Network } from "#types/index";
 
-import { DisplayInformation } from "./display_information.js";
-import { TrainingInformation } from "./training_information.js";
+import { DisplayInformation } from "#task/display_information";
+import { TrainingInformation } from "#task/training_information";
 
 export namespace Task {
   export type ID = string;

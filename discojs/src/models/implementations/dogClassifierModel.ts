@@ -1,6 +1,6 @@
 import * as tf from "@tensorflow/tfjs";
 
-import { TFJS } from "../index.js";
+import { TFJS } from "#models/tfjs";
 
 export function model() {
   const seed = 42; // set a seed to ensure reproducibility during GDHF demo

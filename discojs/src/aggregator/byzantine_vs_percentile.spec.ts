@@ -1,9 +1,9 @@
 import { Set } from "immutable";
 import { describe, expect, it } from "vitest";
 
-import { WeightsContainer } from "../index.js";
-import { ByzantineRobustAggregator } from "./byzantine.js";
-import { PercentileClippingAggregator } from "./percentile_clipping.js";
+import { WeightsContainer } from "#weights/index";
+import { ByzantineRobustAggregator } from "#aggregator/byzantine";
+import { PercentileClippingAggregator } from "#aggregator/percentile_clipping";
 
 // Helper to convert WeightsContainer → number[][] for easy assertions
 async function WSIntoArrays(ws: WeightsContainer): Promise<number[][]> {

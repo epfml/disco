@@ -3,9 +3,13 @@ import type { Request, Response } from "express";
 import express from "express";
 import { Set } from "immutable";
 
-import type { DataType, ModelCardInfo, Network } from "@epfml/discojs";
+import type { DataType, ModelCardInfo, Network, Encoded } from "@epfml/discojs";
 import { Task } from "@epfml/discojs";
-import { serialization } from "@epfml/discojs";
+import {
+  serializeTaskToJSON,
+  deserializeTaskFromJSON,
+  modelDecode,
+} from "@epfml/discojs";
 
 import type { TaskSet } from "../task_set.js";
 import type { ModelSet } from "../model_set.js";
@@ -45,7 +49,7 @@ export class TaskRouter {
       res.status(200).send(
         this.#taskSet.tasks
           .valueSeq()
-          .map(([t, _]) => serialization.task.serializeToJSON(t))
+          .map(([t, _]) => serializeTaskToJSON(t))
           .toArray(),
       );
     });
@@ -70,7 +74,7 @@ export class TaskRouter {
               z.string(),
               z.array(z.number()).transform((bytes) => Uint8Array.from(bytes)),
             ]),
-            task: z.any().transform(serialization.task.deserializeFromJSON),
+            task: z.any().transform(deserializeTaskFromJSON),
           })
           .safeParseAsync(req.body);
 
@@ -129,11 +133,11 @@ export class TaskRouter {
    */
   private async registerUploadedModel(
     task: Task<DataType, Network>,
-    encoded: serialization.Encoded,
+    encoded: Encoded,
   ): Promise<ModelCardInfo.ID> {
     let uploaded;
     try {
-      uploaded = await serialization.model.decode(encoded);
+      uploaded = await modelDecode(encoded);
     } catch (e) {
       debug("posted model isn't a valid encoded model: %o", e);
       throw new Error("uploaded model is invalid");

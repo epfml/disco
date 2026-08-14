@@ -1,8 +1,12 @@
 import type { Map } from "immutable";
-import { AggregationStep } from "./aggregator.js";
-import { MultiRoundAggregator, ThresholdType } from "./multiround.js";
-import type { WeightsContainer, client } from "../index.js";
-import { aggregation } from "../index.js";
+
+import type { WeightsContainer } from "#weights/index";
+import type { NodeID } from "#client/types";
+import { avg } from "#weights/index";
+
+import { AggregationStep } from "#aggregator/aggregator";
+import type { ThresholdType } from "#aggregator/multiround";
+import { MultiRoundAggregator } from "#aggregator/multiround";
 
 /**
  * Mean aggregator whose aggregation step consists in computing the mean of the received weights.
@@ -18,7 +22,7 @@ export class MeanAggregator extends MultiRoundAggregator {
     super(roundCutoff, threshold, thresholdType);
   }
 
-  override _add(nodeId: client.NodeID, contribution: WeightsContainer): void {
+  override _add(nodeId: NodeID, contribution: WeightsContainer): void {
     this.log(
       this.contributions.hasIn([0, nodeId])
         ? AggregationStep.UPDATE
@@ -35,13 +39,13 @@ export class MeanAggregator extends MultiRoundAggregator {
 
     this.log(AggregationStep.AGGREGATE);
 
-    const result = aggregation.avg(currentContributions.values());
+    const result = avg(currentContributions.values());
     return result;
   }
 
   override makePayloads(
     weights: WeightsContainer,
-  ): Map<client.NodeID, WeightsContainer> {
+  ): Map<NodeID, WeightsContainer> {
     // Communicate our local weights to every other node, be it a peer or a server
     return this.nodes.toMap().map(() => weights);
   }

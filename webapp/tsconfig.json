@@ -13,8 +13,5 @@
     {
       "path": "./cypress/tsconfig.json"
     }
-  ],
-  "compilerOptions": {
-    "module": "NodeNext"
-  }
+  ]
 }

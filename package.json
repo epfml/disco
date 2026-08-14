@@ -4,7 +4,8 @@
   "scripts": {
     "lint": "eslint",
     "format:check": "prettier -c .",
-    "format:fix": "prettier -w ."
+    "format:fix": "prettier -w .",
+    "check_cycles": "dpdm --tsconfig discojs/tsconfig.lib.json --circular --exit-code circular:1 'discojs/src/**/*.ts'"
   },
   "dependencies": {
     "@tensorflow/tfjs-node": "catalog:"
@@ -15,6 +16,7 @@
     "@vitest/eslint-plugin": "1.6.12",
     "@vue/eslint-config-prettier": "10.2.0",
     "@vue/eslint-config-typescript": "14.9.0",
+    "dpdm": "4.3.0",
     "eslint": "10.0.3",
     "eslint-plugin-cypress": "6.2.0",
     "eslint-plugin-vue": "10.9.2",
