@@ -1,7 +1,7 @@
 import { Map, Seq } from "immutable";
 
 import type { DataType, Network } from "#types/index";
-import type { Model } from "#models/index";
+import type { Model, ModelCardInfo } from "#models/index";
 import type { JSONLike } from "#serialization/index";
 import {
   serializeTaskToJSON,
@@ -34,9 +34,7 @@ export async function pushTask<D extends DataType>(
     body: JSON.stringify({
       task: serializeTaskToJSON(task),
       model:
-        typeof model === "string"
-          ? model
-          : [...(await modelEncode(model))],
+        typeof model === "string" ? model : [...(await modelEncode(model))],
     }),
   });
   if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`);

@@ -32,6 +32,7 @@ export type GPTSerialization = {
 };
 
 export class GPT extends Model<"text"> {
+  readonly datatype = "text" as const;
   private readonly model: GPTModel;
 
   readonly #contextLength: number;
