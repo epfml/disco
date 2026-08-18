@@ -2,18 +2,17 @@
   <div class="flex h-full flex-col lg:flex-row">
     <!-- Main Content -->
     <div class="flex flex-col flex-1 order-2 lg:order-1">
-      <div class="mx-4 sm:mx-6 md:mx-8 lg:mx-10 xl:mx-12 mt-2">
+      <div class="lg:mx-10 xl:mx-12 mt-2">
         <p
           class="font-disco text-xl lg:text-2xl font-bold text-heading-light dark:text-heading-dark"
         >
-          Experiment with text completion — discover how language models predict
-          the next word
+          LLM Playground
         </p>
       </div>
 
       <!-- Display Textarea (Read-only) -->
       <div
-        class="flex-1 mx-4 sm:mx-6 md:mx-8 lg:mx-10 xl:mx-12 my-4 flex flex-col relative"
+        class="flex-1 lg:mx-10 xl:mx-12 my-4 flex flex-col relative"
       >
         <!-- Highlight overlay -->
         <div
@@ -39,24 +38,21 @@
         </div>
 
         <textarea
+          ref="textareaRef"
           v-model="textContent"
           :disabled="true"
-          ref="textareaRef"
-          @scroll="syncScroll"
-          class="w-full h-full min-h-[300px] lg:min-h-0 rounded-lg p-3 border-2 border-disco-cyan/50 dark:border-disco-cyan/60 bg-white dark:bg-gray-900 text-disco-dark-blue dark:text-white resize-none focus:outline-none focus:ring-1 focus:ring-disco-cyan overflow-y-auto disabled:opacity-75 disabled:cursor-not-allowed relative z-20 hover:border-disco-cyan/80 dark:hover:border-disco-cyan/80 font-normal transition-all duration-200 text-sm lg:text-base cursor-default"
-          :class="{
-            'text-disco-dark-blue/50 dark:text-white/50':
-              textContent.length === 0,
-          }"
-          placeholder="Text will appear here..."
+          class="w-full h-full min-h-[300px] lg:min-h-0 rounded-lg p-3 border-2 border-disco-cyan/50 dark:border-disco-cyan/60 bg-white dark:dark:bg-slate-950 text-disco-dark-blue dark:text-white resize-none focus:outline-none focus:ring-1 focus:ring-disco-cyan overflow-y-auto disabled:opacity-75 disabled:cursor-not-allowed relative z-20 hover:border-disco-cyan/80 dark:hover:border-disco-cyan/80 font-normal transition-all duration-200 text-sm lg:text-base cursor-default"
+          :class="{'text-disco-dark-blue/80 dark:text-white/80': textContent.length === 0}"
+          placeholder="Generation will appear here..."
           style="line-height: 1.5"
+          @scroll="syncScroll"
         />
 
         <!-- Clear Button (Bottom Right) -->
         <button
-          @click="clearTextarea()"
           class="absolute bottom-3 right-3 p-2 rounded-lg text-disco-cyan hover:text-disco-cyan/80 transition-colors duration-200 focus:outline-none z-20"
-          title="Clear textarea"
+          title="Clear Generation"
+          @click="clearGeneration()"
         >
           <CleanIcon class="w-5 h-5" />
         </button>
@@ -64,28 +60,28 @@
 
       <!-- Input Field with Buttons -->
       <div
-        class="mx-4 sm:mx-6 md:mx-8 lg:mx-10 xl:mx-12 mb-4 flex flex-col relative"
+        class="lg:mx-10 xl:mx-12 mb-4 flex flex-col relative"
       >
         <div class="relative">
           <!-- Input Field -->
           <input
             v-model="inputText"
             :disabled="isGenerating"
-            @keydown.enter="
-              (e) => {
-                if (!e.shiftKey) {
-                  e.preventDefault();
-                  addClickToTextarea();
-                }
-              }
-            "
             type="text"
-            class="w-full px-3 py-2.5 pr-20 rounded-lg border-2 border-disco-cyan/50 dark:border-disco-cyan/60 bg-white dark:bg-gray-900 text-disco-dark-blue dark:text-disco-light-cyan resize-none focus:outline-none focus:ring-1 focus:ring-disco-cyan disabled:opacity-75 disabled:cursor-not-allowed hover:border-disco-cyan/80 dark:hover:border-disco-cyan/80 font-normal transition-all duration-200 text-sm lg:text-base"
+            class="w-full px-3 py-2.5 pr-20 rounded-lg border-2 border-disco-cyan/50 dark:border-disco-cyan/60 bg-white dark:bg-slate-950 text-disco-dark-blue dark:text-white resize-none focus:outline-none focus:ring-1 focus:ring-disco-cyan disabled:opacity-75 disabled:cursor-not-allowed hover:border-disco-cyan/80 dark:hover:border-disco-cyan/80 font-normal transition-all duration-200 text-sm lg:text-base"
             :class="{
               'text-disco-dark-blue/50 dark:text-disco-light-cyan/50':
                 inputText.length === 0,
             }"
             placeholder="Enter text here..."
+            @keydown.enter="
+              (e) => {
+                if (!e.shiftKey) {
+                  e.preventDefault();
+                  generate();
+                }
+              }
+            "
           />
 
           <!-- Right Side Buttons (Overlay) -->
@@ -93,10 +89,10 @@
             class="absolute right-3 top-1/2 -translate-y-1/2 flex gap-2 z-20 pointer-events-auto"
           >
             <button
-              @click="isGenerating ? stopGeneration() : addClickToTextarea()"
-              :disabled="!inputText.trim() && !isGenerating"
               class="p-2 rounded-lg text-disco-cyan hover:text-disco-cyan/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 focus:outline-none"
+              :disabled="!inputText.trim() && !isGenerating"
               :title="isGenerating ? 'Stop' : 'Generate'"
+              @click="isGenerating ? stopGeneration() : generate()"
             >
               <MessageArrow v-if="!isGenerating" class="w-5 h-5" />
               <StopIcon v-else class="w-5 h-5" />
@@ -106,25 +102,25 @@
       </div>
 
       <div
-        class="sticky bottom-0 mx-4 sm:mx-6 md:mx-8 lg:mx-10 xl:mx-12 mb-4"
+        class="sticky bottom-0 lg:mx-10 xl:mx-12 mb-4"
       />
     </div>
 
     <!-- Sidebar -->
     <div
-      class="w-full lg:w-80 xl:w-96 bg-gray-50 dark:bg-gray-800 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700 rounded-none lg:rounded-xl p-4 sm:p-6 m-0 lg:m-2 flex flex-col order-1 lg:order-2 max-h-[40vh] lg:max-h-none overflow-y-auto lg:overflow-y-visible"
+      class="w-full lg:w-80 xl:w-96 bg-white dark:bg-slate-950 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700 rounded-lg p-4 sm:p-6 m-0 lg:m-2 flex flex-col order-1 lg:order-2 max-h-none lg:max-h-none overflow-y-visible lg:overflow-y-visible"
     >
       <!-- Collapsible header for mobile -->
       <div class="lg:hidden">
         <button
-          @click="sidebarExpanded = !sidebarExpanded"
           class="w-full flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-700 rounded-lg mb-4"
+          @click="sidebarExpanded = !sidebarExpanded"
         >
           <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
             Model Parameters
           </h3>
           <svg
-            :class="{ 'rotate-180': sidebarExpanded }"
+            :class="{ 'rotate-360': sidebarExpanded, 'rotate-270': !sidebarExpanded  }"
             class="w-5 h-5 transform transition-transform duration-200 text-gray-600 dark:text-gray-400"
             fill="none"
             stroke="currentColor"
@@ -142,7 +138,7 @@
 
       <!-- Desktop header -->
       <h3
-        class="hidden lg:block text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6"
+        class="hidden lg:block text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4"
       >
         Model Parameters
       </h3>
@@ -160,14 +156,14 @@
           v-model="selectedModelType"
           class="w-full px-4 py-2.5 border-2 border-disco-cyan/50 dark:border-disco-cyan/60 bg-white dark:bg-gray-900 text-disco-cyan dark:text-disco-cyan rounded-lg transition-all duration-200 hover:border-disco-cyan/80 dark:hover:border-disco-cyan/80 font-semibold"
         >
-          <option value="gpt" class="bg-white dark:bg-gray-900 text-disco-cyan">
-            GPT Model
+          <option value="tfjs-gpt2" class="bg-white dark:bg-gray-900 text-disco-cyan">
+            Tensorflow.js GPT2 (Uninitialized)
           </option>
           <option
-            value="onnx"
+            value="onnx-gpt2"
             class="bg-white dark:bg-gray-900 text-disco-cyan"
           >
-            ONNX Model
+            ONNX GPT2
           </option>
         </select>
       </div>
@@ -186,8 +182,8 @@
           </label>
           <div class="flex items-center space-x-2 lg:space-x-3">
             <input
-              type="range"
               v-model.number="parameters.temperature"
+              type="range"
               min="0"
               max="2.0"
               step="0.1"
@@ -208,8 +204,8 @@
         <div class="mb-6">
           <label class="flex items-center space-x-3 cursor-pointer">
             <input
-              type="checkbox"
               v-model="parameters.doSample"
+              type="checkbox"
               class="w-4 h-4 accent-disco-cyan rounded"
             />
             <span
@@ -240,15 +236,15 @@
             <div
               v-if="!parameters.doSample"
               class="absolute inset-0 rounded-lg cursor-not-allowed group z-10"
-              :title="'Enable sampling to use this parameter'"
+              title="'Enable sampling to use this parameter'"
             >
               <div
                 class="absolute inset-0 rounded-lg bg-transparent hover:bg-gray-400/5 transition-colors duration-200"
               />
             </div>
             <input
-              type="range"
               v-model="parameters.topK"
+              type="range"
               min="1"
               max="100"
               step="1"
@@ -275,8 +271,8 @@
           </label>
           <div class="flex items-center space-x-2 lg:space-x-3">
             <input
-              type="range"
               v-model="parameters.maxTokens"
+              type="range"
               min="1"
               max="200"
               step="1"
@@ -301,23 +297,23 @@
       >
         <div class="hidden lg:flex lg:gap-4 lg:justify-center">
           <CustomButton
-            @click="resetParameters()"
             class="text-sm lg:text-base px-4 lg:px-6"
+            @click="resetParameters()"
           >
             Reset
           </CustomButton>
           <CustomButton
-            @click="regenerateText()"
             class="text-sm lg:text-base px-4 lg:px-6"
+            @click="regenerateText()"
           >
             Regenerate
           </CustomButton>
         </div>
         <div class="lg:hidden flex gap-2 justify-center">
-          <CustomButton @click="resetParameters()" class="flex-1 text-sm px-4">
+          <CustomButton class="flex-1 text-sm px-4" @click="resetParameters()">
             Reset
           </CustomButton>
-          <CustomButton @click="regenerateText()" class="flex-1 text-sm px-4">
+          <CustomButton class="flex-1 text-sm px-4" @click="regenerateText()">
             Regenerate
           </CustomButton>
         </div>
@@ -329,7 +325,7 @@
 <script lang="ts" setup generic="D extends DataType">
 import { onMounted, ref, shallowRef, watch, reactive, computed } from "vue";
 import { useRoute } from "vue-router";
-import type { Model, DataType } from "@epfml/discojs";
+import type { DataType } from "@epfml/discojs";
 import MessageArrow from "@/assets/svg/MessageArrow.vue";
 import StopIcon from "@/assets/svg/StopIcon.vue";
 import { useModelsStore } from "@/store";
@@ -366,11 +362,11 @@ const textContent = ref("");
 const inputText = ref("");
 const lastUserInput = ref("");
 const modelsStore = useModelsStore();
-const model = shallowRef<models.GPT | null>(null);
+const tfjsModel = shallowRef<models.GPT | null>(null);
 const onnxModel = shallowRef<models.ONNXModel | null>(null);
 const route = useRoute();
 const sidebarExpanded = ref(false);
-const selectedModelType = ref<"gpt" | "onnx">("gpt");
+const selectedModelType = ref<"tfjs-gpt2" | "">("onnx-gpt2");
 const isGenerating = ref(false);
 const shouldStopGeneration = ref(false);
 
@@ -383,22 +379,19 @@ const parameters = reactive<ModelParameters>({
   doSample: true,
 });
 
-const stopGeneration = () => {
+function stopGeneration() {
   shouldStopGeneration.value = true;
   isGenerating.value = false;
 };
 
-const clearInput = () => {
-  inputText.value = "";
-};
 
-const clearTextarea = () => {
+function clearGeneration() {
   textContent.value = "";
   textSegments.value = [];
   lastUserInput.value = "";
 };
 
-const addClickToTextarea = async () => {
+async function generate() {
   if (!inputText.value.trim()) return;
 
   try {
@@ -417,7 +410,7 @@ const addClickToTextarea = async () => {
     let tokens = tokenizer.tokenize(textContent.value.trim());
 
     const selectedModel =
-      selectedModelType.value === "gpt" ? model.value : onnxModel.value;
+      selectedModelType.value === "tfjs-gpt2" ? tfjsModel.value : onnxModel.value;
 
     if (!selectedModel) {
       textContent.value += `\nError: ${selectedModelType.value.toUpperCase()} model not loaded`;
@@ -426,11 +419,12 @@ const addClickToTextarea = async () => {
 
     try {
       lastUserInput.value = textContent.value.trim();
-      let generatedToken = "";
+      let generatedDecodedToken = "";
 
       const predictionOptions = {
         temperature: parameters.temperature,
         topK: parameters.topK,
+        doSample: parameters.doSample
       };
 
       for (let n = 0; n < parameters.maxTokens; n++) {
@@ -441,7 +435,6 @@ const addClickToTextarea = async () => {
         const next = (
           await selectedModel.predict(List.of(tokens), predictionOptions)
         ).first();
-
         if (next === undefined) {
           break;
         }
@@ -449,12 +442,14 @@ const addClickToTextarea = async () => {
 
         const decodedToken = tokenizer.decode([next]);
         textContent.value += decodedToken;
-        generatedToken += decodedToken;
+        generatedDecodedToken += decodedToken;
+        // Let the UI update by preventing CPU hogging
+        await new Promise((resolve) => setTimeout(resolve, 10));
       }
 
-      if (generatedToken) {
+      if (generatedDecodedToken) {
         textSegments.value.push({
-          text: generatedToken,
+          text: generatedDecodedToken,
           isGenerated: true,
         });
       }
@@ -477,7 +472,7 @@ const addClickToTextarea = async () => {
 
 const regenerateText = async () => {
   const selectedModel =
-    selectedModelType.value === "gpt" ? model.value : onnxModel.value;
+    selectedModelType.value === "tfjs-gpt2" ? tfjsModel.value : onnxModel.value;
 
   if (!selectedModel) {
     console.error(`${selectedModelType.value.toUpperCase()} model not loaded`);
@@ -501,7 +496,7 @@ const regenerateText = async () => {
     }
 
     let tokens = tokenizer.tokenize(lastUserInput.value.trim());
-    let generatedToken = "";
+    let generatedDecodedToken = "";
 
     const predictionOptions = {
       temperature: parameters.temperature,
@@ -524,12 +519,12 @@ const regenerateText = async () => {
 
       const decodedToken = tokenizer.decode([next]);
       textContent.value += decodedToken;
-      generatedToken += decodedToken;
+      generatedDecodedToken += decodedToken;
     }
 
-    if (generatedToken) {
+    if (generatedDecodedToken) {
       textSegments.value.push({
-        text: generatedToken,
+        text: generatedDecodedToken,
         isGenerated: true,
       });
     }
@@ -573,17 +568,15 @@ const resetParameters = () => {
   parameters.maxTokens = 50;
 };
 
+//TODO: do not load both models at once
 onMounted(async () => {
   const modelID = Number(route.query.modelID);
   const loadedModel = await modelsStore.get(modelID);
   if (loadedModel !== undefined) {
-    model.value = loadedModel as models.GPT;
+    tfjsModel.value = loadedModel as models.GPT;
   }
 
   onnxModel.value = await models.ONNXModel.init_pretrained("Xenova/gpt2");
 });
 
-const generatedText = computed(() => {
-  return textContent.value.slice(lastUserInput.value.length);
-});
 </script>
