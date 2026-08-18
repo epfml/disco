@@ -71,7 +71,7 @@ export {
 export type { TaskProvider } from "./task/index.js";
 
 export type { DataType, Network, DataFormat } from "./types/index.js";
-export { dataTypeValues } from "./types/index.js";
+export { dataTypeValues, isDataType } from "./types/index.js";
 
 export { extractColumn } from "./processing/index.js";
 

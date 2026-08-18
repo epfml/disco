@@ -57,6 +57,6 @@ export abstract class Model<D extends DataType> implements Disposable {
   [Symbol.dispose](): void {
     this.dispose();
   }
-  
+
   abstract dispose(): void;
 }

@@ -23,10 +23,8 @@
             >
               <ButtonsCard
                 :buttons="
-                  infos.taskID === 'llm_task'
-                    ? List.of(
-                        ['chat', () => goToChat(id)],
-                      )
+                  infos.dataType === 'text'
+                    ? List.of(['chat', () => goToChat(id)])
                     : List.of(
                         ['test', () => selectModel(id, 'test')],
                         ['predict', () => selectModel(id, 'predict')],
@@ -53,6 +51,10 @@
                     <tr>
                       <td>Storage size</td>
                       <td>{{ infos.storageSize }}</td>
+                    </tr>
+                    <tr>
+                      <td>Data type</td>
+                      <td>{{ capitalize(infos.dataType) }}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -193,6 +195,10 @@ type Selection<D extends DataType> = {
 };
 const selection = ref<Selection<DataType>>();
 
+function capitalize(val: string) {
+  return String(val).charAt(0).toUpperCase() + String(val).slice(1);
+}
+
 const federatedTasks = computed<
   "loading" | "failed" | List<Task<DataType, "federated">>
 >(() => {
@@ -213,9 +219,10 @@ const sortedModelsInfos = computed(() => {
 
   return models.infos
     .sortBy((infos) => infos.dateSaved)
-    .map(({ taskID, dateSaved, storageSize }) => ({
+    .map(({ taskID, dateSaved, dataType, storageSize }) => ({
       taskID,
       dateSaved: shortDate.format(dateSaved),
+      dataType,
       storageSize: formatByteSize(storageSize),
     }))
     .reverse();
@@ -317,5 +324,5 @@ function taskTitle(taskID: string): string | undefined {
 async function goToChat(modelID: ModelID) {
   validationStore.step = 0;
   await router.push({ path: "/chat", query: { modelID } });
-};
+}
 </script>
