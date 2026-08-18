@@ -14,6 +14,6 @@ export interface GenerationConfig {
 
 export const DefaultGenerationConfig: GenerationConfig = {
   temperature: 1.0,
-  doSample: false,
+  doSample: true,
   topk: 50,
 };

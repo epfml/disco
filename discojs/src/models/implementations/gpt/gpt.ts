@@ -195,7 +195,9 @@ export class GPT extends Model<"text"> {
       logits
         .slice([logits.shape[0] - 1])
         .squeeze<tf.Tensor1D>([0])
-        .div<tf.Tensor1D>(config.doSample && config.temperature > 0 ? config.temperature : 1)
+        .div<tf.Tensor1D>(
+          config.doSample && config.temperature > 0 ? config.temperature : 1,
+        )
         .softmax(),
     );
     logits.dispose();
