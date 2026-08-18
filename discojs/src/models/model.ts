@@ -54,5 +54,9 @@ export abstract class Model<D extends DataType> implements Disposable {
    * }
    * Calling f() will call the model's dispose method when exiting the function.
    */
-  abstract [Symbol.dispose](): void;
+  [Symbol.dispose](): void {
+    this.dispose();
+  }
+  
+  abstract dispose(): void;
 }

@@ -261,7 +261,7 @@ export class GPT extends Model<"text"> {
     return this.model;
   }
 
-  [Symbol.dispose](): void {
+  dispose(): void {
     if (this.model.optimizer !== undefined) {
       this.model.optimizer.dispose();
     }

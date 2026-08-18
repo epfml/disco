@@ -125,7 +125,7 @@ export class ONNXModel extends Model<"text"> {
     throw new Error("Weights setting not supported in ONNX models");
   }
 
-  [Symbol.dispose](): void {
+  dispose() {
     // Dispose of the model to free up memory
     void this.model.dispose();
   }
