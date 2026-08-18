@@ -38,6 +38,7 @@ export type {
   ModelCardInfo,
   BatchLogs,
   HellaSwagDataset,
+  GenerationConfig,
 } from "./models/index.js";
 
 export {
@@ -50,6 +51,7 @@ export {
   ONNXModel,
   HELLASWAG_URL,
   evaluate_hellaswag,
+  DefaultGenerationConfig,
 } from "./models/index.js";
 export type { GPTConfig, HellaSwagExample } from "./models/index.js";
 
