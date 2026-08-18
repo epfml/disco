@@ -25,8 +25,7 @@
                 :buttons="
                   infos.taskID === 'llm_task'
                     ? List.of(
-                        ['to chat', () => goToChat(id)],
-                        ['evaluate', () => goToBenchmarks()],
+                        ['chat', () => goToChat(id)],
                       )
                     : List.of(
                         ['test', () => selectModel(id, 'test')],
@@ -178,7 +177,6 @@ import DISCOllaboratives from "@/components/simple/DISCOllaboratives.vue";
 
 import TestSteps from "./TestSteps.vue";
 import PredictSteps from "./PredictSteps.vue";
-import { isDebuggerStatement } from "typescript";
 
 const debug = createDebug("webapp:ModelLibrary");
 const validationStore = useValidationStore();
@@ -319,9 +317,5 @@ function taskTitle(taskID: string): string | undefined {
 const goToChat = (modelID: ModelID): void => {
   validationStore.step = 0;
   router.push({ path: "/chat", query: { modelID } });
-};
-
-const goToBenchmark = (): void => {
-  router.push({ path: "/benchmark" });
 };
 </script>

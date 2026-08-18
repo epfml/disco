@@ -12,7 +12,6 @@ import Training from "@/components/training/TrainingSteps.vue";
 import ModelLibrary from "@/components/testing/ModelLibrary.vue";
 import AboutUs from "@/components/pages/AboutUs.vue";
 import Chat from "@/components/testing/Chat.vue";
-import Benchmark from "@/components/testing/Benchmark.vue";
 
 const debug = createDebug("webapp:router");
 
@@ -73,13 +72,6 @@ const router = createRouter({
       name: "chat",
       components: {
         default: Chat,
-      },
-    },
-    {
-      path: "/benchmark",
-      name: "benchmark",
-      components: {
-        default: () => Benchmark,
       },
     },
     {
