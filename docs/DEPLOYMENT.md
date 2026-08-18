@@ -4,7 +4,7 @@ This automation happens via [a workflow of our CI](../.github/workflows/publish-
 
 ## Normal development
 
-Every merge to the default branch (`develop`) releases
+Every merge to the default branch (`main`) releases
 a patch version of the NPM packages (`discojs`, `discojs-node` & `discojs-web`).
 
 It will also create a
@@ -13,7 +13,7 @@ using the repo's [Dockerfile](https://docs.docker.com/reference/dockerfile/)
 which gets pushed to [GitHub Packages](https://docs.github.com/en/packages)
 under the [`edge`](https://github.com/epfml/disco/pkgs/container/disco/edge) tag.
 
-The webapp is first built using a classic `npm -ws run build`
+The webapp is first built using a classic `pnpm -r run build`
 which gets deployed to GitHub Pages, with a
 [custom domain](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site).
 

@@ -1,12 +1,8 @@
-import type {
-  Batched,
-  Dataset,
-  DataFormat,
-  DataType,
-  WeightsContainer,
-} from "../index.js";
+import type { WeightsContainer } from "#weights/index";
+import type { Dataset, Batched } from "#dataset/index";
+import type { DataFormat, DataType } from "#types/index";
 
-import type { BatchLogs, EpochLogs } from "./logs.js";
+import type { BatchLogs, EpochLogs, ValidationMetrics } from "#models/logs";
 
 /**
  * Trainable predictor
@@ -15,6 +11,9 @@ import type { BatchLogs, EpochLogs } from "./logs.js";
  **/
 // TODO make it typesafe: same shape of data/input/weights
 export abstract class Model<D extends DataType> implements Disposable {
+  /** Kind of data this predictor understands */
+  abstract readonly datatype: D;
+
   // TODO don't allow external access but upgrade train to return weights on every epoch
   /** Return training state */
   abstract get weights(): WeightsContainer;
@@ -38,6 +37,13 @@ export abstract class Model<D extends DataType> implements Disposable {
   abstract predict(
     batch: Batched<DataFormat.ModelEncoded[D][0]>,
   ): Promise<Batched<DataFormat.ModelEncoded[D][1]>>;
+
+  /**
+   * Return validation metrics
+   */
+  abstract evaluate(
+    _validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+  ): Promise<ValidationMetrics>;
 
   /**
    * This method is automatically called to cleanup the memory occupied by the model

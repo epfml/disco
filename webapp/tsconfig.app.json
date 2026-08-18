@@ -1,12 +1,22 @@
 {
-  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "extends": ["@vue/tsconfig/tsconfig.dom.json", "../tsconfig.base.lib.json"],
   "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
   "exclude": ["src/**/__tests__/*"],
+  "references": [
+    {
+      "path": "../discojs/tsconfig.lib.json"
+    },
+    {
+      "path": "../discojs-web/tsconfig.lib.json"
+    }
+  ],
   "compilerOptions": {
-    "composite": true,
-    "tsBuildInfoFile": "tsconfig.app.tsbuildinfo",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
 
-    "baseUrl": ".",
+    "composite": true,
+    "customConditions": ["@disco/source"],
+    "tsBuildInfoFile": "tsconfig.app.tsbuildinfo",
     "paths": {
       "@/*": ["./src/*"]
     }

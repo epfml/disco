@@ -1,0 +1,30 @@
+name: verify
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**/*.md"
+  pull_request:
+    paths-ignore:
+      - "**/*.md"
+
+permissions:
+  contents: read
+
+jobs:
+  download-datasets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/download-datasets
+
+  static-analysis:
+    uses: ./.github/workflows/_static-analysis.yml
+
+  build:
+    needs: [download-datasets, static-analysis]
+    uses: ./.github/workflows/_build.yml
+
+  test:
+    needs: [build]
+    uses: ./.github/workflows/_test.yml

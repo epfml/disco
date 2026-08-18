@@ -1,4 +1,4 @@
-import { serialization, type Task } from "@epfml/discojs";
+import { deserializeTaskFromJSON, type Task } from "@epfml/discojs";
 
 import * as tf from "@tensorflow/tfjs";
 
@@ -8,9 +8,9 @@ it("submits with tabular task", () => {
     { statusCode: 200 },
   ).as("posted");
 
-  cy.visit("/#/create");
+  cy.visit("/create");
 
-  cy.get('form').should('be.visible'); // Wait for the form to be fully loaded
+  cy.get("form").should("be.visible"); // Wait for the form to be fully loaded
 
   cy.get("input[name='id']").type("id");
   cy.get("select[name='dataType']").select("tabular");
@@ -64,7 +64,7 @@ it("submits with tabular task", () => {
 
   cy.wait("@posted")
     .its("request.body.task")
-    .then(serialization.task.deserializeFromJSON)
+    .then(deserializeTaskFromJSON)
     .should("deep.equal", {
       id: "id",
       dataType: "tabular",
@@ -88,7 +88,7 @@ it("submits with tabular task", () => {
         outputColumn: "output",
         tensorBackend: "tfjs",
       },
-		} satisfies Task<"tabular", "federated">);
+    } satisfies Task<"tabular", "federated">);
 });
 
 async function getArtifacts(

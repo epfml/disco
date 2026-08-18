@@ -1,33 +1,33 @@
-import { List, Map, Range, Seq } from 'immutable'
+import { List, Map, Range, Seq } from "immutable";
 import wrtc from "@epfml/isomorphic-wrtc";
-import SimplePeer from 'simple-peer'
+import SimplePeer from "simple-peer";
 
-import type { NodeID } from '../types.js'
+import type { NodeID } from "#client/types";
 
-type MessageID = number
-type ChunkID = number
+type MessageID = number;
+type ChunkID = number;
 
 // message id + (chunk counter == 0) + chunk count
-const FIRST_HEADER_SIZE = 2 + 1 + 1
+const FIRST_HEADER_SIZE = 2 + 1 + 1;
 
 // message id + chunk counter
-const HEADER_SIZE = 2 + 1
+const HEADER_SIZE = 2 + 1;
 
 // at which interval to poll
-const TICK = 10
+const TICK = 10;
 
 // we can't use the definition in DOM as we're platform independent
 export type SignalData =
-  | { type: 'answer' | 'offer' | 'pranswer' | 'rollback', sdp?: string }
-  | { type: 'transceiverRequest', transceiverRequest: { kind: string } }
-  | { type: 'renegotiate', renegotiate: true }
-  | { type: 'candidate', candidate: RTCIceCandidate }
+  | { type: "answer" | "offer" | "pranswer" | "rollback"; sdp?: string }
+  | { type: "transceiverRequest"; transceiverRequest: { kind: string } }
+  | { type: "renegotiate"; renegotiate: true }
+  | { type: "candidate"; candidate: RTCIceCandidate };
 
 interface Events {
-  'close': () => void
-  'connect': () => void
-  'signal': (signal: SignalData) => void
-  'data': (data: Buffer) => void
+  close: () => void;
+  connect: () => void;
+  signal: (signal: SignalData) => void;
+  data: (data: Buffer) => void;
 }
 
 // Peer wraps a SimplePeer, adding message fragmentation
@@ -44,209 +44,228 @@ interface Events {
 //
 // see feross/simple-peer#393 for more info
 export class Peer {
-  private readonly peer: SimplePeer.Instance
+  private readonly peer: SimplePeer.Instance;
 
-  private bufferSize?: number
+  private bufferSize?: number;
 
-  private sendCounter: MessageID = 0
-  private sendQueue = List<Buffer>()
+  private sendCounter: MessageID = 0;
+  private sendQueue = List<Buffer>();
 
-  private receiving = Map<MessageID, {
-    total?: number
-    chunks: Map<ChunkID, Buffer>
-  }>()
+  private receiving = Map<
+    MessageID,
+    {
+      total?: number;
+      chunks: Map<ChunkID, Buffer>;
+    }
+  >();
 
-  constructor (
+  constructor(
     public readonly id: NodeID,
-    initiator: boolean = false
+    initiator: boolean = false,
   ) {
-    this.peer = new SimplePeer({ wrtc, initiator })
+    this.peer = new SimplePeer({ wrtc, initiator });
   }
 
-  send (msg: Buffer): void {
-    const chunks = this.chunk(msg)
-    this.sendQueue = this.sendQueue.concat(chunks)
-    this.flush()
+  send(msg: Buffer): void {
+    const chunks = this.chunk(msg);
+    this.sendQueue = this.sendQueue.concat(chunks);
+    this.flush();
   }
 
-  private flush (): void {
+  private flush(): void {
     if (this.bufferSize === undefined) {
-      throw new Error('flush without known buffer size')
+      throw new Error("flush without known buffer size");
     }
 
-    const chunk = this.sendQueue.first()
+    const chunk = this.sendQueue.first();
     if (chunk === undefined) {
-      return // nothing to flush
+      return; // nothing to flush
     }
 
-    const remainingBufferSize = this.bufferSize - this.peer.bufferSize
+    const remainingBufferSize = this.bufferSize - this.peer.bufferSize;
     if (chunk.length > remainingBufferSize) {
-      setTimeout(() => { this.flush() }, TICK)
-      return
+      setTimeout(() => {
+        this.flush();
+      }, TICK);
+      return;
     }
 
-    this.sendQueue = this.sendQueue.shift()
-    this.peer.send(chunk)
+    this.sendQueue = this.sendQueue.shift();
+    this.peer.send(chunk);
 
     // and loop
-    this.flush()
+    this.flush();
   }
 
-  get maxChunkSize (): number {
+  get maxChunkSize(): number {
     if (this.bufferSize === undefined) {
-      throw new Error('chunk without known buffer size')
+      throw new Error("chunk without known buffer size");
     }
-    return this.bufferSize
+    return this.bufferSize;
   }
 
-  private chunk (b: Buffer): Seq.Indexed<Buffer> {
-    const messageID = this.sendCounter
-    this.sendCounter++
-    if (this.sendCounter > 0xFFFF) {
-      throw new Error('too much messages sent to this peer')
+  private chunk(b: Buffer): Seq.Indexed<Buffer> {
+    const messageID = this.sendCounter;
+    this.sendCounter++;
+    if (this.sendCounter > 0xffff) {
+      throw new Error("too much messages sent to this peer");
     }
 
     // special case as Range(1, 0) yields a value
-    let tail = Seq.Indexed<Buffer>([])
+    let tail = Seq.Indexed<Buffer>([]);
     if (b.length > this.maxChunkSize) {
       tail = Range(
         this.maxChunkSize - FIRST_HEADER_SIZE,
         b.length,
-        this.maxChunkSize - HEADER_SIZE
-      ).map((offset) => b.subarray(
-        offset,
-        offset + this.maxChunkSize - HEADER_SIZE
-      ))
+        this.maxChunkSize - HEADER_SIZE,
+      ).map((offset) =>
+        b.subarray(offset, offset + this.maxChunkSize - HEADER_SIZE),
+      );
     }
 
-    const totalChunkCount = 1 + tail.count()
-    if (totalChunkCount > 0xFF) {
-      throw new Error(`The payload is too big: ${totalChunkCount * this.maxChunkSize} bytes > 255,` +
-        ' consider reducing the model size or increasing the chunk size')
+    const totalChunkCount = 1 + tail.count();
+    if (totalChunkCount > 0xff) {
+      throw new Error(
+        `The payload is too big: ${totalChunkCount * this.maxChunkSize} bytes > 255,` +
+          " consider reducing the model size or increasing the chunk size",
+      );
     }
 
     const firstChunk = Buffer.alloc(
-      (b.length > this.maxChunkSize - FIRST_HEADER_SIZE)
+      b.length > this.maxChunkSize - FIRST_HEADER_SIZE
         ? this.maxChunkSize
-        : FIRST_HEADER_SIZE + b.length
-    )
-    firstChunk.writeUint16BE(messageID)
-    firstChunk.writeUint8(0 as ChunkID, 2)
-    firstChunk.writeUint8(totalChunkCount, 3)
-    b.copy(firstChunk, FIRST_HEADER_SIZE, 0, this.maxChunkSize - FIRST_HEADER_SIZE)
+        : FIRST_HEADER_SIZE + b.length,
+    );
+    firstChunk.writeUint16BE(messageID);
+    const asChunkID = (n: number): ChunkID => n;
+    firstChunk.writeUint8(asChunkID(0), 2);
+    firstChunk.writeUint8(totalChunkCount, 3);
+    b.copy(
+      firstChunk,
+      FIRST_HEADER_SIZE,
+      0,
+      this.maxChunkSize - FIRST_HEADER_SIZE,
+    );
 
-    return Seq.Indexed([firstChunk])
-      .concat(
-        Range(1 as ChunkID, Number.POSITIVE_INFINITY)
-          .zip(tail)
-          .map(([id, raw]) => {
-            const chunk = Buffer.alloc(HEADER_SIZE + raw.length)
-            chunk.writeUint16BE(messageID)
-            chunk.writeUint8(id, 2)
-            raw.copy(chunk, HEADER_SIZE, 0)
-            return chunk
-          })
-      )
+    return Seq.Indexed([firstChunk]).concat(
+      Range(asChunkID(1), Number.POSITIVE_INFINITY)
+        .zip(tail)
+        .map(([id, raw]) => {
+          const chunk = Buffer.alloc(HEADER_SIZE + raw.length);
+          chunk.writeUint16BE(messageID);
+          chunk.writeUint8(id, 2);
+          raw.copy(chunk, HEADER_SIZE, 0);
+          return chunk;
+        }),
+    );
   }
 
-  async destroy (): Promise<void> {
+  async destroy(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.peer.once('error', reject)
-      this.peer.once('close', resolve)
-      this.peer.destroy()
-    })
+      this.peer.once("error", reject);
+      this.peer.once("close", resolve);
+      this.peer.destroy();
+    });
   }
 
-  signal (signal: SignalData): void {
+  signal(signal: SignalData): void {
     // extract max buffer size from the signal
-    if (signal.type === 'offer' || signal.type === 'answer') {
+    if (signal.type === "offer" || signal.type === "answer") {
       if (signal.sdp === undefined) {
-        throw new Error('signal answer|offer without session description')
+        throw new Error("signal answer|offer without session description");
       }
       if (this.bufferSize !== undefined) {
-        throw new Error('buffer size set twice')
+        throw new Error("buffer size set twice");
       }
 
-      const match = signal.sdp.match(/a=max-message-size:(\d+)/)
+      const match = signal.sdp.match(/a=max-message-size:(\d+)/);
       if (match === null) {
         // TODO default value instead?
-        throw new Error('no max-message-size found in signal')
+        throw new Error("no max-message-size found in signal");
       }
-      const max = parseInt(match[1], 10)
+      const max = parseInt(match[1], 10);
       if (isNaN(max)) {
-        throw new Error(`unable to parse max-message-size as int: ${match[1]}`)
+        throw new Error(`unable to parse max-message-size as int: ${match[1]}`);
       }
 
-      this.bufferSize = max
+      this.bufferSize = max;
     }
 
-    this.peer.signal(signal)
+    this.peer.signal(signal);
   }
 
   on<K extends keyof Events>(event: K, listener: Events[K]): void {
-    if (event !== 'data') {
-      this.peer.on(event, listener)
-      return
+    if (event !== "data") {
+      this.peer.on(event, listener);
+      return;
     }
     // gotta help typescript here
-    const dataListener = listener as Events['data']
+    const dataListener = listener as Events["data"];
 
-    this.peer.on('data', (data: unknown) => {
+    this.peer.on("data", (data: unknown) => {
       if (!Buffer.isBuffer(data) || data.length < HEADER_SIZE) {
-        throw new Error('received invalid message type')
+        throw new Error("received invalid message type");
       }
-      const messageID: MessageID = data.readUInt16BE() //readUint16BE (case sensitive) fails at runtime
-      const chunkID: ChunkID = data.readUInt8(2) // same for readUint8
+      const messageID: MessageID = data.readUInt16BE(); //readUint16BE (case sensitive) fails at runtime
+      const chunkID: ChunkID = data.readUInt8(2); // same for readUint8
 
       const received = this.receiving.get(messageID, {
         total: undefined,
-        chunks: Map<ChunkID, Buffer>()
-      })
-      let total = received.total
-      const chunks = received.chunks
+        chunks: Map<ChunkID, Buffer>(),
+      });
+      let total = received.total;
+      const chunks = received.chunks;
 
       if (chunks.has(chunkID)) {
-        throw new Error(`chunk ${messageID}:${chunkID} already received`)
+        throw new Error(`chunk ${messageID}:${chunkID} already received`);
       }
 
-      let chunk: Buffer
+      let chunk: Buffer;
       if (chunkID !== 0) {
-        chunk = Buffer.alloc(data.length - HEADER_SIZE)
-        data.copy(chunk, 0, HEADER_SIZE)
+        chunk = Buffer.alloc(data.length - HEADER_SIZE);
+        data.copy(chunk, 0, HEADER_SIZE);
       } else {
         if (data.length < FIRST_HEADER_SIZE) {
-          throw new Error('received invalid message type')
+          throw new Error("received invalid message type");
         }
         if (total !== undefined) {
-          throw new Error('first header received twice')
+          throw new Error("first header received twice");
         }
 
-        const readTotal = data.readUInt8(3)
-        total = readTotal
-        chunk = Buffer.alloc(data.length - FIRST_HEADER_SIZE)
-        data.copy(chunk, 0, FIRST_HEADER_SIZE)
+        const readTotal = data.readUInt8(3);
+        total = readTotal;
+        chunk = Buffer.alloc(data.length - FIRST_HEADER_SIZE);
+        data.copy(chunk, 0, FIRST_HEADER_SIZE);
 
         if (chunks.keySeq().some((id) => id > readTotal)) {
-          throw new Error('received total of chunk but got now-out-of-bound chunks')
+          throw new Error(
+            "received total of chunk but got now-out-of-bound chunks",
+          );
         }
       }
       this.receiving = this.receiving.set(messageID, {
         total,
-        chunks: chunks.set(chunkID, chunk)
-      })
+        chunks: chunks.set(chunkID, chunk),
+      });
 
       const readyMessages = this.receiving
-        .filter(({ total, chunks }) => total !== undefined && chunks.size === total)
+        .filter(
+          ({ total, chunks }) => total !== undefined && chunks.size === total,
+        )
         .sort()
-        .map(({ chunks }) => chunks.entrySeq().toList().sortBy(([id, _]) => id))
-        .map((chunks) => Buffer.concat(chunks.map(([_, b]) => b).toArray()))
-      this.receiving = this.receiving.deleteAll(readyMessages.keys())
+        .map(({ chunks }) =>
+          chunks
+            .entrySeq()
+            .toList()
+            .sortBy(([id, _]) => id),
+        )
+        .map((chunks) => Buffer.concat(chunks.map(([_, b]) => b).toArray()));
+      this.receiving = this.receiving.deleteAll(readyMessages.keys());
 
-      readyMessages
-        .forEach((message) => {
-          // TODO debug
-          dataListener(message)
-        })
-    })
+      readyMessages.forEach((message) => {
+        // TODO debug
+        dataListener(message);
+      });
+    });
   }
 }

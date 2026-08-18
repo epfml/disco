@@ -1,11 +1,11 @@
 <template>
   <DatasetInput>
-    <FileSelection v-model="files" type="image" lock-icon multiple />
+    <FileSelection v-model="files" type="image" no-upload multiple />
   </DatasetInput>
 </template>
 
 <script setup lang="ts">
-import { Set } from "immutable";
+import type { Set } from "immutable";
 import { ref, watch } from "vue";
 
 import type { Image } from "@epfml/discojs";
@@ -15,7 +15,7 @@ import { loadImage } from "@epfml/discojs-web";
 import DatasetInput from "./DatasetInput.vue";
 import FileSelection from "./FileSelection.vue";
 
-export type NamedImageDataset = Dataset<{
+type NamedImageDataset = Dataset<{
   image: Image;
   filename: string;
 }>;

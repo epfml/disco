@@ -2,12 +2,6 @@
   "files": [],
   "references": [
     {
-      "path": "../discojs"
-    },
-    {
-      "path": "../discojs-web"
-    },
-    {
       "path": "./tsconfig.node.json"
     },
     {
@@ -19,8 +13,5 @@
     {
       "path": "./cypress/tsconfig.json"
     }
-  ],
-  "compilerOptions": {
-    "module": "NodeNext"
-  }
+  ]
 }

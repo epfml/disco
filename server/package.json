@@ -1,40 +1,50 @@
 {
-	"name": "server",
-	"private": true,
-	"type": "module",
-	"main": "dist/index.js",
-	"exports": "./dist/index.js",
-	"scripts": {
-		"watch": "nodemon --ext ts --ignore dist --watch ../discojs-node/dist --watch . --exec npm run",
-		"start": "npm run build && node dist/main.js",
-		"build": "tsc --build",
-		"test": "cd .. && vitest --run --project=server"
-	},
-	"author": "",
-	"license": "ISC",
-	"dependencies": {
-		"@epfml/discojs-node": "*",
-		"@msgpack/msgpack": "3",
-		"@roamhq/wrtc": "0.10",
-		"@tensorflow/tfjs": "4",
-		"cors": "2",
-		"express": "5",
-		"express-ws": "5",
-		"uuid": "13"
-	},
-	"devDependencies": {
-		"@types/cors": "2",
-		"@types/express-ws": "3",
-		"@types/node": "22",
-		"nodemon": "3",
-		"ts-node": "10"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/epfml/disco.git"
-	},
-	"bugs": {
-		"url": "https://github.com/epfml/disco/issues"
-	},
-	"homepage": "https://github.com/epfml/disco#readme"
+  "name": "server",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "exports": {
+    "@disco/source": "./src/index.ts",
+    "types": "./dist/index.d.ts",
+    "default": "./dist/index.js"
+  },
+  "scripts": {
+    "watch": "nodemon --ext ts --ignore dist --watch ../discojs-node/dist --watch . --exec pnpm run",
+    "start": "node dist/main.js",
+    "build": "tsc --build",
+    "test": "cd .. && vitest --run --project=server"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@epfml/discojs": "workspace:",
+    "@epfml/discojs-node": "workspace:",
+    "@msgpack/msgpack": "3.1.3",
+    "@tensorflow/tfjs-node": "catalog:",
+    "cors": "2.8.6",
+    "debug": "catalog:",
+    "express": "5.2.1",
+    "express-ws": "5.0.2",
+    "immutable": "catalog:",
+    "uuid": "14.0.0",
+    "ws": "8.21.0",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/cors": "2.8.19",
+    "@types/express": "5.0.6",
+    "@types/express-ws": "3.0.6",
+    "@types/node": "22.19.15",
+    "@types/ws": "8.18.1",
+    "nodemon": "3.1.14",
+    "vitest": "catalog:"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/epfml/disco.git"
+  },
+  "bugs": {
+    "url": "https://github.com/epfml/disco/issues"
+  },
+  "homepage": "https://github.com/epfml/disco#readme"
 }

@@ -1,39 +1,114 @@
 {
-	"name": "@epfml/discojs",
-	"version": "3.0.0",
-	"type": "module",
-	"exports": "./dist/index.js",
-	"types": "dist/index.d.ts",
-	"scripts": {
-		"watch": "nodemon --ext ts --ignore dist --exec npm run",
-		"build": "tsc --build",
-		"test": "cd .. && vitest --run --project=discojs"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/epfml/disco.git"
-	},
-	"bugs": {
-		"url": "https://github.com/epfml/disco/issues"
-	},
-	"homepage": "https://github.com/epfml/disco#readme",
-	"dependencies": {
-		"@epfml/isomorphic-wrtc": "1",
-		"@jimp/core": "1",
-		"@jimp/plugin-resize": "1",
-		"@msgpack/msgpack": "3",
-		"@tensorflow/tfjs": "4",
-		"@xenova/transformers": "2",
-		"isomorphic-ws": "5",
-		"simple-peer": "9",
-		"tslib": "2",
-		"ws": "8",
-		"zod": "4"
-	},
-	"devDependencies": {
-		"@tensorflow/tfjs-node": "4",
-		"@types/simple-peer": "9",
-		"nodemon": "3",
-		"ts-node": "10"
-	}
+  "name": "@epfml/discojs",
+  "version": "3.0.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "@disco/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "watch": "nodemon --ext ts --ignore dist --exec pnpm run",
+    "build": "tsc --build",
+    "test": "cd .. && vitest --run --project=discojs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/epfml/disco.git"
+  },
+  "bugs": {
+    "url": "https://github.com/epfml/disco/issues"
+  },
+  "imports": {
+    "#root/*": {
+      "@disco/source": "./src/*.ts",
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "#aggregator/*": {
+      "@disco/source": "./src/aggregator/*.ts",
+      "types": "./dist/aggregator/*.d.ts",
+      "default": "./dist/aggregator/*.js"
+    },
+    "#client/*": {
+      "@disco/source": "./src/client/*.ts",
+      "types": "./dist/client/*.d.ts",
+      "default": "./dist/client/*.js"
+    },
+    "#dataset/*": {
+      "@disco/source": "./src/dataset/*.ts",
+      "types": "./dist/dataset/*.d.ts",
+      "default": "./dist/dataset/*.js"
+    },
+    "#types/*": {
+      "@disco/source": "./src/types/*.ts",
+      "types": "./dist/types/*.d.ts",
+      "default": "./dist/types/*.js"
+    },
+    "#logging/*": {
+      "@disco/source": "./src/logging/*.ts",
+      "types": "./dist/logging/*.d.ts",
+      "default": "./dist/logging/*.js"
+    },
+    "#models/*": {
+      "@disco/source": "./src/models/*.ts",
+      "types": "./dist/models/*.d.ts",
+      "default": "./dist/models/*.js"
+    },
+    "#processing/*": {
+      "@disco/source": "./src/processing/*.ts",
+      "types": "./dist/processing/*.d.ts",
+      "default": "./dist/processing/*.js"
+    },
+    "#serialization/*": {
+      "@disco/source": "./src/serialization/*.ts",
+      "types": "./dist/serialization/*.d.ts",
+      "default": "./dist/serialization/*.js"
+    },
+    "#task/*": {
+      "@disco/source": "./src/task/*.ts",
+      "types": "./dist/task/*.d.ts",
+      "default": "./dist/task/*.js"
+    },
+    "#training/*": {
+      "@disco/source": "./src/training/*.ts",
+      "types": "./dist/training/*.d.ts",
+      "default": "./dist/training/*.js"
+    },
+    "#utils/*": {
+      "@disco/source": "./src/utils/*.ts",
+      "types": "./dist/utils/*.d.ts",
+      "default": "./dist/utils/*.js"
+    },
+    "#weights/*": {
+      "@disco/source": "./src/weights/*.ts",
+      "types": "./dist/weights/*.d.ts",
+      "default": "./dist/weights/*.js"
+    }
+  },
+  "homepage": "https://github.com/epfml/disco#readme",
+  "dependencies": {
+    "@epfml/isomorphic-wrtc": "workspace:*",
+    "@jimp/core": "1.6.1",
+    "@jimp/plugin-resize": "1.6.1",
+    "@msgpack/msgpack": "3.1.3",
+    "@tensorflow/tfjs": "catalog:",
+    "@xenova/transformers": "2.17.2",
+    "chalk": "4.1.2",
+    "debug": "catalog:",
+    "fast-check": "3.23.2",
+    "immutable": "catalog:",
+    "isomorphic-ws": "5.0.0",
+    "simple-peer": "9.11.1",
+    "ws": "8.21.0",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/simple-peer": "9.11.9",
+    "nodemon": "3.1.14",
+    "vitest": "catalog:"
+  }
 }

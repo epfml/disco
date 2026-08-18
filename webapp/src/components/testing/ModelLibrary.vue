@@ -158,7 +158,7 @@ import { RouterLink } from "vue-router";
 import { VueSpinner } from "vue3-spinners";
 
 import type { DataType, Model, Network, Task } from "@epfml/discojs";
-import { client as clients, aggregator } from "@epfml/discojs";
+import { LocalClient, getAggregator } from "@epfml/discojs";
 
 import BinIcon from "@/assets/svg/BinIcon.vue";
 import { useToaster } from "@/composables/toaster";
@@ -246,7 +246,7 @@ async function downloadModel(task: Task<DataType, Network>): Promise<void> {
   try {
     toaster.info("Downloading model...");
 
-    const client = new clients.LocalClient(
+    const client = new LocalClient(
       CONFIG.serverUrl,
       {
         ...task,
@@ -255,7 +255,7 @@ async function downloadModel(task: Task<DataType, Network>): Promise<void> {
           scheme: "local",
         },
       } as Task<DataType, "local">,
-      aggregator.getAggregator(task),
+      getAggregator(task),
     );
     const model = await client.getLatestModel();
 
@@ -314,8 +314,8 @@ function taskTitle(taskID: string): string | undefined {
   return titled.displayInformation.title;
 }
 
-const goToChat = (modelID: ModelID): void => {
+async function goToChat(modelID: ModelID) {
   validationStore.step = 0;
-  router.push({ path: "/chat", query: { modelID } });
+  await router.push({ path: "/chat", query: { modelID } });
 };
 </script>

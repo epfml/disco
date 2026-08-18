@@ -1,7 +1,6 @@
 <template>
   <div
-    class="flex flex-col p-7 gap-4 bg-white dark:bg-slate-950 rounded-lg 
-    hover:outline-solid hover:outline-1 hover:outline-disco-cyan hover:cursor-pointer"
+    class="flex flex-col p-7 gap-4 bg-white dark:bg-slate-950 rounded-lg hover:outline-solid hover:outline-1 hover:outline-disco-cyan hover:cursor-pointer"
   >
     <div class="flex flex-row">
       <div
@@ -37,7 +36,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { List } from "immutable";
+import type { List } from "immutable";
 
 import CustomButton from "@/components/simple/CustomButton.vue";
 

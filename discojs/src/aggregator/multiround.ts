@@ -1,7 +1,7 @@
-import { Aggregator } from "./aggregator.js";
+import { Aggregator } from "#aggregator/aggregator";
 import createDebug from "debug";
 
-export type ThresholdType = 'relative' | 'absolute';
+export type ThresholdType = "relative" | "absolute";
 
 const debug = createDebug("discojs:aggregator:multiround");
 
@@ -19,25 +19,25 @@ export abstract class MultiRoundAggregator extends Aggregator {
    * Abstract class of a multi-round aggregator that wait for a certain number of contributions before aggregating
    * By default, initializes an aggregator that waits for 100% of the nodes' contributions and that
    * only accepts contributions from the current round (drops contributions from previous rounds).
-   * 
+   *
    * @param threshold - how many contributions trigger an aggregation step.
-   * It can be relative (a proportion): 0 < t <= 1, requiring t * |nodes| contributions. 
+   * It can be relative (a proportion): 0 < t <= 1, requiring t * |nodes| contributions.
    * Important: to specify 100% of the nodes, set `threshold = 1` and `thresholdType = 'relative'`.
    * It can be an absolute number, if t >=1 (then t has to be an integer), the aggregator waits fot t contributions
    * Note, to specify waiting for a single contribution (such as a federated client only waiting for the server weight update),
    * set `threshold = 1` and `thresholdType = 'absolute'`
-   * @param thresholdType 'relative' or 'absolute', defaults to 'relative'. Is only used to clarify the case when threshold = 1, 
+   * @param thresholdType 'relative' or 'absolute', defaults to 'relative'. Is only used to clarify the case when threshold = 1,
    * If `threshold != 1` then the specified thresholdType is ignored and overwritten
    * If `thresholdType = 'absolute'` then `threshold = 1` means waiting for 1 contribution
-   * if `thresholdType = 'relative'` then `threshold = 1`` means 100% of this.nodes' contributions, 
-   * @param roundCutoff - from how many past rounds do we still accept contributions. 
-   * If 0 then only accept contributions from the current round, 
+   * if `thresholdType = 'relative'` then `threshold = 1`` means 100% of this.nodes' contributions,
+   * @param roundCutoff - from how many past rounds do we still accept contributions.
+   * If 0 then only accept contributions from the current round,
    * if 1 then the current round and the previous one, etc.
    */
 
   constructor(roundCutoff = 0, threshold = 1, thresholdType?: ThresholdType) {
     if (threshold <= 0) throw new Error("threshold must be strictly positive");
-    if (threshold > 1 && (!Number.isInteger(threshold)))
+    if (threshold > 1 && !Number.isInteger(threshold))
       throw new Error("absolute thresholds must be integral");
 
     super(roundCutoff, 1);
@@ -45,17 +45,20 @@ export abstract class MultiRoundAggregator extends Aggregator {
 
     if (threshold < 1) {
       // Throw exception if threshold and thresholdType are conflicting
-      if (thresholdType === 'absolute') {
-        throw new Error(`thresholdType has been set to 'absolute' but choosing threshold=${threshold} implies that thresholdType should be 'relative'.`)
+      if (thresholdType === "absolute") {
+        throw new Error(
+          `thresholdType has been set to 'absolute' but choosing threshold=${threshold} implies that thresholdType should be 'relative'.`,
+        );
       }
-      this.#thresholdType = 'relative'
-    }
-    else if (threshold > 1) {
+      this.#thresholdType = "relative";
+    } else if (threshold > 1) {
       // Throw exception if threshold and thresholdType are conflicting
-      if (thresholdType === 'relative') {
-        throw new Error(`thresholdType has been set to 'relative' but choosing threshold=${threshold} implies that thresholdType should be 'absolute'.`)
+      if (thresholdType === "relative") {
+        throw new Error(
+          `thresholdType has been set to 'relative' but choosing threshold=${threshold} implies that thresholdType should be 'absolute'.`,
+        );
       }
-      this.#thresholdType = 'absolute'
+      this.#thresholdType = "absolute";
     }
     // remaining case: threshold == 1
     else {
@@ -64,11 +67,11 @@ export abstract class MultiRoundAggregator extends Aggregator {
         // TODO enforce validity by splitting the different threshold types into separate classes instead of warning
         debug(
           "[WARN] Setting the aggregator's threshold to 100% of the nodes' contributions by default. " +
-          "To instead wait for a single contribution, set thresholdType = 'absolute'"
-        )
-        this.#thresholdType = 'relative'
+            "To instead wait for a single contribution, set thresholdType = 'absolute'",
+        );
+        this.#thresholdType = "relative";
       } else {
-        this.#thresholdType = thresholdType
+        this.#thresholdType = thresholdType;
       }
     }
   }
@@ -77,11 +80,14 @@ export abstract class MultiRoundAggregator extends Aggregator {
   override isFull(): boolean {
     // Make sure that we are over the minimum number of participants
     // if specified
-    if (this.#minNbOfParticipants !== undefined && 
-        this.nodes.size < this.#minNbOfParticipants) return false;
+    if (
+      this.#minNbOfParticipants !== undefined &&
+      this.nodes.size < this.#minNbOfParticipants
+    )
+      return false;
 
     const thresholdValue =
-      this.#thresholdType == 'relative'
+      this.#thresholdType == "relative"
         ? this.#threshold * this.nodes.size
         : this.#threshold;
 

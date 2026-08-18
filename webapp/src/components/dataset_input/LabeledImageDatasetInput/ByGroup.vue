@@ -2,18 +2,17 @@
   <div class="grid grid-cols-1 lg:grid-cols-2 cards-gap">
     <div class="contents">
       <IconCard v-for="[label, files] in labelsAndFiles" :key="label">
-        <template #title> Group label:&nbsp;&nbsp;{{ label }} </template>
+        <template #title> Group label:&nbsp;{{ label }} </template>
 
-        <FileSelection v-model="files.value" type="image" multiple private>
-          {{ browsingTip }}
-        </FileSelection>
+        <FileSelection v-model="files.value" type="image" multiple no-upload />
       </IconCard>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { Map, Set } from "immutable";
+import type { Set } from "immutable";
+import { Map } from "immutable";
 import type { Ref, WatchHandle } from "vue";
 import { computed, ref, watch } from "vue";
 
@@ -25,7 +24,6 @@ import IconCard from "@/components/containers/IconCard.vue";
 import FileSelection from "../FileSelection.vue";
 
 import type { NamedLabeledImageDataset } from "../types.js";
-import { browsingTip } from "./strings.js";
 
 const props = defineProps<{
   labels: Set<string>;

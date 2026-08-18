@@ -4,9 +4,9 @@ import {
   type Aggregator,
   MeanAggregator,
   SecureAggregator,
-} from "./aggregator/index.js";
-import type { NodeID } from "./client/types.js";
-import { WeightsContainer } from "./index.js";
+} from "#aggregator/index";
+import type { NodeID } from "#client/index";
+import { WeightsContainer } from "#weights/index";
 
 const AGGREGATORS: Set<[name: string, new () => Aggregator]> = Set.of<
   new () => Aggregator
@@ -31,14 +31,14 @@ for (const [name, Aggregator] of AGGREGATORS) {
       const results = new Promise((resolve) =>
         aggregator.on("aggregation", resolve),
       );
-      
-      let promises = List<Promise<WeightsContainer>>()
+
+      let promises = List<Promise<WeightsContainer>>();
       for (let i = 0; i < 3; i++)
-        for (let r = 0; r < aggregator.communicationRounds; r++){
-          promises = promises.push(aggregator.getPromiseForAggregation())
-          aggregator.add(`client ${i}`, WeightsContainer.of([i]), 0, r)
+        for (let r = 0; r < aggregator.communicationRounds; r++) {
+          promises = promises.push(aggregator.getPromiseForAggregation());
+          aggregator.add(`client ${i}`, WeightsContainer.of([i]), 0, r);
         }
-      await Promise.all(promises)
+      await Promise.all(promises);
       await results; // nothing to test
 
       expect(aggregator.round).to.equal(1);
@@ -59,7 +59,8 @@ for (const [name, Aggregator] of AGGREGATORS) {
                     id,
                     [agg, WeightsContainer.of([ws])],
                   ]),
-              ), 0
+              ),
+              0,
             )
           )
             .valueSeq()
@@ -73,7 +74,7 @@ for (const [name, Aggregator] of AGGREGATORS) {
         return first;
       });
     });
-  })
+  });
 }
 
 export async function wsIntoArrays(ws: WeightsContainer): Promise<number[][]> {
@@ -88,7 +89,7 @@ export function setupNetwork<A extends Aggregator>(
   const ret = Map(
     Range(0, 3).map((i) => [`client ${i}`, new Aggregator()] as [NodeID, A]),
   );
-	for (const secure of ret.values()) secure.setNodes(ret.keySeq().toSet());
+  for (const secure of ret.values()) secure.setNodes(ret.keySeq().toSet());
 
   return ret;
 }
@@ -96,7 +97,7 @@ export function setupNetwork<A extends Aggregator>(
 // run all rounds of communication
 export async function communicate<A extends Aggregator>(
   networkWithContributions: Map<NodeID, [A, WeightsContainer]>,
-  aggregationRound: number
+  aggregationRound: number,
 ): Promise<Map<NodeID, WeightsContainer>> {
   const communicationsRound =
     networkWithContributions.first()?.[0].communicationRounds;
@@ -116,14 +117,14 @@ export async function communicate<A extends Aggregator>(
       ])
       .toArray();
 
-		for (const [id, agg] of network) {
-			const contribution = contributions.get(id);
-			if (contribution === undefined)
-				throw new Error(`no contribution for ${id}`);
+    for (const [id, agg] of network) {
+      const contribution = contributions.get(id);
+      if (contribution === undefined)
+        throw new Error(`no contribution for ${id}`);
 
-			for (const [to, payload] of agg.makePayloads(contribution))
-				network.get(to)?.add(id, payload, aggregationRound, r);
-		}
+      for (const [to, payload] of agg.makePayloads(contribution))
+        network.get(to)?.add(id, payload, aggregationRound, r);
+    }
 
     contributions = Map(await Promise.all(nextContributions));
   }

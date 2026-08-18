@@ -1,21 +1,23 @@
-import * as tf from '@tensorflow/tfjs'
-
-import type { Model, TaskProvider } from "../index.js";
-import { models } from '../index.js'
+import type { TaskProvider } from "#task/index";
+import { cards } from "#models/index";
 
 export const mnist: TaskProvider<"image", "decentralized"> = {
   getTask() {
     return Promise.resolve({
-      id: 'mnist',
+      id: "mnist",
       dataType: "image",
       displayInformation: {
-        title: 'Handwritten Digit Recognition',
+        title: "Handwritten Digit Recognition",
         summary: {
-          preview: "The MNIST handwritten digit classification problem is a classic dataset used in computer vision and deep learning. The objective is to classify handwritten digits from 28x28 pixel images.",
-          overview: "Download the classic MNIST dataset of hand-written numbers at https://www.kaggle.com/scolianni/mnistasjpg . You can also find a sample dataset at the next step."
+          preview:
+            "The MNIST handwritten digit classification problem is a classic dataset used in computer vision and deep learning. The objective is to classify handwritten digits from 28x28 pixel images.",
+          overview:
+            "Download the classic MNIST dataset of hand-written numbers at https://www.kaggle.com/scolianni/mnistasjpg . You can also find a sample dataset at the next step.",
         },
-        model: "The model is a simple Convolutional Neural Network composed of three convolutional layers with ReLU activations and max pooling layers, followed by two fully connected layers. The data preprocessing simply normalizes values between 0 and 1. The neural network is optimized via RMSProp and a categorical cross-entropy loss.",
-        dataFormatInformation: 'This model is trained on images corresponding to digits 0 to 9. You can connect your own images of each digit in the box corresponding to its label. The model takes images of size 28x28 as input.',
+        model:
+          "The model is a simple Convolutional Neural Network composed of three convolutional layers with ReLU activations and max pooling layers, followed by two fully connected layers. The data preprocessing simply normalizes values between 0 and 1. The neural network is optimized via RMSProp and a categorical cross-entropy loss.",
+        dataFormatInformation:
+          "This model is trained on images corresponding to digits 0 to 9. You can connect your own images of each digit in the box corresponding to its label. The model takes images of size 28x28 as input.",
         dataExample:
           "http://storage.googleapis.com/deai-313515.appspot.com/example_training_data/9-mnist-example.png",
         sampleDataset: {
@@ -31,51 +33,22 @@ export const mnist: TaskProvider<"image", "decentralized"> = {
         batchSize: 64,
         IMAGE_H: 28,
         IMAGE_W: 28,
-        LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-        scheme: 'decentralized',
-				aggregationStrategy: "byzantine",
-				privacy: {
-					byzantineFaultTolerance: {
-						clippingRadius: 10,
-						maxIterations: 1,
-						beta: 0.9,
-					},
-				},
+        LABEL_LIST: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+        scheme: "decentralized",
+        aggregationStrategy: "byzantine",
+        privacy: {
+          byzantineFaultTolerance: {
+            clippingRadius: 10,
+            maxIterations: 1,
+            beta: 0.9,
+          },
+        },
         minNbOfParticipants: 3,
         maxShareValue: 100,
-        tensorBackend: 'tfjs'
-      }
+        tensorBackend: "tfjs",
+      },
     });
   },
 
-  getModel(): Promise<Model<'image'>> {
-    // Architecture from the PyTorch MNIST example (I made it slightly smaller, 650kB instead of 5MB)
-    // https://github.com/pytorch/examples/blob/main/mnist/main.py
-    const model = tf.sequential()
-
-    model.add(
-      tf.layers.conv2d({
-        inputShape: [28, 28, 3],
-        kernelSize: 5,
-        filters: 8,
-        activation: 'relu',
-      })
-    )
-    model.add(tf.layers.conv2d({ kernelSize: 5, filters: 16, activation: 'relu' }))
-    model.add(tf.layers.maxPooling2d({ poolSize: 2, strides: 2 }))
-    model.add(tf.layers.dropout({ rate: 0.25 }))
-
-    model.add(tf.layers.flatten())
-    model.add(tf.layers.dense({ units: 32, activation: 'relu' }))
-    model.add(tf.layers.dropout({rate:0.25}))
-    model.add(tf.layers.dense({ units: 10, activation: 'softmax' }))
-
-    model.compile({
-      optimizer: 'adam',
-      loss: 'categoricalCrossentropy',
-      metrics: ['accuracy']
-    })
-
-    return Promise.resolve(new models.TFJS('image', model))
-  }
-}
+  modelCard: cards.MNISTClassifier,
+};

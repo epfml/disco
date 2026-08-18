@@ -1,32 +1,78 @@
-export * as data from './dataset/index.js'
-export * as serialization from './serialization/index.js'
-export * as training from './training/index.js'
-export * as privacy from './privacy.js'
+export {
+  modelEncode,
+  modelDecode,
+  weightsEncode,
+  weightsDecode,
+  serializeTaskToJSON,
+  deserializeTaskFromJSON,
+  isEncoded,
+} from "./serialization/index.js";
+export type { Encoded } from "./serialization/index.js";
 
-export * as client from './client/index.js'
-export * as aggregator from './aggregator/index.js'
+export {
+  MeanAggregator,
+  SecureAggregator,
+  getAggregator,
+} from "./aggregator/index.js";
 
-export { WeightsContainer, aggregation } from './weights/index.js'
-export { Logger, ConsoleLogger } from './logging/index.js'
-export { Disco, RoundLogs, RoundStatus } from './training/index.js'
-export { Validator } from './validator.js'
+export {
+  LocalClient,
+  getClient,
+  DecentralizedClient,
+  FederatedClient,
+  mtype,
+  federatedMessages,
+  decentralizedMessages,
+} from "./client/index.js";
+export type { Client, NodeID } from "./client/index.js";
+
+export { WeightsContainer, avg } from "./weights/index.js";
+
+export { Disco } from "./training/index.js";
+export type { RoundLogs, RoundStatus, SummaryLogs } from "./training/index.js";
+
+export { Validator } from "./validator.js";
+
+export type {
+  ModelCard,
+  ModelCardInfo,
+  BatchLogs,
+  HellaSwagDataset,
+} from "./models/index.js";
 
 export {
   Model,
-  BatchLogs,
   EpochLogs,
   Tokenizer,
-  ValidationMetrics,
+  fetchModels,
+  GPT,
+  TFJS,
+  ONNXModel,
+  HELLASWAG_URL,
+  evaluate_hellaswag,
 } from "./models/index.js";
-export * as models from './models/index.js'
+export type { GPTConfig, HellaSwagExample } from "./models/index.js";
 
-export * from './task/index.js'
-export * as defaultTasks from './default_tasks/index.js'
+export { EventEmitter } from "./utils/event_emitter.js";
 
-export * as async_iterator from "./utils/async_iterator.js"
-export { EventEmitter } from "./utils/event_emitter.js"
+export { Dataset, Image } from "./dataset/index.js";
+export type { Text, Tabular } from "./dataset/index.js";
 
-export * from "./dataset/index.js";
-export * from "./types/index.js";
+export { split, gather } from "./utils/async_iterator.js";
 
-export * as processing from "./processing/index.js";
+export {
+  Task,
+  TrainingInformation,
+  pushTask,
+  fetchTasks,
+} from "./task/index.js";
+export type { TaskProvider } from "./task/index.js";
+
+export type { DataType, Network, DataFormat } from "./types/index.js";
+export { dataTypeValues } from "./types/index.js";
+
+export { extractColumn } from "./processing/index.js";
+
+// eslint-disable-next-line no-restricted-syntax -- namespace re-export acceptable here
+export * as defaultTasks from "./default_tasks/index.js";
+export { cards as defaultModels } from "./models/index.js";

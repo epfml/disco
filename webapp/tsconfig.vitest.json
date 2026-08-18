@@ -1,10 +1,16 @@
 {
   "extends": "./tsconfig.app.json",
   "exclude": [],
+  "references": [
+    {
+      "path": "../discojs/tsconfig.lib.json"
+    },
+    {
+      "path": "../discojs-web/tsconfig.lib.json"
+    }
+  ],
   "compilerOptions": {
-    "composite": true,
     "tsBuildInfoFile": "tsconfig.vitest.tsbuildinfo",
-
     "lib": [],
     "types": ["node", "jsdom"]
   }

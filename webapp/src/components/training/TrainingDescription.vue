@@ -70,19 +70,28 @@
           <tr>
             <th>Differential Privacy: Noise Scale</th>
             <td>
-              {{ task.trainingInformation.privacy?.differentialPrivacy?.epsilon ?? "Unused" }}
+              {{
+                task.trainingInformation.privacy?.differentialPrivacy
+                  ?.epsilon ?? "Unused"
+              }}
             </td>
           </tr>
           <tr>
             <th>Differential Privacy: Delta</th>
             <td>
-              {{ task.trainingInformation.privacy?.differentialPrivacy?.delta ?? "Unused" }}
+              {{
+                task.trainingInformation.privacy?.differentialPrivacy?.delta ??
+                "Unused"
+              }}
             </td>
           </tr>
           <tr>
             <th>Differential Privacy: Default Clipping Radius</th>
             <td>
-              {{ task.trainingInformation.privacy?.differentialPrivacy?.clippingRadius ?? "Unused" }}
+              {{
+                task.trainingInformation.privacy?.differentialPrivacy
+                  ?.clippingRadius ?? "Unused"
+              }}
             </td>
           </tr>
           <tr>

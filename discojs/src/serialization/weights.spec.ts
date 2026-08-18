@@ -1,26 +1,32 @@
 import { assert, describe, it } from "vitest";
 
-import { WeightsContainer, serialization } from '../index.js'
+import { WeightsContainer } from "#weights/index";
+import { isEncoded } from "#serialization/coder";
+import { encode, decode } from "#serialization/weights";
 
-describe('weights', () => {
-  it('can encode what it decodes', async () => {
-    const weights = WeightsContainer.of([1], [2], [3])
+describe("weights", () => {
+  it("can encode what it decodes", async () => {
+    const weights = WeightsContainer.of([1], [2], [3]);
 
-    const encoded = await serialization.weights.encode(weights)
-    assert.isTrue(serialization.isEncoded(encoded))
-    const decoded = serialization.weights.decode(encoded)
+    const encoded = await encode(weights);
+    assert.isTrue(isEncoded(encoded));
+    const decoded = decode(encoded);
 
     assert.sameDeepOrderedMembers(
       Array.from(
-        (await Promise.all(
-          decoded.weights.map(async (w) => await w.data<'float32'>()))
-        ).entries()
+        (
+          await Promise.all(
+            decoded.weights.map(async (w) => await w.data<"float32">()),
+          )
+        ).entries(),
       ),
       Array.from(
-        (await Promise.all(
-          weights.weights.map(async (w) => await w.data<'float32'>()))
-        ).entries()
-      )
-    )
-  })
-})
+        (
+          await Promise.all(
+            weights.weights.map(async (w) => await w.data<"float32">()),
+          )
+        ).entries(),
+      ),
+    );
+  });
+});

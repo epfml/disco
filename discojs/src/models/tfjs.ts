@@ -1,42 +1,38 @@
 import { List, Map, Range } from "immutable";
-import * as tf from '@tensorflow/tfjs'
+import * as tf from "@tensorflow/tfjs";
 
-import {
-  Batched,
-  Dataset,
-  DataFormat,
-  DataType,
-  WeightsContainer,
-} from "../index.js";
+import type { Dataset, Batched } from "#dataset/index";
+import type { DataFormat, DataType } from "#types/index";
+import { WeightsContainer } from "#weights/index";
 
-import { BatchLogs } from './index.js'
-import { Model } from './index.js'
-import { EpochLogs } from './logs.js'
+import type { BatchLogs } from "#models/logs";
+import { Model } from "#models/model";
+import { EpochLogs } from "#models/logs";
 
 type Serialized<D extends DataType> = [D, tf.io.ModelArtifacts];
 
 /** TensorFlow JavaScript model with standard training */
 export class TFJS<D extends "image" | "tabular"> extends Model<D> {
   /** Wrap the given trainable model */
-  constructor (
+  constructor(
     public readonly datatype: D,
-    private readonly model: tf.LayersModel
+    private readonly model: tf.LayersModel,
   ) {
-    super()
+    super();
 
     if (model.loss === undefined) {
-      throw new Error('TFJS models need to be compiled to be used')
+      throw new Error("TFJS models need to be compiled to be used");
     }
     if (model.outputs.length !== 1)
-      throw new Error("only support single output model")
+      throw new Error("only support single output model");
   }
 
-  override get weights (): WeightsContainer {
-    return new WeightsContainer(this.model.weights.map((w) => w.read()))
+  override get weights(): WeightsContainer {
+    return new WeightsContainer(this.model.weights.map((w) => w.read()));
   }
 
-  override set weights (ws: WeightsContainer) {
-    this.model.setWeights(ws.weights)
+  override set weights(ws: WeightsContainer) {
+    this.model.setWeights(ws.weights);
   }
 
   override async *train(
@@ -44,9 +40,10 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
   ): AsyncGenerator<BatchLogs, EpochLogs> {
     let batchesLogs = List<BatchLogs>();
-		for await (const [batch, batchNumber] of trainingDataset.zip(
-			Range(0, Number.POSITIVE_INFINITY),
-		)) {
+    let epochTime = performance.now();
+    for await (const [batch, batchNumber] of trainingDataset.zip(
+      Range(0, Number.POSITIVE_INFINITY),
+    )) {
       const batchLogs = {
         batch: batchNumber,
         ...(await this.#runBatch(batch)),
@@ -55,9 +52,10 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
       yield batchLogs;
       batchesLogs = batchesLogs.push(batchLogs);
     }
-
-    const validation = validationDataset && (await this.#evaluate(validationDataset));
-    return new EpochLogs(batchesLogs, validation);
+    epochTime = performance.now() - epochTime;
+    const validation =
+      validationDataset && (await this.evaluate(validationDataset));
+    return new EpochLogs(batchesLogs, epochTime, validation);
   }
 
   async #runBatch(
@@ -88,7 +86,7 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     };
   }
 
-  async #evaluate(
+  override async evaluate(
     dataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
   ): Promise<Record<"accuracy" | "loss", number>> {
     const evaluation = await this.model.evaluateDataset(
@@ -108,7 +106,7 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
       if (values.length !== 1) throw new Error("more than one metric value");
       return values[0];
     });
-    tf.dispose(evaluation)
+    tf.dispose(evaluation);
 
     const [accuracy, loss] = [
       metricToValue.get("acc"),
@@ -170,7 +168,7 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     );
     prediction.dispose();
 
-    return ret
+    return ret;
   }
 
   static async deserialize<D extends "image" | "tabular">([
@@ -185,30 +183,34 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     );
   }
 
+  async serialize(): Promise<Serialized<D>> {
+    let resolveArtifacts: (_: tf.io.ModelArtifacts) => void;
+    const ret = new Promise<tf.io.ModelArtifacts>((resolve) => {
+      resolveArtifacts = resolve;
+    });
 
-  async serialize (): Promise<Serialized<D>> {
-    let resolveArtifacts: (_: tf.io.ModelArtifacts) => void
-    const ret = new Promise<tf.io.ModelArtifacts>((resolve) => { resolveArtifacts = resolve })
+    await this.model.save(
+      {
+        save: (artifacts) => {
+          resolveArtifacts(artifacts);
+          return Promise.resolve({
+            modelArtifactsInfo: {
+              dateSaved: new Date(),
+              modelTopologyType: "JSON",
+            },
+          });
+        },
+      },
+      {
+        includeOptimizer: true, // keep model compiled
+      },
+    );
 
-    await this.model.save({
-      save: (artifacts) => {
-        resolveArtifacts(artifacts)
-        return Promise.resolve({
-          modelArtifactsInfo: {
-            dateSaved: new Date(),
-            modelTopologyType: 'JSON'
-          }
-        })
-      }
-    }, {
-      includeOptimizer: true // keep model compiled
-    })
-
-    return [this.datatype, await ret]
+    return [this.datatype, await ret];
   }
 
-  [Symbol.dispose](): void{
-    this.model.dispose()
+  [Symbol.dispose](): void {
+    this.model.dispose();
   }
 
   /**
@@ -216,8 +218,8 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
    *
    * @deprecated use `Model` instead of relying on tf specifics
    */
-  extract (): tf.LayersModel {
-    return this.model
+  extract(): tf.LayersModel {
+    return this.model;
   }
 
   #batchToTF(
@@ -280,7 +282,8 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
         // cast as typescript doesn't reduce generic type
         const b = batch as Batched<DataFormat.ModelEncoded["image"][0]>;
 
-        return tf.tidy(() => tf.stack(
+        return tf.tidy(() =>
+          tf.stack(
             b
               .map((image) =>
                 tf.tensor3d(
@@ -298,9 +301,7 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
         const b = batch as Batched<DataFormat.ModelEncoded["tabular"][0]>;
 
         return tf.tidy(() =>
-          tf.stack(
-            b.map((inputs) => tf.tensor1d(inputs.toArray())).toArray(),
-          ),
+          tf.stack(b.map((inputs) => tf.tensor1d(inputs.toArray())).toArray()),
         );
       }
     }

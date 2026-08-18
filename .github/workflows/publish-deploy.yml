@@ -1,34 +1,29 @@
 name: publish-deploy
 on:
   push:
-    branches: [develop]
+    branches: [main]
     tags: [v*]
 
 jobs:
   publish-npm:
     runs-on: ubuntu-latest
     permissions:
+      id-token: write
       contents: read
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false # never use caching in release builds
           scope: "@epfml"
-      - uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-      - run: npm --workspace=discojs{,-node,-web} version prerelease --preid=p`date +%Y%m%d%H%M%S`
+      - uses: pnpm/action-setup@v6
+      - run: pnpm ci
+      - run: pnpm -F 'discojs*' version prerelease --preid=p`date +%Y%m%d%H%M%S`
         if: github.ref_type == 'branch'
-      - run: npm --workspace=discojs{,-node,-web} run build
-      - run: npm --workspace=discojs{,-node,-web} publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: pnpm -F 'discojs*' run build
+      - run: pnpm -F 'discojs*' publish --access public --tag latest
 
   build-webapp:
     if: github.ref_type == 'branch'
@@ -36,21 +31,13 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-      - run: npm --workspace={discojs,discojs-web,webapp} run build
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - run: pnpm -F webapp run build
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: webapp/dist
+
   deploy-pages:
     needs: build-webapp
     if: github.ref_type == 'branch'
@@ -63,7 +50,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   publish-github-container:
     runs-on: ubuntu-latest
@@ -100,7 +87,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: google-github-actions/auth@v3
         with:
           project_id: disco-367212

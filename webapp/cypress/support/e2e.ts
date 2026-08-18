@@ -5,8 +5,9 @@ import type {
   Task,
   TaskProvider,
   TrainingInformation,
+  Encoded,
 } from "@epfml/discojs";
-import { serialization } from "@epfml/discojs";
+import { serializeTaskToJSON, modelEncode } from "@epfml/discojs";
 
 export function setupServerWith(
   ...providers: (Task<DataType, Network> | TaskProvider<DataType, Network>)[]
@@ -16,16 +17,14 @@ export function setupServerWith(
       Promise.all(
         providers.map(async (p) => {
           if ("id" in p) return [p, undefined] as const;
-          return [await p.getTask(), await p.getModel()] as const;
+          return [await p.getTask(), await p.modelCard.getModel()] as const;
         }),
       ),
     )
     .as("taskAndModels");
 
-  cy.get<Array<[Task<DataType,Network>, unknown]>>("@taskAndModels")
-    .then((taskAndModels) =>
-      taskAndModels.map(([t]) => serialization.task.serializeToJSON(t)),
-    )
+  cy.get<Array<[Task<DataType, Network>, unknown]>>("@taskAndModels")
+    .then((taskAndModels) => taskAndModels.map(([t]) => serializeTaskToJSON(t)))
     .then((tasks) =>
       cy.intercept({ hostname: "server", pathname: "tasks" }, tasks),
     );
@@ -42,9 +41,7 @@ export function setupServerWith(
         { hostname: "server", pathname: `/tasks/${task.id}/model.json` },
         { statusCode: 200 },
       );
-      cy.wrap<Promise<serialization.Encoded>, serialization.Encoded>(
-        serialization.model.encode(model),
-      ).then((encoded) =>
+      cy.wrap<Promise<Encoded>, Encoded>(modelEncode(model)).then((encoded) =>
         cy.intercept(
           { hostname: "server", pathname: `/tasks/${task.id}/model.json` },
           (req) =>
@@ -67,30 +64,30 @@ type BasicKeys =
   | "aggregationStrategy";
 
 export function basicTask<D extends DataType>(
-	dataType: D,
-	info: Omit<TrainingInformation<D, "local">, BasicKeys>,
+  dataType: D,
+  info: Omit<TrainingInformation<D, "local">, BasicKeys>,
 ): Task<D, "local"> {
-	return {
-		id: "task",
-		dataType,
-		trainingInformation: {
-			epochs: 1,
-			batchSize: 1,
-			roundDuration: 1,
-			validationSplit: 1,
-			tensorBackend: "tfjs",
-			scheme: "local",
-			aggregationStrategy: "mean",
-			...info,
-		},
-		displayInformation: {
-			title: "task",
-			summary: { preview: "preview", overview: "overview" },
-		},
-		// cast as typescript doesn't work well w/ generics
-	} as Task<D, "local">;
+  return {
+    id: "task",
+    dataType,
+    trainingInformation: {
+      epochs: 1,
+      batchSize: 1,
+      roundDuration: 1,
+      validationSplit: 1,
+      tensorBackend: "tfjs",
+      scheme: "local",
+      aggregationStrategy: "mean",
+      ...info,
+    },
+    displayInformation: {
+      title: "task",
+      summary: { preview: "preview", overview: "overview" },
+    },
+    // cast as typescript doesn't work well w/ generics
+  } as Task<D, "local">;
 }
 
 before(() => {
-	localStorage.debug = "discojs*,webapp*";
+  localStorage.debug = "discojs*,webapp*";
 });

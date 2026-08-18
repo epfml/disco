@@ -7,13 +7,13 @@ This module contains the helper server providing the APIs used by the decentrali
 To run the local server implementation of this folder run:
 
 ```
-npm -w server start # from the root level
+pnpm -F server start # from the root level
 ```
 
 Alternatively, you can start a server instance via the NPM package:
 
 ```sh
-npm i -g @epfml/disco-server
+npm i -g @epfml/disco-server # (also works with pnpm)
 disco-server
 ```
 
@@ -26,7 +26,7 @@ In both learning schemes, the DISCO server provides a list of trainable ML tasks
 - the neural network model
 - the task parameters (such as descriptions, preprocessing, training modes)
 
-Adding a new task server-side can be done in several ways. See [TASK.md](https://github.com/epfml/disco/tree/develop/docs/TASK.md) for more information.
+Adding a new task server-side can be done in several ways. See [TASK.md](https://github.com/epfml/disco/tree/main/docs/TASK.md) for more information.
 
 | Route                         | Method | Body               | Action                                                         |
 | ----------------------------- | ------ | ------------------ | -------------------------------------------------------------- |
@@ -35,7 +35,7 @@ Adding a new task server-side can be done in several ways. See [TASK.md](https:/
 | `/tasks/:taskID/model.json`   | GET    | —                  | Download the model architecture file (.json) for task `taskID` |
 | `/tasks/:taskID/:weightsFile` | GET    | —                  | Download the model weights file (.bin) for task `taskID`       |
 
-(\*) See the [task documentation](https://github.com/epfml/disco/tree/develop/docs/TASK.md) for the exact requirements.
+(\*) See the [task documentation](https://github.com/epfml/disco/tree/main/docs/TASK.md) for the exact requirements.
 
 ### Federated Learning
 
@@ -92,7 +92,7 @@ sudo docker run -p 8080:8080 disco-server:latest
 You can now start the `server` test suite as usual:
 
 ```sh
-npm -w server test
+pnpm -F server test
 ```
 
 > [!WARNING]

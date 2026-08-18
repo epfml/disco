@@ -7,7 +7,8 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import { createPersistedStatePlugin } from "pinia-plugin-persistedstate-2";
 
-import { models as discoModels, serialization, Task, Tokenizer } from "@epfml/discojs";
+import type { Task } from "@epfml/discojs";
+import { GPT, serializeTaskToJSON, Tokenizer } from "@epfml/discojs";
 
 import { CONFIG } from "@/config";
 import { useModelsStore } from "@/store";
@@ -52,10 +53,10 @@ it("shows stored models", async () => {
 
   const { tasks } = storeToRefs(useTasksStore());
   await flushPromises();
-  tasks.value = Map([[TASK.id, TASK]])
+  tasks.value = Map([[TASK.id, TASK]]);
 
   const models = useModelsStore();
-  await models.add("task", new discoModels.GPT());
+  await models.add("task", new GPT());
   await nextTick();
 
   expect(wrapper.get("div.text-xl").text()).to.equal("task title");
@@ -64,9 +65,7 @@ it("shows stored models", async () => {
 it("allows to download server's models", async () => {
   vi.stubGlobal("fetch", (url: string | URL) => {
     if (url.toString() === new URL("tasks", CONFIG.serverUrl).href)
-      return new Response(
-        JSON.stringify([serialization.task.serializeToJSON(TASK)]),
-      );
+      return new Response(JSON.stringify([serializeTaskToJSON(TASK)]));
     throw new Error(`unhandled get: ${url}`);
   });
   afterEach(() => {
@@ -86,9 +85,9 @@ it("allows to download server's models", async () => {
     },
   });
 
-	// load tasks
-	const { tasks } = storeToRefs(useTasksStore());
-	while (tasks.value === "loading") await flushPromises();
+  // load tasks
+  const { tasks } = storeToRefs(useTasksStore());
+  while (tasks.value === "loading") await flushPromises();
 
   expect(wrapper.get("button").text()).to.equal("download");
   await wrapper.get("button").trigger("click");

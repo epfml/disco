@@ -1,13 +1,20 @@
 {
+  "extends": "../../tsconfig.base.lib.json",
+  "references": [
+    {
+      "path": "../../discojs/tsconfig.lib.json"
+    },
+    {
+      "path": "../../discojs-node/tsconfig.lib.json"
+    },
+    {
+      "path": "../../server/tsconfig.lib.json"
+    }
+  ],
   "compilerOptions": {
-    "module": "node16",
-    "target": "es2022",
-
-    "strict": true,
-
-    "skipLibCheck": true,
-
-    "outDir": "dist"
+    "outDir": "dist",
+    "rootDir": ".",
+    "types": ["node"]
   },
   "include": ["*.ts"]
 }

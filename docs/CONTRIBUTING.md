@@ -41,7 +41,7 @@ There are many ways to use Disco.js: from a browser, a CLI, by importing `discoj
 As a contributor, you will certainly end up having to run TypeScript scripts. A practical way to do so is to use `ts-node`:
 
 ```
-npm i -g ts-node # globally to run scripts from anywhere
+npm i -g ts-node # globally to run scripts from anywhere (pnpm i -g also works)
 ts-node your_script.ts
 ```
 
@@ -50,7 +50,7 @@ ts-node your_script.ts
 You can start a `server` instance locally with:
 
 ```
-npm -w server start
+pnpm -F server start
 ```
 
 Running the server relies on `nodemon` which watches the module for changes and enables hot-reloading. Therefore, any (saved) code change is automatically taken into account and doesn't require a build. However, note that modifying `discojs` isn't effective automatically and requires a build. You may have to restart the server manually after rebuilding `discojs`. Section [Building `discojs`](#building-discojs) discusses this in more details.
@@ -58,7 +58,7 @@ Running the server relies on `nodemon` which watches the module for changes and 
 You can test the server with:
 
 ```
-npm -w server test
+pnpm -F server test
 ```
 
 Make sure you are not running a server at the same time as the test suite will launch its own instance. We use [vitest](https://vitest.dev/) and [Cypress](https://www.cypress.io/) for testing; respectively they are libraries for unit tests and browser testing.
@@ -72,14 +72,14 @@ If you are planning to contribute to the `webapp`, have a look at [VUEJS.md](./V
 The `webapp` requires that an server instance is running. You can start a local one as described in the last section with:
 
 ```
-npm -w server start # from the root folder
+pnpm -F server start # from the root folder
 ```
 
 The webapp can now be started with:
 
 ```
-npm -w webapp start # from the root folder
-npm start # from the webapp folder
+pnpm -F webapp start # from the root folder
+pnpm start # from the webapp folder
 ```
 
 The Vue development mode supports hot-reloading via `vite` and the client will automatically restart whenever a change in `webapp` is detected. Starting the Web Client should print something similar to
@@ -99,15 +99,17 @@ As said previously, modifying `discojs` isn't effective automatically and requir
 You can test the `webapp` with:
 
 ```
-npm -w webapp test
+pnpm -F webapp test
 ```
 
 The webapp tests rely on `cypress` and the test suite is located in the `webapp/cypress` folder.
 
-Note that you can also run test interactively in the browser of your choice. To do so, run
+Note that you can also run test interactively in the browser of your choice. To do so, run from the `webapp` folder
+
 ```
-VITE_SERVER_URL=http://server npx -w webapp start-server-and-test start http://localhost:8081 'cypress open --e2e'
+pnpm run test:e2e-interactive
 ```
+
 which should open the Cypress UI and let you choose the browser you wand to use and which tests to run. More information on [the Cypress docs](https://docs.cypress.io/app/get-started/open-the-app).
 
 #### Cypress and Github Actions
@@ -116,12 +118,16 @@ It is possible to record the cypress tests ran in the Github Actions CI and visu
 
 1. A Disco project has been created in the Cypress Cloud and you need to be added to the project to be able to visualize the recordings.
 
-2. In case a new Cypress project is now being used, make sure that the settings are correct: 
+2. In case a new Cypress project is now being used, make sure that the settings are correct:
+
 - In `webapp/cypress.config.ts` make sure the correct project ID has been set, It currently is:
+
 ```js
-  projectId: "aps8et"
+projectId: "aps8et";
 ```
+
 - The github workflow `.github/workflows/record-cypress.yml` relies on `CYPRESS_RECORD_KEY` which is a github repository secret.
+
 3. Finally, you can trigger the `record-cypress` workflow manually from github as described in the [documentation](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/manually-running-a-workflow#running-a-workflow)
 
 ### Contributing to `discojs`
@@ -131,7 +137,7 @@ If you are brought to modify the `discojs` folder have a look at [DISCOJS.md](./
 Because TypeScript needs to be transpiled to JavaScript, you need to rebuild the `discojs` folder for changes to be effective:
 
 ```sh
-npm -w discojs run build
+pnpm -F discojs run build
 ```
 
 The previous command invokes the TypeScript compiler (`tsc`) which successively compiles `discojs`, `discojs-node` and `discojs-web`, creating equivalent JavaScript files in the modules' respective `dist/` directory.
@@ -139,9 +145,9 @@ The previous command invokes the TypeScript compiler (`tsc`) which successively 
 To automate the building phase, you can use the `watch` command to rebuild a module whenever changes are detected. The `watch` command currently only works at the level of `discojs`, `discojs-node` or `discojs-web` (i.e., running watch over the whole `discojs` folder doesn't work and would only watch `discojs`)
 
 ```sh
-npm -w ./discojs run watch build
-npm -w ./discojs-node run watch build # another terminal
-npm -w ./discojs-web run watch build # one more terminal
+pnpm -F ./discojs run watch build
+pnpm -F ./discojs-node run watch build # another terminal
+pnpm -F ./discojs-web run watch build # one more terminal
 ```
 
 Building is not necessary for other modules like the `server` the `webapp` or `cli` as long as no change have been made to `discojs`. However you may need to restart the `server` or the `webapp` after rebuilding `discojs`.
@@ -149,13 +155,13 @@ Building is not necessary for other modules like the `server` the `webapp` or `c
 To test `discojs`, first make sure a server instance is running:
 
 ```
-npm -w server start
+pnpm -F server start
 ```
 
 And then start the `discojs` test suite:
 
 ```
-npm -w discojs test
+pnpm -F discojs test
 ```
 
 Similarly to the server, any file ending with `.spec.ts` will be ran in the test suite. As a convention, we duplicate the name of the TypeScript file we are testing. For example, `async_informant.spec.ts` tests features implemented in `async_informant.ts` and is located in the same folder.
@@ -167,31 +173,36 @@ Similarly to the server, any file ending with `.spec.ts` will be ran in the test
 Currently, the `discojs-node` project is available as the `@epfml/discojs-node` NPM package, which can be installed with
 `npm i @epfml/discojs-node` and the `discojs-web` as the `@epfml/discojs-web`.
 
-
 ### Debugging
 
 > [!TIP]
 > If your code changes don't seem to be effective, close everything, rebuild everything and restart. For example, changes in `discojs/src/default_tasks` requires rebuilding `discojs` and restarting the `server` to be effective.
 
 In Disco, we rely on the widely used [`debug` library](https://github.com/debug-js/debug). To use it, we first import debug and instantiate the debug object:
+
 ```js
 import createDebug from "debug";
 const debug = createDebug("discojs:models:gpt:model"); // use nested namespaces
-const logs = { loss: 0.01, accuracy: 0.56}
-debug("Here are the GPT logs: %o", logs)
+const logs = { loss: 0.01, accuracy: 0.56 };
+debug("Here are the GPT logs: %o", logs);
 ```
 
 #### In the terminal
+
 To visualize the logs in the command line, we need to set the `DEBUG` environment variable to choose the namespaces from which you want to see the debug statements. For example:
+
 ```bash
-DEBUG='discojs:models:gpt*' npm -w cli run benchmark_gpt
+DEBUG='discojs:models:gpt*' pnpm -F cli run benchmark_gpt
 ```
+
 will print the debug statement from above. Similarly if we set `DEBUG='*'`.
 
 The server debug statements are visualized the same way, for example:
+
 ```bash
-DEBUG='server*,discojs*' npm -w server start
+DEBUG='server*,discojs*' pnpm -F server start
 ```
+
 shows the debug statements from anywhere in the server and in discojs.
 
 #### Webapp
@@ -199,9 +210,13 @@ shows the debug statements from anywhere in the server and in discojs.
 To visualize debug statements in the browser, you need to open the console (Inspect element > Console) and set the `localStorage.debug` to the namespace of your choice, for example `localStorage.debug='webapp*,discojs*'` to visualize both the debug statements from anywhere in the webapp and in discojs. Note that you may need to refresh the page for changes to localStorage to be effective.
 
 To get debug statements in the Cypress tests you need to modify `webapp/cypress/support/e2e.ts` and add:
+
 ```js
-beforeEach(() => { localStorage.debug = "discojs*,webapp*" });
+beforeEach(() => {
+  localStorage.debug = "discojs*,webapp*";
+});
 ```
+
 We need to set the `localStorage` before each test because it is reset between each unit tests.
 
 ## Contributing conventions
@@ -218,13 +233,13 @@ The procedure for working on a feature is the following:
 
 ### 1. Creating a new branch
 
-Once you start working on a feature, create a new branch from the `develop` branch, and use the following convention: `IssueNumber-Key-Word-YourName`.
+Once you start working on a feature, create a new branch from the `main` branch, and use the following convention: `IssueNumber-Key-Word-YourName`.
 So for example, if I am working on issue #202, which is related to fixing a train bug I would call this branch: `202-train-bug-nacho`
 
 From your local repository:
 
 ```
-# currently in branch `develop`
+# currently on `main` branch
 git checkout -b 202-train-bug-nacho
 ```
 
@@ -255,10 +270,11 @@ Test the newly implemented features locally by following instructions in the [Co
 
 ### 4. Draft PR
 
-Once you have added a minimum number of content to your branch, you can create a [draft PR](https://github.blog/2019-02-14-introducing-draft-pull-requests/). Create a pull request to merge your branch (e.g., `202-train-bug-nacho`) into the `develop` branch. `develop` should always be functional and up to date with new working features. It is the equivalent of the `main`or `master` branch in DISCO.
+Once you have added a minimum number of content to your branch, you can create a [draft PR](https://github.blog/2019-02-14-introducing-draft-pull-requests/). Create a pull request to merge your branch (e.g., `202-train-bug-nacho`) into the `main` branch. `main` should always be functional and up to date with new working features.
 It is important to give a good description to your PR as this makes it easier for other people to go through it.
 
-> [!TIP] > [This PR](https://github.com/epfml/disco/pull/176) is a good example.
+> [!TIP]
+> [This PR](https://github.com/epfml/disco/pull/176) is a good example.
 
 ### 5. Before requesting a review
 
@@ -266,13 +282,14 @@ Once you have finished your work on your draft PR, make sure to do the following
 
 1. Run the adequate test suites (server, webapp, discojs).
 2. Make sure you remove debugging comments / console outputs.
-3. Merge (or rebase if you can do it properly) `develop` into your feature branch:
+3. Format your code (`pnpm run format:fix`)
+4. Merge (or rebase if you can do it properly) `main` into your feature branch:
 
 ```
-git checkout develop
+git checkout main
 git pull
 git checkout 202-train-bug-nacho
-git merge develop
+git merge main
 # Solve potential merge conflicts
 git push
 ```

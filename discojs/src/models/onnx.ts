@@ -1,17 +1,17 @@
-import {
-  AutoModelForCausalLM,
-  PreTrainedModel,
-  Tensor,
-} from "@xenova/transformers";
-import { Model } from "./index.js";
-import type { WeightsContainer } from "../index.js";
+import type { CausalLMOutput, PreTrainedModel } from "@xenova/transformers";
+import { AutoModelForCausalLM, Tensor } from "@xenova/transformers";
 import { List } from "immutable";
-import type { CausalLMOutput } from "@xenova/transformers";
-import type { GenerationConfig as TFJSGenerationConfig } from "./gpt/config.js";
-import { DefaultGenerationConfig } from "./gpt/config.js";
-import type { Batched, DataFormat } from "../index.js";
+
+import type { WeightsContainer } from "#weights/index";
+import type { Batched } from "#dataset/index";
+import type { DataFormat } from "#types/index";
+import type { GenerationConfig as TFJSGenerationConfig } from "#models/implementations/gpt/config";
+import { Model } from "#models/model";
+import { DefaultGenerationConfig } from "#models/implementations/gpt/config";
 
 export class ONNXModel extends Model<"text"> {
+  readonly datatype = "text" as const;
+
   private model: PreTrainedModel;
 
   private constructor(model: PreTrainedModel) {
@@ -24,26 +24,26 @@ export class ONNXModel extends Model<"text"> {
     return new ONNXModel(model);
   }
 
-  get config(): Record<string, unknown> {
+  getConfig(): Record<string, unknown> {
     return this.model.config as Record<string, unknown>;
   }
 
   override async predict(
     batch: Batched<DataFormat.ModelEncoded["text"][0]>,
-    options?: Partial<TFJSGenerationConfig>
+    options?: Partial<TFJSGenerationConfig>,
   ): Promise<Batched<DataFormat.ModelEncoded["text"][1]>> {
     const config = Object.assign({}, DefaultGenerationConfig, options);
 
     return List(
       await Promise.all(
-        batch.map((tokens) => this.#predictSingle(tokens, config))
-      )
+        batch.map((tokens) => this.#predictSingle(tokens, config)),
+      ),
     );
   }
 
   async #predictSingle(
     tokens: DataFormat.ModelEncoded["text"][0],
-    config: TFJSGenerationConfig
+    config: TFJSGenerationConfig,
   ): Promise<DataFormat.ModelEncoded["text"][1]> {
     const contextLength =
       (this.model.config as { max_position_embeddings?: number })
@@ -83,7 +83,7 @@ export class ONNXModel extends Model<"text"> {
       .toArray()
       .map((seq) => seq.toArray());
     const attention_mask_array: number[][] = input_ids_array.map(
-      (seq): number[] => new Array<number>(seq.length).fill(1)
+      (seq): number[] => new Array<number>(seq.length).fill(1),
     );
 
     const input_ids_flat = input_ids_array.flat();
@@ -95,7 +95,7 @@ export class ONNXModel extends Model<"text"> {
     const attention_mask = new Tensor(
       "int64",
       attention_mask_flat.map(BigInt),
-      shape
+      shape,
     );
 
     // run model forward
@@ -111,6 +111,10 @@ export class ONNXModel extends Model<"text"> {
     const yieldFlag = false;
     if (yieldFlag) yield undefined as never; // satisfy 'require-yield'
     throw new Error("Training not supported for ONNX models");
+  }
+
+  evaluate(): Promise<never> {
+    throw new Error("Evaluation not supported for ONNX models");
   }
 
   get weights(): WeightsContainer {

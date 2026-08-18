@@ -1,5 +1,5 @@
 import createDebug from "debug";
-import { createRouter, createWebHashHistory } from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 import { scrollToTop } from "@/utils";
 
 import TrainingBar from "@/components/progress_bars/TrainingBar.vue";
@@ -11,12 +11,12 @@ import NotFound from "@/components/pages/NotFound.vue";
 import Training from "@/components/training/TrainingSteps.vue";
 import ModelLibrary from "@/components/testing/ModelLibrary.vue";
 import AboutUs from "@/components/pages/AboutUs.vue";
-import Chat from "@/components/testing/Chat.vue";
+import ChatUI from "@/components/testing/ChatUI.vue";
 
 const debug = createDebug("webapp:router");
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   scrollBehavior(_to, _from, _savedPosition) {
     // Always scroll to top when navigating to a new page
     // Because router is wrapped in a BaseLayout, returning { top: 0 } doesn't do anything
@@ -71,7 +71,7 @@ const router = createRouter({
       path: "/chat",
       name: "chat",
       components: {
-        default: Chat,
+        default: ChatUI,
       },
     },
     {

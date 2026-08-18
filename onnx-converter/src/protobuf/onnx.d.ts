@@ -1,12 +1,11 @@
 // SOURCE: https://github.com/microsoft/onnxruntime/tree/main/js/web/lib/onnxjs/ort-schema/protobuf
 // LICENSE: MIT
 
-import Long from 'long';
-import * as $protobuf from 'protobufjs';
+import Long from "long";
+import * as $protobuf from "protobufjs";
 
 /** Namespace onnx. */
 export namespace onnx {
-
   /** Version enum. */
   enum Version {
     _START_VERSION = 0,
@@ -18,64 +17,64 @@ export namespace onnx {
     IR_VERSION_2019_9_19 = 6,
     IR_VERSION_2020_5_8 = 7,
     IR_VERSION_2021_7_30 = 8,
-    IR_VERSION = 9
+    IR_VERSION = 9,
   }
 
   /** Properties of an AttributeProto. */
   interface IAttributeProto {
     /** AttributeProto name */
-    name?: (string|null);
+    name?: string | null;
 
     /** AttributeProto refAttrName */
-    refAttrName?: (string|null);
+    refAttrName?: string | null;
 
     /** AttributeProto docString */
-    docString?: (string|null);
+    docString?: string | null;
 
     /** AttributeProto type */
-    type?: (onnx.AttributeProto.AttributeType|null);
+    type?: onnx.AttributeProto.AttributeType | null;
 
     /** AttributeProto f */
-    f?: (number|null);
+    f?: number | null;
 
     /** AttributeProto i */
-    i?: (number|Long|null);
+    i?: number | Long | null;
 
     /** AttributeProto s */
-    s?: (Uint8Array|null);
+    s?: Uint8Array | null;
 
     /** AttributeProto t */
-    t?: (onnx.ITensorProto|null);
+    t?: onnx.ITensorProto | null;
 
     /** AttributeProto g */
-    g?: (onnx.IGraphProto|null);
+    g?: onnx.IGraphProto | null;
 
     /** AttributeProto sparseTensor */
-    sparseTensor?: (onnx.ISparseTensorProto|null);
+    sparseTensor?: onnx.ISparseTensorProto | null;
 
     /** AttributeProto tp */
-    tp?: (onnx.ITypeProto|null);
+    tp?: onnx.ITypeProto | null;
 
     /** AttributeProto floats */
-    floats?: (number[]|null);
+    floats?: number[] | null;
 
     /** AttributeProto ints */
-    ints?: ((number | Long)[]|null);
+    ints?: (number | Long)[] | null;
 
     /** AttributeProto strings */
-    strings?: (Uint8Array[]|null);
+    strings?: Uint8Array[] | null;
 
     /** AttributeProto tensors */
-    tensors?: (onnx.ITensorProto[]|null);
+    tensors?: onnx.ITensorProto[] | null;
 
     /** AttributeProto graphs */
-    graphs?: (onnx.IGraphProto[]|null);
+    graphs?: onnx.IGraphProto[] | null;
 
     /** AttributeProto sparseTensors */
-    sparseTensors?: (onnx.ISparseTensorProto[]|null);
+    sparseTensors?: onnx.ISparseTensorProto[] | null;
 
     /** AttributeProto typeProtos */
-    typeProtos?: (onnx.ITypeProto[]|null);
+    typeProtos?: onnx.ITypeProto[] | null;
   }
 
   /** Represents an AttributeProto. */
@@ -102,28 +101,28 @@ export namespace onnx {
     public f: number;
 
     /** AttributeProto i. */
-    public i: (number|Long);
+    public i: number | Long;
 
     /** AttributeProto s. */
     public s: Uint8Array;
 
     /** AttributeProto t. */
-    public t?: (onnx.ITensorProto|null);
+    public t?: onnx.ITensorProto | null;
 
     /** AttributeProto g. */
-    public g?: (onnx.IGraphProto|null);
+    public g?: onnx.IGraphProto | null;
 
     /** AttributeProto sparseTensor. */
-    public sparseTensor?: (onnx.ISparseTensorProto|null);
+    public sparseTensor?: onnx.ISparseTensorProto | null;
 
     /** AttributeProto tp. */
-    public tp?: (onnx.ITypeProto|null);
+    public tp?: onnx.ITypeProto | null;
 
     /** AttributeProto floats. */
     public floats: number[];
 
     /** AttributeProto ints. */
-    public ints: (number|Long)[];
+    public ints: (number | Long)[];
 
     /** AttributeProto strings. */
     public strings: Uint8Array[];
@@ -145,7 +144,9 @@ export namespace onnx {
      * @param [properties] Properties to set
      * @returns AttributeProto instance
      */
-    public static create(properties?: onnx.IAttributeProto): onnx.AttributeProto;
+    public static create(
+      properties?: onnx.IAttributeProto,
+    ): onnx.AttributeProto;
 
     /**
      * Encodes the specified AttributeProto message. Does not implicitly {@link onnx.AttributeProto.verify|verify}
@@ -154,7 +155,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encode(message: onnx.IAttributeProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encode(
+      message: onnx.IAttributeProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Encodes the specified AttributeProto message, length delimited. Does not implicitly {@link
@@ -163,7 +167,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encodeDelimited(message: onnx.IAttributeProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encodeDelimited(
+      message: onnx.IAttributeProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Decodes an AttributeProto message from the specified reader or buffer.
@@ -173,7 +180,10 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.AttributeProto;
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): onnx.AttributeProto;
 
     /**
      * Decodes an AttributeProto message from the specified reader or buffer, length delimited.
@@ -182,21 +192,23 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.AttributeProto;
+    public static decodeDelimited(
+      reader: $protobuf.Reader | Uint8Array,
+    ): onnx.AttributeProto;
 
     /**
      * Verifies an AttributeProto message.
      * @param message Plain object to verify
      * @returns `null` if valid, otherwise the reason why it is not
      */
-    public static verify(message: {[k: string]: any}): (string|null);
+    public static verify(message: { [k: string]: any }): string | null;
 
     /**
      * Creates an AttributeProto message from a plain object. Also converts values to their respective internal types.
      * @param object Plain object
      * @returns AttributeProto
      */
-    public static fromObject(object: {[k: string]: any}): onnx.AttributeProto;
+    public static fromObject(object: { [k: string]: any }): onnx.AttributeProto;
 
     /**
      * Creates a plain object from an AttributeProto message. Also converts values to other types if specified.
@@ -204,13 +216,16 @@ export namespace onnx {
      * @param [options] Conversion options
      * @returns Plain object
      */
-    public static toObject(message: onnx.AttributeProto, options?: $protobuf.IConversionOptions): {[k: string]: any};
+    public static toObject(
+      message: onnx.AttributeProto,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
 
     /**
      * Converts this AttributeProto to JSON.
      * @returns JSON object
      */
-    public toJSON(): {[k: string]: any};
+    public toJSON(): { [k: string]: any };
 
     /**
      * Gets the default type url for AttributeProto
@@ -221,7 +236,6 @@ export namespace onnx {
   }
 
   namespace AttributeProto {
-
     /** AttributeType enum. */
     enum AttributeType {
       UNDEFINED = 0,
@@ -238,20 +252,20 @@ export namespace onnx {
       TENSORS = 9,
       GRAPHS = 10,
       SPARSE_TENSORS = 12,
-      TYPE_PROTOS = 14
+      TYPE_PROTOS = 14,
     }
   }
 
   /** Properties of a ValueInfoProto. */
   interface IValueInfoProto {
     /** ValueInfoProto name */
-    name?: (string|null);
+    name?: string | null;
 
     /** ValueInfoProto type */
-    type?: (onnx.ITypeProto|null);
+    type?: onnx.ITypeProto | null;
 
     /** ValueInfoProto docString */
-    docString?: (string|null);
+    docString?: string | null;
   }
 
   /** Represents a ValueInfoProto. */
@@ -266,7 +280,7 @@ export namespace onnx {
     public name: string;
 
     /** ValueInfoProto type. */
-    public type?: (onnx.ITypeProto|null);
+    public type?: onnx.ITypeProto | null;
 
     /** ValueInfoProto docString. */
     public docString: string;
@@ -276,7 +290,9 @@ export namespace onnx {
      * @param [properties] Properties to set
      * @returns ValueInfoProto instance
      */
-    public static create(properties?: onnx.IValueInfoProto): onnx.ValueInfoProto;
+    public static create(
+      properties?: onnx.IValueInfoProto,
+    ): onnx.ValueInfoProto;
 
     /**
      * Encodes the specified ValueInfoProto message. Does not implicitly {@link onnx.ValueInfoProto.verify|verify}
@@ -285,7 +301,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encode(message: onnx.IValueInfoProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encode(
+      message: onnx.IValueInfoProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Encodes the specified ValueInfoProto message, length delimited. Does not implicitly {@link
@@ -294,7 +313,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encodeDelimited(message: onnx.IValueInfoProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encodeDelimited(
+      message: onnx.IValueInfoProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Decodes a ValueInfoProto message from the specified reader or buffer.
@@ -304,7 +326,10 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.ValueInfoProto;
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): onnx.ValueInfoProto;
 
     /**
      * Decodes a ValueInfoProto message from the specified reader or buffer, length delimited.
@@ -313,21 +338,23 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.ValueInfoProto;
+    public static decodeDelimited(
+      reader: $protobuf.Reader | Uint8Array,
+    ): onnx.ValueInfoProto;
 
     /**
      * Verifies a ValueInfoProto message.
      * @param message Plain object to verify
      * @returns `null` if valid, otherwise the reason why it is not
      */
-    public static verify(message: {[k: string]: any}): (string|null);
+    public static verify(message: { [k: string]: any }): string | null;
 
     /**
      * Creates a ValueInfoProto message from a plain object. Also converts values to their respective internal types.
      * @param object Plain object
      * @returns ValueInfoProto
      */
-    public static fromObject(object: {[k: string]: any}): onnx.ValueInfoProto;
+    public static fromObject(object: { [k: string]: any }): onnx.ValueInfoProto;
 
     /**
      * Creates a plain object from a ValueInfoProto message. Also converts values to other types if specified.
@@ -335,13 +362,16 @@ export namespace onnx {
      * @param [options] Conversion options
      * @returns Plain object
      */
-    public static toObject(message: onnx.ValueInfoProto, options?: $protobuf.IConversionOptions): {[k: string]: any};
+    public static toObject(
+      message: onnx.ValueInfoProto,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
 
     /**
      * Converts this ValueInfoProto to JSON.
      * @returns JSON object
      */
-    public toJSON(): {[k: string]: any};
+    public toJSON(): { [k: string]: any };
 
     /**
      * Gets the default type url for ValueInfoProto
@@ -354,25 +384,25 @@ export namespace onnx {
   /** Properties of a NodeProto. */
   interface INodeProto {
     /** NodeProto input */
-    input?: (string[]|null);
+    input?: string[] | null;
 
     /** NodeProto output */
-    output?: (string[]|null);
+    output?: string[] | null;
 
     /** NodeProto name */
-    name?: (string|null);
+    name?: string | null;
 
     /** NodeProto opType */
-    opType?: (string|null);
+    opType?: string | null;
 
     /** NodeProto domain */
-    domain?: (string|null);
+    domain?: string | null;
 
     /** NodeProto attribute */
-    attribute?: (onnx.IAttributeProto[]|null);
+    attribute?: onnx.IAttributeProto[] | null;
 
     /** NodeProto docString */
-    docString?: (string|null);
+    docString?: string | null;
   }
 
   /** Represents a NodeProto. */
@@ -417,7 +447,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encode(message: onnx.INodeProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encode(
+      message: onnx.INodeProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Encodes the specified NodeProto message, length delimited. Does not implicitly {@link
@@ -426,7 +459,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encodeDelimited(message: onnx.INodeProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encodeDelimited(
+      message: onnx.INodeProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Decodes a NodeProto message from the specified reader or buffer.
@@ -436,7 +472,10 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.NodeProto;
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): onnx.NodeProto;
 
     /**
      * Decodes a NodeProto message from the specified reader or buffer, length delimited.
@@ -445,21 +484,23 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.NodeProto;
+    public static decodeDelimited(
+      reader: $protobuf.Reader | Uint8Array,
+    ): onnx.NodeProto;
 
     /**
      * Verifies a NodeProto message.
      * @param message Plain object to verify
      * @returns `null` if valid, otherwise the reason why it is not
      */
-    public static verify(message: {[k: string]: any}): (string|null);
+    public static verify(message: { [k: string]: any }): string | null;
 
     /**
      * Creates a NodeProto message from a plain object. Also converts values to their respective internal types.
      * @param object Plain object
      * @returns NodeProto
      */
-    public static fromObject(object: {[k: string]: any}): onnx.NodeProto;
+    public static fromObject(object: { [k: string]: any }): onnx.NodeProto;
 
     /**
      * Creates a plain object from a NodeProto message. Also converts values to other types if specified.
@@ -467,13 +508,16 @@ export namespace onnx {
      * @param [options] Conversion options
      * @returns Plain object
      */
-    public static toObject(message: onnx.NodeProto, options?: $protobuf.IConversionOptions): {[k: string]: any};
+    public static toObject(
+      message: onnx.NodeProto,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
 
     /**
      * Converts this NodeProto to JSON.
      * @returns JSON object
      */
-    public toJSON(): {[k: string]: any};
+    public toJSON(): { [k: string]: any };
 
     /**
      * Gets the default type url for NodeProto
@@ -486,16 +530,16 @@ export namespace onnx {
   /** Properties of a TrainingInfoProto. */
   interface ITrainingInfoProto {
     /** TrainingInfoProto initialization */
-    initialization?: (onnx.IGraphProto|null);
+    initialization?: onnx.IGraphProto | null;
 
     /** TrainingInfoProto algorithm */
-    algorithm?: (onnx.IGraphProto|null);
+    algorithm?: onnx.IGraphProto | null;
 
     /** TrainingInfoProto initializationBinding */
-    initializationBinding?: (onnx.IStringStringEntryProto[]|null);
+    initializationBinding?: onnx.IStringStringEntryProto[] | null;
 
     /** TrainingInfoProto updateBinding */
-    updateBinding?: (onnx.IStringStringEntryProto[]|null);
+    updateBinding?: onnx.IStringStringEntryProto[] | null;
   }
 
   /** Represents a TrainingInfoProto. */
@@ -507,10 +551,10 @@ export namespace onnx {
     constructor(properties?: onnx.ITrainingInfoProto);
 
     /** TrainingInfoProto initialization. */
-    public initialization?: (onnx.IGraphProto|null);
+    public initialization?: onnx.IGraphProto | null;
 
     /** TrainingInfoProto algorithm. */
-    public algorithm?: (onnx.IGraphProto|null);
+    public algorithm?: onnx.IGraphProto | null;
 
     /** TrainingInfoProto initializationBinding. */
     public initializationBinding: onnx.IStringStringEntryProto[];
@@ -523,7 +567,9 @@ export namespace onnx {
      * @param [properties] Properties to set
      * @returns TrainingInfoProto instance
      */
-    public static create(properties?: onnx.ITrainingInfoProto): onnx.TrainingInfoProto;
+    public static create(
+      properties?: onnx.ITrainingInfoProto,
+    ): onnx.TrainingInfoProto;
 
     /**
      * Encodes the specified TrainingInfoProto message. Does not implicitly {@link onnx.TrainingInfoProto.verify|verify}
@@ -532,7 +578,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encode(message: onnx.ITrainingInfoProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encode(
+      message: onnx.ITrainingInfoProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Encodes the specified TrainingInfoProto message, length delimited. Does not implicitly {@link
@@ -541,7 +590,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encodeDelimited(message: onnx.ITrainingInfoProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encodeDelimited(
+      message: onnx.ITrainingInfoProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Decodes a TrainingInfoProto message from the specified reader or buffer.
@@ -551,7 +603,10 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.TrainingInfoProto;
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): onnx.TrainingInfoProto;
 
     /**
      * Decodes a TrainingInfoProto message from the specified reader or buffer, length delimited.
@@ -560,21 +615,25 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.TrainingInfoProto;
+    public static decodeDelimited(
+      reader: $protobuf.Reader | Uint8Array,
+    ): onnx.TrainingInfoProto;
 
     /**
      * Verifies a TrainingInfoProto message.
      * @param message Plain object to verify
      * @returns `null` if valid, otherwise the reason why it is not
      */
-    public static verify(message: {[k: string]: any}): (string|null);
+    public static verify(message: { [k: string]: any }): string | null;
 
     /**
      * Creates a TrainingInfoProto message from a plain object. Also converts values to their respective internal types.
      * @param object Plain object
      * @returns TrainingInfoProto
      */
-    public static fromObject(object: {[k: string]: any}): onnx.TrainingInfoProto;
+    public static fromObject(object: {
+      [k: string]: any;
+    }): onnx.TrainingInfoProto;
 
     /**
      * Creates a plain object from a TrainingInfoProto message. Also converts values to other types if specified.
@@ -582,13 +641,16 @@ export namespace onnx {
      * @param [options] Conversion options
      * @returns Plain object
      */
-    public static toObject(message: onnx.TrainingInfoProto, options?: $protobuf.IConversionOptions): {[k: string]: any};
+    public static toObject(
+      message: onnx.TrainingInfoProto,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
 
     /**
      * Converts this TrainingInfoProto to JSON.
      * @returns JSON object
      */
-    public toJSON(): {[k: string]: any};
+    public toJSON(): { [k: string]: any };
 
     /**
      * Gets the default type url for TrainingInfoProto
@@ -601,37 +663,37 @@ export namespace onnx {
   /** Properties of a ModelProto. */
   interface IModelProto {
     /** ModelProto irVersion */
-    irVersion?: (number|Long|null);
+    irVersion?: number | Long | null;
 
     /** ModelProto opsetImport */
-    opsetImport?: (onnx.IOperatorSetIdProto[]|null);
+    opsetImport?: onnx.IOperatorSetIdProto[] | null;
 
     /** ModelProto producerName */
-    producerName?: (string|null);
+    producerName?: string | null;
 
     /** ModelProto producerVersion */
-    producerVersion?: (string|null);
+    producerVersion?: string | null;
 
     /** ModelProto domain */
-    domain?: (string|null);
+    domain?: string | null;
 
     /** ModelProto modelVersion */
-    modelVersion?: (number|Long|null);
+    modelVersion?: number | Long | null;
 
     /** ModelProto docString */
-    docString?: (string|null);
+    docString?: string | null;
 
     /** ModelProto graph */
-    graph?: (onnx.IGraphProto|null);
+    graph?: onnx.IGraphProto | null;
 
     /** ModelProto metadataProps */
-    metadataProps?: (onnx.IStringStringEntryProto[]|null);
+    metadataProps?: onnx.IStringStringEntryProto[] | null;
 
     /** ModelProto trainingInfo */
-    trainingInfo?: (onnx.ITrainingInfoProto[]|null);
+    trainingInfo?: onnx.ITrainingInfoProto[] | null;
 
     /** ModelProto functions */
-    functions?: (onnx.IFunctionProto[]|null);
+    functions?: onnx.IFunctionProto[] | null;
   }
 
   /** Represents a ModelProto. */
@@ -643,7 +705,7 @@ export namespace onnx {
     constructor(properties?: onnx.IModelProto);
 
     /** ModelProto irVersion. */
-    public irVersion: (number|Long);
+    public irVersion: number | Long;
 
     /** ModelProto opsetImport. */
     public opsetImport: onnx.IOperatorSetIdProto[];
@@ -658,13 +720,13 @@ export namespace onnx {
     public domain: string;
 
     /** ModelProto modelVersion. */
-    public modelVersion: (number|Long);
+    public modelVersion: number | Long;
 
     /** ModelProto docString. */
     public docString: string;
 
     /** ModelProto graph. */
-    public graph?: (onnx.IGraphProto|null);
+    public graph?: onnx.IGraphProto | null;
 
     /** ModelProto metadataProps. */
     public metadataProps: onnx.IStringStringEntryProto[];
@@ -688,7 +750,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encode(message: onnx.IModelProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encode(
+      message: onnx.IModelProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Encodes the specified ModelProto message, length delimited. Does not implicitly {@link
@@ -697,7 +762,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encodeDelimited(message: onnx.IModelProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encodeDelimited(
+      message: onnx.IModelProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Decodes a ModelProto message from the specified reader or buffer.
@@ -707,7 +775,10 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.ModelProto;
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): onnx.ModelProto;
 
     /**
      * Decodes a ModelProto message from the specified reader or buffer, length delimited.
@@ -716,21 +787,23 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.ModelProto;
+    public static decodeDelimited(
+      reader: $protobuf.Reader | Uint8Array,
+    ): onnx.ModelProto;
 
     /**
      * Verifies a ModelProto message.
      * @param message Plain object to verify
      * @returns `null` if valid, otherwise the reason why it is not
      */
-    public static verify(message: {[k: string]: any}): (string|null);
+    public static verify(message: { [k: string]: any }): string | null;
 
     /**
      * Creates a ModelProto message from a plain object. Also converts values to their respective internal types.
      * @param object Plain object
      * @returns ModelProto
      */
-    public static fromObject(object: {[k: string]: any}): onnx.ModelProto;
+    public static fromObject(object: { [k: string]: any }): onnx.ModelProto;
 
     /**
      * Creates a plain object from a ModelProto message. Also converts values to other types if specified.
@@ -738,13 +811,16 @@ export namespace onnx {
      * @param [options] Conversion options
      * @returns Plain object
      */
-    public static toObject(message: onnx.ModelProto, options?: $protobuf.IConversionOptions): {[k: string]: any};
+    public static toObject(
+      message: onnx.ModelProto,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
 
     /**
      * Converts this ModelProto to JSON.
      * @returns JSON object
      */
-    public toJSON(): {[k: string]: any};
+    public toJSON(): { [k: string]: any };
 
     /**
      * Gets the default type url for ModelProto
@@ -757,10 +833,10 @@ export namespace onnx {
   /** Properties of a StringStringEntryProto. */
   interface IStringStringEntryProto {
     /** StringStringEntryProto key */
-    key?: (string|null);
+    key?: string | null;
 
     /** StringStringEntryProto value */
-    value?: (string|null);
+    value?: string | null;
   }
 
   /** Represents a StringStringEntryProto. */
@@ -782,7 +858,9 @@ export namespace onnx {
      * @param [properties] Properties to set
      * @returns StringStringEntryProto instance
      */
-    public static create(properties?: onnx.IStringStringEntryProto): onnx.StringStringEntryProto;
+    public static create(
+      properties?: onnx.IStringStringEntryProto,
+    ): onnx.StringStringEntryProto;
 
     /**
      * Encodes the specified StringStringEntryProto message. Does not implicitly {@link
@@ -791,7 +869,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encode(message: onnx.IStringStringEntryProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encode(
+      message: onnx.IStringStringEntryProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Encodes the specified StringStringEntryProto message, length delimited. Does not implicitly {@link
@@ -800,7 +881,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encodeDelimited(message: onnx.IStringStringEntryProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encodeDelimited(
+      message: onnx.IStringStringEntryProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Decodes a StringStringEntryProto message from the specified reader or buffer.
@@ -810,7 +894,10 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.StringStringEntryProto;
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): onnx.StringStringEntryProto;
 
     /**
      * Decodes a StringStringEntryProto message from the specified reader or buffer, length delimited.
@@ -819,14 +906,16 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.StringStringEntryProto;
+    public static decodeDelimited(
+      reader: $protobuf.Reader | Uint8Array,
+    ): onnx.StringStringEntryProto;
 
     /**
      * Verifies a StringStringEntryProto message.
      * @param message Plain object to verify
      * @returns `null` if valid, otherwise the reason why it is not
      */
-    public static verify(message: {[k: string]: any}): (string|null);
+    public static verify(message: { [k: string]: any }): string | null;
 
     /**
      * Creates a StringStringEntryProto message from a plain object. Also converts values to their respective internal
@@ -834,7 +923,9 @@ export namespace onnx {
      * @param object Plain object
      * @returns StringStringEntryProto
      */
-    public static fromObject(object: {[k: string]: any}): onnx.StringStringEntryProto;
+    public static fromObject(object: {
+      [k: string]: any;
+    }): onnx.StringStringEntryProto;
 
     /**
      * Creates a plain object from a StringStringEntryProto message. Also converts values to other types if specified.
@@ -842,14 +933,16 @@ export namespace onnx {
      * @param [options] Conversion options
      * @returns Plain object
      */
-    public static toObject(message: onnx.StringStringEntryProto, options?: $protobuf.IConversionOptions):
-        {[k: string]: any};
+    public static toObject(
+      message: onnx.StringStringEntryProto,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
 
     /**
      * Converts this StringStringEntryProto to JSON.
      * @returns JSON object
      */
-    public toJSON(): {[k: string]: any};
+    public toJSON(): { [k: string]: any };
 
     /**
      * Gets the default type url for StringStringEntryProto
@@ -862,10 +955,10 @@ export namespace onnx {
   /** Properties of a TensorAnnotation. */
   interface ITensorAnnotation {
     /** TensorAnnotation tensorName */
-    tensorName?: (string|null);
+    tensorName?: string | null;
 
     /** TensorAnnotation quantParameterTensorNames */
-    quantParameterTensorNames?: (onnx.IStringStringEntryProto[]|null);
+    quantParameterTensorNames?: onnx.IStringStringEntryProto[] | null;
   }
 
   /** Represents a TensorAnnotation. */
@@ -887,7 +980,9 @@ export namespace onnx {
      * @param [properties] Properties to set
      * @returns TensorAnnotation instance
      */
-    public static create(properties?: onnx.ITensorAnnotation): onnx.TensorAnnotation;
+    public static create(
+      properties?: onnx.ITensorAnnotation,
+    ): onnx.TensorAnnotation;
 
     /**
      * Encodes the specified TensorAnnotation message. Does not implicitly {@link onnx.TensorAnnotation.verify|verify}
@@ -896,7 +991,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encode(message: onnx.ITensorAnnotation, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encode(
+      message: onnx.ITensorAnnotation,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Encodes the specified TensorAnnotation message, length delimited. Does not implicitly {@link
@@ -905,7 +1003,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encodeDelimited(message: onnx.ITensorAnnotation, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encodeDelimited(
+      message: onnx.ITensorAnnotation,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Decodes a TensorAnnotation message from the specified reader or buffer.
@@ -915,7 +1016,10 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.TensorAnnotation;
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): onnx.TensorAnnotation;
 
     /**
      * Decodes a TensorAnnotation message from the specified reader or buffer, length delimited.
@@ -924,21 +1028,25 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.TensorAnnotation;
+    public static decodeDelimited(
+      reader: $protobuf.Reader | Uint8Array,
+    ): onnx.TensorAnnotation;
 
     /**
      * Verifies a TensorAnnotation message.
      * @param message Plain object to verify
      * @returns `null` if valid, otherwise the reason why it is not
      */
-    public static verify(message: {[k: string]: any}): (string|null);
+    public static verify(message: { [k: string]: any }): string | null;
 
     /**
      * Creates a TensorAnnotation message from a plain object. Also converts values to their respective internal types.
      * @param object Plain object
      * @returns TensorAnnotation
      */
-    public static fromObject(object: {[k: string]: any}): onnx.TensorAnnotation;
+    public static fromObject(object: {
+      [k: string]: any;
+    }): onnx.TensorAnnotation;
 
     /**
      * Creates a plain object from a TensorAnnotation message. Also converts values to other types if specified.
@@ -946,13 +1054,16 @@ export namespace onnx {
      * @param [options] Conversion options
      * @returns Plain object
      */
-    public static toObject(message: onnx.TensorAnnotation, options?: $protobuf.IConversionOptions): {[k: string]: any};
+    public static toObject(
+      message: onnx.TensorAnnotation,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
 
     /**
      * Converts this TensorAnnotation to JSON.
      * @returns JSON object
      */
-    public toJSON(): {[k: string]: any};
+    public toJSON(): { [k: string]: any };
 
     /**
      * Gets the default type url for TensorAnnotation
@@ -965,31 +1076,31 @@ export namespace onnx {
   /** Properties of a GraphProto. */
   interface IGraphProto {
     /** GraphProto node */
-    node?: (onnx.INodeProto[]|null);
+    node?: onnx.INodeProto[] | null;
 
     /** GraphProto name */
-    name?: (string|null);
+    name?: string | null;
 
     /** GraphProto initializer */
-    initializer?: (onnx.ITensorProto[]|null);
+    initializer?: onnx.ITensorProto[] | null;
 
     /** GraphProto sparseInitializer */
-    sparseInitializer?: (onnx.ISparseTensorProto[]|null);
+    sparseInitializer?: onnx.ISparseTensorProto[] | null;
 
     /** GraphProto docString */
-    docString?: (string|null);
+    docString?: string | null;
 
     /** GraphProto input */
-    input?: (onnx.IValueInfoProto[]|null);
+    input?: onnx.IValueInfoProto[] | null;
 
     /** GraphProto output */
-    output?: (onnx.IValueInfoProto[]|null);
+    output?: onnx.IValueInfoProto[] | null;
 
     /** GraphProto valueInfo */
-    valueInfo?: (onnx.IValueInfoProto[]|null);
+    valueInfo?: onnx.IValueInfoProto[] | null;
 
     /** GraphProto quantizationAnnotation */
-    quantizationAnnotation?: (onnx.ITensorAnnotation[]|null);
+    quantizationAnnotation?: onnx.ITensorAnnotation[] | null;
   }
 
   /** Represents a GraphProto. */
@@ -1040,7 +1151,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encode(message: onnx.IGraphProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encode(
+      message: onnx.IGraphProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Encodes the specified GraphProto message, length delimited. Does not implicitly {@link
@@ -1049,7 +1163,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encodeDelimited(message: onnx.IGraphProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encodeDelimited(
+      message: onnx.IGraphProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Decodes a GraphProto message from the specified reader or buffer.
@@ -1059,7 +1176,10 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.GraphProto;
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): onnx.GraphProto;
 
     /**
      * Decodes a GraphProto message from the specified reader or buffer, length delimited.
@@ -1068,21 +1188,23 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.GraphProto;
+    public static decodeDelimited(
+      reader: $protobuf.Reader | Uint8Array,
+    ): onnx.GraphProto;
 
     /**
      * Verifies a GraphProto message.
      * @param message Plain object to verify
      * @returns `null` if valid, otherwise the reason why it is not
      */
-    public static verify(message: {[k: string]: any}): (string|null);
+    public static verify(message: { [k: string]: any }): string | null;
 
     /**
      * Creates a GraphProto message from a plain object. Also converts values to their respective internal types.
      * @param object Plain object
      * @returns GraphProto
      */
-    public static fromObject(object: {[k: string]: any}): onnx.GraphProto;
+    public static fromObject(object: { [k: string]: any }): onnx.GraphProto;
 
     /**
      * Creates a plain object from a GraphProto message. Also converts values to other types if specified.
@@ -1090,13 +1212,16 @@ export namespace onnx {
      * @param [options] Conversion options
      * @returns Plain object
      */
-    public static toObject(message: onnx.GraphProto, options?: $protobuf.IConversionOptions): {[k: string]: any};
+    public static toObject(
+      message: onnx.GraphProto,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
 
     /**
      * Converts this GraphProto to JSON.
      * @returns JSON object
      */
-    public toJSON(): {[k: string]: any};
+    public toJSON(): { [k: string]: any };
 
     /**
      * Gets the default type url for GraphProto
@@ -1109,46 +1234,46 @@ export namespace onnx {
   /** Properties of a TensorProto. */
   interface ITensorProto {
     /** TensorProto dims */
-    dims?: ((number | Long)[]|null);
+    dims?: (number | Long)[] | null;
 
     /** TensorProto dataType */
-    dataType?: (number|null);
+    dataType?: number | null;
 
     /** TensorProto segment */
-    segment?: (onnx.TensorProto.ISegment|null);
+    segment?: onnx.TensorProto.ISegment | null;
 
     /** TensorProto floatData */
-    floatData?: (number[]|null);
+    floatData?: number[] | null;
 
     /** TensorProto int32Data */
-    int32Data?: (number[]|null);
+    int32Data?: number[] | null;
 
     /** TensorProto stringData */
-    stringData?: (Uint8Array[]|null);
+    stringData?: Uint8Array[] | null;
 
     /** TensorProto int64Data */
-    int64Data?: ((number | Long)[]|null);
+    int64Data?: (number | Long)[] | null;
 
     /** TensorProto name */
-    name?: (string|null);
+    name?: string | null;
 
     /** TensorProto docString */
-    docString?: (string|null);
+    docString?: string | null;
 
     /** TensorProto rawData */
-    rawData?: (Uint8Array|null);
+    rawData?: Uint8Array | null;
 
     /** TensorProto externalData */
-    externalData?: (onnx.IStringStringEntryProto[]|null);
+    externalData?: onnx.IStringStringEntryProto[] | null;
 
     /** TensorProto dataLocation */
-    dataLocation?: (onnx.TensorProto.DataLocation|null);
+    dataLocation?: onnx.TensorProto.DataLocation | null;
 
     /** TensorProto doubleData */
-    doubleData?: (number[]|null);
+    doubleData?: number[] | null;
 
     /** TensorProto uint64Data */
-    uint64Data?: ((number | Long)[]|null);
+    uint64Data?: (number | Long)[] | null;
   }
 
   /** Represents a TensorProto. */
@@ -1160,13 +1285,13 @@ export namespace onnx {
     constructor(properties?: onnx.ITensorProto);
 
     /** TensorProto dims. */
-    public dims: (number|Long)[];
+    public dims: (number | Long)[];
 
     /** TensorProto dataType. */
     public dataType: number;
 
     /** TensorProto segment. */
-    public segment?: (onnx.TensorProto.ISegment|null);
+    public segment?: onnx.TensorProto.ISegment | null;
 
     /** TensorProto floatData. */
     public floatData: number[];
@@ -1178,7 +1303,7 @@ export namespace onnx {
     public stringData: Uint8Array[];
 
     /** TensorProto int64Data. */
-    public int64Data: (number|Long)[];
+    public int64Data: (number | Long)[];
 
     /** TensorProto name. */
     public name: string;
@@ -1199,7 +1324,7 @@ export namespace onnx {
     public doubleData: number[];
 
     /** TensorProto uint64Data. */
-    public uint64Data: (number|Long)[];
+    public uint64Data: (number | Long)[];
 
     /**
      * Creates a new TensorProto instance using the specified properties.
@@ -1214,7 +1339,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encode(message: onnx.ITensorProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encode(
+      message: onnx.ITensorProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Encodes the specified TensorProto message, length delimited. Does not implicitly {@link
@@ -1223,7 +1351,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encodeDelimited(message: onnx.ITensorProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encodeDelimited(
+      message: onnx.ITensorProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Decodes a TensorProto message from the specified reader or buffer.
@@ -1233,7 +1364,10 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.TensorProto;
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): onnx.TensorProto;
 
     /**
      * Decodes a TensorProto message from the specified reader or buffer, length delimited.
@@ -1242,21 +1376,23 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.TensorProto;
+    public static decodeDelimited(
+      reader: $protobuf.Reader | Uint8Array,
+    ): onnx.TensorProto;
 
     /**
      * Verifies a TensorProto message.
      * @param message Plain object to verify
      * @returns `null` if valid, otherwise the reason why it is not
      */
-    public static verify(message: {[k: string]: any}): (string|null);
+    public static verify(message: { [k: string]: any }): string | null;
 
     /**
      * Creates a TensorProto message from a plain object. Also converts values to their respective internal types.
      * @param object Plain object
      * @returns TensorProto
      */
-    public static fromObject(object: {[k: string]: any}): onnx.TensorProto;
+    public static fromObject(object: { [k: string]: any }): onnx.TensorProto;
 
     /**
      * Creates a plain object from a TensorProto message. Also converts values to other types if specified.
@@ -1264,13 +1400,16 @@ export namespace onnx {
      * @param [options] Conversion options
      * @returns Plain object
      */
-    public static toObject(message: onnx.TensorProto, options?: $protobuf.IConversionOptions): {[k: string]: any};
+    public static toObject(
+      message: onnx.TensorProto,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
 
     /**
      * Converts this TensorProto to JSON.
      * @returns JSON object
      */
-    public toJSON(): {[k: string]: any};
+    public toJSON(): { [k: string]: any };
 
     /**
      * Gets the default type url for TensorProto
@@ -1281,7 +1420,6 @@ export namespace onnx {
   }
 
   namespace TensorProto {
-
     /** DataType enum. */
     enum DataType {
       UNDEFINED = 0,
@@ -1304,16 +1442,16 @@ export namespace onnx {
       FLOAT8E4M3FN = 17,
       FLOAT8E4M3FNUZ = 18,
       FLOAT8E5M2 = 19,
-      FLOAT8E5M2FNUZ = 20
+      FLOAT8E5M2FNUZ = 20,
     }
 
     /** Properties of a Segment. */
     interface ISegment {
       /** Segment begin */
-      begin?: (number|Long|null);
+      begin?: number | Long | null;
 
       /** Segment end */
-      end?: (number|Long|null);
+      end?: number | Long | null;
     }
 
     /** Represents a Segment. */
@@ -1325,17 +1463,19 @@ export namespace onnx {
       constructor(properties?: onnx.TensorProto.ISegment);
 
       /** Segment begin. */
-      public begin: (number|Long);
+      public begin: number | Long;
 
       /** Segment end. */
-      public end: (number|Long);
+      public end: number | Long;
 
       /**
        * Creates a new Segment instance using the specified properties.
        * @param [properties] Properties to set
        * @returns Segment instance
        */
-      public static create(properties?: onnx.TensorProto.ISegment): onnx.TensorProto.Segment;
+      public static create(
+        properties?: onnx.TensorProto.ISegment,
+      ): onnx.TensorProto.Segment;
 
       /**
        * Encodes the specified Segment message. Does not implicitly {@link onnx.TensorProto.Segment.verify|verify}
@@ -1344,7 +1484,10 @@ export namespace onnx {
        * @param [writer] Writer to encode to
        * @returns Writer
        */
-      public static encode(message: onnx.TensorProto.ISegment, writer?: $protobuf.Writer): $protobuf.Writer;
+      public static encode(
+        message: onnx.TensorProto.ISegment,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
 
       /**
        * Encodes the specified Segment message, length delimited. Does not implicitly {@link
@@ -1353,7 +1496,10 @@ export namespace onnx {
        * @param [writer] Writer to encode to
        * @returns Writer
        */
-      public static encodeDelimited(message: onnx.TensorProto.ISegment, writer?: $protobuf.Writer): $protobuf.Writer;
+      public static encodeDelimited(
+        message: onnx.TensorProto.ISegment,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
 
       /**
        * Decodes a Segment message from the specified reader or buffer.
@@ -1363,7 +1509,10 @@ export namespace onnx {
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.TensorProto.Segment;
+      public static decode(
+        reader: $protobuf.Reader | Uint8Array,
+        length?: number,
+      ): onnx.TensorProto.Segment;
 
       /**
        * Decodes a Segment message from the specified reader or buffer, length delimited.
@@ -1372,21 +1521,25 @@ export namespace onnx {
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.TensorProto.Segment;
+      public static decodeDelimited(
+        reader: $protobuf.Reader | Uint8Array,
+      ): onnx.TensorProto.Segment;
 
       /**
        * Verifies a Segment message.
        * @param message Plain object to verify
        * @returns `null` if valid, otherwise the reason why it is not
        */
-      public static verify(message: {[k: string]: any}): (string|null);
+      public static verify(message: { [k: string]: any }): string | null;
 
       /**
        * Creates a Segment message from a plain object. Also converts values to their respective internal types.
        * @param object Plain object
        * @returns Segment
        */
-      public static fromObject(object: {[k: string]: any}): onnx.TensorProto.Segment;
+      public static fromObject(object: {
+        [k: string]: any;
+      }): onnx.TensorProto.Segment;
 
       /**
        * Creates a plain object from a Segment message. Also converts values to other types if specified.
@@ -1394,14 +1547,16 @@ export namespace onnx {
        * @param [options] Conversion options
        * @returns Plain object
        */
-      public static toObject(message: onnx.TensorProto.Segment, options?: $protobuf.IConversionOptions):
-          {[k: string]: any};
+      public static toObject(
+        message: onnx.TensorProto.Segment,
+        options?: $protobuf.IConversionOptions,
+      ): { [k: string]: any };
 
       /**
        * Converts this Segment to JSON.
        * @returns JSON object
        */
-      public toJSON(): {[k: string]: any};
+      public toJSON(): { [k: string]: any };
 
       /**
        * Gets the default type url for Segment
@@ -1412,19 +1567,22 @@ export namespace onnx {
     }
 
     /** DataLocation enum. */
-    enum DataLocation { DEFAULT = 0, EXTERNAL = 1 }
+    enum DataLocation {
+      DEFAULT = 0,
+      EXTERNAL = 1,
+    }
   }
 
   /** Properties of a SparseTensorProto. */
   interface ISparseTensorProto {
     /** SparseTensorProto values */
-    values?: (onnx.ITensorProto|null);
+    values?: onnx.ITensorProto | null;
 
     /** SparseTensorProto indices */
-    indices?: (onnx.ITensorProto|null);
+    indices?: onnx.ITensorProto | null;
 
     /** SparseTensorProto dims */
-    dims?: ((number | Long)[]|null);
+    dims?: (number | Long)[] | null;
   }
 
   /** Represents a SparseTensorProto. */
@@ -1436,20 +1594,22 @@ export namespace onnx {
     constructor(properties?: onnx.ISparseTensorProto);
 
     /** SparseTensorProto values. */
-    public values?: (onnx.ITensorProto|null);
+    public values?: onnx.ITensorProto | null;
 
     /** SparseTensorProto indices. */
-    public indices?: (onnx.ITensorProto|null);
+    public indices?: onnx.ITensorProto | null;
 
     /** SparseTensorProto dims. */
-    public dims: (number|Long)[];
+    public dims: (number | Long)[];
 
     /**
      * Creates a new SparseTensorProto instance using the specified properties.
      * @param [properties] Properties to set
      * @returns SparseTensorProto instance
      */
-    public static create(properties?: onnx.ISparseTensorProto): onnx.SparseTensorProto;
+    public static create(
+      properties?: onnx.ISparseTensorProto,
+    ): onnx.SparseTensorProto;
 
     /**
      * Encodes the specified SparseTensorProto message. Does not implicitly {@link onnx.SparseTensorProto.verify|verify}
@@ -1458,7 +1618,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encode(message: onnx.ISparseTensorProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encode(
+      message: onnx.ISparseTensorProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Encodes the specified SparseTensorProto message, length delimited. Does not implicitly {@link
@@ -1467,7 +1630,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encodeDelimited(message: onnx.ISparseTensorProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encodeDelimited(
+      message: onnx.ISparseTensorProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Decodes a SparseTensorProto message from the specified reader or buffer.
@@ -1477,7 +1643,10 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.SparseTensorProto;
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): onnx.SparseTensorProto;
 
     /**
      * Decodes a SparseTensorProto message from the specified reader or buffer, length delimited.
@@ -1486,21 +1655,25 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.SparseTensorProto;
+    public static decodeDelimited(
+      reader: $protobuf.Reader | Uint8Array,
+    ): onnx.SparseTensorProto;
 
     /**
      * Verifies a SparseTensorProto message.
      * @param message Plain object to verify
      * @returns `null` if valid, otherwise the reason why it is not
      */
-    public static verify(message: {[k: string]: any}): (string|null);
+    public static verify(message: { [k: string]: any }): string | null;
 
     /**
      * Creates a SparseTensorProto message from a plain object. Also converts values to their respective internal types.
      * @param object Plain object
      * @returns SparseTensorProto
      */
-    public static fromObject(object: {[k: string]: any}): onnx.SparseTensorProto;
+    public static fromObject(object: {
+      [k: string]: any;
+    }): onnx.SparseTensorProto;
 
     /**
      * Creates a plain object from a SparseTensorProto message. Also converts values to other types if specified.
@@ -1508,13 +1681,16 @@ export namespace onnx {
      * @param [options] Conversion options
      * @returns Plain object
      */
-    public static toObject(message: onnx.SparseTensorProto, options?: $protobuf.IConversionOptions): {[k: string]: any};
+    public static toObject(
+      message: onnx.SparseTensorProto,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
 
     /**
      * Converts this SparseTensorProto to JSON.
      * @returns JSON object
      */
-    public toJSON(): {[k: string]: any};
+    public toJSON(): { [k: string]: any };
 
     /**
      * Gets the default type url for SparseTensorProto
@@ -1527,7 +1703,7 @@ export namespace onnx {
   /** Properties of a TensorShapeProto. */
   interface ITensorShapeProto {
     /** TensorShapeProto dim */
-    dim?: (onnx.TensorShapeProto.IDimension[]|null);
+    dim?: onnx.TensorShapeProto.IDimension[] | null;
   }
 
   /** Represents a TensorShapeProto. */
@@ -1546,7 +1722,9 @@ export namespace onnx {
      * @param [properties] Properties to set
      * @returns TensorShapeProto instance
      */
-    public static create(properties?: onnx.ITensorShapeProto): onnx.TensorShapeProto;
+    public static create(
+      properties?: onnx.ITensorShapeProto,
+    ): onnx.TensorShapeProto;
 
     /**
      * Encodes the specified TensorShapeProto message. Does not implicitly {@link onnx.TensorShapeProto.verify|verify}
@@ -1555,7 +1733,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encode(message: onnx.ITensorShapeProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encode(
+      message: onnx.ITensorShapeProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Encodes the specified TensorShapeProto message, length delimited. Does not implicitly {@link
@@ -1564,7 +1745,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encodeDelimited(message: onnx.ITensorShapeProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encodeDelimited(
+      message: onnx.ITensorShapeProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Decodes a TensorShapeProto message from the specified reader or buffer.
@@ -1574,7 +1758,10 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.TensorShapeProto;
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): onnx.TensorShapeProto;
 
     /**
      * Decodes a TensorShapeProto message from the specified reader or buffer, length delimited.
@@ -1583,21 +1770,25 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.TensorShapeProto;
+    public static decodeDelimited(
+      reader: $protobuf.Reader | Uint8Array,
+    ): onnx.TensorShapeProto;
 
     /**
      * Verifies a TensorShapeProto message.
      * @param message Plain object to verify
      * @returns `null` if valid, otherwise the reason why it is not
      */
-    public static verify(message: {[k: string]: any}): (string|null);
+    public static verify(message: { [k: string]: any }): string | null;
 
     /**
      * Creates a TensorShapeProto message from a plain object. Also converts values to their respective internal types.
      * @param object Plain object
      * @returns TensorShapeProto
      */
-    public static fromObject(object: {[k: string]: any}): onnx.TensorShapeProto;
+    public static fromObject(object: {
+      [k: string]: any;
+    }): onnx.TensorShapeProto;
 
     /**
      * Creates a plain object from a TensorShapeProto message. Also converts values to other types if specified.
@@ -1605,13 +1796,16 @@ export namespace onnx {
      * @param [options] Conversion options
      * @returns Plain object
      */
-    public static toObject(message: onnx.TensorShapeProto, options?: $protobuf.IConversionOptions): {[k: string]: any};
+    public static toObject(
+      message: onnx.TensorShapeProto,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
 
     /**
      * Converts this TensorShapeProto to JSON.
      * @returns JSON object
      */
-    public toJSON(): {[k: string]: any};
+    public toJSON(): { [k: string]: any };
 
     /**
      * Gets the default type url for TensorShapeProto
@@ -1622,17 +1816,16 @@ export namespace onnx {
   }
 
   namespace TensorShapeProto {
-
     /** Properties of a Dimension. */
     interface IDimension {
       /** Dimension dimValue */
-      dimValue?: (number|Long|null);
+      dimValue?: number | Long | null;
 
       /** Dimension dimParam */
-      dimParam?: (string|null);
+      dimParam?: string | null;
 
       /** Dimension denotation */
-      denotation?: (string|null);
+      denotation?: string | null;
     }
 
     /** Represents a Dimension. */
@@ -1644,23 +1837,25 @@ export namespace onnx {
       constructor(properties?: onnx.TensorShapeProto.IDimension);
 
       /** Dimension dimValue. */
-      public dimValue?: (number|Long|null);
+      public dimValue?: number | Long | null;
 
       /** Dimension dimParam. */
-      public dimParam?: (string|null);
+      public dimParam?: string | null;
 
       /** Dimension denotation. */
       public denotation: string;
 
       /** Dimension value. */
-      public value?: ('dimValue'|'dimParam');
+      public value?: "dimValue" | "dimParam";
 
       /**
        * Creates a new Dimension instance using the specified properties.
        * @param [properties] Properties to set
        * @returns Dimension instance
        */
-      public static create(properties?: onnx.TensorShapeProto.IDimension): onnx.TensorShapeProto.Dimension;
+      public static create(
+        properties?: onnx.TensorShapeProto.IDimension,
+      ): onnx.TensorShapeProto.Dimension;
 
       /**
        * Encodes the specified Dimension message. Does not implicitly {@link
@@ -1669,7 +1864,10 @@ export namespace onnx {
        * @param [writer] Writer to encode to
        * @returns Writer
        */
-      public static encode(message: onnx.TensorShapeProto.IDimension, writer?: $protobuf.Writer): $protobuf.Writer;
+      public static encode(
+        message: onnx.TensorShapeProto.IDimension,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
 
       /**
        * Encodes the specified Dimension message, length delimited. Does not implicitly {@link
@@ -1678,8 +1876,10 @@ export namespace onnx {
        * @param [writer] Writer to encode to
        * @returns Writer
        */
-      public static encodeDelimited(message: onnx.TensorShapeProto.IDimension, writer?: $protobuf.Writer):
-          $protobuf.Writer;
+      public static encodeDelimited(
+        message: onnx.TensorShapeProto.IDimension,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
 
       /**
        * Decodes a Dimension message from the specified reader or buffer.
@@ -1689,7 +1889,10 @@ export namespace onnx {
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.TensorShapeProto.Dimension;
+      public static decode(
+        reader: $protobuf.Reader | Uint8Array,
+        length?: number,
+      ): onnx.TensorShapeProto.Dimension;
 
       /**
        * Decodes a Dimension message from the specified reader or buffer, length delimited.
@@ -1698,21 +1901,25 @@ export namespace onnx {
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.TensorShapeProto.Dimension;
+      public static decodeDelimited(
+        reader: $protobuf.Reader | Uint8Array,
+      ): onnx.TensorShapeProto.Dimension;
 
       /**
        * Verifies a Dimension message.
        * @param message Plain object to verify
        * @returns `null` if valid, otherwise the reason why it is not
        */
-      public static verify(message: {[k: string]: any}): (string|null);
+      public static verify(message: { [k: string]: any }): string | null;
 
       /**
        * Creates a Dimension message from a plain object. Also converts values to their respective internal types.
        * @param object Plain object
        * @returns Dimension
        */
-      public static fromObject(object: {[k: string]: any}): onnx.TensorShapeProto.Dimension;
+      public static fromObject(object: {
+        [k: string]: any;
+      }): onnx.TensorShapeProto.Dimension;
 
       /**
        * Creates a plain object from a Dimension message. Also converts values to other types if specified.
@@ -1720,14 +1927,16 @@ export namespace onnx {
        * @param [options] Conversion options
        * @returns Plain object
        */
-      public static toObject(message: onnx.TensorShapeProto.Dimension, options?: $protobuf.IConversionOptions):
-          {[k: string]: any};
+      public static toObject(
+        message: onnx.TensorShapeProto.Dimension,
+        options?: $protobuf.IConversionOptions,
+      ): { [k: string]: any };
 
       /**
        * Converts this Dimension to JSON.
        * @returns JSON object
        */
-      public toJSON(): {[k: string]: any};
+      public toJSON(): { [k: string]: any };
 
       /**
        * Gets the default type url for Dimension
@@ -1741,22 +1950,22 @@ export namespace onnx {
   /** Properties of a TypeProto. */
   interface ITypeProto {
     /** TypeProto tensorType */
-    tensorType?: (onnx.TypeProto.ITensor|null);
+    tensorType?: onnx.TypeProto.ITensor | null;
 
     /** TypeProto sequenceType */
-    sequenceType?: (onnx.TypeProto.ISequence|null);
+    sequenceType?: onnx.TypeProto.ISequence | null;
 
     /** TypeProto mapType */
-    mapType?: (onnx.TypeProto.IMap|null);
+    mapType?: onnx.TypeProto.IMap | null;
 
     /** TypeProto optionalType */
-    optionalType?: (onnx.TypeProto.IOptional|null);
+    optionalType?: onnx.TypeProto.IOptional | null;
 
     /** TypeProto sparseTensorType */
-    sparseTensorType?: (onnx.TypeProto.ISparseTensor|null);
+    sparseTensorType?: onnx.TypeProto.ISparseTensor | null;
 
     /** TypeProto denotation */
-    denotation?: (string|null);
+    denotation?: string | null;
   }
 
   /** Represents a TypeProto. */
@@ -1768,25 +1977,30 @@ export namespace onnx {
     constructor(properties?: onnx.ITypeProto);
 
     /** TypeProto tensorType. */
-    public tensorType?: (onnx.TypeProto.ITensor|null);
+    public tensorType?: onnx.TypeProto.ITensor | null;
 
     /** TypeProto sequenceType. */
-    public sequenceType?: (onnx.TypeProto.ISequence|null);
+    public sequenceType?: onnx.TypeProto.ISequence | null;
 
     /** TypeProto mapType. */
-    public mapType?: (onnx.TypeProto.IMap|null);
+    public mapType?: onnx.TypeProto.IMap | null;
 
     /** TypeProto optionalType. */
-    public optionalType?: (onnx.TypeProto.IOptional|null);
+    public optionalType?: onnx.TypeProto.IOptional | null;
 
     /** TypeProto sparseTensorType. */
-    public sparseTensorType?: (onnx.TypeProto.ISparseTensor|null);
+    public sparseTensorType?: onnx.TypeProto.ISparseTensor | null;
 
     /** TypeProto denotation. */
     public denotation: string;
 
     /** TypeProto value. */
-    public value?: ('tensorType'|'sequenceType'|'mapType'|'optionalType'|'sparseTensorType');
+    public value?:
+      | "tensorType"
+      | "sequenceType"
+      | "mapType"
+      | "optionalType"
+      | "sparseTensorType";
 
     /**
      * Creates a new TypeProto instance using the specified properties.
@@ -1801,7 +2015,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encode(message: onnx.ITypeProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encode(
+      message: onnx.ITypeProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Encodes the specified TypeProto message, length delimited. Does not implicitly {@link
@@ -1810,7 +2027,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encodeDelimited(message: onnx.ITypeProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encodeDelimited(
+      message: onnx.ITypeProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Decodes a TypeProto message from the specified reader or buffer.
@@ -1820,7 +2040,10 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.TypeProto;
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): onnx.TypeProto;
 
     /**
      * Decodes a TypeProto message from the specified reader or buffer, length delimited.
@@ -1829,21 +2052,23 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.TypeProto;
+    public static decodeDelimited(
+      reader: $protobuf.Reader | Uint8Array,
+    ): onnx.TypeProto;
 
     /**
      * Verifies a TypeProto message.
      * @param message Plain object to verify
      * @returns `null` if valid, otherwise the reason why it is not
      */
-    public static verify(message: {[k: string]: any}): (string|null);
+    public static verify(message: { [k: string]: any }): string | null;
 
     /**
      * Creates a TypeProto message from a plain object. Also converts values to their respective internal types.
      * @param object Plain object
      * @returns TypeProto
      */
-    public static fromObject(object: {[k: string]: any}): onnx.TypeProto;
+    public static fromObject(object: { [k: string]: any }): onnx.TypeProto;
 
     /**
      * Creates a plain object from a TypeProto message. Also converts values to other types if specified.
@@ -1851,13 +2076,16 @@ export namespace onnx {
      * @param [options] Conversion options
      * @returns Plain object
      */
-    public static toObject(message: onnx.TypeProto, options?: $protobuf.IConversionOptions): {[k: string]: any};
+    public static toObject(
+      message: onnx.TypeProto,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
 
     /**
      * Converts this TypeProto to JSON.
      * @returns JSON object
      */
-    public toJSON(): {[k: string]: any};
+    public toJSON(): { [k: string]: any };
 
     /**
      * Gets the default type url for TypeProto
@@ -1868,14 +2096,13 @@ export namespace onnx {
   }
 
   namespace TypeProto {
-
     /** Properties of a Tensor. */
     interface ITensor {
       /** Tensor elemType */
-      elemType?: (number|null);
+      elemType?: number | null;
 
       /** Tensor shape */
-      shape?: (onnx.ITensorShapeProto|null);
+      shape?: onnx.ITensorShapeProto | null;
     }
 
     /** Represents a Tensor. */
@@ -1890,14 +2117,16 @@ export namespace onnx {
       public elemType: number;
 
       /** Tensor shape. */
-      public shape?: (onnx.ITensorShapeProto|null);
+      public shape?: onnx.ITensorShapeProto | null;
 
       /**
        * Creates a new Tensor instance using the specified properties.
        * @param [properties] Properties to set
        * @returns Tensor instance
        */
-      public static create(properties?: onnx.TypeProto.ITensor): onnx.TypeProto.Tensor;
+      public static create(
+        properties?: onnx.TypeProto.ITensor,
+      ): onnx.TypeProto.Tensor;
 
       /**
        * Encodes the specified Tensor message. Does not implicitly {@link onnx.TypeProto.Tensor.verify|verify} messages.
@@ -1905,7 +2134,10 @@ export namespace onnx {
        * @param [writer] Writer to encode to
        * @returns Writer
        */
-      public static encode(message: onnx.TypeProto.ITensor, writer?: $protobuf.Writer): $protobuf.Writer;
+      public static encode(
+        message: onnx.TypeProto.ITensor,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
 
       /**
        * Encodes the specified Tensor message, length delimited. Does not implicitly {@link
@@ -1914,7 +2146,10 @@ export namespace onnx {
        * @param [writer] Writer to encode to
        * @returns Writer
        */
-      public static encodeDelimited(message: onnx.TypeProto.ITensor, writer?: $protobuf.Writer): $protobuf.Writer;
+      public static encodeDelimited(
+        message: onnx.TypeProto.ITensor,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
 
       /**
        * Decodes a Tensor message from the specified reader or buffer.
@@ -1924,7 +2159,10 @@ export namespace onnx {
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.TypeProto.Tensor;
+      public static decode(
+        reader: $protobuf.Reader | Uint8Array,
+        length?: number,
+      ): onnx.TypeProto.Tensor;
 
       /**
        * Decodes a Tensor message from the specified reader or buffer, length delimited.
@@ -1933,21 +2171,25 @@ export namespace onnx {
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.TypeProto.Tensor;
+      public static decodeDelimited(
+        reader: $protobuf.Reader | Uint8Array,
+      ): onnx.TypeProto.Tensor;
 
       /**
        * Verifies a Tensor message.
        * @param message Plain object to verify
        * @returns `null` if valid, otherwise the reason why it is not
        */
-      public static verify(message: {[k: string]: any}): (string|null);
+      public static verify(message: { [k: string]: any }): string | null;
 
       /**
        * Creates a Tensor message from a plain object. Also converts values to their respective internal types.
        * @param object Plain object
        * @returns Tensor
        */
-      public static fromObject(object: {[k: string]: any}): onnx.TypeProto.Tensor;
+      public static fromObject(object: {
+        [k: string]: any;
+      }): onnx.TypeProto.Tensor;
 
       /**
        * Creates a plain object from a Tensor message. Also converts values to other types if specified.
@@ -1955,14 +2197,16 @@ export namespace onnx {
        * @param [options] Conversion options
        * @returns Plain object
        */
-      public static toObject(message: onnx.TypeProto.Tensor, options?: $protobuf.IConversionOptions):
-          {[k: string]: any};
+      public static toObject(
+        message: onnx.TypeProto.Tensor,
+        options?: $protobuf.IConversionOptions,
+      ): { [k: string]: any };
 
       /**
        * Converts this Tensor to JSON.
        * @returns JSON object
        */
-      public toJSON(): {[k: string]: any};
+      public toJSON(): { [k: string]: any };
 
       /**
        * Gets the default type url for Tensor
@@ -1975,7 +2219,7 @@ export namespace onnx {
     /** Properties of a Sequence. */
     interface ISequence {
       /** Sequence elemType */
-      elemType?: (onnx.ITypeProto|null);
+      elemType?: onnx.ITypeProto | null;
     }
 
     /** Represents a Sequence. */
@@ -1987,14 +2231,16 @@ export namespace onnx {
       constructor(properties?: onnx.TypeProto.ISequence);
 
       /** Sequence elemType. */
-      public elemType?: (onnx.ITypeProto|null);
+      public elemType?: onnx.ITypeProto | null;
 
       /**
        * Creates a new Sequence instance using the specified properties.
        * @param [properties] Properties to set
        * @returns Sequence instance
        */
-      public static create(properties?: onnx.TypeProto.ISequence): onnx.TypeProto.Sequence;
+      public static create(
+        properties?: onnx.TypeProto.ISequence,
+      ): onnx.TypeProto.Sequence;
 
       /**
        * Encodes the specified Sequence message. Does not implicitly {@link onnx.TypeProto.Sequence.verify|verify}
@@ -2003,7 +2249,10 @@ export namespace onnx {
        * @param [writer] Writer to encode to
        * @returns Writer
        */
-      public static encode(message: onnx.TypeProto.ISequence, writer?: $protobuf.Writer): $protobuf.Writer;
+      public static encode(
+        message: onnx.TypeProto.ISequence,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
 
       /**
        * Encodes the specified Sequence message, length delimited. Does not implicitly {@link
@@ -2012,7 +2261,10 @@ export namespace onnx {
        * @param [writer] Writer to encode to
        * @returns Writer
        */
-      public static encodeDelimited(message: onnx.TypeProto.ISequence, writer?: $protobuf.Writer): $protobuf.Writer;
+      public static encodeDelimited(
+        message: onnx.TypeProto.ISequence,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
 
       /**
        * Decodes a Sequence message from the specified reader or buffer.
@@ -2022,7 +2274,10 @@ export namespace onnx {
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.TypeProto.Sequence;
+      public static decode(
+        reader: $protobuf.Reader | Uint8Array,
+        length?: number,
+      ): onnx.TypeProto.Sequence;
 
       /**
        * Decodes a Sequence message from the specified reader or buffer, length delimited.
@@ -2031,21 +2286,25 @@ export namespace onnx {
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.TypeProto.Sequence;
+      public static decodeDelimited(
+        reader: $protobuf.Reader | Uint8Array,
+      ): onnx.TypeProto.Sequence;
 
       /**
        * Verifies a Sequence message.
        * @param message Plain object to verify
        * @returns `null` if valid, otherwise the reason why it is not
        */
-      public static verify(message: {[k: string]: any}): (string|null);
+      public static verify(message: { [k: string]: any }): string | null;
 
       /**
        * Creates a Sequence message from a plain object. Also converts values to their respective internal types.
        * @param object Plain object
        * @returns Sequence
        */
-      public static fromObject(object: {[k: string]: any}): onnx.TypeProto.Sequence;
+      public static fromObject(object: {
+        [k: string]: any;
+      }): onnx.TypeProto.Sequence;
 
       /**
        * Creates a plain object from a Sequence message. Also converts values to other types if specified.
@@ -2053,14 +2312,16 @@ export namespace onnx {
        * @param [options] Conversion options
        * @returns Plain object
        */
-      public static toObject(message: onnx.TypeProto.Sequence, options?: $protobuf.IConversionOptions):
-          {[k: string]: any};
+      public static toObject(
+        message: onnx.TypeProto.Sequence,
+        options?: $protobuf.IConversionOptions,
+      ): { [k: string]: any };
 
       /**
        * Converts this Sequence to JSON.
        * @returns JSON object
        */
-      public toJSON(): {[k: string]: any};
+      public toJSON(): { [k: string]: any };
 
       /**
        * Gets the default type url for Sequence
@@ -2073,10 +2334,10 @@ export namespace onnx {
     /** Properties of a Map. */
     interface IMap {
       /** Map keyType */
-      keyType?: (number|null);
+      keyType?: number | null;
 
       /** Map valueType */
-      valueType?: (onnx.ITypeProto|null);
+      valueType?: onnx.ITypeProto | null;
     }
 
     /** Represents a Map. */
@@ -2091,14 +2352,16 @@ export namespace onnx {
       public keyType: number;
 
       /** Map valueType. */
-      public valueType?: (onnx.ITypeProto|null);
+      public valueType?: onnx.ITypeProto | null;
 
       /**
        * Creates a new Map instance using the specified properties.
        * @param [properties] Properties to set
        * @returns Map instance
        */
-      public static create(properties?: onnx.TypeProto.IMap): onnx.TypeProto.Map;
+      public static create(
+        properties?: onnx.TypeProto.IMap,
+      ): onnx.TypeProto.Map;
 
       /**
        * Encodes the specified Map message. Does not implicitly {@link onnx.TypeProto.Map.verify|verify} messages.
@@ -2106,7 +2369,10 @@ export namespace onnx {
        * @param [writer] Writer to encode to
        * @returns Writer
        */
-      public static encode(message: onnx.TypeProto.IMap, writer?: $protobuf.Writer): $protobuf.Writer;
+      public static encode(
+        message: onnx.TypeProto.IMap,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
 
       /**
        * Encodes the specified Map message, length delimited. Does not implicitly {@link
@@ -2115,7 +2381,10 @@ export namespace onnx {
        * @param [writer] Writer to encode to
        * @returns Writer
        */
-      public static encodeDelimited(message: onnx.TypeProto.IMap, writer?: $protobuf.Writer): $protobuf.Writer;
+      public static encodeDelimited(
+        message: onnx.TypeProto.IMap,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
 
       /**
        * Decodes a Map message from the specified reader or buffer.
@@ -2125,7 +2394,10 @@ export namespace onnx {
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.TypeProto.Map;
+      public static decode(
+        reader: $protobuf.Reader | Uint8Array,
+        length?: number,
+      ): onnx.TypeProto.Map;
 
       /**
        * Decodes a Map message from the specified reader or buffer, length delimited.
@@ -2134,21 +2406,25 @@ export namespace onnx {
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.TypeProto.Map;
+      public static decodeDelimited(
+        reader: $protobuf.Reader | Uint8Array,
+      ): onnx.TypeProto.Map;
 
       /**
        * Verifies a Map message.
        * @param message Plain object to verify
        * @returns `null` if valid, otherwise the reason why it is not
        */
-      public static verify(message: {[k: string]: any}): (string|null);
+      public static verify(message: { [k: string]: any }): string | null;
 
       /**
        * Creates a Map message from a plain object. Also converts values to their respective internal types.
        * @param object Plain object
        * @returns Map
        */
-      public static fromObject(object: {[k: string]: any}): onnx.TypeProto.Map;
+      public static fromObject(object: {
+        [k: string]: any;
+      }): onnx.TypeProto.Map;
 
       /**
        * Creates a plain object from a Map message. Also converts values to other types if specified.
@@ -2156,13 +2432,16 @@ export namespace onnx {
        * @param [options] Conversion options
        * @returns Plain object
        */
-      public static toObject(message: onnx.TypeProto.Map, options?: $protobuf.IConversionOptions): {[k: string]: any};
+      public static toObject(
+        message: onnx.TypeProto.Map,
+        options?: $protobuf.IConversionOptions,
+      ): { [k: string]: any };
 
       /**
        * Converts this Map to JSON.
        * @returns JSON object
        */
-      public toJSON(): {[k: string]: any};
+      public toJSON(): { [k: string]: any };
 
       /**
        * Gets the default type url for Map
@@ -2175,7 +2454,7 @@ export namespace onnx {
     /** Properties of an Optional. */
     interface IOptional {
       /** Optional elemType */
-      elemType?: (onnx.ITypeProto|null);
+      elemType?: onnx.ITypeProto | null;
     }
 
     /** Represents an Optional. */
@@ -2187,14 +2466,16 @@ export namespace onnx {
       constructor(properties?: onnx.TypeProto.IOptional);
 
       /** Optional elemType. */
-      public elemType?: (onnx.ITypeProto|null);
+      public elemType?: onnx.ITypeProto | null;
 
       /**
        * Creates a new Optional instance using the specified properties.
        * @param [properties] Properties to set
        * @returns Optional instance
        */
-      public static create(properties?: onnx.TypeProto.IOptional): onnx.TypeProto.Optional;
+      public static create(
+        properties?: onnx.TypeProto.IOptional,
+      ): onnx.TypeProto.Optional;
 
       /**
        * Encodes the specified Optional message. Does not implicitly {@link onnx.TypeProto.Optional.verify|verify}
@@ -2203,7 +2484,10 @@ export namespace onnx {
        * @param [writer] Writer to encode to
        * @returns Writer
        */
-      public static encode(message: onnx.TypeProto.IOptional, writer?: $protobuf.Writer): $protobuf.Writer;
+      public static encode(
+        message: onnx.TypeProto.IOptional,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
 
       /**
        * Encodes the specified Optional message, length delimited. Does not implicitly {@link
@@ -2212,7 +2496,10 @@ export namespace onnx {
        * @param [writer] Writer to encode to
        * @returns Writer
        */
-      public static encodeDelimited(message: onnx.TypeProto.IOptional, writer?: $protobuf.Writer): $protobuf.Writer;
+      public static encodeDelimited(
+        message: onnx.TypeProto.IOptional,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
 
       /**
        * Decodes an Optional message from the specified reader or buffer.
@@ -2222,7 +2509,10 @@ export namespace onnx {
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.TypeProto.Optional;
+      public static decode(
+        reader: $protobuf.Reader | Uint8Array,
+        length?: number,
+      ): onnx.TypeProto.Optional;
 
       /**
        * Decodes an Optional message from the specified reader or buffer, length delimited.
@@ -2231,21 +2521,25 @@ export namespace onnx {
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.TypeProto.Optional;
+      public static decodeDelimited(
+        reader: $protobuf.Reader | Uint8Array,
+      ): onnx.TypeProto.Optional;
 
       /**
        * Verifies an Optional message.
        * @param message Plain object to verify
        * @returns `null` if valid, otherwise the reason why it is not
        */
-      public static verify(message: {[k: string]: any}): (string|null);
+      public static verify(message: { [k: string]: any }): string | null;
 
       /**
        * Creates an Optional message from a plain object. Also converts values to their respective internal types.
        * @param object Plain object
        * @returns Optional
        */
-      public static fromObject(object: {[k: string]: any}): onnx.TypeProto.Optional;
+      public static fromObject(object: {
+        [k: string]: any;
+      }): onnx.TypeProto.Optional;
 
       /**
        * Creates a plain object from an Optional message. Also converts values to other types if specified.
@@ -2253,14 +2547,16 @@ export namespace onnx {
        * @param [options] Conversion options
        * @returns Plain object
        */
-      public static toObject(message: onnx.TypeProto.Optional, options?: $protobuf.IConversionOptions):
-          {[k: string]: any};
+      public static toObject(
+        message: onnx.TypeProto.Optional,
+        options?: $protobuf.IConversionOptions,
+      ): { [k: string]: any };
 
       /**
        * Converts this Optional to JSON.
        * @returns JSON object
        */
-      public toJSON(): {[k: string]: any};
+      public toJSON(): { [k: string]: any };
 
       /**
        * Gets the default type url for Optional
@@ -2273,10 +2569,10 @@ export namespace onnx {
     /** Properties of a SparseTensor. */
     interface ISparseTensor {
       /** SparseTensor elemType */
-      elemType?: (number|null);
+      elemType?: number | null;
 
       /** SparseTensor shape */
-      shape?: (onnx.ITensorShapeProto|null);
+      shape?: onnx.ITensorShapeProto | null;
     }
 
     /** Represents a SparseTensor. */
@@ -2291,14 +2587,16 @@ export namespace onnx {
       public elemType: number;
 
       /** SparseTensor shape. */
-      public shape?: (onnx.ITensorShapeProto|null);
+      public shape?: onnx.ITensorShapeProto | null;
 
       /**
        * Creates a new SparseTensor instance using the specified properties.
        * @param [properties] Properties to set
        * @returns SparseTensor instance
        */
-      public static create(properties?: onnx.TypeProto.ISparseTensor): onnx.TypeProto.SparseTensor;
+      public static create(
+        properties?: onnx.TypeProto.ISparseTensor,
+      ): onnx.TypeProto.SparseTensor;
 
       /**
        * Encodes the specified SparseTensor message. Does not implicitly {@link
@@ -2307,7 +2605,10 @@ export namespace onnx {
        * @param [writer] Writer to encode to
        * @returns Writer
        */
-      public static encode(message: onnx.TypeProto.ISparseTensor, writer?: $protobuf.Writer): $protobuf.Writer;
+      public static encode(
+        message: onnx.TypeProto.ISparseTensor,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
 
       /**
        * Encodes the specified SparseTensor message, length delimited. Does not implicitly {@link
@@ -2316,7 +2617,10 @@ export namespace onnx {
        * @param [writer] Writer to encode to
        * @returns Writer
        */
-      public static encodeDelimited(message: onnx.TypeProto.ISparseTensor, writer?: $protobuf.Writer): $protobuf.Writer;
+      public static encodeDelimited(
+        message: onnx.TypeProto.ISparseTensor,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
 
       /**
        * Decodes a SparseTensor message from the specified reader or buffer.
@@ -2326,7 +2630,10 @@ export namespace onnx {
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.TypeProto.SparseTensor;
+      public static decode(
+        reader: $protobuf.Reader | Uint8Array,
+        length?: number,
+      ): onnx.TypeProto.SparseTensor;
 
       /**
        * Decodes a SparseTensor message from the specified reader or buffer, length delimited.
@@ -2335,21 +2642,25 @@ export namespace onnx {
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.TypeProto.SparseTensor;
+      public static decodeDelimited(
+        reader: $protobuf.Reader | Uint8Array,
+      ): onnx.TypeProto.SparseTensor;
 
       /**
        * Verifies a SparseTensor message.
        * @param message Plain object to verify
        * @returns `null` if valid, otherwise the reason why it is not
        */
-      public static verify(message: {[k: string]: any}): (string|null);
+      public static verify(message: { [k: string]: any }): string | null;
 
       /**
        * Creates a SparseTensor message from a plain object. Also converts values to their respective internal types.
        * @param object Plain object
        * @returns SparseTensor
        */
-      public static fromObject(object: {[k: string]: any}): onnx.TypeProto.SparseTensor;
+      public static fromObject(object: {
+        [k: string]: any;
+      }): onnx.TypeProto.SparseTensor;
 
       /**
        * Creates a plain object from a SparseTensor message. Also converts values to other types if specified.
@@ -2357,14 +2668,16 @@ export namespace onnx {
        * @param [options] Conversion options
        * @returns Plain object
        */
-      public static toObject(message: onnx.TypeProto.SparseTensor, options?: $protobuf.IConversionOptions):
-          {[k: string]: any};
+      public static toObject(
+        message: onnx.TypeProto.SparseTensor,
+        options?: $protobuf.IConversionOptions,
+      ): { [k: string]: any };
 
       /**
        * Converts this SparseTensor to JSON.
        * @returns JSON object
        */
-      public toJSON(): {[k: string]: any};
+      public toJSON(): { [k: string]: any };
 
       /**
        * Gets the default type url for SparseTensor
@@ -2378,10 +2691,10 @@ export namespace onnx {
   /** Properties of an OperatorSetIdProto. */
   interface IOperatorSetIdProto {
     /** OperatorSetIdProto domain */
-    domain?: (string|null);
+    domain?: string | null;
 
     /** OperatorSetIdProto version */
-    version?: (number|Long|null);
+    version?: number | Long | null;
   }
 
   /** Represents an OperatorSetIdProto. */
@@ -2396,14 +2709,16 @@ export namespace onnx {
     public domain: string;
 
     /** OperatorSetIdProto version. */
-    public version: (number|Long);
+    public version: number | Long;
 
     /**
      * Creates a new OperatorSetIdProto instance using the specified properties.
      * @param [properties] Properties to set
      * @returns OperatorSetIdProto instance
      */
-    public static create(properties?: onnx.IOperatorSetIdProto): onnx.OperatorSetIdProto;
+    public static create(
+      properties?: onnx.IOperatorSetIdProto,
+    ): onnx.OperatorSetIdProto;
 
     /**
      * Encodes the specified OperatorSetIdProto message. Does not implicitly {@link
@@ -2412,7 +2727,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encode(message: onnx.IOperatorSetIdProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encode(
+      message: onnx.IOperatorSetIdProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Encodes the specified OperatorSetIdProto message, length delimited. Does not implicitly {@link
@@ -2421,7 +2739,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encodeDelimited(message: onnx.IOperatorSetIdProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encodeDelimited(
+      message: onnx.IOperatorSetIdProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Decodes an OperatorSetIdProto message from the specified reader or buffer.
@@ -2431,7 +2752,10 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.OperatorSetIdProto;
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): onnx.OperatorSetIdProto;
 
     /**
      * Decodes an OperatorSetIdProto message from the specified reader or buffer, length delimited.
@@ -2440,14 +2764,16 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.OperatorSetIdProto;
+    public static decodeDelimited(
+      reader: $protobuf.Reader | Uint8Array,
+    ): onnx.OperatorSetIdProto;
 
     /**
      * Verifies an OperatorSetIdProto message.
      * @param message Plain object to verify
      * @returns `null` if valid, otherwise the reason why it is not
      */
-    public static verify(message: {[k: string]: any}): (string|null);
+    public static verify(message: { [k: string]: any }): string | null;
 
     /**
      * Creates an OperatorSetIdProto message from a plain object. Also converts values to their respective internal
@@ -2455,7 +2781,9 @@ export namespace onnx {
      * @param object Plain object
      * @returns OperatorSetIdProto
      */
-    public static fromObject(object: {[k: string]: any}): onnx.OperatorSetIdProto;
+    public static fromObject(object: {
+      [k: string]: any;
+    }): onnx.OperatorSetIdProto;
 
     /**
      * Creates a plain object from an OperatorSetIdProto message. Also converts values to other types if specified.
@@ -2463,14 +2791,16 @@ export namespace onnx {
      * @param [options] Conversion options
      * @returns Plain object
      */
-    public static toObject(message: onnx.OperatorSetIdProto, options?: $protobuf.IConversionOptions):
-        {[k: string]: any};
+    public static toObject(
+      message: onnx.OperatorSetIdProto,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
 
     /**
      * Converts this OperatorSetIdProto to JSON.
      * @returns JSON object
      */
-    public toJSON(): {[k: string]: any};
+    public toJSON(): { [k: string]: any };
 
     /**
      * Gets the default type url for OperatorSetIdProto
@@ -2481,36 +2811,39 @@ export namespace onnx {
   }
 
   /** OperatorStatus enum. */
-  enum OperatorStatus { EXPERIMENTAL = 0, STABLE = 1 }
+  enum OperatorStatus {
+    EXPERIMENTAL = 0,
+    STABLE = 1,
+  }
 
   /** Properties of a FunctionProto. */
   interface IFunctionProto {
     /** FunctionProto name */
-    name?: (string|null);
+    name?: string | null;
 
     /** FunctionProto input */
-    input?: (string[]|null);
+    input?: string[] | null;
 
     /** FunctionProto output */
-    output?: (string[]|null);
+    output?: string[] | null;
 
     /** FunctionProto attribute */
-    attribute?: (string[]|null);
+    attribute?: string[] | null;
 
     /** FunctionProto attributeProto */
-    attributeProto?: (onnx.IAttributeProto[]|null);
+    attributeProto?: onnx.IAttributeProto[] | null;
 
     /** FunctionProto node */
-    node?: (onnx.INodeProto[]|null);
+    node?: onnx.INodeProto[] | null;
 
     /** FunctionProto docString */
-    docString?: (string|null);
+    docString?: string | null;
 
     /** FunctionProto opsetImport */
-    opsetImport?: (onnx.IOperatorSetIdProto[]|null);
+    opsetImport?: onnx.IOperatorSetIdProto[] | null;
 
     /** FunctionProto domain */
-    domain?: (string|null);
+    domain?: string | null;
   }
 
   /** Represents a FunctionProto. */
@@ -2562,7 +2895,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encode(message: onnx.IFunctionProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encode(
+      message: onnx.IFunctionProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Encodes the specified FunctionProto message, length delimited. Does not implicitly {@link
@@ -2571,7 +2907,10 @@ export namespace onnx {
      * @param [writer] Writer to encode to
      * @returns Writer
      */
-    public static encodeDelimited(message: onnx.IFunctionProto, writer?: $protobuf.Writer): $protobuf.Writer;
+    public static encodeDelimited(
+      message: onnx.IFunctionProto,
+      writer?: $protobuf.Writer,
+    ): $protobuf.Writer;
 
     /**
      * Decodes a FunctionProto message from the specified reader or buffer.
@@ -2581,7 +2920,10 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): onnx.FunctionProto;
+    public static decode(
+      reader: $protobuf.Reader | Uint8Array,
+      length?: number,
+    ): onnx.FunctionProto;
 
     /**
      * Decodes a FunctionProto message from the specified reader or buffer, length delimited.
@@ -2590,21 +2932,23 @@ export namespace onnx {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-    public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): onnx.FunctionProto;
+    public static decodeDelimited(
+      reader: $protobuf.Reader | Uint8Array,
+    ): onnx.FunctionProto;
 
     /**
      * Verifies a FunctionProto message.
      * @param message Plain object to verify
      * @returns `null` if valid, otherwise the reason why it is not
      */
-    public static verify(message: {[k: string]: any}): (string|null);
+    public static verify(message: { [k: string]: any }): string | null;
 
     /**
      * Creates a FunctionProto message from a plain object. Also converts values to their respective internal types.
      * @param object Plain object
      * @returns FunctionProto
      */
-    public static fromObject(object: {[k: string]: any}): onnx.FunctionProto;
+    public static fromObject(object: { [k: string]: any }): onnx.FunctionProto;
 
     /**
      * Creates a plain object from a FunctionProto message. Also converts values to other types if specified.
@@ -2612,13 +2956,16 @@ export namespace onnx {
      * @param [options] Conversion options
      * @returns Plain object
      */
-    public static toObject(message: onnx.FunctionProto, options?: $protobuf.IConversionOptions): {[k: string]: any};
+    public static toObject(
+      message: onnx.FunctionProto,
+      options?: $protobuf.IConversionOptions,
+    ): { [k: string]: any };
 
     /**
      * Converts this FunctionProto to JSON.
      * @returns JSON object
      */
-    public toJSON(): {[k: string]: any};
+    public toJSON(): { [k: string]: any };
 
     /**
      * Gets the default type url for FunctionProto

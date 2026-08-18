@@ -1,6 +1,7 @@
-import { List } from "immutable";
+import type { List } from "immutable";
 
-import type { Image, processing, Tabular, Text, TokenizedText } from "../index.js";
+import type { Image, Tabular, Text, TokenizedText } from "#dataset/index";
+import type { NormalizedImage } from "#processing/image";
 
 /**
  * The data & label format goes through various stages.
@@ -31,7 +32,7 @@ type Token = number;
  * prediction needs data input and outputs label
  **/
 export interface ModelEncoded {
-  image: [image: processing.NormalizedImage<3>, label: number];
+  image: [image: NormalizedImage<3>, label: number];
   tabular: [row: List<number>, number];
   text: [line: TokenizedText, next: Token];
 }

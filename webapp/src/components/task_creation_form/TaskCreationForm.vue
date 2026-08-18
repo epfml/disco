@@ -606,7 +606,7 @@
 
 <script lang="ts" setup>
 import createDebug from "debug";
-import * as immutable from "immutable";
+import { isSet as isImmutableSet } from "immutable";
 import { storeToRefs } from "pinia";
 import { FieldArray, Form } from "vee-validate";
 import { ref, useTemplateRef, watch } from "vue";
@@ -616,7 +616,7 @@ import * as z from "zod";
 import * as tf from "@tensorflow/tfjs";
 
 import {
-  models,
+  TFJS,
   pushTask,
   Task,
   Tokenizer,
@@ -818,7 +818,7 @@ const TFJSModelSchema = {
       switch (true) {
         case fileOrSet instanceof File:
           return fileOrSet;
-        case immutable.isSet(fileOrSet): {
+        case isImmutableSet(fileOrSet): {
           const file = fileOrSet.first();
 
           if (file === undefined || fileOrSet.size !== 1)
@@ -941,7 +941,7 @@ async function onSubmit(form: unknown): Promise<void> {
           loss,
           optimizer: tf.train[optimizer.name](optimizer.learningRate),
         });
-        model = new models.TFJS(task.dataType, loaded);
+        model = new TFJS(task.dataType, loaded);
         break;
       }
       case "text":
