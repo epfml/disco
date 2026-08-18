@@ -17,6 +17,8 @@ const TASKS_TO_FILTER_OUT = Set.of("cifar10");
 export const useTasksStore = defineStore("tasks", () => {
   // 3-state variable used to test whether the tasks have been retrieved successfully,
   // if the retrieving failed, or if they are currently being loaded
+  // Use shallowRef instead of ref because ref deeply wraps the object and loses access
+  // to its private methods
   const tasks = shallowRef<
     "loading" | "failed" | Map<Task.ID, Task<DataType, Network>>
   >("loading");
