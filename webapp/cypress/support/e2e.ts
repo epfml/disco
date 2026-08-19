@@ -91,3 +91,19 @@ export function basicTask<D extends DataType>(
 before(() => {
   localStorage.debug = "discojs*,webapp*";
 });
+
+// Models are persisted in OPFS, which Cypress doesn't clear between tests nor
+// between specs. A model left over from another spec is shown by the model
+// library, which throws when its task isn't in the (intercepted) task list.
+beforeEach(() =>
+  // cy.then rather than cy.wrap: the latter yields the function without calling it
+  cy.then(async () => {
+    const root = await navigator.storage.getDirectory();
+    try {
+      await root.removeEntry("models", { recursive: true });
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "NotFoundError") return;
+      throw e;
+    }
+  }),
+);
