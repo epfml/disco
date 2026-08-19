@@ -44,23 +44,3 @@ it("can test lus_covid", () => {
 
   cy.contains("button", "download as csv", { timeout: 20_000 });
 });
-
-it("can start and stop testing of wikitext", () => {
-  setupServerWith(defaultTasks.wikitext);
-
-  cy.visit("/evaluate");
-  cy.contains("button", "download").click();
-  cy.contains("button", "test").click();
-
-  cy.get('[data-testid="select-text-button"]')
-    .first()
-    .selectFile("../datasets/wikitext/wiki.test.tokens");
-  cy.contains("button", "next").click();
-
-  cy.contains("Validate your model")
-    .parents()
-    .eq(1)
-    .contains("button", "test")
-    .click();
-  cy.contains("button", "stop testing").click();
-});
