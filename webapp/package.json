@@ -7,7 +7,7 @@
     "build": "vue-tsc --build && vite build",
     "test": "pnpm run test:unit && pnpm run test:e2e",
     "test:unit": "vitest --run",
-    "test:e2e": "VITE_SERVER_URL=http://server start-server-and-test \"pnpm start\" http://localhost:1351 'pnpm exec cypress run --e2e'",
+    "test:e2e": "VITE_SERVER_URL=http://server start-server-and-test \"vite\" http://localhost:1351 'pnpm exec cypress run --e2e'",
     "test:e2e-interactive": "VITE_SERVER_URL=http://server start-server-and-test \"pnpm start\" http://localhost:1351 'pnpm exec cypress open --e2e'"
   },
   "dependencies": {
