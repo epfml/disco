@@ -209,7 +209,7 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     return [this.datatype, await ret];
   }
 
-  [Symbol.dispose](): void {
+  dispose(): void {
     this.model.dispose();
   }
 

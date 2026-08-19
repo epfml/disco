@@ -23,10 +23,12 @@
             >
               <ButtonsCard
                 :buttons="
-                  List.of(
-                    ['test', () => selectModel(id, 'test')],
-                    ['predict', () => selectModel(id, 'predict')],
-                  )
+                  infos.dataType === 'text'
+                    ? List.of(['chat', () => goToChat(id)])
+                    : List.of(
+                        ['test', () => selectModel(id, 'test')],
+                        ['predict', () => selectModel(id, 'predict')],
+                      )
                 "
                 class="shadow-xs border border-gray-200 dark:border-gray-700 dark:shadow-gray-700"
               >
@@ -49,6 +51,10 @@
                     <tr>
                       <td>Storage size</td>
                       <td>{{ infos.storageSize }}</td>
+                    </tr>
+                    <tr>
+                      <td>Data type</td>
+                      <td>{{ capitalize(infos.dataType) }}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -163,6 +169,7 @@ import type { ModelID } from "@/store";
 import { useModelsStore } from "@/store";
 import { useTasksStore } from "@/store";
 import { useValidationStore } from "@/store";
+import { useRouter } from "vue-router";
 
 import ButtonsCard from "@/components/containers/ButtonsCard.vue";
 import IconCard from "@/components/containers/IconCard.vue";
@@ -178,6 +185,7 @@ const validationStore = useValidationStore();
 const models = useModelsStore();
 const { tasks } = storeToRefs(useTasksStore());
 const toaster = useToaster();
+const router = useRouter();
 
 type Selection<D extends DataType> = {
   mode: "predict" | "test";
@@ -186,6 +194,10 @@ type Selection<D extends DataType> = {
   model: Model<D>;
 };
 const selection = ref<Selection<DataType>>();
+
+function capitalize(val: string) {
+  return String(val).charAt(0).toUpperCase() + String(val).slice(1);
+}
 
 const federatedTasks = computed<
   "loading" | "failed" | List<Task<DataType, "federated">>
@@ -207,9 +219,10 @@ const sortedModelsInfos = computed(() => {
 
   return models.infos
     .sortBy((infos) => infos.dateSaved)
-    .map(({ taskID, dateSaved, storageSize }) => ({
+    .map(({ taskID, dateSaved, dataType, storageSize }) => ({
       taskID,
       dateSaved: shortDate.format(dateSaved),
+      dataType,
       storageSize: formatByteSize(storageSize),
     }))
     .reverse();
@@ -306,5 +319,10 @@ function taskTitle(taskID: string): string | undefined {
     throw new Error("Task title not found for task id: " + taskID);
 
   return titled.displayInformation.title;
+}
+
+async function goToChat(modelID: ModelID) {
+  validationStore.step = 0;
+  await router.push({ path: "/chat", query: { modelID } });
 }
 </script>

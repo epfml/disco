@@ -38,6 +38,7 @@ export type {
   ModelCardInfo,
   BatchLogs,
   HellaSwagDataset,
+  GenerationConfig,
 } from "./models/index.js";
 
 export {
@@ -50,6 +51,7 @@ export {
   ONNXModel,
   HELLASWAG_URL,
   evaluate_hellaswag,
+  DefaultGenerationConfig,
 } from "./models/index.js";
 export type { GPTConfig, HellaSwagExample } from "./models/index.js";
 
@@ -69,7 +71,7 @@ export {
 export type { TaskProvider } from "./task/index.js";
 
 export type { DataType, Network, DataFormat } from "./types/index.js";
-export { dataTypeValues } from "./types/index.js";
+export { dataTypeValues, isDataType } from "./types/index.js";
 
 export { extractColumn } from "./processing/index.js";
 

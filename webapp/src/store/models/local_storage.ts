@@ -4,6 +4,8 @@ import { useToaster } from "@/composables/toaster";
 
 import type { Storage } from "./storage";
 import type { ModelID, State } from "./types";
+import type { DataType } from "@epfml/discojs";
+import { isDataType } from "@epfml/discojs";
 
 const toaster = useToaster();
 
@@ -27,7 +29,7 @@ export class LocalStorage implements Storage {
         return size < LocalStorage.#MAX_SIZE;
       });
 
-    if (!state.idToModel.equals(keptModels))
+    if (state.idToModel.size !== keptModels.size)
       toaster.warning(
         [
           "Your browser' storage is too small to persist all models.",
@@ -37,9 +39,10 @@ export class LocalStorage implements Storage {
 
     return JSON.stringify(
       keptModels
-        .map(({ taskID, dateSaved, encoded }) => ({
+        .map(({ taskID, dateSaved, dataType, encoded }) => ({
           taskID,
           dateSaved: dateSaved.getTime(),
+          dataType: dataType,
           // Uint8Array is very inefficiently encoded in JSON, Window.{atob,btoa} is broken
           // using hex encoding (base16)
           encoded: [...encoded]
@@ -56,9 +59,10 @@ export class LocalStorage implements Storage {
       throw new Error("unexpected serialized state");
 
     return {
-      idToModel: Map(raw).map(({ taskID, dateSaved, encoded }) => ({
+      idToModel: Map(raw).map(({ taskID, dateSaved, dataType, encoded }) => ({
         taskID,
         dateSaved: new Date(dateSaved),
+        dataType: dataType,
         encoded: Uint8Array.from(
           Range(0, encoded.length / 2).map((i) =>
             Number.parseInt(encoded.slice(i * 2, i * 2 + 2), 16),
@@ -75,6 +79,7 @@ export namespace LocalStorage {
       {
         taskID: string;
         dateSaved: number;
+        dataType: DataType;
         encoded: string;
       },
     ]
@@ -107,6 +112,7 @@ function isSerializedInfos(raw: unknown): raw is LocalStorage.Serialized[0][1] {
   const {
     taskID,
     encoded,
+    dataType,
     dateSaved,
   }: Partial<Record<keyof LocalStorage.Serialized[0][1], unknown>> = raw;
 
@@ -118,13 +124,15 @@ function isSerializedInfos(raw: unknown): raw is LocalStorage.Serialized[0][1] {
       // check for any character outside of the hex range
       encoded.match(/[^0-9a-f]/) === null
     ) ||
-    typeof dateSaved !== "number"
+    typeof dateSaved !== "number" ||
+    !isDataType(dataType)
   )
     return false;
 
   const _: LocalStorage.Serialized[0][1] = {
     taskID,
     encoded,
+    dataType,
     dateSaved,
   } satisfies Record<keyof LocalStorage.Serialized[0][1], unknown>;
 

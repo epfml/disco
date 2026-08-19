@@ -15,14 +15,10 @@ import { EpochLogs } from "#models/logs";
 import { Model } from "#models/model";
 import { GPTModel } from "#models/implementations/gpt/model";
 import evaluate from "#models/implementations/gpt/evaluate";
-import {
-  DefaultGPTConfig,
-  DefaultGenerationConfig,
-} from "#models/implementations/gpt/config";
-import type {
-  GPTConfig,
-  GenerationConfig,
-} from "#models/implementations/gpt/config";
+import { DefaultGPTConfig } from "#models/implementations/gpt/config";
+import type { GPTConfig } from "#models/implementations/gpt/config";
+import { DefaultGenerationConfig } from "#models/generation";
+import type { GenerationConfig } from "#models/generation";
 
 const debug = createDebug("discojs:models:gpt");
 
@@ -199,7 +195,9 @@ export class GPT extends Model<"text"> {
       logits
         .slice([logits.shape[0] - 1])
         .squeeze<tf.Tensor1D>([0])
-        .div<tf.Tensor1D>(config.temperature)
+        .div<tf.Tensor1D>(
+          config.doSample && config.temperature > 0 ? config.temperature : 1,
+        )
         .softmax(),
     );
     logits.dispose();
@@ -263,7 +261,7 @@ export class GPT extends Model<"text"> {
     return this.model;
   }
 
-  [Symbol.dispose](): void {
+  dispose(): void {
     if (this.model.optimizer !== undefined) {
       this.model.optimizer.dispose();
     }

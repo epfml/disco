@@ -18,9 +18,10 @@ export const useModelsStore = defineStore(
     const idToModel = shallowRef<State["idToModel"]>(Map());
 
     const infos = computed(() =>
-      idToModel.value.map(({ taskID, dateSaved, encoded }) => ({
+      idToModel.value.map(({ taskID, dateSaved, dataType, encoded }) => ({
         taskID,
         dateSaved,
+        dataType,
         storageSize: encoded.length / BEST_STORAGE.EFFICIENCY,
       })),
     );
@@ -42,6 +43,7 @@ export const useModelsStore = defineStore(
       idToModel.value = idToModel.value.set(id, {
         taskID,
         dateSaved,
+        dataType: model.datatype,
         encoded: await modelEncode(model),
       });
 

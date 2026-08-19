@@ -38,7 +38,7 @@ describe("gpt-tfjs", () => {
     const inputTokens = tokenizer.tokenize(data);
 
     const outputToken = (
-      await model.predict(List.of(inputTokens), { seed })
+      await model.predict(List.of(inputTokens), { seed, doSample: false })
     ).first();
     if (outputToken === undefined) throw new Error("empty prediction");
     const output = tokenizer.decode([outputToken]);

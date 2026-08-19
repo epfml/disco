@@ -10,7 +10,7 @@
   },
   "scripts": {
     "watch": "nodemon --ext ts --ignore dist --watch ../discojs-node/dist --watch . --exec pnpm run",
-    "start": "node dist/main.js",
+    "start": "pnpm run build && node dist/main.js",
     "build": "tsc --build",
     "test": "cd .. && vitest --run --project=server"
   },
