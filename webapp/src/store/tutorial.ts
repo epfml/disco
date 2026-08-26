@@ -20,17 +20,18 @@ export const useTutorialStore = defineStore(
     const hasAlreadyBeenShown = ref(false);
 
     const driverObj = driver({
-      showProgress: false,
+      showProgress: true,
+      progressText: "Step {{current}} of {{total}}",
       smoothScroll: true,
       disableActiveInteraction: true,
       showButtons: ["next", "close"],
+      // Only close the tutorial when clicking on the cross, clicking outside
+      // of the popover doesn't do anything
+      overlayClickBehavior: () => {},
     });
 
     const trainingStore = useTrainingStore();
     const router = useRouter();
-    // Set the steps for the tutorial
-    // Note: The tutorial interacts with the router and the training store
-    driverObj.setSteps(getTaskSteps(driverObj));
 
     // Some steps navigate to another page, in which case the tutorial keeps going
     let isNavigatingStep = false;
@@ -62,12 +63,18 @@ export const useTutorialStore = defineStore(
     }
 
     async function start(skipFirstStep: boolean = false): Promise<void> {
+      // Flag the tutorial as shown right away
+      hasAlreadyBeenShown.value = true;
+      // close any running tutorial
+      if (driverObj.isActive()) driverObj.destroy();
+
       if (router.currentRoute.value.path !== "/list") {
         await navigateStep("/list");
       }
       scrollToTop();
-      driverObj.drive(skipFirstStep ? 1 : 0);
-      hasAlreadyBeenShown.value = true;
+      const steps = getTaskSteps(driverObj);
+      driverObj.setSteps(skipFirstStep ? steps.slice(1) : steps);
+      driverObj.drive(0);
     }
 
     function getTaskSteps(driverObj: Driver): DriveStep[] {
