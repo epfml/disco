@@ -10,10 +10,8 @@ curl 'https://storage.googleapis.com/deai-313515.appspot.com/example_training_da
 
 # lungs ultrasound
 mkdir -p lus_covid
-curl 'https://drive.switch.ch/index.php/s/zM5ZrUWK3taaIly/download' > archive.zip
-ln -fs lus_covid DeAI-testimages # redirect top level dir
-unzip -u archive.zip
-rm archive.zip DeAI-testimages
+curl 'https://storage.googleapis.com/deai-313515.appspot.com/lus_covid.tar.gz'|
+	tar -xz
 
 # wikitext
 mkdir -p wikitext
