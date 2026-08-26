@@ -1,5 +1,5 @@
 <template>
-  <IconCard class="justify-self-center mx-auto w-full max-w-[700px]">
+  <IconCard class="justify-self-center mx-auto w-full max-w-card">
     <template #title> Connect your data </template>
     <template #icon> <PlugIcon /> </template>
 

@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-4 md:space-y-8">
     <!-- Train Button -->
-    <div class="w-full lg:w-1/2 lg:max-w-[640px] mx-auto tuto-train-dash">
+    <div class="mx-auto w-full max-w-card tuto-train-dash">
       <IconCard title-placement="center">
         <template #title> Control the Training Flow </template>
         <!-- If we are not currently training -->

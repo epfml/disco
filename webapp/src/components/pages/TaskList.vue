@@ -4,7 +4,7 @@
     <ButtonsCard
       v-if="sortedTasks === 'failed'"
       :buttons="List.of(['reload page', () => router.go(0)])"
-      class="mx-auto"
+      class="mx-auto max-w-card"
     >
       <template #title> The server is unreachable </template>
       Please reload the app and make sure you are connected to internet.
@@ -13,7 +13,7 @@
     <!-- Tasks could be retrieved, display them alphabetically -->
     <div v-else class="contents">
       <div
-        class="max-w-[700px] lg:max-w-full mx-auto flex flex-col lg:flex-row justify-center items-start"
+        class="max-w-card lg:max-w-full mx-auto flex flex-col lg:flex-row justify-center items-start"
       >
         <!-- swap ordering with screen width to ensure text is at the top on narrow screens and on the right on wide ones-->
         <div
@@ -63,7 +63,7 @@
         <div
           v-else
           id="tasks"
-          class="order-2 lg:order-1 w-full max-w-[700px] flex flex-col gap-y-4 lg:px-8"
+          class="order-2 lg:order-1 w-full max-w-card flex flex-col gap-y-4 lg:px-8"
         >
           <div v-for="task in sortedTasks" :id="task.id" :key="task.id">
             <ButtonsCard

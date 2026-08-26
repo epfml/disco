@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-4 md:space-y-8">
     <!-- Fancy training statistics -->
-    <div class="flex flex-wrap justify-center 2xl:justify-between cards-gap">
+    <div class="flex flex-wrap justify-center cards-gap">
       <!-- Hide the communication rounds when training alone -->
       <IconCardSmall
         v-if="!isTrainingAlone"

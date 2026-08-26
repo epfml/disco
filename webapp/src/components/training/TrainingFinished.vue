@@ -1,5 +1,7 @@
 <template>
-  <div class="grid grid-cols-1 md:grid-cols-2 cards-gap mt-10 items-stretch">
+  <div
+    class="mx-auto w-full max-w-card md:max-w-cards-2 grid grid-cols-1 md:grid-cols-2 cards-gap mt-10 items-stretch"
+  >
     <!-- Test the model -->
     <ButtonsCard :buttons="List.of(['test model', onTestModel])">
       <template #title> Test the model </template>

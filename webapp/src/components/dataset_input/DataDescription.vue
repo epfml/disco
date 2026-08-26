@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto w-full max-w-[700px] space-y-4 md:space-y-8">
+  <div class="mx-auto w-full max-w-card space-y-4 md:space-y-8">
     <DropdownCard>
       <template #title> Expected Data Format </template>
 

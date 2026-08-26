@@ -1,5 +1,7 @@
 <template>
-  <div class="flex flex-col cards-gap">
+  <div
+    class="mx-auto w-full max-w-card lg:max-w-cards-2 flex flex-col cards-gap"
+  >
     <DatasetInput>
       <div class="mb-5 text-left">
         You can connect images by selecting the location of each data category
