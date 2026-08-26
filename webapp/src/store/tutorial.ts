@@ -256,7 +256,7 @@ export const useTutorialStore = defineStore(
       return steps;
     }
 
-    return { startFromSidebar, startOnFirstVisit };
+    return { hasAlreadyBeenShown, startFromSidebar, startOnFirstVisit };
   },
   { persistedState: { persist: true } },
 );
