@@ -32,6 +32,25 @@ export const useTutorialStore = defineStore(
     // Note: The tutorial interacts with the router and the training store
     driverObj.setSteps(getTaskSteps(driverObj));
 
+    // Some steps navigate to another page, in which case the tutorial keeps going
+    let isNavigatingStep = false;
+    async function navigateStep(to: string): Promise<void> {
+      isNavigatingStep = true;
+      try {
+        await router.push(to);
+      } finally {
+        isNavigatingStep = false;
+      }
+    }
+
+    // Close the tutorial after each navigation except if isNavigatingStep is true
+    // This avoids leaving a persistent overlay covering everything when the user navigates manually
+    // (browser's back button, a redirection, changing the url)
+    router.afterEach(() => {
+      if (isNavigatingStep) return;
+      if (driverObj.isActive()) driverObj.destroy();
+    });
+
     async function startOnFirstVisit(): Promise<void> {
       // Check if the tutorial has already been shown
       if (hasAlreadyBeenShown.value) return;
@@ -44,7 +63,7 @@ export const useTutorialStore = defineStore(
 
     async function start(skipFirstStep: boolean = false): Promise<void> {
       if (router.currentRoute.value.path !== "/list") {
-        await router.push({ path: "/list" });
+        await navigateStep("/list");
       }
       scrollToTop();
       driverObj.drive(skipFirstStep ? 1 : 0);
@@ -106,7 +125,7 @@ export const useTutorialStore = defineStore(
             align: "start",
             side: "right",
             onNextClick: () =>
-              void router.push("/lus_covid").then(() => driverObj.moveNext()),
+              void navigateStep("/lus_covid").then(() => driverObj.moveNext()),
           },
         },
         {
@@ -226,7 +245,7 @@ export const useTutorialStore = defineStore(
             align: "center",
             onNextClick: () => {
               trainingStore.setStep(1);
-              void router.push("/list").then(() => {
+              void navigateStep("/list").then(() => {
                 scrollToTop();
                 driverObj.moveNext();
               });
