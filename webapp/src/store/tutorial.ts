@@ -94,7 +94,7 @@ export const useTutorialStore = defineStore(
           popover: {
             title: "Join existing DISCOllaboratives",
             description:
-              "DISCOllaboratives are ML tasks like image recognition, LLM training, etc., that let users collaboratively train ML models without sharing data private.",
+              "DISCOllaboratives are ML tasks like image recognition, LLM training, etc., that let users collaboratively train ML models without sharing private data.",
             align: "start",
           },
         },
@@ -220,7 +220,7 @@ export const useTutorialStore = defineStore(
         },
         {
           popover: {
-            title: "Save and ty out your model",
+            title: "Save and try out your model",
             description:
               "After training, you can save the model and evaluate it on test data.",
             align: "center",
