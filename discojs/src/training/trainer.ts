@@ -68,10 +68,10 @@ export class Trainer<D extends DataType, N extends Network> {
   >;
   readonly #roundIterations?: number;
   readonly #validationFrequency?: number;
+  readonly #validationMode: "before" | "after" | "both";
   // Map of weight Index and weight update
   #weightNormHistory: WeightNormHistory = List();
   #previousRoundWeights?: WeightsContainer;
-  readonly #shouldValidateAfterAggregation: boolean;
 
   public get model(): Model<D> {
     if (this.#model === undefined)
@@ -89,8 +89,7 @@ export class Trainer<D extends DataType, N extends Network> {
     this.#epochs = task.trainingInformation.epochs;
     this.#roundIterations = task.trainingInformation.roundIterations;
     this.#validationFrequency = task.trainingInformation.validationFrequency;
-    this.#shouldValidateAfterAggregation =
-      task.trainingInformation.scheme !== "local";
+    this.#validationMode = task.trainingInformation.validationMode ?? "before";
     if ("privacy" in task.trainingInformation)
       this.#privacy = task.trainingInformation.privacy;
 
@@ -143,15 +142,19 @@ export class Trainer<D extends DataType, N extends Network> {
     try {
       this.#training =
         this.#roundIterations === undefined
-          ? this.#runRounds(dataset, validationDataset)
-          : this.#runIterationRounds(dataset, validationDataset);
+          ? this.#runRoundsByEpoch(dataset, validationDataset)
+          : this.#runRoundsByIteration(dataset, validationDataset);
       yield* this.#training;
     } finally {
       this.#training = undefined;
     }
   }
 
-  async *#runRounds(
+  /**
+   * Runs epoch-based training, aggregating after `roundDuration` complete
+   * passes over the training dataset until the configured epochs are reached.
+   */
+  async *#runRoundsByEpoch(
     dataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
   ): AsyncGenerator<
@@ -174,13 +177,25 @@ export class Trainer<D extends DataType, N extends Network> {
         ? validationDataset
         : undefined;
 
-      yield this.#runRound(dataset, roundValidationDataset);
-
-      await this.#finishRoundCommunication(totalRound);
+      yield this.#runRoundByEpoch(
+        dataset,
+        this.#shouldValidateBeforeAggregation()
+          ? roundValidationDataset
+          : undefined,
+        this.#shouldValidateAfterAggregation()
+          ? roundValidationDataset
+          : undefined,
+        totalRound,
+      );
     }
   }
 
-  async *#runIterationRounds(
+  /**
+   * Runs iteration-based training, aggregating after `roundIterations`
+   * batches while preserving the dataset iterator between rounds. A new
+   * iterator is created only when the next configured epoch begins.
+   */
+  async *#runRoundsByIteration(
     dataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
   ): AsyncGenerator<
@@ -231,14 +246,18 @@ export class Trainer<D extends DataType, N extends Network> {
           ? validationDataset
           : undefined;
 
-        yield this.#runIterationRound(
+        yield this.#runRoundByIteration(
           prefixedIterator,
           this.#roundIterations,
-          roundValidationDataset,
+          this.#shouldValidateBeforeAggregation()
+            ? roundValidationDataset
+            : undefined,
+          this.#shouldValidateAfterAggregation()
+            ? roundValidationDataset
+            : undefined,
+          totalRound,
           (roundDone) => (done = roundDone),
         );
-
-        await this.#finishRoundCommunication(totalRound);
 
         round++;
         if (done) break;
@@ -247,9 +266,19 @@ export class Trainer<D extends DataType, N extends Network> {
     }
   }
 
-  async *#runRound(
+  /**
+   * Trains one epoch-based round by making `roundDuration` complete passes
+   * over the dataset, then exchanges weights and returns the round metrics.
+   */
+  async *#runRoundByEpoch(
     dataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
-    validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+    preAggregationValidationDataset:
+      | Dataset<Batched<DataFormat.ModelEncoded[D]>>
+      | undefined,
+    postAggregationValidationDataset:
+      | Dataset<Batched<DataFormat.ModelEncoded[D]>>
+      | undefined,
+    totalRound: number,
   ): AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs> {
     let epochsLogs = List<EpochLogs>();
 
@@ -257,30 +286,48 @@ export class Trainer<D extends DataType, N extends Network> {
 
     // Before starting the training, get the validation of global model
     const validation =
-      validationDataset !== undefined
-        ? await this.model.evaluate(validationDataset)
+      preAggregationValidationDataset !== undefined
+        ? await this.model.evaluate(preAggregationValidationDataset)
         : undefined;
 
     for (let epoch = 0; epoch < this.#roundDuration; epoch++) {
       const [gen, epochLogs] = async_iterator.split(
-        this.model.train(dataset, validationDataset),
+        this.model.train(dataset, preAggregationValidationDataset),
       );
 
       yield gen;
       epochsLogs = epochsLogs.push(await epochLogs);
     }
 
+    const participants = this.#client.nbOfParticipants;
+    const postAggregationValidation = await this.#finishRoundCommunication(
+      totalRound,
+      postAggregationValidationDataset,
+    );
+
     return {
       epochs: epochsLogs,
-      participants: this.#client.nbOfParticipants,
+      participants,
       preRoundValidation: validation,
+      postAggregationValidation,
     };
   }
 
-  async *#runIterationRound(
+  /**
+   * Trains one iteration-based round by consuming at most `maxBatchCount`
+   * batches from the supplied iterator without rewinding it, then exchanges
+   * weights and returns the round metrics.
+   */
+  async *#runRoundByIteration(
     datasetIterator: AsyncIterator<Batched<DataFormat.ModelEncoded[D]>>,
     maxBatchCount: number,
-    validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+    preAggregationValidationDataset:
+      | Dataset<Batched<DataFormat.ModelEncoded[D]>>
+      | undefined,
+    postAggregationValidationDataset:
+      | Dataset<Batched<DataFormat.ModelEncoded[D]>>
+      | undefined,
+    totalRound: number,
     setDone?: (done: boolean) => void,
   ): AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs> {
     let epochsLogs = List<EpochLogs>();
@@ -288,8 +335,8 @@ export class Trainer<D extends DataType, N extends Network> {
     debug("Run iteration-based round");
 
     const validation =
-      validationDataset !== undefined
-        ? await this.model.evaluate(validationDataset)
+      preAggregationValidationDataset !== undefined
+        ? await this.model.evaluate(preAggregationValidationDataset)
         : undefined;
 
     const model = this.model as unknown as IterationTrainableTextModel;
@@ -302,7 +349,7 @@ export class Trainer<D extends DataType, N extends Network> {
           Batched<DataFormat.ModelEncoded["text"]>
         >,
         maxBatchCount,
-        validationDataset as
+        preAggregationValidationDataset as
           | Dataset<Batched<DataFormat.ModelEncoded["text"]>>
           | undefined,
         setDone,
@@ -312,11 +359,26 @@ export class Trainer<D extends DataType, N extends Network> {
     yield gen;
     epochsLogs = epochsLogs.push(await epochLogs);
 
+    const participants = this.#client.nbOfParticipants;
+    const postAggregationValidation = await this.#finishRoundCommunication(
+      totalRound,
+      postAggregationValidationDataset,
+    );
+
     return {
       epochs: epochsLogs,
-      participants: this.#client.nbOfParticipants,
+      participants,
       preRoundValidation: validation,
+      postAggregationValidation,
     };
+  }
+
+  #shouldValidateBeforeAggregation(): boolean {
+    return this.#validationMode !== "after";
+  }
+
+  #shouldValidateAfterAggregation(): boolean {
+    return this.#validationMode !== "before";
   }
 
   #shouldValidateRound(round: number): boolean {
@@ -366,8 +428,7 @@ export class Trainer<D extends DataType, N extends Network> {
         await this.#client.onRoundEndCommunication(roundWeights);
       this.model.weights = networkWeights;
 
-      return this.#shouldValidateAfterAggregation &&
-        validationDataset !== undefined
+      return validationDataset !== undefined
         ? await this.model.evaluate(validationDataset)
         : undefined;
     } finally {

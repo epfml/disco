@@ -190,6 +190,8 @@ export class GPTModel extends tf.LayersModel {
         goldfishMask?.dispose();
 
         const loss = await lossTensor.array();
+        lossTensor.dispose();
+        tf.dispose([xs, ys]);
         averageLoss += loss;
         weightUpdateTime = performance.now() - weightUpdateTime;
 

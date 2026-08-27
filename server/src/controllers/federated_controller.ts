@@ -17,20 +17,14 @@ import FederatedMessages = client.federated.messages;
 
 const debug = createDebug("server:controllers:federated");
 
-function debugProcessMemory(label: string): void {
-  const m = process.memoryUsage();
-  debug("%s memory: %O", label, {
-    rssGB: m.rss / 1024 / 1024 / 1024,
-    heapUsedGB: m.heapUsed / 1024 / 1024 / 1024,
-    externalGB: m.external / 1024 / 1024 / 1024,
-    arrayBuffersGB: m.arrayBuffers / 1024 / 1024 / 1024,
-  });
-}
-
 export class FederatedController<D extends DataType> extends TrainingController<
   D,
   "federated"
 > {
+  /**
+   * WebSockets of clients whose update was accepted for the current round.
+   * They receive the resulting global weights when aggregation completes.
+   */
   #pendingUpdateRecipients = new Map<client.NodeID, WebSocket>();
   /**
    * Aggregators for each hosted task.
@@ -52,6 +46,10 @@ export class FederatedController<D extends DataType> extends TrainingController<
     this.#latestGlobalWeights = this.initialWeights;
   }
 
+  /**
+   * Creates an aggregator and registers the handler that caches and broadcasts
+   * the global weights produced at the end of each aggregation round.
+   */
   #makeAggregator(): aggregators.MeanAggregator {
     const aggregator = new aggregators.MeanAggregator(undefined, 1, "relative");
 
@@ -59,14 +57,8 @@ export class FederatedController<D extends DataType> extends TrainingController<
       try {
         const recipients = this.#pendingUpdateRecipients;
         this.#pendingUpdateRecipients = new Map();
-
-        debugProcessMemory(
-          `round ${aggregator.round} before encoding aggregate`,
-        );
         const payload = await serialization.weights.encode(weightUpdate);
-        debugProcessMemory(
-          `round ${aggregator.round} after encoding aggregate`,
-        );
+
         debug(
           "round %o aggregate payload byteLength=%d",
           aggregator.round,
@@ -81,31 +73,31 @@ export class FederatedController<D extends DataType> extends TrainingController<
           nbOfParticipants: this.connections.size,
         };
         const encodedMsg = msgpack.encode(msg);
-        debugProcessMemory(
-          `round ${aggregator.round} after encoding websocket message`,
-        );
 
         recipients.forEach((recipientWs, recipientId) => {
-          debug(
-            "Sending global weights for round %o to client [%s]",
-            aggregator.round,
-            recipientId.slice(0, 4),
-          );
-          recipientWs.send(encodedMsg);
-          debug(
-            "Aggregated payload sent to client [%s] for round %o",
-            recipientId.slice(0, 4),
-            aggregator.round,
-          );
+          try {
+            debug(
+              "Sending global weights for round %o to client [%s]",
+              aggregator.round,
+              recipientId.slice(0, 4),
+            );
+            recipientWs.send(encodedMsg);
+            debug(
+              "Aggregated payload sent to client [%s] for round %o",
+              recipientId.slice(0, 4),
+              aggregator.round,
+            );
+          } catch (err) {
+            debug(
+              "Failed to send global weights for round %o to client [%s]: %o",
+              aggregator.round,
+              recipientId.slice(0, 4),
+              err,
+            );
+          }
         });
-        debugProcessMemory(
-          `round ${aggregator.round} after sending aggregate to ${recipients.size} clients`,
-        );
       } finally {
         weightUpdate.dispose();
-        debugProcessMemory(
-          `round ${aggregator.round} after disposing aggregate tensor`,
-        );
       }
     });
 

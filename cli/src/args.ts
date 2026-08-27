@@ -19,9 +19,25 @@ export interface BenchmarkArguments {
   roundDuration: number;
   roundIterations?: number;
   batchSize: number;
+  /**
+   * Fraction of each client's training dataset reserved for validation.
+   * Ignored when `validationDatasetPath` is set. A value of 0 leaves the
+   * client without validation data unless `validationDatasetPath` is set.
+   */
   validationSplit: number;
+  /**
+   * Validate the first aggregation round and every N rounds after it. If
+   * omitted, validation runs every round; 0 disables validation metrics. This
+   * only controls when validation runs, not whether its data comes from
+   * `validationSplit` or `validationDatasetPath`.
+   */
   validationFrequency?: number;
   datasetPath?: string;
+  /**
+   * Path to a separate validation dataset. When set, this dataset is shared
+   * by all clients and takes precedence over `validationSplit`, including
+   * when `validationSplit` is non-zero.
+   */
   validationDatasetPath?: string;
   outputPath?: string;
   goldfishLoss: boolean;
@@ -101,13 +117,14 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     validationSplit: {
       type: Number,
       alias: "v",
-      description: "Validation dataset ratio",
+      description:
+        "Fraction of each client's training data used for validation. Ignored when --validationDatasetPath is set; 0 disables split-based validation.",
       defaultValue: 0.2,
     },
     validationFrequency: {
       type: Number,
       description:
-        "Run validation every N aggregation rounds. Defaults to every round; use 0 to disable validation metrics.",
+        "Validate the first aggregation round and every N rounds after it. Defaults to every round; use 0 to disable validation metrics.",
       optional: true,
     },
     datasetPath: {
@@ -119,7 +136,8 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     validationDatasetPath: {
       type: String,
       alias: "V",
-      description: "Path to the validation dataset",
+      description:
+        "Path to a separate validation dataset shared by all clients. Takes precedence over --validationSplit.",
       optional: true,
     },
     outputPath: {

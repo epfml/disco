@@ -1,5 +1,6 @@
 import express from "express";
 import type expressWS from "express-ws";
+import createDebug from "debug";
 import type { Task, DataType, Network } from "@epfml/discojs";
 import { serialization } from "@epfml/discojs";
 
@@ -9,6 +10,8 @@ import {
   FederatedController,
   DecentralizedController,
 } from "../controllers/index.js";
+
+const debug = createDebug("server:routes:training");
 
 /**
  * The TrainingRouter handles client requests related the federated
@@ -60,6 +63,9 @@ export class TrainingRouter<N extends Exclude<Network, "local">> {
       let encodedWeights: serialization.Encoded;
       try {
         encodedWeights = await serialization.weights.encode(weights);
+      } catch (err) {
+        debug("Failed to encode initial weights for task %s: %o", task.id, err);
+        return;
       } finally {
         model[Symbol.dispose]();
       }

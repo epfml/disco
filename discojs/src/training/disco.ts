@@ -28,18 +28,6 @@ import { RoundLogs, Trainer } from "./trainer.js";
 
 const debug = createDebug("discojs:training:disco");
 
-function debugProcessMemory(label: string): void {
-  if (typeof process === "undefined") return;
-
-  const m = process.memoryUsage();
-  debug("%s memory: %O", label, {
-    rssGB: m.rss / 1024 / 1024 / 1024,
-    heapUsedGB: m.heapUsed / 1024 / 1024 / 1024,
-    externalGB: m.external / 1024 / 1024 / 1024,
-    arrayBuffersGB: m.arrayBuffers / 1024 / 1024 / 1024,
-  });
-}
-
 interface DiscoConfig<N extends Network> {
   scheme: N;
   logger: Logger;
@@ -113,6 +101,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   readonly #logger: Logger;
   readonly #task: Task<D, N>;
   readonly #preprocessOnce: boolean;
+  // Forwarded to compatible models to identify this client in debug output.
   readonly #debugLabel?: string;
 
   /**
@@ -225,7 +214,6 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
       }
 
       const roundLogs = await roundLogsPromise;
-      debugProcessMemory(`round ${roundNum} after round logs resolved`);
 
       for (const { epochNum, epochLogs } of epochResults) {
         yield buildSummaryLog(roundNum, epochNum, roundLogs, epochLogs);

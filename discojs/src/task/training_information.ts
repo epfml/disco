@@ -70,6 +70,8 @@ export namespace TrainingInformation {
     roundIterations: z.number().positive().int().optional(),
     // run validation every N aggregation rounds. If 0, validation metrics are skipped.
     validationFrequency: z.number().nonnegative().int().optional(),
+    // whether to validate before aggregation, after aggregation, or at both points
+    validationMode: z.enum(["before", "after", "both"]).optional(),
     // fraction of data to keep for validation, note this only works for image data
     validationSplit: z.number().min(0).max(1),
     // batch size of training data
