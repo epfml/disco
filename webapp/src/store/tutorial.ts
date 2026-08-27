@@ -1,4 +1,4 @@
-import type { Driver, DriveStep } from "driver.js";
+import type { DriveStep } from "driver.js";
 import { driver } from "driver.js";
 import { defineStore } from "pinia";
 import { ref } from "vue";
@@ -24,7 +24,9 @@ export const useTutorialStore = defineStore(
       progressText: "Step {{current}} of {{total}}",
       smoothScroll: false,
       disableActiveInteraction: true,
-      showButtons: ["next", "close"],
+      showButtons: ["previous", "next", "close"],
+      nextBtnText: "Next",
+      prevBtnText: "Previous",
       // Only close the tutorial when clicking on the cross, clicking outside
       // of the popover doesn't do anything
       overlayClickBehavior: () => {},
@@ -42,6 +44,43 @@ export const useTutorialStore = defineStore(
       } finally {
         isNavigatingStep = false;
       }
+    }
+
+    // The state the webapp has to be in to display a step: the page it is on
+    // and, on a task page, the training step showing the highlighted element
+    type StepContext = { path: string; trainingStep?: number };
+    type TutorialStep = DriveStep & { context: StepContext };
+
+    // Used so that going back undoes what going forward did.
+    async function goToStep(
+      steps: TutorialStep[],
+      index: number,
+    ): Promise<void> {
+      const { path, trainingStep } = steps[index].context;
+
+      const changesPage = router.currentRoute.value.path !== path;
+      if (changesPage) await navigateStep(path);
+
+      // A task page initializes the training store to its first step when
+      // mounting, which is all the tutorial needs when landing on it.
+      const changesTrainingStep =
+        trainingStep !== undefined &&
+        trainingStore.task !== undefined &&
+        trainingStore.step !== trainingStep;
+      if (changesTrainingStep) trainingStore.setStep(trainingStep);
+
+      // scroll to top on change
+      if (changesPage || changesTrainingStep) scrollToTop();
+
+      driverObj.moveTo(index);
+    }
+
+    async function endTutorial(): Promise<void> {
+      // leave the task page on its first step, ready for the next visit
+      if (trainingStore.task !== undefined) trainingStore.setStep(1);
+      await navigateStep("/list");
+      scrollToTop();
+      driverObj.destroy();
     }
 
     // Close the tutorial after each navigation except if isNavigatingStep is true
@@ -72,14 +111,32 @@ export const useTutorialStore = defineStore(
         await navigateStep("/list");
       }
       scrollToTop();
-      const steps = getTaskSteps(driverObj);
-      driverObj.setSteps(skipFirstStep ? steps.slice(1) : steps);
+      driverObj.setSteps(getNavigableSteps(skipFirstStep));
       driverObj.drive(0);
     }
 
-    function getTaskSteps(driverObj: Driver): DriveStep[] {
-      const steps: DriveStep[] = [
+    function getNavigableSteps(skipFirstStep: boolean): DriveStep[] {
+      const steps = getTaskSteps();
+      const displayed = skipFirstStep ? steps.slice(1) : steps;
+
+      return displayed.map((step, index) => ({
+        ...step,
+        popover: {
+          ...step.popover,
+          onNextClick: () =>
+            index + 1 < displayed.length
+              ? void goToStep(displayed, index + 1)
+              : void endTutorial(),
+          onPrevClick: () => void goToStep(displayed, index - 1),
+        },
+      }));
+    }
+
+    function getTaskSteps(): TutorialStep[] {
+      const taskPath = "/lus_covid";
+      const steps: TutorialStep[] = [
         {
+          context: { path: "/list" },
           element: "#tuto-help-bttn",
           popover: {
             title: "First time here?",
@@ -89,6 +146,7 @@ export const useTutorialStore = defineStore(
           },
         },
         {
+          context: { path: "/list" },
           popover: {
             title: "Welcome to DISCO!",
             description:
@@ -97,6 +155,7 @@ export const useTutorialStore = defineStore(
           },
         },
         {
+          context: { path: "/list" },
           element: "#llm_task",
           popover: {
             title: "Join existing DISCOllaboratives",
@@ -106,6 +165,7 @@ export const useTutorialStore = defineStore(
           },
         },
         {
+          context: { path: "/list" },
           element: "#tuto-create-bttn",
           popover: {
             title: "Create your own",
@@ -115,6 +175,7 @@ export const useTutorialStore = defineStore(
           },
         },
         {
+          context: { path: "/list" },
           element: "#tuto-evaluate-bttn",
           popover: {
             title: "The Model Library",
@@ -124,6 +185,7 @@ export const useTutorialStore = defineStore(
           },
         },
         {
+          context: { path: "/list" },
           element: "#lus_covid",
           popover: {
             title: "Let's check out a DISCOllaborative!",
@@ -131,11 +193,10 @@ export const useTutorialStore = defineStore(
               "Let's see how to join an existing DISCOllaborative with the LUS COVID task.",
             align: "start",
             side: "right",
-            onNextClick: () =>
-              void navigateStep("/lus_covid").then(() => driverObj.moveNext()),
           },
         },
         {
+          context: { path: taskPath, trainingStep: 1 },
           popover: {
             title: "Task Overview",
             description:
@@ -143,19 +204,17 @@ export const useTutorialStore = defineStore(
           },
         },
         {
+          context: { path: taskPath, trainingStep: 1 },
           element: "#tuto-training-bar",
           popover: {
             title: "Only 3 steps",
             description:
               "There are mainly 3 steps in a DISCOllaborative: connect your data, join the training session, and then you can use the model. Let's now get some data!",
             align: "center",
-            onNextClick: () => {
-              trainingStore.setStep(2);
-              driverObj.moveNext();
-            },
           },
         },
         {
+          context: { path: taskPath, trainingStep: 2 },
           element: ".tuto-data-desc",
           popover: {
             title: "Expected Data Format",
@@ -164,6 +223,7 @@ export const useTutorialStore = defineStore(
           },
         },
         {
+          context: { path: taskPath, trainingStep: 2 },
           element: ".tuto-example-data",
           popover: {
             title: "Example Data",
@@ -172,6 +232,7 @@ export const useTutorialStore = defineStore(
           },
         },
         {
+          context: { path: taskPath, trainingStep: 2 },
           element: "#tuto-group-bttn",
           popover: {
             title: "How to connect your data?",
@@ -180,20 +241,17 @@ export const useTutorialStore = defineStore(
           },
         },
         {
+          context: { path: taskPath, trainingStep: 2 },
           element: ".group-data-field",
           popover: {
             title: "Connect Your Dataset",
             description:
               "Finally, this is where you can drag and drop your dataset for model training. Your data stays secure and never leaves your device.",
             align: "center",
-            onNextClick: () => {
-              trainingStore.setStep(3);
-              scrollToTop();
-              driverObj.moveNext();
-            },
           },
         },
         {
+          context: { path: taskPath, trainingStep: 3 },
           element: ".tuto-train-dash",
           popover: {
             title: "Training Mode",
@@ -202,6 +260,7 @@ export const useTutorialStore = defineStore(
           },
         },
         {
+          context: { path: taskPath, trainingStep: 3 },
           element: "#train-collab-bttn",
           popover: {
             title: "Collaborative Training",
@@ -212,6 +271,7 @@ export const useTutorialStore = defineStore(
           },
         },
         {
+          context: { path: taskPath, trainingStep: 3 },
           element: "#train-locally-bttn",
           popover: {
             title: "Experiment on your own",
@@ -219,13 +279,10 @@ export const useTutorialStore = defineStore(
               "To play around, you can train the model on your own device using only your data.",
             align: "center",
             side: "top",
-            onNextClick: () => {
-              trainingStore.setStep(4);
-              driverObj.moveNext();
-            },
           },
         },
         {
+          context: { path: taskPath, trainingStep: 4 },
           popover: {
             title: "Save and try out your model",
             description:
@@ -234,6 +291,7 @@ export const useTutorialStore = defineStore(
           },
         },
         {
+          context: { path: taskPath, trainingStep: 4 },
           element: "#tuto-evaluate-bttn",
           popover: {
             title: "The Model Library",
@@ -243,6 +301,7 @@ export const useTutorialStore = defineStore(
           },
         },
         {
+          context: { path: taskPath, trainingStep: 4 },
           element: "#tuto-slack-link",
           popover: {
             title: "The End!",
@@ -250,13 +309,6 @@ export const useTutorialStore = defineStore(
               "If you encounter any issue, feel free to ask questions or share your feedback on our Slack channel!",
             side: "top",
             align: "center",
-            onNextClick: () => {
-              trainingStore.setStep(1);
-              void navigateStep("/list").then(() => {
-                scrollToTop();
-                driverObj.moveNext();
-              });
-            },
           },
         },
       ];

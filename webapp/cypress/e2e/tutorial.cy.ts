@@ -2,6 +2,48 @@ import { defaultTasks } from "@epfml/discojs";
 
 import { setupServerWith } from "../support/e2e.ts";
 
+// The element highlighted by each step of the tutorial, in order.
+// `undefined` for the steps that only display a centered popover.
+const STEPS = [
+  "#tuto-help-bttn",
+  undefined,
+  "#llm_task",
+  "#tuto-create-bttn",
+  "#tuto-evaluate-bttn",
+  "#lus_covid",
+  undefined,
+  "#tuto-training-bar",
+  ".tuto-data-desc",
+  ".tuto-example-data",
+  "#tuto-group-bttn",
+  ".group-data-field",
+  ".tuto-train-dash",
+  "#train-collab-bttn",
+  "#train-locally-bttn",
+  undefined,
+  "#tuto-evaluate-bttn",
+  "#tuto-slack-link",
+];
+
+function expectStep(index: number): void {
+  cy.get(".driver-popover-progress-text").should(
+    "have.text",
+    `Step ${index + 1} of ${STEPS.length}`,
+  );
+  const selector = STEPS[index];
+  if (selector === undefined) return;
+  cy.get(selector)
+    .should("have.class", "driver-active-element")
+    // the highlighted element has to be rendered: the elements of another
+    // training step are in the DOM but hidden, hence have no dimension
+    .and(($element) => {
+      expect(
+        $element[0].getBoundingClientRect().height,
+        `${selector} is displayed`,
+      ).to.be.greaterThan(0);
+    });
+}
+
 describe("tutorial", () => {
   it("is shown on the first visit only", () => {
     setupServerWith(defaultTasks.titanic);
@@ -23,6 +65,9 @@ describe("tutorial", () => {
 
     cy.get("#tuto-help-bttn").click();
     cy.get(".driver-popover");
+
+    // the skipped first step isn't reachable by going back
+    cy.get(".driver-popover-prev-btn").should("be.disabled");
   });
 
   it("shows a single popover when started while navigating to the task list", () => {
@@ -66,5 +111,37 @@ describe("tutorial", () => {
     cy.get("#tuto-help-bttn").click();
     cy.contains(".driver-popover-title", "Welcome to DISCO!");
     cy.get(".driver-popover-progress-text").should("contain", "Step 1 of");
+  });
+  it("can be navigated back and forth", () => {
+    setupServerWith(defaultTasks.lusCovid, defaultTasks.wikitext);
+
+    cy.visit("/list");
+
+    // "previous" is disabled on the first step
+    cy.get(".driver-popover-prev-btn").should("be.disabled");
+
+    // go through the whole tutorial
+    for (let index = 0; index < STEPS.length; index++) {
+      expectStep(index);
+      if (index < STEPS.length - 1) cy.get(".driver-popover-next-btn").click();
+    }
+    cy.url().should("match", /\/lus_covid$/);
+
+    // go back to the beginning
+    for (let index = STEPS.length - 1; index >= 0; index--) {
+      expectStep(index);
+      if (index > 0) cy.get(".driver-popover-prev-btn").click();
+    }
+    cy.url().should("match", /\/list$/);
+
+    // and go the the end again
+    for (let index = 0; index < STEPS.length; index++) {
+      expectStep(index);
+      cy.get(".driver-popover-next-btn").click();
+    }
+
+    // the last step closes the tutorial and goes back to the task list
+    cy.get(".driver-popover").should("not.exist");
+    cy.url().should("match", /\/list$/);
   });
 });
