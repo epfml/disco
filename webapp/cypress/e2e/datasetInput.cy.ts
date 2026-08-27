@@ -3,6 +3,55 @@ import { basicTask, setupServerWith } from "../support/e2e";
 // TODO move to components testing
 // upstream doesn't yet allow that vuejs/test-utils#2468
 
+function droppedFolder(name: string, filenames: string[]): unknown {
+  const fileEntry = (filename: string) => ({
+    isFile: true,
+    isDirectory: false,
+    name: filename,
+    file: (onSuccess: (file: File) => void) =>
+      onSuccess(
+        new File([], filename, {
+          type: filename.endsWith(".png") ? "image/png" : "",
+        }),
+      ),
+  });
+
+  let read = false;
+  const directoryEntry = {
+    isFile: false,
+    isDirectory: true,
+    name,
+    createReader: () => ({
+      readEntries: (onSuccess: (entries: unknown[]) => void) => {
+        onSuccess(read ? [] : filenames.map(fileEntry));
+        read = true;
+      },
+    }),
+  };
+
+  return {
+    items: [{ webkitGetAsEntry: () => directoryEntry }],
+    files: [],
+    dropEffect: "none",
+  };
+}
+
+function droppedFile(name: string, type: string): unknown {
+  const fileEntry = {
+    isFile: true,
+    isDirectory: false,
+    name,
+    file: (onSuccess: (file: File) => void) =>
+      onSuccess(new File([], name, { type })),
+  };
+
+  return {
+    items: [{ webkitGetAsEntry: () => fileEntry }],
+    files: [],
+    dropEffect: "none",
+  };
+}
+
 function goToDatasetInputStep() {
   cy.visit("/list");
   cy.get(".driver-popover-close-btn").click();
@@ -49,6 +98,55 @@ describe("image dataset input by group", () => {
       ]);
 
     cy.contains("Number of selected files: 3").should("exist");
+  });
+
+  it("allows to drop a folder of images", () => {
+    setupServerWith(
+      basicTask("image", {
+        LABEL_LIST: ["label"],
+        IMAGE_H: 100,
+        IMAGE_W: 100,
+      }),
+    );
+
+    goToDatasetInputStep();
+    cy.get("button").contains("group").click();
+    cy.contains("Drop images or a folder here");
+
+    cy.get('[data-testid="drop-image-area"]')
+      .first()
+      .trigger("drop", {
+        dataTransfer: droppedFolder("COVID+", [
+          "first.png",
+          "second.png",
+          ".DS_Store",
+        ]),
+      });
+
+    cy.contains("Number of selected files: 2").should("exist");
+    cy.contains("Ignored 1 file(s) that aren't images").should("exist");
+  });
+
+  it("rejects a dropped file that isn't an image", () => {
+    setupServerWith(
+      basicTask("image", {
+        LABEL_LIST: ["label"],
+        IMAGE_H: 100,
+        IMAGE_W: 100,
+      }),
+    );
+
+    goToDatasetInputStep();
+    cy.get("button").contains("group").click();
+
+    cy.get('[data-testid="drop-image-area"]')
+      .first()
+      .trigger("drop", {
+        dataTransfer: droppedFile("data.xlsx", "application/vnd.ms-excel"),
+      });
+
+    cy.contains("Didn't find any images in what you dropped").should("exist");
+    cy.contains("Number of selected files").should("not.exist");
   });
 });
 
