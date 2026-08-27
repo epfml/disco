@@ -1,10 +1,12 @@
 import type { Map } from "immutable";
 import { AggregationStep } from "./aggregator.js";
 import { MultiRoundAggregator, ThresholdType } from "./multiround.js";
+import { aggregation } from "../index.js";
 import type { WeightsContainer, client } from "../index.js";
 
 /**
  * Mean aggregator whose aggregation step consists in computing the mean of the received weights.
+ * This aggregator extends MultiRoundAggregator while only performing a single round
  *
  */
 export class MeanAggregator extends MultiRoundAggregator {
@@ -42,22 +44,9 @@ export class MeanAggregator extends MultiRoundAggregator {
     this.log(AggregationStep.AGGREGATE);
 
     const contributions = Array.from(currentContributions.values());
-    let summed = contributions[0]?.map((weight) => weight.clone());
-    if (summed === undefined)
-      throw new Error("aggregating without any contribution");
-
-    try {
-      for (const contribution of contributions.slice(1)) {
-        const next = summed.add(contribution);
-        summed.dispose();
-        summed = next;
-      }
-
-      return summed.map((weight) => weight.div(contributions.length));
-    } finally {
-      summed.dispose();
-      contributions.forEach((contribution) => contribution.dispose());
-    }
+    const avg = aggregation.avg(contributions);
+    contributions.forEach((contribution) => contribution.dispose());
+    return avg
   }
 
   override makePayloads(
