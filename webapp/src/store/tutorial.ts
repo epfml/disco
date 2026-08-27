@@ -22,7 +22,7 @@ export const useTutorialStore = defineStore(
     const driverObj = driver({
       showProgress: true,
       progressText: "Step {{current}} of {{total}}",
-      smoothScroll: true,
+      smoothScroll: false,
       disableActiveInteraction: true,
       showButtons: ["next", "close"],
       // Only close the tutorial when clicking on the cross, clicking outside
