@@ -49,7 +49,8 @@
 <script lang="ts" setup>
 defineOptions({ name: "LabeledImageDatasetInput" });
 
-import type { Set } from "immutable";
+// Vue turns immutable Set into the native JS Set
+import type { Set as ImmutableSet } from "immutable";
 import { ref } from "vue";
 
 import DatasetInput from "../DatasetInput.vue";
@@ -59,7 +60,7 @@ import ByCSV from "./ByCSV.vue";
 import ByGroup from "./ByGroup.vue";
 
 const props = defineProps<{
-  labels: Set<string>;
+  labels: ImmutableSet<string>;
 }>();
 
 const dataset = defineModel<NamedLabeledImageDataset>();

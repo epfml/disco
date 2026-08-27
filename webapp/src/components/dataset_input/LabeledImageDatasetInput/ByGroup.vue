@@ -11,7 +11,8 @@
 </template>
 
 <script lang="ts" setup>
-import type { Set } from "immutable";
+// Vue turns immutable Set into the native JS Set
+import type { Set as ImmutableSet } from "immutable";
 import { Map } from "immutable";
 import type { Ref, WatchHandle } from "vue";
 import { computed, ref, watch } from "vue";
@@ -26,7 +27,7 @@ import FileSelection from "../FileSelection.vue";
 import type { NamedLabeledImageDataset } from "../types.js";
 
 const props = defineProps<{
-  labels: Set<string>;
+  labels: ImmutableSet<string>;
 }>();
 
 const dataset = defineModel<NamedLabeledImageDataset | undefined>();
@@ -37,23 +38,23 @@ watch(dataset, (dataset: NamedLabeledImageDataset | undefined) => {
     });
 });
 
-const labelsAndFiles = computed<Array<[string, Ref<Set<File> | undefined>]>>(
-  (oldArray) => {
-    const old = Map(oldArray);
+const labelsAndFiles = computed<
+  Array<[string, Ref<ImmutableSet<File> | undefined>]>
+>((oldArray) => {
+  const old = Map(oldArray);
 
-    return props.labels
-      .valueSeq()
-      .sort()
-      .map(
-        (label) =>
-          [label, old.get(label) ?? ref()] as [
-            string,
-            Ref<Set<File> | undefined>,
-          ],
-      )
-      .toArray();
-  },
-);
+  return props.labels
+    .valueSeq()
+    .sort()
+    .map(
+      (label) =>
+        [label, old.get(label) ?? ref()] as [
+          string,
+          Ref<ImmutableSet<File> | undefined>,
+        ],
+    )
+    .toArray();
+});
 
 let watcher: WatchHandle;
 function refreshWatcher() {
