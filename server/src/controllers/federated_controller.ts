@@ -55,9 +55,9 @@ export class FederatedController<D extends DataType> extends TrainingController<
 
     aggregator.on("aggregation", async (weightUpdate) => {
       try {
+        const payload = await serialization.weights.encode(weightUpdate);
         const recipients = this.#pendingUpdateRecipients;
         this.#pendingUpdateRecipients = new Map();
-        const payload = await serialization.weights.encode(weightUpdate);
 
         debug(
           "round %o aggregate payload byteLength=%d",
@@ -96,6 +96,12 @@ export class FederatedController<D extends DataType> extends TrainingController<
             );
           }
         });
+      } catch (err) {
+        debug(
+          "Failed to serialize or encode weights for round %o: %o",
+          aggregator.round,
+          err,
+        );
       } finally {
         weightUpdate.dispose();
       }
