@@ -167,6 +167,8 @@ export abstract class Client<N extends Network> extends EventEmitter<{
         if (this.#previousStatus !== undefined)
           this.emit("status", this.#previousStatus);
         this.nbOfParticipants = event.nbOfParticipants;
+        // Make sure to set the promise back to undefined
+        this.promiseForMoreParticipants = undefined;
         resolve();
       });
     });
@@ -181,8 +183,6 @@ export abstract class Client<N extends Network> extends EventEmitter<{
       );
       this.emit("status", "not enough participants");
       await this.promiseForMoreParticipants;
-      // Make sure to set the promise back to undefined once resolved
-      this.promiseForMoreParticipants = undefined;
     }
   }
   /**
