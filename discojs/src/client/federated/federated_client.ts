@@ -21,6 +21,9 @@ const SERVER_NODE_ID = "federated-server-node-id";
 /**
  * Client class that communicates with a centralized, federated server, when training
  * a specific task in the federated setting.
+ *
+ * See federated README.md for schema of the event flow.
+ *
  */
 export class FederatedClient extends Client<"federated"> {
   /**
