@@ -454,30 +454,9 @@ async function applyOptimalPrivacy(
   totalRound: number,
 ): Promise<WeightsContainer> {
   let ret = current;
-
-  // Clipping radius for BFT
-  if ("byzantineFaultTolerance" in options) {
-    // might need to change the variable name
-    const previousRoundWeights =
-      previous ?? current.map((w) => tf.zerosLike(w));
-    const weightsProgress = current.sub(previousRoundWeights);
-    const clippedProgress = await privacy.clipNorm(
-      weightsProgress,
-      Repeat(options.byzantineFaultTolerance.clippingRadius)
-        .take(weightsProgress.weights.length)
-        .toArray(),
-    );
-    try {
-      ret = previousRoundWeights.add(clippedProgress);
-    } finally {
-      weightsProgress.dispose();
-      clippedProgress.dispose();
-      if (previous === undefined) previousRoundWeights.dispose();
-    }
-  }
+  const dpOptions = options.differentialPrivacy;
 
   // Adding Gaussian noise for DP
-  const dpOptions = options.differentialPrivacy;
   if (dpOptions !== undefined) {
     const dpDefaultRadius = dpOptions.clippingRadius; // options.dpDefaultClippingRadius should be a number
 
@@ -527,6 +506,26 @@ async function applyOptimalPrivacy(
       weightsProgress.dispose();
       noisyProgress.dispose();
       if (previous === undefined) previousEpochWeights.dispose();
+    }
+  }
+  // Clipping radius for BFT if DP didn't already clip
+  else if ("byzantineFaultTolerance" in options) {
+    // might need to change the variable name
+    const previousRoundWeights =
+      previous ?? current.map((w) => tf.zerosLike(w));
+    const weightsProgress = current.sub(previousRoundWeights);
+    const clippedProgress = await privacy.clipNorm(
+      weightsProgress,
+      Repeat(options.byzantineFaultTolerance.clippingRadius)
+        .take(weightsProgress.weights.length)
+        .toArray(),
+    );
+    try {
+      ret = previousRoundWeights.add(clippedProgress);
+    } finally {
+      weightsProgress.dispose();
+      clippedProgress.dispose();
+      if (previous === undefined) previousRoundWeights.dispose();
     }
   }
   return ret;
