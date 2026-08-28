@@ -309,8 +309,10 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
         this.#logger.success(
           [
             `Round: ${roundNum}`,
-            `Post-aggregation loss: ${roundLogs.postAggregationValidation?.loss}`,
-            `Post-aggregation accuracy: ${roundLogs.postAggregationValidation?.accuracy}`,
+            roundLogs.postAggregationValidation !== undefined ?
+              `Post-aggregation loss: ${roundLogs.postAggregationValidation.loss}` : "",
+            roundLogs.postAggregationValidation ?
+              `Post-aggregation accuracy: ${roundLogs.postAggregationValidation.accuracy}` : "",
           ].join("\n"),
         );
 
