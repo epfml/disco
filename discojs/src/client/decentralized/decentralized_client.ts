@@ -166,6 +166,9 @@ export class DecentralizedClient extends Client<"decentralized"> {
     await this.server?.disconnect()
     this._server = undefined
     this._ownId = undefined
+
+    this.#latestModel?.dispose()
+    this.#latestModel = undefined
     
     return Promise.resolve()
   }
@@ -206,6 +209,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
 
       const latestModel = await this.receiveModel(providerConn)
 
+      this.#latestModel?.dispose()
       this.#latestModel = this.cloneWeights(latestModel)
 
       this.emit("modelSynced", this.cloneWeights(latestModel))
@@ -393,28 +397,35 @@ export class DecentralizedClient extends Client<"decentralized"> {
       if (connections === undefined) throw new Error("peer's connections is undefined")
       // Generate our payloads for this communication round and send them to all ready connected peers
       const payloads = this.aggregator.makePayloads(result)
-      payloads.forEach(async (payload, id) => {
-        // add our own contribution to the aggregator
-        if (id === this.ownId) {
-          this.aggregator.add(this.ownId, payload, this.aggregator.round, communicationRound)
-          return
-        }
-        // Send our payload to each peer
-        const peer = connections.get(id)
-        if (peer !== undefined) {
-          const encoded = await serialization.weights.encode(payload)
-          const msg: messages.PeerMessage = {
-            type: type.Payload,
-            peer: id,
-            aggregationRound: this.aggregator.round,
-            communicationRound,
-            payload: encoded
-          }
-          peer.send(msg)
-          debug(`[${shortenId(this.ownId)}] send weight update to peer ${shortenId(msg.peer)}` +
-            ` for round (%d, %d)`, this.aggregator.round, communicationRound);
-        }
-      })
+      await Promise.all(
+        payloads.entrySeq().map(async ([id, payload]) => {
+            if (id === this.ownId) {
+              // add our own contribution to the aggregator
+              this.aggregator.add(this.ownId, this.cloneWeights(payload), this.aggregator.round, communicationRound)
+              return
+            }
+
+            const peer = connections.get(id)
+            if (peer === undefined) return
+
+            const encoded =
+              await serialization.weights.encode(payload)
+
+            const msg: messages.PeerMessage = {
+              type: type.Payload,
+              peer: id,
+              aggregationRound: this.aggregator.round,
+              communicationRound,
+              payload: encoded,
+            }
+
+            peer.send(msg)
+
+            debug(
+              `[${shortenId(this.ownId)}] send weight update to peer ${shortenId(msg.peer)}` +
+              ` for round (%d, %d)`, this.aggregator.round, communicationRound);
+          }).toArray(),
+      )
       // Wait for aggregation before proceeding to the next communication round.
       // The current result will be used as payload for the eventual next communication round.
       try { 
@@ -466,18 +477,23 @@ export class DecentralizedClient extends Client<"decentralized"> {
       debug("Failed to get the latest model from model provider client")
       return
     }
-    const encoded = await serialization.weights.encode(this.cloneWeights(model))
+
+    const modelCopy = this.cloneWeights(model)
+
+    const encoded = await serialization.weights.encode(modelCopy)
 
     const message: messages.SharedModel = {
         type: type.SharedModel,
         model: encoded
       }
     newcomerConn.send(message)
+    modelCopy.dispose()
   }
 
   // Resolve the round finished promise and reset related state
   override finishRound(latestWeights: WeightsContainer): void{
     // Set the new latest model
+    this.#latestModel?.dispose()
     this.#latestModel = this.cloneWeights(latestWeights)
 
     // Mark round as finished so that model synchronization can proceed

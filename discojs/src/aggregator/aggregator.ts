@@ -112,8 +112,7 @@ export abstract class Aggregator extends EventEmitter<{'aggregation': WeightsCon
         this._communicationRound = 0
         this._round++;
 
-        // Dispose the stored contributions and release tensor memory
-        this.disposeContributions();
+        this.disposeContributions()
       }
       // Emitting the 'aggregation' communicates the weights to subscribers
       this.emit('aggregation', aggregatedWeights)

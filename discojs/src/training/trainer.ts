@@ -35,7 +35,7 @@ function appendWeightHistory(weightNormHistory: WeightNormHistory, wc: number[])
 }
 
 /** Train a model and exchange with others **/
-export class Trainer<D extends DataType, N extends Network> {
+export class Trainer<D extends DataType, N extends Network>{
   readonly #client: Client<N>;
   readonly #roundDuration: number;
   readonly #epochs: number;
@@ -81,6 +81,14 @@ export class Trainer<D extends DataType, N extends Network> {
     await this.#training?.return();
   }
 
+  [Symbol.dispose](): void{
+    this.#previousRoundWeights?.dispose();
+    this.#previousRoundWeights = undefined;
+
+    this.#model?.[Symbol.dispose]();
+    this.#model = undefined;
+  }
+
   async *train(
     dataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
@@ -114,19 +122,28 @@ export class Trainer<D extends DataType, N extends Network> {
       await this.#client.onRoundBeginCommunication();
 
       // Store the clean weight before starting the communication
+      this.#previousRoundWeights?.dispose();
       this.#previousRoundWeights = new WeightsContainer(this.model.weights.weights.map(t => t.clone()));
 
       yield this.#runRound(dataset, validationDataset);
 
-      let roundWeights = this.model.weights;
+      // Store the reference of pervious model weights in order to compare with the new weight reference
+      // and dispose the tensor accordingly
+      const modelWeights = this.model.weights;
+      let roundWeights = modelWeights;
 
       // Apply differential privacy before sharing the weight updates with other nodes
       if (this.#privacy !== undefined){
         const roundUpdate = roundWeights.sub(this.#previousRoundWeights);
-        const updateNorm = await Promise.all(
-          roundUpdate.weights.map(privacy.frobeniusNorm)
-        );
-        this.#weightNormHistory = appendWeightHistory(this.#weightNormHistory, updateNorm);
+
+        try{
+          const updateNorm = await Promise.all(
+            roundUpdate.weights.map(privacy.frobeniusNorm)
+          );
+          this.#weightNormHistory = appendWeightHistory(this.#weightNormHistory, updateNorm);
+        } finally {
+          roundUpdate.dispose();
+        }
         
         roundWeights = await applyOptimalPrivacy(
           this.#previousRoundWeights,
@@ -142,6 +159,14 @@ export class Trainer<D extends DataType, N extends Network> {
       // Update the local weights
       this.model.weights = networkWeights;
       this.#client.finishRound(networkWeights);
+
+      if (networkWeights !== modelWeights && networkWeights !== roundWeights){
+        networkWeights.dispose();
+      }
+
+      if (roundWeights !== modelWeights && roundWeights !== networkWeights){
+        roundWeights.dispose();
+      }
     }
   }
 

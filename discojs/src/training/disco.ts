@@ -277,9 +277,11 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
    */
   async close(): Promise<void> {
     // Dispose the model tensor
-    this.trainer.model.weights.dispose();
-
-    await this.#client.disconnect();
+    try{
+      await this.#client.disconnect();
+    } finally {
+      this.trainer[Symbol.dispose]();
+    }
   }
 
   async #preprocessSplitAndBatch(

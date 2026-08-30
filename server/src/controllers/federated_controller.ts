@@ -32,6 +32,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
    * or staled participants
    */
   #latestGlobalWeights: serialization.Encoded;
+  #encodedAggregation!: Promise<serialization.Encoded>;
 
 	constructor(
 		task: Task<D, "federated">,
@@ -42,7 +43,11 @@ export class FederatedController<D extends DataType> extends TrainingController<
 
     // Save the latest weight updates to be able to send it to new or outdated clients
     this.#aggregator.on('aggregation', async (weightUpdate) => {
-      this.#latestGlobalWeights = await serialization.weights.encode(weightUpdate)
+      this.#encodedAggregation = serialization.weights.encode(weightUpdate)
+      this.#latestGlobalWeights = await this.#encodedAggregation
+
+      // Dispose WeightContainer created for weightUpdate sharing
+      weightUpdate.dispose()
     })
   }
 
@@ -113,7 +118,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
               const msg: FederatedMessages.ReceiveServerPayload = {
                 type: MessageTypes.ReceiveServerPayload,
                 round: this.#aggregator.round, // send the current round number after aggregation
-                payload: await serialization.weights.encode(weightUpdate),
+                payload: await this.#encodedAggregation,
                 nbOfParticipants: this.connections.size
               }
               ws.send(msgpack.encode(msg))
@@ -177,7 +182,10 @@ export class FederatedController<D extends DataType> extends TrainingController<
 
     // Since we replaced aggregator, we also need to register new aggregation listener
     this.#aggregator.on("aggregation", async (weightUpdate) => {
-      this.#latestGlobalWeights = await serialization.weights.encode(weightUpdate)
+      this.#encodedAggregation = serialization.weights.encode(weightUpdate)
+      this.#latestGlobalWeights = await this.#encodedAggregation
+
+      weightUpdate.dispose()
     })
   }
 }
