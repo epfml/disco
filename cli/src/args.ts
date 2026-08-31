@@ -11,6 +11,16 @@ function parseAggregator(raw: string): AggregationStrategy {
   else throw new Error(`Aggregator ${raw} is not supported.`);
 }
 
+type ValidationMode = "before" | "after" | "both";
+
+function parseValidationMode(raw: string): ValidationMode {
+  if (raw === "before" || raw === "after" || raw === "both") return raw;
+  else
+    throw new Error(
+      `Validation mode ${raw} is not supported, expected "before", "after" or "both".`,
+    );
+}
+
 export interface BenchmarkArguments {
   provider: TaskProvider<DataType, Network>;
   testID: string;
@@ -32,6 +42,12 @@ export interface BenchmarkArguments {
    * `validationSplit` or `validationDatasetPath`.
    */
   validationFrequency?: number;
+  /**
+   * When to run validation relative to weight aggregation: "before" (on the
+   * local model), "after" (on the freshly aggregated global model), or "both".
+   * Defaults to "before".
+   */
+  validationMode?: ValidationMode;
   datasetPath?: string;
   /**
    * Path to a separate validation dataset. When set, this dataset is shared
@@ -125,6 +141,13 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
       type: Number,
       description:
         "Validate the first aggregation round and every N rounds after it. Defaults to every round; use 0 to disable validation metrics.",
+      optional: true,
+    },
+    validationMode: {
+      type: parseValidationMode,
+      typeLabel: "before|after|both",
+      description:
+        "When to run validation relative to weight aggregation: before (local model), after (aggregated global model), or both. Defaults to before.",
       optional: true,
     },
     datasetPath: {
@@ -308,6 +331,7 @@ export const args: BenchmarkArguments = {
       task.trainingInformation.roundIterations = unsafeArgs.roundIterations;
       task.trainingInformation.validationFrequency =
         unsafeArgs.validationFrequency;
+      task.trainingInformation.validationMode = unsafeArgs.validationMode;
 
       if (unsafeArgs.goldfishLoss) {
         if (
