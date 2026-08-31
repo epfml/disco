@@ -154,6 +154,9 @@ export async function getTaskData<D extends DataType>(
   isValidation?: boolean,
   validationDatasetPath?: string,
 ): Promise<Dataset<DataFormat.Raw[D]>> {
+  if (validationDatasetPath && taskID !== "privacyrun" && taskID !== "centralized-gpt2-finetune")
+    throw new Error("validationDatasetPath is currently only supported for text tasks")
+  
   switch (taskID) {
     case "simple_face": // remove
       return (await loadSimpleFaceData(userIdx, totalClient)) as Dataset<
