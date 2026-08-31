@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-4 md:space-y-8 mx-auto w-full max-w-[700px]">
+  <div class="space-y-4 md:space-y-8 mx-auto w-full max-w-card">
     <IconCard>
       <template #title>
         {{ props.task.displayInformation.title }}

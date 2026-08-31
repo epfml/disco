@@ -17,6 +17,7 @@ export type SummaryLogs = {
 
 export type RoundStatus =
   | "not enough participants" // Server notification to wait for more participants
+  | "waiting for peers to share weights" // for decentralized only, the other peers are still training their round
   | "updating model" // fetching/aggregating local updates into a global model
   | "local training" // Training the model locally
-  | "connecting to peers"; // for decentralized only, fetch the server's list of participating peers
+  | "connecting to peers"; // for decentralized only, establishing the peer-to-peer connections

@@ -89,22 +89,28 @@ const isLoading = computed<boolean>(() => {
 });
 
 // Init the task once the taskStore has been loaded successfully
-// If it is not available we redirect to not-found
 const task = computed<Task<DataType, Network> | undefined>(() => {
   if (typeof tasks.value === "string") {
     // Tasks are still loading, return undefined to show loading indicator
     return undefined;
   }
 
-  const foundTask = tasks.value.get(props.id);
-
-  // Redirect to not-found if tasks have loaded but this specific task doesn't exist
-  if (foundTask === undefined) {
-    void router.replace({ name: "not-found" });
-  }
-
-  return foundTask;
+  // return undefined if the task id doesn't match anything
+  return tasks.value.get(props.id);
 });
+
+// Redirect to not-found once the tasks have loaded and this task isn't one of them.
+watch(
+  [() => route.params.id, tasks],
+  () => {
+    if (route.params.id !== props.id) return; // another route is displayed
+    if (typeof tasks.value === "string") return; // tasks are still loading
+    if (tasks.value.has(props.id)) return; // task exists
+
+    void router.replace({ name: "not-found" });
+  },
+  { immediate: true },
+);
 
 // Addresses the case when users enter a url manually
 // Force the training store to synch with the task specified in the url

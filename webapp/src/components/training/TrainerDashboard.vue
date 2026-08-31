@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-4 md:space-y-8">
     <!-- Train Button -->
-    <div class="w-full lg:w-1/2 lg:max-w-[640px] mx-auto tuto-train-dash">
+    <div class="mx-auto w-full max-w-card tuto-train-dash">
       <IconCard title-placement="center">
         <template #title> Control the Training Flow </template>
         <!-- If we are not currently training -->
@@ -56,13 +56,7 @@
         <!-- If we are currently training -->
         <div v-else class="flex flex-col justify-center items-center gap-y-4">
           <!-- Display the training status if defined -->
-          <div
-            v-if="
-              roundStatus !== undefined &&
-              roundStatus.length > 0 &&
-              roundStatus[1] !== undefined
-            "
-          >
+          <div v-if="roundStatus !== undefined">
             <span
               class="text-xs font-medium leading-none tracking-wider text-gray-500 uppercase"
               >Status</span
@@ -78,6 +72,7 @@
               v-if="
                 roundStatus !== undefined &&
                 (roundStatus[0] === 'connecting to peers' ||
+                  roundStatus[0] === 'waiting for peers to share weights' ||
                   roundStatus[0] === 'not enough participants')
               "
             >
@@ -93,30 +88,6 @@
           </div>
         </div>
       </IconCard>
-    </div>
-    <!-- Demo warning -->
-    <div
-      class="flex flex-row justify-between gap-x-4 items-center mb-5 py-4 px-4 bg-purple-100 dark:text-body-light rounded-md"
-    >
-      <InfoIcon custom-class="min-w-6 min-h-6 w-6 h-6" />
-      <p class="text-sm pt-0.5">
-        In this live demo, the model you are training is a newly initialized
-        one. In a real use case you would start training with the latest model
-        resulting from all users' collaborative training. To persist
-        collaborative models, you can launch your own DISCO instance following
-        <a
-          class="underline text-blue-400 font-bold"
-          target="_blank"
-          href="https://github.com/epfml/disco/blob/main/DEV.md"
-          >these steps</a
-        >.
-        <!-- Warning about the maximum nb of iteration per epoch for LLMs -->
-        <span v-if="task.dataType === 'text'" class="text-sm">
-          <!-- Leading space is important -->
-          Additionally, when training language models we have limited the number
-          of batches per epoch to 10.
-        </span>
-      </p>
     </div>
     <!-- Training Board -->
     <div>
@@ -136,7 +107,7 @@
 
 <script lang="ts" setup generic="D extends DataType">
 import createDebug from "debug";
-import { List, Map } from "immutable";
+import { List } from "immutable";
 import { computed, ref, toRaw } from "vue";
 
 import type {
@@ -157,7 +128,6 @@ import { useToaster } from "@/composables/toaster";
 import TrainingInformation from "@/components/training/TrainingInformation.vue";
 import CustomButton from "@/components/simple/CustomButton.vue";
 import IconCard from "@/components/containers/IconCard.vue";
-import InfoIcon from "@/assets/svg/InfoIcon.vue";
 import { CONFIG } from "../../config";
 import { VueSpinnerPuff, VueSpinnerGears } from "vue3-spinners";
 
@@ -184,7 +154,7 @@ const epochGenerator = ref<AsyncGenerator<BatchLogs, EpochLogs>>();
 const roundsLogs = ref(List<RoundLogs>());
 const epochsOfRoundLogs = ref(List<EpochLogs>());
 const batchesOfEpochLogs = ref(List<BatchLogs>());
-const roundStatus = ref<[RoundStatus, string | undefined]>();
+const roundStatus = ref<[RoundStatus, string]>();
 /**
  * Store a disco cleanup callback to make sure it can be ran if users
  * manually stop the training.
@@ -227,14 +197,17 @@ async function startTraining(): Promise<void> {
       : props.task.trainingInformation.scheme,
   });
   // set the round status displayed to the status emitted by the disco object
-  const discoStatusMessage = Map<RoundStatus, string>({
+  // Record rather than a Map to be told when a status has no message
+  const discoStatusMessage: Record<RoundStatus, string> = {
     "not enough participants": "Waiting for more participants",
+    "waiting for peers to share weights":
+      "Waiting for other participants to share their model updates",
     "connecting to peers": "Establishing peer-to-peer connections",
     "updating model": "Updating the model with other participants' models",
     "local training": "Training the model on the data you connected",
-  });
+  };
   disco.on("status", (status) => {
-    roundStatus.value = [status, discoStatusMessage.get(status)];
+    roundStatus.value = [status, discoStatusMessage[status]];
   });
   disco.on("participants", (participants) => {
     nbParticipants.value = participants;

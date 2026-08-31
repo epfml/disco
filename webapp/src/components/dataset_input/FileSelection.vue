@@ -22,24 +22,25 @@
       </div>
       <div
         v-if="!hideConnectField"
+        :data-testid="`drop-${props.type}-area`"
         class="border-dashed rounded-xl border-disco-cyan flex flex-col justify-center items-center min-h-48"
         :class="
           isDragHoverActive ? 'bg-blue-100 opacity-75 border-8' : 'border-2'
         "
         @dragenter="onDragEnter"
         @dragleave="onDragLeave"
-        @drop="(e: DragEvent) => dragFiles(e)"
+        @drop="(e: DragEvent) => void dragFiles(e)"
       >
         <p
           class="p-4 text-lg text-disco-blue dark:text-white flex-wrap justify-center"
         >
-          <span>Drop {{ fileType }} here or</span>
+          <span>Drop {{ droppable }} here or</span>
         </p>
         <label class="mb-6" :data-testid="`select-${props.type}-button`">
           <span
             class="px-4 py-2 min-w-32 text-lg capitalize text-white bg-disco-cyan font-disco rounded-full duration-200 hover:bg-transparent dark:hover:bg-transparent hover:outline-solid hover:outline-2 hover:outline-disco-cyan dark:hover:outline-disco-light-cyan hover:text-disco-cyan dark:hover:text-disco-light-cyan"
           >
-            <i v-if="noUpload" class="fas fa-folder-open mr-2" />
+            <i v-if="noUpload" class="fas fa-file mr-2" />
             <span>select</span>
           </span>
           <input
@@ -94,15 +95,20 @@
 </template>
 
 <script lang="ts" setup>
-import type { Set } from "immutable";
-import { Range } from "immutable";
+import { Range, Set } from "immutable";
 import { computed, ref } from "vue";
 
 import CustomButton from "@/components/simple/CustomButton.vue";
+import { useToaster } from "@/composables/toaster";
+
+import { dropped } from "./files";
+import type { FileType } from "./files";
+
+const toaster = useToaster();
 
 const props = withDefaults(
   defineProps<{
-    type: "image" | "json" | "tabular" | "text";
+    type: FileType;
     multiple?: boolean; // accept one or multiple files
     noUpload?: boolean;
   }>(),
@@ -113,17 +119,15 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  // foward some more event to mimick more <file>
+  // forward some more event to mimick more <file>
   // needed to better integrate with vee
   // https://vee-validate.logaretm.com/v4/api/field/#rendering-complex-fields-with-scoped-slots
   blur: [];
 }>();
 
 const files = defineModel<Set<File> | undefined>();
-
-const inputFileElement = ref<HTMLInputElement | null>(null);
-
 const hideConnectField = computed(() => files.value !== undefined);
+const inputFileElement = ref<HTMLInputElement | null>(null);
 
 const fileType = computed(() => {
   const name = (() => {
@@ -141,6 +145,10 @@ const fileType = computed(() => {
 
   return `${name}${props.multiple ? "s" : ""}`;
 });
+
+const droppable = computed(() =>
+  props.multiple ? `${fileType.value} or a folder` : fileType.value,
+);
 
 const acceptFilter = computed(() => {
   switch (props.type) {
@@ -185,16 +193,30 @@ function submitFiles() {
 
   setFiles(inputs);
 }
-function dragFiles(e: DragEvent) {
+
+async function dragFiles(e: DragEvent) {
   dragEventCount.value = 0;
 
   if (e.dataTransfer === null) return;
   e.dataTransfer.dropEffect = "copy";
 
-  const inputs = e.dataTransfer.files;
-  if (inputs === null) return;
+  const { files: selected, ignored } = await dropped(
+    e.dataTransfer,
+    props.type,
+  );
 
-  setFiles(inputs);
+  if (selected.length === 0) {
+    toaster.error(`Didn't find any ${fileType.value} in what you dropped`);
+    return;
+  }
+  if (!props.multiple && selected.length > 1) {
+    toaster.error(`Drop a single ${fileType.value}`);
+    return;
+  }
+  if (ignored > 0)
+    toaster.info(`Ignored ${ignored} file(s) that aren't ${fileType.value}`);
+
+  files.value = Set(selected);
 }
 function clearFiles() {
   files.value = undefined;

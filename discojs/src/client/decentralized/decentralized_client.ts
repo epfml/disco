@@ -25,6 +25,8 @@ const debug = createDebug("discojs:client:decentralized");
  * help of the network's server, yet only exchange payloads between each other. Communication
  * with the server is based off regular WebSockets, whereas peer-to-peer communication uses
  * WebRTC for Node.js.
+ *
+ * See decentralized README.md for schema of the event flow.
  */
 export class DecentralizedClient extends Client<"decentralized"> {
   /**
@@ -163,7 +165,8 @@ export class DecentralizedClient extends Client<"decentralized"> {
     }
     // Save the status in case participants leave and we switch to waiting for more participants
     // Once enough new participants join we can display the previous status again
-    this.saveAndEmit("connecting to peers");
+    // We are done with our round and now wait for the peers to be done with theirs
+    this.saveAndEmit("waiting for peers to share weights");
     // First we check if we are waiting for more participants before sending our weight update
     await this.waitForParticipantsIfNeeded();
     // Create peer-to-peer connections with all peers for the round
@@ -204,6 +207,8 @@ export class DecentralizedClient extends Client<"decentralized"> {
         this.server,
         MType.PeersForRound,
       );
+      // every peer is ready to share weights, we can now connect to them
+      this.saveAndEmit("connecting to peers");
 
       const peers = Set(receivedMessage.peers);
 

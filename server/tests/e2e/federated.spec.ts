@@ -79,9 +79,11 @@ describe("end-to-end federated", () => {
       ...task,
       trainingInformation: {
         ...task.trainingInformation,
+        privacy: undefined,
         scheme: "federated",
         aggregationStrategy: "mean",
         minNbOfParticipants: 2,
+        validationSplit: 0.5,
       },
     };
     const cifar10TaskProvider = {
