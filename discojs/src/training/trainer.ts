@@ -330,18 +330,17 @@ export class Trainer<D extends DataType, N extends Network> {
     totalRound: number,
     setDone?: (done: boolean) => void,
   ): AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs> {
-    let epochsLogs = List<EpochLogs>();
-
+    const model = this.model as unknown as IterationTrainableTextModel;
+    if (typeof model.trainNextBatches !== "function")
+      throw new Error("model does not support iteration-based training");
+    
     debug("Run iteration-based round");
+    let iterationLogs = List<EpochLogs>();
 
     const validation =
       preAggregationValidationDataset !== undefined
         ? await this.model.evaluate(preAggregationValidationDataset)
         : undefined;
-
-    const model = this.model as unknown as IterationTrainableTextModel;
-    if (typeof model.trainNextBatches !== "function")
-      throw new Error("model does not support iteration-based training");
 
     const [gen, epochLogs] = async_iterator.split(
       model.trainNextBatches(
@@ -357,7 +356,7 @@ export class Trainer<D extends DataType, N extends Network> {
     );
 
     yield gen;
-    epochsLogs = epochsLogs.push(await epochLogs);
+    iterationLogs = iterationLogs.push(await epochLogs);
 
     const participants = this.#client.nbOfParticipants;
     const postAggregationValidation = await this.#finishRoundCommunication(
@@ -366,7 +365,7 @@ export class Trainer<D extends DataType, N extends Network> {
     );
 
     return {
-      epochs: epochsLogs,
+      epochs: iterationLogs,
       participants,
       preRoundValidation: validation,
       postAggregationValidation,
