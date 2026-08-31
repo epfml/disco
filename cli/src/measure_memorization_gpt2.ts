@@ -463,29 +463,30 @@ async function main() {
         prompt.length,
         prompt.length + args.suffixLength,
       );
-
-      console.log("================================");
-      console.log("PROMPT LENGTH:", promptLength);
-
-      console.log("\nPROMPT IDS:");
-      console.log(prompt.slice(0, 30));
-
-      console.log("\nGENERATED IDS:");
-      console.log(generatedSuffix.slice(0, 30));
-
-      console.log("\nREFERENCE IDS:");
-      console.log(reference.slice(0, 30));
-
-      console.log("\nPROMPT TEXT:");
-      console.log(JSON.stringify(tokenizer.decode(prompt)));
-
-      console.log("\nGENERATED TEXT:");
-      console.log(JSON.stringify(tokenizer.decode(generatedSuffix)));
-
-      console.log("\nREFERENCE TEXT:");
-      console.log(JSON.stringify(tokenizer.decode(reference)));
-
-      console.log("================================");
+      if (shouldLogRecord) {
+        console.log("================================");
+        console.log("PROMPT LENGTH:", promptLength);
+        
+        console.log("\nPROMPT IDS:");
+        console.log(prompt.slice(0, 30));
+        
+        console.log("\nGENERATED IDS:");
+        console.log(generatedSuffix.slice(0, 30));
+        
+        console.log("\nREFERENCE IDS:");
+        console.log(reference.slice(0, 30));
+        
+        console.log("\nPROMPT TEXT:");
+        console.log(JSON.stringify(tokenizer.decode(prompt)));
+        
+        console.log("\nGENERATED TEXT:");
+        console.log(JSON.stringify(tokenizer.decode(generatedSuffix)));
+        
+        console.log("\nREFERENCE TEXT:");
+        console.log(JSON.stringify(tokenizer.decode(reference)));
+        
+        console.log("================================");
+      }
 
       const exactMatch =
         generatedSuffix.length === reference.length &&
