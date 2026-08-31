@@ -23,6 +23,17 @@ describe("frobeniusNorm", () => {
     const n = await frobeniusNorm(t);
     expect(n).toBeCloseTo(5, 1e-12);
   });
+
+  it("does not leak intermediate tensors nor dispose its input", async () => {
+    const baseline = tf.memory().numTensors;
+
+    const t = tf.tensor([3, 4]);
+    await frobeniusNorm(t);
+
+    expect(t.isDisposed).toBe(false);
+    t.dispose();
+    expect(tf.memory().numTensors).toBe(baseline);
+  });
 });
 
 describe("clipNorm", () => {
@@ -46,6 +57,22 @@ describe("clipNorm", () => {
       [0, 3],
     ]);
   });
+
+  it("does not leak intermediate tensors nor dispose its input", async () => {
+    const baseline = tf.memory().numTensors;
+
+    // one layer above the radius (clipped), one within it (kept as-is)
+    const input = WeightsContainer.of([2], [0, 6]);
+    const result = await clipNorm(input, [1, 10]);
+
+    for (const weight of input.weights) expect(weight.isDisposed).toBe(false);
+
+    // the result must own fresh tensors, not views of the input
+    input.dispose();
+    expect(await WSIntoArrays(result)).toEqual([[1], [0, 6]]);
+    result.dispose();
+    expect(tf.memory().numTensors).toBe(baseline);
+  });
 });
 
 describe("addOptimalNoise", () => {
@@ -68,6 +95,24 @@ describe("addOptimalNoise", () => {
     expect(Number.isFinite(resultArrays[0][1])).toBe(true);
     expect(Number.isFinite(resultArrays[1][0])).toBe(true);
     expect(Number.isFinite(resultArrays[1][1])).toBe(true);
+  });
+
+  it("does not leak intermediate tensors nor dispose its input", async () => {
+    const baseline = tf.memory().numTensors;
+
+    const input = WeightsContainer.of([3, 4], [0, 6]);
+    const result = await addOptimalNoise(input, 1, 1e-5, [5, 3]);
+
+    for (const weight of input.weights) expect(weight.isDisposed).toBe(false);
+
+    // the internally clipped weights must be disposed and the result must own
+    // fresh tensors, not views of the input
+    input.dispose();
+    expect((await WSIntoArrays(result)).flat().every(Number.isFinite)).toBe(
+      true,
+    );
+    result.dispose();
+    expect(tf.memory().numTensors).toBe(baseline);
   });
 });
 
