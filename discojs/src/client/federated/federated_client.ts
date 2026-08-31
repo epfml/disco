@@ -88,7 +88,9 @@ export class FederatedClient extends Client<"federated"> {
     if (payload != null) {
       const latestWeights = serialization.weights.decode(payload);
       model.weights = latestWeights;
-    }
+    } else 
+      debug(`[${shortenId(this.ownId)}] received an undefined payload`);
+      
     return model;
   }
 
