@@ -65,7 +65,7 @@ export class TrainingRouter<N extends Exclude<Network, "local">> {
         encodedWeights = await serialization.weights.encode(weights);
       } catch (err) {
         debug("Failed to encode initial weights for task %s: %o", task.id, err);
-        return;
+        throw err;
       } finally {
         model[Symbol.dispose]();
       }
