@@ -17,7 +17,7 @@ interface Args {
 }
 
 // HOW TO RUN
-// npm -w cli run eval_finetuned_gpt2 -- --modelPath absolute_path_to_model/model.json --testPath absolute_path_to_test_data/train_no_exp.txt --maxSamples 100
+// npm -w cli run eval_finetuned_gpt2_full_answer -- --modelPath absolute_path_to_model/model.json --testPath absolute_path_to_test_data/test.txt --maxSamples 100
 
 const PromptFormatNames = [
   "answer-colon-space",
@@ -30,24 +30,43 @@ type PromptFormatName = (typeof PromptFormatNames)[number];
 type PromptFormat = {
   name: PromptFormatName;
   makePrompt: (basePrompt: string) => string;
-  makeContinuation: (option: string) => string;
+  makeContinuation: (answer: string) => string;
+};
+
+type Option = {
+  label: string;
+  answer: string;
+};
+
+type ParsedSample = {
+  basePrompt: string;
+  answerLabel: string;
+  answer: string;
+  options: Option[];
+};
+
+type ScoreResult = {
+  score: number;
+  promptTokens: number;
+  continuationTokens: number;
+  usedInputTokens: number;
 };
 
 const promptFormats: PromptFormat[] = [
   {
     name: "answer-colon-space",
     makePrompt: (basePrompt) => `${basePrompt}\nAnswer: `,
-    makeContinuation: (option) => option,
+    makeContinuation: (answer) => answer,
   },
   {
     name: "answer-colon",
     makePrompt: (basePrompt) => `${basePrompt}\nAnswer:`,
-    makeContinuation: (option) => ` ${option}`,
+    makeContinuation: (answer) => ` ${answer}`,
   },
   {
     name: "answer-newline",
     makePrompt: (basePrompt) => `${basePrompt}\nAnswer:\n`,
-    makeContinuation: (option) => option,
+    makeContinuation: (answer) => answer,
   },
 ];
 
@@ -95,23 +114,89 @@ async function loadDataset(filePath: string, limit = -1): Promise<string[]> {
   return limit === -1 ? samples : samples.slice(0, limit);
 }
 
-function parseSample(sample: string) {
+function parseAnswerLine(
+  line: string,
+): { label: string; answer?: string } | undefined {
+  const match = line.trim().match(/^Answer:\s*([A-D])(?:\.\s*(.*))?$/i);
+  if (match === null) return undefined;
+
+  const label = match[1].toUpperCase();
+  const answerText = match[2]?.trim();
+
+  return {
+    label,
+    answer:
+      answerText === undefined || answerText === ""
+        ? undefined
+        : `${label}. ${answerText}`,
+  };
+}
+
+function parseOptionLine(line: string): Option | undefined {
+  const match = line.trim().match(/^([A-D])\.\s*(.+)$/i);
+  if (match === null) return undefined;
+
+  const label = match[1].toUpperCase();
+  return {
+    label,
+    answer: `${label}. ${match[2].trim()}`,
+  };
+}
+
+function parseSample(sample: string): ParsedSample {
   const lines = sample.split("\n");
 
-  let answer = "";
+  let answerLabel = "";
+  let answerFromLine: string | undefined;
   const promptLines: string[] = [];
+  const options: Option[] = [];
 
   for (const line of lines) {
-    const trimmed = line.trim();
-    if (trimmed.startsWith("Answer:")) {
-      answer = trimmed.replace("Answer:", "").trim().charAt(0).toUpperCase();
-    } else {
-      promptLines.push(line);
+    const answer = parseAnswerLine(line);
+    if (answer !== undefined) {
+      answerLabel = answer.label;
+      answerFromLine = answer.answer;
+      continue;
     }
+
+    const option = parseOptionLine(line);
+    if (option !== undefined) {
+      options.push(option);
+    }
+
+    promptLines.push(line);
+  }
+
+  const correctOption = options.find((option) => option.label === answerLabel);
+  if (correctOption === undefined) {
+    throw new Error(
+      `Could not match answer label ${JSON.stringify(answerLabel)} to an option`,
+    );
+  }
+
+  if (answerFromLine !== undefined && answerFromLine !== correctOption.answer) {
+    throw new Error(
+      `Answer line ${JSON.stringify(answerFromLine)} does not match option ${JSON.stringify(correctOption.answer)}`,
+    );
   }
 
   const basePrompt = promptLines.join("\n").trim();
-  return { basePrompt, answer };
+  return {
+    basePrompt,
+    answerLabel,
+    answer: correctOption.answer,
+    options,
+  };
+}
+
+function validateOptions(options: Option[], expectedLabels: string[]): boolean {
+  if (options.length !== expectedLabels.length) return false;
+
+  const labels = options.map((option) => option.label);
+  return (
+    expectedLabels.every((label) => labels.includes(label)) &&
+    new Set(labels).size === expectedLabels.length
+  );
 }
 
 async function scoreContinuations(
@@ -120,14 +205,7 @@ async function scoreContinuations(
   prompt: string,
   continuations: string[],
   contextLength: number,
-): Promise<
-  {
-    score: number;
-    promptTokens: number;
-    continuationTokens: number;
-    usedInputTokens: number;
-  }[]
-> {
+): Promise<ScoreResult[]> {
   const promptTokens = tokenizer.tokenize(prompt).toArray();
   const scoredInputs = continuations.map((continuation) => {
     const fullTokens = tokenizer.tokenize(prompt + continuation).toArray();
@@ -161,55 +239,6 @@ async function scoreContinuations(
     }));
   }
 
-  const canScoreFromPromptOnly = scoredInputs.every(
-    ({ continuationStart, continuationTokens }) =>
-      continuationStart === promptTokens.length && continuationTokens === 1,
-  );
-
-  if (canScoreFromPromptOnly) {
-    const offset = Math.max(0, promptTokens.length - contextLength);
-    const truncatedPromptTokens = promptTokens.slice(offset);
-
-    if (truncatedPromptTokens.length === 0) {
-      return scoredInputs.map((scoredInput) => ({
-        score: Number.NEGATIVE_INFINITY,
-        promptTokens: promptTokens.length,
-        continuationTokens: scoredInput.continuationTokens,
-        usedInputTokens: truncatedPromptTokens.length,
-      }));
-    }
-
-    const inputTensor = tf.tensor2d(
-      [truncatedPromptTokens],
-      [1, truncatedPromptTokens.length],
-      "int32",
-    );
-
-    const optionScores = tf.tidy(() => {
-      const logits = predictTokenLogits(tfModel, inputTensor);
-      const lastLogits = logits
-        .slice([0, truncatedPromptTokens.length - 1, 0], [1, 1, -1])
-        .reshape<tf.Tensor1D>([-1]);
-      const logProbs = tf.logSoftmax(lastLogits);
-      const continuationTokenIds = scoredInputs.map(
-        ({ fullTokens, continuationStart }) => fullTokens[continuationStart],
-      );
-      return tf.gather(logProbs, continuationTokenIds);
-    });
-
-    const scores = await optionScores.array();
-
-    inputTensor.dispose();
-    optionScores.dispose();
-
-    return scoredInputs.map((scoredInput, index) => ({
-      score: scores[index],
-      promptTokens: promptTokens.length,
-      continuationTokens: scoredInput.continuationTokens,
-      usedInputTokens: truncatedPromptTokens.length,
-    }));
-  }
-
   const paddedInputs = scoredInputs.map(({ truncatedInputTokens }) => [
     ...truncatedInputTokens,
     ...Array(maxInputLength - truncatedInputTokens.length).fill(0),
@@ -229,8 +258,8 @@ async function scoreContinuations(
     const { fullTokens, continuationStart, offset, truncatedInputTokens } =
       scoredInput;
 
-    // Usually A/B/C/D is one token and the prompt-only fast path above handles it.
-    // Keep this fallback for prompt/continuation tokenizer merges and multi-token labels.
+    // Same ranking as HellaSwag's mean continuation cross-entropy:
+    // maximize mean log-probability instead of minimizing its negative.
     for (
       let targetPos = continuationStart;
       targetPos < fullTokens.length;
@@ -282,17 +311,15 @@ async function scoreContinuations(
     scoreCounts[owner]++;
   });
 
-  const results = scoredInputs.map((scoredInput, index) => {
-    return {
-      score:
-        scoreCounts[index] === 0
-          ? Number.NEGATIVE_INFINITY
-          : scoreSums[index] / scoreCounts[index],
-      promptTokens: promptTokens.length,
-      continuationTokens: scoredInput.continuationTokens,
-      usedInputTokens: scoredInput.truncatedInputTokens.length,
-    };
-  });
+  const results = scoredInputs.map((scoredInput, index) => ({
+    score:
+      scoreCounts[index] === 0
+        ? Number.NEGATIVE_INFINITY
+        : scoreSums[index] / scoreCounts[index],
+    promptTokens: promptTokens.length,
+    continuationTokens: scoredInput.continuationTokens,
+    usedInputTokens: scoredInput.truncatedInputTokens.length,
+  }));
 
   inputTensor.dispose();
   logits.dispose();
@@ -301,7 +328,7 @@ async function scoreContinuations(
   return results;
 }
 
-async function benchmarkQA(
+async function benchmarkFullAnswers(
   model: models.GPT,
   tokenizer: Tokenizer,
   dataset: string[],
@@ -309,26 +336,26 @@ async function benchmarkQA(
   contextLength: number,
   savePath?: string,
 ): Promise<number> {
-  console.log(`=== QA LOGPROB BENCHMARK (${format.name}) ===`);
+  console.log(`=== FULL ANSWER LOGPROB BENCHMARK (${format.name}) ===`);
   console.log(`Context length: ${contextLength}`);
 
   const tfModel = model.extract();
 
   let correct = 0;
   let total = 0;
-
-  const options = ["A", "B", "C", "D"];
-
-  const confusion: Record<string, Record<string, number>> = {
-    A: { A: 0, B: 0, C: 0, D: 0 },
-    B: { A: 0, B: 0, C: 0, D: 0 },
-    C: { A: 0, B: 0, C: 0, D: 0 },
-    D: { A: 0, B: 0, C: 0, D: 0 },
-  };
+  const labels = ["A", "B", "C", "D"];
+  const confusion: Record<string, Record<string, number>> = Object.fromEntries(
+    labels.map((label) => [
+      label,
+      Object.fromEntries(labels.map((otherLabel) => [otherLabel, 0])),
+    ]),
+  );
 
   type PredictionLog = {
     predicted: string;
+    predictedAnswer: string;
     answer: string;
+    answerText: string;
     correct: boolean;
     scores: Record<string, number>;
     promptTokens: number;
@@ -337,74 +364,85 @@ async function benchmarkQA(
   };
 
   const logs: PredictionLog[] = [];
-
   const start = Date.now();
 
   for (const sample of dataset) {
-    const { basePrompt, answer } = parseSample(sample);
-
-    if (!options.includes(answer)) {
-      console.log("Invalid answer:", JSON.stringify(answer));
+    let parsed: ParsedSample;
+    try {
+      parsed = parseSample(sample);
+    } catch (error) {
+      console.log(
+        "Invalid sample:",
+        error instanceof Error ? error.message : error,
+      );
       continue;
     }
 
-    const prompt = format.makePrompt(basePrompt);
+    if (!validateOptions(parsed.options, labels)) {
+      console.log(
+        "Invalid options:",
+        parsed.options.map((option) => option.label).join(", "),
+      );
+      continue;
+    }
 
-    const scores: number[] = [];
-    const continuationTokens: number[] = [];
-    const usedInputTokens: number[] = [];
+    const prompt = format.makePrompt(parsed.basePrompt);
     const results = await scoreContinuations(
       tfModel,
       tokenizer,
       prompt,
-      options.map((opt) => format.makeContinuation(opt)),
+      parsed.options.map((option) => format.makeContinuation(option.answer)),
       contextLength,
     );
 
-    for (const result of results) {
-      scores.push(result.score);
-      continuationTokens.push(result.continuationTokens);
-      usedInputTokens.push(result.usedInputTokens);
-    }
-
+    const scores = results.map((result) => result.score);
     let bestIdx = 0;
     for (let i = 1; i < scores.length; i++) {
       if (scores[i] > scores[bestIdx]) bestIdx = i;
     }
 
-    const predicted = options[bestIdx];
-
-    if (predicted === answer) correct++;
+    const predicted = parsed.options[bestIdx];
+    if (predicted.label === parsed.answerLabel) correct++;
     total++;
 
-    if (confusion[answer]?.[predicted] === undefined) {
+    if (confusion[parsed.answerLabel]?.[predicted.label] === undefined) {
       throw new Error(
-        `Unexpected confusion matrix key: answer=${answer}, predicted=${predicted}`,
+        `Unexpected confusion matrix key: answer=${parsed.answerLabel}, predicted=${predicted.label}`,
       );
     }
-    confusion[answer][predicted]++;
-
-    const scoreMap = Object.fromEntries(
-      options.map((opt, i) => [opt, scores[i]]),
-    );
+    confusion[parsed.answerLabel][predicted.label]++;
 
     logs.push({
-      predicted,
-      answer,
-      correct: predicted === answer,
-      scores: scoreMap,
+      predicted: predicted.label,
+      predictedAnswer: predicted.answer,
+      answer: parsed.answerLabel,
+      answerText: parsed.answer,
+      correct: predicted.label === parsed.answerLabel,
+      scores: Object.fromEntries(
+        parsed.options.map((option, i) => [option.label, scores[i]]),
+      ),
       promptTokens: results[0]?.promptTokens ?? tokenizer.tokenize(prompt).size,
       continuationTokens: Object.fromEntries(
-        options.map((opt, i) => [opt, continuationTokens[i]]),
+        parsed.options.map((option, i) => [
+          option.label,
+          results[i].continuationTokens,
+        ]),
       ),
       usedInputTokens: Object.fromEntries(
-        options.map((opt, i) => [opt, usedInputTokens[i]]),
+        parsed.options.map((option, i) => [
+          option.label,
+          results[i].usedInputTokens,
+        ]),
       ),
     });
 
     if (total % 50 === 0) {
       console.log(`Processed ${total} samples...`);
     }
+  }
+
+  if (total === 0) {
+    throw new Error("No valid samples were evaluated");
   }
 
   const accuracy = correct / total;
@@ -419,7 +457,7 @@ async function benchmarkQA(
   console.table(confusion);
 
   console.log("\nPer-class accuracy:");
-  for (const cls of options) {
+  for (const cls of labels) {
     const totalCls = Object.values(confusion[cls]).reduce((a, b) => a + b, 0);
     const correctCls = confusion[cls][cls];
     const acc = totalCls ? (correctCls / totalCls) * 100 : 0;
@@ -477,7 +515,7 @@ async function main() {
         ? args.savePath
         : args.savePath.replace(/(\.[^.]+)?$/, `.${format.name}$1`);
 
-    await benchmarkQA(
+    await benchmarkFullAnswers(
       model,
       tokenizer,
       dataset,

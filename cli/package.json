@@ -10,7 +10,6 @@
     "train_gpt": "pnpm run build && node dist/train_gpt.js",
     "hellaswag_gpt": "pnpm run build && node dist/hellaswag_gpt.js",
     "eval_finetuned_gpt2": "pnpm run build && node dist/evaluate_finetuned_gpt2.js",
-    "eval_finetuned_gpt2_full_answer": "pnpm run build && node dist/evaluate_finetuned_gpt2_full_answer.js",
     "measure_memorization_gpt2": "pnpm run build && node dist/measure_memorization_gpt2.js",
     "build": "tsc --build",
     "test": ": nothing"
