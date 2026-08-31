@@ -18,7 +18,7 @@ export const privacyrun: TaskProvider<"text", "federated"> = {
           "The model is a pre-trained GPT-2 architecture converted from ONNX and loaded from Google Cloud Storage.",
           "The tokenizer used for preprocessing is the GPT-2 Byte-Pair encoding tokenizer.",
           "The model is trained via an Adam optimizer with unit gradient clipping and softmax cross-entropy loss.",
-          "Context length is kept at 1024 to match the pre-trained model, with batch size at 1.",
+          "Context length is kept at 512 to match the pre-trained model, with batch size at 8.",
         ].join(" "),
         dataFormatInformation:
           "You can use any natural language (text) dataset. The dataset should be formatted as a plain text file with each line representing a segment of text.",
