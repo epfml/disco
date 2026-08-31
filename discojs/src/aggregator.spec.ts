@@ -122,7 +122,7 @@ export async function communicate<A extends Aggregator>(
 				throw new Error(`no contribution for ${id}`);
 
 			for (const [to, payload] of agg.makePayloads(contribution))
-				network.get(to)?.add(id, payload, aggregationRound, r);
+				network.get(to)?.add(id, payload.clone(), aggregationRound, r);
 		}
 
     contributions = Map(await Promise.all(nextContributions));

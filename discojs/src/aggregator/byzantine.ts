@@ -62,7 +62,10 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
       ? contribution.mapWith(prevMomentum, (g, m) => g.mul(1 - this.beta).add(m.mul(this.beta)))
       : contribution;  // no scaling on first momentum
 
-    this.historyMomentums = this.historyMomentums.set(nodeId, newMomentum);
+    const historyMomentum = newMomentum.clone();
+    prevMomentum?.dispose();
+
+    this.historyMomentums = this.historyMomentums.set(nodeId, historyMomentum);
     this.contributions = this.contributions.setIn([0, nodeId], newMomentum);
   }
 

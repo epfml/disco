@@ -76,7 +76,6 @@ describe("end-to-end federated", () => {
 		const disco = new Disco(task, url, { preprocessOnce });
 
 		const logs = List(await arrayFromAsync(disco.trainByRound(dataset)));
-		await disco.close();
 
 		expect(logs.first()?.epochs.first()?.training.loss).to.be.above(
 			logs.last()?.epochs.last()?.training.loss as number,
@@ -84,7 +83,11 @@ describe("end-to-end federated", () => {
 
 		const lastEpoch = logs.last()?.epochs.last();
 		if (lastEpoch === undefined) throw new Error("no epoch ran");
-		return [disco.trainer.model.weights, lastEpoch];
+
+		const finalWeights = disco.trainer.model.weights.clone();
+		await disco.close();
+
+		return [finalWeights, lastEpoch];
 	}
 
 	// Return tensor snapshot to check model weight reset

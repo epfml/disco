@@ -58,7 +58,7 @@ describe("Secure history aggregator", function () {
         // Add one total contribution per node
         partialSums.forEach((partialSum, idx) => {
             const nodeId = idx.toString();
-            aggregator.add(nodeId, partialSum, 0);
+            aggregator.add(nodeId, partialSum.clone(), 0);
         });
 
         const sumRound0 = await aggregationPromise;
@@ -74,7 +74,7 @@ describe("Secure history aggregator", function () {
 
         partialSums.forEach((partialSum, idx) => {
             const nodeId = idx.toString();
-            aggregator.add(nodeId, partialSum, 0);
+            aggregator.add(nodeId, partialSum.clone(), 0);
         });
         const sumRound1 = await aggregationPromise2;
 
@@ -86,7 +86,7 @@ describe("Secure history aggregator", function () {
         const dummyPromise = aggregator.getPromiseForAggregation();
         partialSums.forEach((partialSum, idx) => {
             const nodeId = idx.toString();
-            aggregator.add(nodeId, partialSum, 1); // round 0 of next aggregation round
+            aggregator.add(nodeId, partialSum.clone(), 1); // round 0 of next aggregation round
         });
         await dummyPromise;
 
@@ -99,7 +99,7 @@ describe("Secure history aggregator", function () {
         // Add the modified partial sums to the aggregator
         partialSums2.forEach((partialSum, idx) => {
             const nodeId = idx.toString();
-            aggregator.add(nodeId, partialSum, 1);
+            aggregator.add(nodeId, partialSum.clone(), 1);
         });
         const sumRound2 = await aggregationPromise3;
 

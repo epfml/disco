@@ -109,6 +109,10 @@ export class WeightsContainer {
     this._weights.forEach(w => w.dispose());
   }
 
+  clone(): WeightsContainer {
+    return this.map((tensor) => tensor.clone())
+  }
+
   /**
    * Instantiates a new weights container from the given tensors or arrays of numbers.
    * @param weights The tensors or number arrays
