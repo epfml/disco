@@ -67,6 +67,7 @@ export namespace TrainingInformation {
     // e.g.if 3 then weights are shared every 3 epochs (in the distributed setting).
     roundDuration: z.number().positive().int(),
     // for GPT text tasks, number of training batches between each weight sharing round.
+    // roundDuration is ignored if roundIterations is set
     roundIterations: z.number().positive().int().optional(),
     // run validation every N aggregation rounds. If 0, validation metrics are skipped.
     validationFrequency: z.number().nonnegative().int().optional(),
