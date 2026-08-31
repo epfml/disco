@@ -5,5 +5,5 @@ export { simpleFace } from "./simple_face.js";
 export { titanic } from "./titanic.js";
 export { wikitext } from "./wikitext.js";
 export { tinderDog } from "./tinder_dog.js";
-export { privacyrun } from "./privacyrun.js";
+export { goldfish } from "./goldfish.js";
 export { centralizedGPT2FineTune } from "./centralized_gpt2_finetune.js";

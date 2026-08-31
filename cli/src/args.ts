@@ -300,7 +300,7 @@ const supportedTasks = Map(
       defaultTasks.titanic,
       defaultTasks.tinderDog,
       defaultTasks.mnist,
-      defaultTasks.privacyrun,
+      defaultTasks.goldfish,
       defaultTasks.centralizedGPT2FineTune,
     ).map(
       async (t) =>

@@ -1,16 +1,16 @@
 import type { TaskProvider } from "../index.js";
 import { Tokenizer, models, serialization } from "../index.js";
 
-export const privacyrun: TaskProvider<"text", "federated"> = {
+export const goldfish: TaskProvider<"text", "federated"> = {
   async getTask() {
     return {
-      id: "privacyrun",
+      id: "goldfish",
       dataType: "text",
       displayInformation: {
-        title: "GPT Privacy-Preserving Fine-tuning",
+        title: "Privacy-Preserving Fine-tuning of GPT-2",
         summary: {
           preview:
-            "Fine-tune a pre-trained GPT model collaboratively and privately.",
+            "Fine-tune a pre-trained GPT model collaboratively and privately with the Goldfish loss.",
           overview:
             "Fine-tune a pre-trained GPT-2 model created by the ONNX converter in your browser collaboratively without sharing your raw data. The model is loaded from Google Cloud Storage and fine-tuned using federated learning.",
         },
@@ -35,9 +35,13 @@ export const privacyrun: TaskProvider<"text", "federated"> = {
         // Last context segment may be shorter than context length, so it will be dropped (TODO: implement padding to avoid this)
         batchSize: 8,
         tokenizer: await Tokenizer.from_pretrained("Xenova/gpt2"),
-        // contextLength: 1024,
         contextLength: 512,
         tensorBackend: "gpt",
+        goldfishLoss: {
+          enabled: true,
+          k: 4,
+          h: 13,
+        }
       },
     };
   },
