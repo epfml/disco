@@ -36,14 +36,34 @@ Non-mandatory fields will automatically use values from the task specification.
 - `testID`: (mandatory) arbitrary test ID defined by the user for the test run
 - `task`: (mandatory) pre-defined task (adding a new task is described in the next section)
 - `numberOfUsers`: number of users participating in the learning round
-- `save`: whether to save the logs of the test run
+- `host`: URL of the server to connect to, defaults to `http://localhost:8080`
+- `outputPath`: path to save logs and models, defaults to `./<testID>`
+- `saveLogs`: whether to save the logs of the test run
+- `saveModel`: whether to save the trained model to disk
+- `saveCheckpoints`: whether to save each client model after every completed round/aggregation
+
+### Dataset arguments
+
+- `datasetPath`: path to the training dataset
+- `validationDatasetPath`: path to a separate validation dataset shared by all clients, takes precedence over `validationSplit`
 
 ### Learning hyperparameters
 
 - `epochs`: total number of training epochs
-- `roundDuration`: number of epochs per round
+- `roundDuration`: number of epochs per round, ignored if `roundIterations` is set.
+- `roundIterations`: number of iterations per round, takes precedence over `roundDuration`
 - `batchSize`: batch size
-- `validationSplit`: ratio of the validation set used for evaluation
+- `validationSplit`: fraction of each client's training data used for validation, ignored when `validationDatasetPath` is set; 0 disables split-based validation
+- `validationFrequency`: how often to validate. Validate the first aggregation round and every N rounds after it; defaults to every round, 0 disables validation metrics
+- `validationMode`: when to run the validation: `before` model aggregation (default), `after`, or `both`
+- `learningRate`: override the learning rate (GPT text tasks only)
+
+### Goldfish loss parameters (GPT text tasks only)
+
+- `goldfishLoss`: train with the [goldfish loss](https://arxiv.org/abs/2406.10209), which drops a subset of target tokens from the loss to mitigate memorization
+- `goldfishK`: drop modulus k, a target token is dropped if hash(context) mod k == 0
+- `goldfishH`: localized hash context length
+- `goldfishPadTokenId`: (optional) padding token id to exclude from the goldfish loss denominator
 
 ### Aggregator parameters
 
@@ -57,7 +77,7 @@ Non-mandatory fields will automatically use values from the task specification.
 
 ## Adding new tasks
 
-The CLI can be used on several pre-defined tasks: titanic, simple-face and CIFAR10. In order
+The CLI can be used on several pre-defined tasks: `cifar10`, `lus_covid`, `mnist`, `simple_face`, `tinder_dog`, `titanic` and `goldfish` (GPT-2 fine-tuning). In order
 to understand how to add a new task have a look at [TASK.md](../docs/TASK.md).
 
 Once a new task has been defined in `discojs`, it can be loaded in [data.ts](./src/data.ts) as it is already implemented for current tasks. There are currently [multiple classes](../discojs-node/src/loaders) you can use to load data using Node.js and preprocess data: loadImagesInDir, loadCSV and loadText.
