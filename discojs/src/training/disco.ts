@@ -256,11 +256,6 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     this.#setModelDebugLabel(this.trainer.model);
     this.#setModelTrainingOptions(this.trainer.model);
     debug("Initial model fetched successfully");
-    if (this.trainer.model === null) {
-      debug(
-        `No pre-trained model provided for client, initializing randomly...`,
-      );
-    }
 
     for await (const [roundNum, round] of enumerate(
       this.trainer.train(trainingDataset, validationDataset_),
