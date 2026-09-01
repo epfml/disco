@@ -1,7 +1,7 @@
 # TODO freeze to 22 until tfjs#8425 is merged
 FROM node:22 AS builder
 
-RUN npm i -g pnpm
+RUN npm i -g pnpm@11.11.0
 
 WORKDIR /disco
 
