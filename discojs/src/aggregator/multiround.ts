@@ -1,4 +1,4 @@
-import { Aggregator } from "./aggregator.js";
+import { Aggregator } from "#aggregator/aggregator";
 import createDebug from "debug";
 
 export type ThresholdType = "relative" | "absolute";

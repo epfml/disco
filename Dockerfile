@@ -18,6 +18,7 @@ RUN pnpm ci
 COPY discojs/ discojs/
 COPY discojs-node/ discojs-node/
 COPY tsconfig.base.json .
+COPY tsconfig.base.lib.json .
 RUN pnpm -F discojs -F discojs-node run build
 
 COPY server/ server/

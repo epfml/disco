@@ -1,7 +1,8 @@
 import createDebug from "debug";
-import { Map, Set } from "immutable";
+import type { Map } from "immutable";
+import { Set } from "immutable";
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { shallowRef } from "vue";
 
 import type { DataType, Network, Task } from "@epfml/discojs";
 import { fetchTasks } from "@epfml/discojs";
@@ -11,12 +12,14 @@ import { CONFIG } from "@/config";
 
 const debug = createDebug("webapp:store");
 
-const TASKS_TO_FILTER_OUT = Set.of("simple_face", "cifar10");
+const TASKS_TO_FILTER_OUT = Set.of("cifar10");
 
 export const useTasksStore = defineStore("tasks", () => {
   // 3-state variable used to test whether the tasks have been retrieved successfully,
   // if the retrieving failed, or if they are currently being loaded
-  const tasks = ref<
+  // Use shallowRef instead of ref because ref deeply wraps the object and loses access
+  // to its private methods
+  const tasks = shallowRef<
     "loading" | "failed" | Map<Task.ID, Task<DataType, Network>>
   >("loading");
 

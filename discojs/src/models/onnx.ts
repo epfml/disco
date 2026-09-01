@@ -1,17 +1,17 @@
-import {
-  AutoModelForCausalLM,
-  PreTrainedModel,
-  Tensor,
-} from "@xenova/transformers";
-import { Model } from "./index.js";
-import type { WeightsContainer } from "../index.js";
+import type { CausalLMOutput, PreTrainedModel } from "@xenova/transformers";
+import { AutoModelForCausalLM, Tensor } from "@xenova/transformers";
 import { List } from "immutable";
-import type { CausalLMOutput } from "@xenova/transformers";
-import type { GenerationConfig as TFJSGenerationConfig } from "./gpt/config.js";
-import { DefaultGenerationConfig } from "./gpt/config.js";
-import type { Batched, DataFormat } from "../index.js";
+
+import type { WeightsContainer } from "#weights/index";
+import type { Batched } from "#dataset/index";
+import type { DataFormat } from "#types/index";
+import { Model } from "#models/model";
+import { DefaultGenerationConfig } from "#models/generation";
+import type { GenerationConfig } from "#models/generation";
 
 export class ONNXModel extends Model<"text"> {
+  readonly datatype = "text" as const;
+
   private model: PreTrainedModel;
 
   private constructor(model: PreTrainedModel) {
@@ -30,7 +30,7 @@ export class ONNXModel extends Model<"text"> {
 
   override async predict(
     batch: Batched<DataFormat.ModelEncoded["text"][0]>,
-    options?: Partial<TFJSGenerationConfig>,
+    options?: Partial<GenerationConfig>,
   ): Promise<Batched<DataFormat.ModelEncoded["text"][1]>> {
     const config = Object.assign({}, DefaultGenerationConfig, options);
 
@@ -43,7 +43,7 @@ export class ONNXModel extends Model<"text"> {
 
   async #predictSingle(
     tokens: DataFormat.ModelEncoded["text"][0],
-    config: TFJSGenerationConfig,
+    config: GenerationConfig,
   ): Promise<DataFormat.ModelEncoded["text"][1]> {
     const contextLength =
       (this.model.config as { max_position_embeddings?: number })
@@ -125,7 +125,7 @@ export class ONNXModel extends Model<"text"> {
     throw new Error("Weights setting not supported in ONNX models");
   }
 
-  [Symbol.dispose](): void {
+  dispose() {
     // Dispose of the model to free up memory
     void this.model.dispose();
   }

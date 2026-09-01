@@ -1,24 +1,23 @@
 import * as tf from "@tensorflow/tfjs";
 import { List, Repeat } from "immutable";
 
-import {
-  Batched,
-  BatchLogs,
-  Dataset,
-  DataFormat,
-  DataType,
-  EpochLogs,
-  Model,
-  Task,
-  WeightsContainer,
-  Network,
-  ValidationMetrics,
-} from "../index.js";
-import { privacy } from "../index.js";
-import { Client } from "../client/index.js";
-import createDebug from "debug";
-import * as async_iterator from "../utils/async_iterator.js";
+import type { Model } from "#models/index";
+import type { DataFormat, DataType, Network } from "#types/index";
+import type { Batched, Dataset } from "#dataset/index";
+import type { Task } from "#task/index";
 
+import type { BatchLogs, EpochLogs, ValidationMetrics } from "#models/index";
+import { WeightsContainer } from "#weights/index";
+import type { Client } from "#client/index";
+
+import * as async_iterator from "#utils/async_iterator";
+import * as privacy from "#root/privacy";
+
+import type {
+  WeightNormHistory,
+  IterationTrainableTextModel,
+} from "#training/types";
+import createDebug from "debug";
 const debug = createDebug("discojs:training:trainer");
 
 export interface RoundLogs {
@@ -29,17 +28,6 @@ export interface RoundLogs {
 }
 
 /** List of weight update norms */
-export type WeightNormHistory = List<List<number>>;
-
-type IterationTrainableTextModel = Model<"text"> & {
-  trainNextBatches(
-    trainingIterator: AsyncIterator<Batched<DataFormat.ModelEncoded["text"]>>,
-    maxBatchCount: number,
-    validationDataset?: Dataset<Batched<DataFormat.ModelEncoded["text"]>>,
-    setDone?: (done: boolean) => void,
-  ): AsyncGenerator<BatchLogs, EpochLogs>;
-};
-
 function appendWeightHistory(
   weightNormHistory: WeightNormHistory,
   wc: number[],
@@ -333,7 +321,7 @@ export class Trainer<D extends DataType, N extends Network> {
     const model = this.model as unknown as IterationTrainableTextModel;
     if (typeof model.trainNextBatches !== "function")
       throw new Error("model does not support iteration-based training");
-    
+
     debug("Run iteration-based round");
     let iterationLogs = List<EpochLogs>();
 

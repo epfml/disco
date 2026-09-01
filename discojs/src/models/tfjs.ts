@@ -1,17 +1,13 @@
 import { List, Map, Range } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 
-import {
-  Batched,
-  Dataset,
-  DataFormat,
-  DataType,
-  WeightsContainer,
-} from "../index.js";
+import type { Dataset, Batched } from "#dataset/index";
+import type { DataFormat, DataType } from "#types/index";
+import { WeightsContainer } from "#weights/index";
 
-import { BatchLogs } from "./index.js";
-import { Model } from "./index.js";
-import { EpochLogs } from "./logs.js";
+import type { BatchLogs } from "#models/logs";
+import { Model } from "#models/model";
+import { EpochLogs } from "#models/logs";
 
 type Serialized<D extends DataType> = [D, tf.io.ModelArtifacts];
 
@@ -213,7 +209,7 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     return [this.datatype, await ret];
   }
 
-  [Symbol.dispose](): void {
+  dispose(): void {
     this.model.dispose();
   }
 

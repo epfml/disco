@@ -25,4 +25,9 @@
 
   --color-heading-light: #334155;
   --color-heading-dark: #fff;
+
+  /* width of a single content card, the page's content column */
+  --container-card: 700px;
+  /* two cards side by side, separated by `cards-gap` at md and above */
+  --container-cards-2: calc(2 * 700px + 2rem);
 }

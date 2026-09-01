@@ -1,10 +1,11 @@
 import * as tf from "@tensorflow/tfjs";
 import { assert, describe, it } from "vitest";
-import { WeightsContainer, aggregation } from "./index.js";
+import { WeightsContainer } from "#weights/weights_container";
+import { avg, sum, diff } from "#weights/aggregation";
 
 describe("weights aggregation", () => {
   it("avg of weights with two operands", () => {
-    const actual = aggregation.avg([
+    const actual = avg([
       WeightsContainer.of([1, 2, 3, -1], [-5, 6]),
       WeightsContainer.of([2, 3, 7, 1], [-10, 5]),
       WeightsContainer.of([3, 1, 5, 3], [-15, 19]),
@@ -22,7 +23,7 @@ describe("weights aggregation", () => {
       WeightsContainer.of([2, 3, 7, 1], [-10, 5]),
       WeightsContainer.of([3, 1, 5, 3], [-15, 19]),
     ];
-    const result = aggregation.avg(inputs);
+    const result = avg(inputs);
 
     inputs.forEach((input) => input.dispose());
     result.dispose();
@@ -33,7 +34,7 @@ describe("weights aggregation", () => {
     const baseline = tf.memory().numTensors;
 
     const input = WeightsContainer.of([1, 2], [3]);
-    const result = aggregation.avg([input]);
+    const result = avg([input]);
 
     // read values without allocating comparison tensors
     assert.deepStrictEqual(
@@ -50,7 +51,7 @@ describe("weights aggregation", () => {
       WeightsContainer.of([1, 2], [3]),
       WeightsContainer.of([3, 4], [5]),
     ];
-    const result = aggregation.avg(inputs);
+    const result = avg(inputs);
 
     for (const input of inputs)
       for (const weight of input.weights) assert.isFalse(weight.isDisposed);
@@ -65,7 +66,7 @@ describe("weights aggregation", () => {
   });
 
   it("sum of weights with two operands", () => {
-    const actual = aggregation.sum([
+    const actual = sum([
       [[3, -4], [9]],
       [[2, 13], [0]],
     ]);
@@ -75,7 +76,7 @@ describe("weights aggregation", () => {
   });
 
   it("diff of weights with two operands", () => {
-    const actual = aggregation.diff([
+    const actual = diff([
       [
         [3, -4, 5],
         [9, 1],

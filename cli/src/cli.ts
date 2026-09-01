@@ -16,11 +16,7 @@ import type {
   Network,
   Model,
 } from "@epfml/discojs";
-import {
-  Disco,
-  aggregator as aggregators,
-  client as clients,
-} from "@epfml/discojs";
+import { Disco, getAggregator, getClient } from "@epfml/discojs";
 
 import { saveModelToDisk } from "@epfml/discojs-node";
 import { getTaskData } from "./data.js";
@@ -88,8 +84,8 @@ async function runUser<D extends DataType, N extends Network>(
 ): Promise<List<SummaryLogs>> {
   debug(`Starting runUser for client ${userIndex}`);
   const trainingScheme = task.trainingInformation.scheme as N;
-  const aggregator = aggregators.getAggregator(task);
-  const client = clients.getClient(trainingScheme, url, task, aggregator);
+  const aggregator = getAggregator(task);
+  const client = getClient(trainingScheme, url, task, aggregator);
   const disco = new Disco(task, client, {
     scheme: trainingScheme,
     preprocessOnce: false,

@@ -3,7 +3,7 @@ import { Map, Range } from "immutable";
 import fsPromise from "node:fs/promises";
 import * as tf from "@tensorflow/tfjs-node";
 
-import { models, serialization } from "@epfml/discojs";
+import { GPT, modelEncode } from "@epfml/discojs";
 
 const OUTPUT_FILENAME = "model.json";
 const GPT2_N_LAYER = 12;
@@ -33,7 +33,7 @@ async function main() {
   console.log("ONNX model loaded successfully");
 
   // Init empty TF.js model
-  const gptModel = new models.GPT({
+  const gptModel = new GPT({
     modelType: "gpt2",
     contextLength: GPT2_CONTEXT_LENGTH,
   });
@@ -96,7 +96,7 @@ async function main() {
 
   gptLayersModel.setWeights(finalWeights); // shape or transpose mismatch will throw here
 
-  const encoded = await serialization.model.encode(gptModel);
+  const encoded = await modelEncode(gptModel);
   await fsPromise.writeFile(OUTPUT_FILENAME, encoded);
   console.log(`GPT-TFJS model saved to ${OUTPUT_FILENAME}`);
 }

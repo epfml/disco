@@ -11,6 +11,7 @@ import NotFound from "@/components/pages/NotFound.vue";
 import Training from "@/components/training/TrainingSteps.vue";
 import ModelLibrary from "@/components/testing/ModelLibrary.vue";
 import AboutUs from "@/components/pages/AboutUs.vue";
+import ChatUI from "@/components/testing/ChatUI.vue";
 
 const debug = createDebug("webapp:router");
 
@@ -67,13 +68,19 @@ const router = createRouter({
       },
     },
     {
-      path: "/:pathMatch(.*)*",
-      name: "not-found",
-      component: NotFound,
+      path: "/chat",
+      name: "chat",
+      components: {
+        default: ChatUI,
+      },
     },
     {
       path: "/not-found",
       name: "not-found",
+      component: NotFound,
+    },
+    {
+      path: "/:pathMatch(.*)*",
       component: NotFound,
     },
   ],

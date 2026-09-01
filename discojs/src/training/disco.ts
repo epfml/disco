@@ -1,31 +1,25 @@
-import {
-  async_iterator,
-  client as clients,
-  BatchLogs,
-  ConsoleLogger,
-  EpochLogs,
-  Logger,
-  processing,
-  Dataset,
-} from "../index.js";
-import type {
-  Batched,
-  DataFormat,
-  DataType,
-  Model,
-  Network,
-  Task,
-  GoldfishLossConfig,
-} from "../index.js";
-import type { Aggregator } from "../aggregator/index.js";
-import { getAggregator } from "../aggregator/index.js";
-import { enumerate, split } from "../utils/async_iterator.js";
-import { EventEmitter } from "../utils/event_emitter.js";
+import type { Model } from "#models/index";
+import type { DataType, DataFormat, Network } from "#types/index";
+import type { Task } from "#task/index";
+import type { Batched } from "#dataset/index";
+import type { Aggregator } from "#aggregator/index";
 
+import { Dataset } from "#dataset/index";
+import type { Logger } from "#logging/index";
+import { ConsoleLogger } from "#logging/index";
+import type { BatchLogs, EpochLogs } from "#models/index";
+import { getAggregator } from "#aggregator/index";
+import { enumerate, split } from "#utils/async_iterator";
+import { EventEmitter } from "#utils/event_emitter";
+
+import * as clients from "#client/index";
+import * as processing from "#processing/index";
+import * as async_iterator from "#utils/async_iterator";
+import type { GoldfishLossConfig } from "#models/implementations/gpt/config";
+import type { RoundLogs } from "#training/trainer";
+import { Trainer } from "#training/trainer";
+import type { RoundStatus, SummaryLogs } from "#training/types";
 import createDebug from "debug";
-
-import { RoundLogs, Trainer } from "./trainer.js";
-
 const debug = createDebug("discojs:training:disco");
 
 interface DiscoConfig<N extends Network> {
@@ -42,27 +36,6 @@ interface DiscoConfig<N extends Network> {
    */
   preprocessOnce: boolean;
 }
-
-export type SummaryLogs = {
-  round: number;
-  epoch: number;
-  trainingLoss: number;
-  trainingAccuracy: number;
-  peakMemory: number;
-  epochTime: number;
-  roundValidationLoss?: number;
-  roundValidationAccuracy?: number;
-  validationLoss?: number;
-  validationAccuracy?: number;
-  postAggregationValidationLoss?: number;
-  postAggregationValidationAccuracy?: number;
-};
-
-export type RoundStatus =
-  | "not enough participants" // Server notification to wait for more participants
-  | "updating model" // fetching/aggregating local updates into a global model
-  | "local training" // Training the model locally
-  | "connecting to peers"; // for decentralized only, fetch the server's list of participating peers
 
 function buildSummaryLog(
   roundNum: number,
@@ -250,9 +223,9 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
         : await this.#preprocessSplitAndBatch(dataset);
 
     // the client fetches the latest weights upon connection
-    // TODO unsafe cast
     debug("Connecting to client and fetching initial model...");
-    this.trainer.model = await this.#client.connect();
+    // TODO unsafe cast
+    this.trainer.model = (await this.#client.connect()) as Model<D>;
     this.#setModelDebugLabel(this.trainer.model);
     this.#setModelTrainingOptions(this.trainer.model);
     debug("Initial model fetched successfully");
@@ -304,10 +277,12 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
         this.#logger.success(
           [
             `Round: ${roundNum}`,
-            roundLogs.postAggregationValidation !== undefined ?
-              `Post-aggregation loss: ${roundLogs.postAggregationValidation.loss}` : "",
-            roundLogs.postAggregationValidation ?
-              `Post-aggregation accuracy: ${roundLogs.postAggregationValidation.accuracy}` : "",
+            roundLogs.postAggregationValidation !== undefined
+              ? `Post-aggregation loss: ${roundLogs.postAggregationValidation.loss}`
+              : "",
+            roundLogs.postAggregationValidation
+              ? `Post-aggregation accuracy: ${roundLogs.postAggregationValidation.accuracy}`
+              : "",
           ].join("\n"),
         );
 

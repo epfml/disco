@@ -1,13 +1,16 @@
 {
-  "extends": "../tsconfig.base.json",
-  "compilerOptions": { "rootDir": "./src", "outDir": "dist" },
+  "extends": "../tsconfig.base.lib.json",
   "references": [
     {
-      "path": "../discojs"
+      "path": "../discojs/tsconfig.lib.json"
     },
     {
-      "path": "../discojs-node"
+      "path": "../discojs-node/tsconfig.lib.json"
     }
   ],
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "dist"
+  },
   "include": ["src"]
 }

@@ -2,7 +2,7 @@ import "@tensorflow/tfjs-node";
 import * as tf from "@tensorflow/tfjs";
 import fs from "node:fs/promises";
 import { parse } from "ts-command-line-args";
-import { models, Tokenizer } from "@epfml/discojs";
+import { GPT, Tokenizer } from "@epfml/discojs";
 import { loadModelFromDisk } from "@epfml/discojs-node";
 
 interface Args {
@@ -329,7 +329,7 @@ async function scoreContinuations(
 }
 
 async function benchmarkFullAnswers(
-  model: models.GPT,
+  model: GPT,
   tokenizer: Tokenizer,
   dataset: string[],
   format: PromptFormat,
@@ -495,7 +495,7 @@ async function main() {
   console.log("Loading model...");
   const model = await loadModelFromDisk(args.modelPath);
 
-  if (!(model instanceof models.GPT)) {
+  if (!(model instanceof GPT)) {
     throw new Error("Model must be GPT");
   }
 

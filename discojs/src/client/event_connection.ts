@@ -1,22 +1,23 @@
 import createDebug from "debug";
 import WebSocket from "isomorphic-ws";
 import * as msgpack from "@msgpack/msgpack";
-import type { Peer, SignalData } from "./decentralized/peer.js";
-import type { NodeID } from "./types.js";
-import * as decentralizedMessages from "./decentralized/messages.js";
-import { type, type NarrowMessage, type Message } from "./messages.js";
-import { timeout } from "./utils.js";
+import type { Peer, SignalData } from "#client/decentralized/peer";
+import type { NodeID } from "#client/types";
+import * as decentralizedMessages from "#client/decentralized/messages";
+import { MType } from "#client/mtype";
+import { type NarrowMessage, type Message } from "#client/messages";
+import { timeout } from "#client/utils";
 
-import { EventEmitter } from "../utils/event_emitter.js";
+import { EventEmitter } from "#utils/event_emitter";
 
 const debug = createDebug("discojs:client:connections");
 
 export interface EventConnection {
-  on: <K extends type>(
+  on: <K extends MType>(
     type: K,
     handler: (event: NarrowMessage<K>) => void,
   ) => void;
-  once: <K extends type>(
+  once: <K extends MType>(
     type: K,
     handler: (event: NarrowMessage<K>) => void,
   ) => void;
@@ -24,7 +25,7 @@ export interface EventConnection {
   disconnect: () => Promise<void>;
 }
 
-export async function waitMessage<T extends type>(
+export async function waitMessage<T extends MType>(
   connection: EventConnection,
   type: T,
 ): Promise<NarrowMessage<T>> {
@@ -36,7 +37,7 @@ export async function waitMessage<T extends type>(
   });
 }
 
-export async function waitMessageWithTimeout<T extends type>(
+export async function waitMessageWithTimeout<T extends MType>(
   connection: EventConnection,
   type: T,
   timeoutMs?: number,
@@ -49,7 +50,7 @@ export async function waitMessageWithTimeout<T extends type>(
 }
 
 export class PeerConnection
-  extends EventEmitter<{ [K in type]: NarrowMessage<K> }>
+  extends EventEmitter<{ [K in MType]: NarrowMessage<K> }>
   implements EventConnection
 {
   constructor(
@@ -63,7 +64,7 @@ export class PeerConnection
   async connect(): Promise<void> {
     this.peer.on("signal", (signal) => {
       const msg: decentralizedMessages.SignalForPeer = {
-        type: type.SignalForPeer,
+        type: MType.SignalForPeer,
         peer: this.peer.id,
         signal,
       };
@@ -108,7 +109,7 @@ export class PeerConnection
 }
 
 export class WebSocketServer
-  extends EventEmitter<{ [K in type]: NarrowMessage<K> }>
+  extends EventEmitter<{ [K in MType]: NarrowMessage<K> }>
   implements EventConnection
 {
   private constructor(

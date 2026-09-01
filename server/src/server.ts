@@ -3,10 +3,17 @@ import express from "express";
 import expressWS from "express-ws";
 import type * as http from "http";
 
-import type { DataType, Network, TaskProvider } from "@epfml/discojs";
+import type {
+  DataType,
+  Network,
+  ModelCard,
+  TaskProvider,
+} from "@epfml/discojs";
 
 import { TaskRouter, TrainingRouter } from "./routes/index.js";
 import { TaskSet } from "./task_set.js";
+import { ModelSet } from "./model_set.js";
+import { ModelRouter } from "./routes/model_router.js";
 
 /**
  * The Disco Server, initializing an Express app
@@ -17,15 +24,27 @@ import { TaskSet } from "./task_set.js";
  * https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/Introduction
  */
 export class Server {
-  readonly #taskSet = new TaskSet();
+  readonly #modelSet;
+  readonly #taskSet;
+
+  constructor() {
+    this.#modelSet = new ModelSet();
+    this.#taskSet = new TaskSet(this.#modelSet);
+  }
 
   /** setup with given initial tasks */
   static async with(
-    ...tasks: TaskProvider<DataType, Network>[]
+    models: ModelCard<DataType>[],
+    tasks: TaskProvider<DataType, Network>[],
   ): Promise<Server> {
     const server = new Server();
 
-    await Promise.all(tasks.map((t) => server.#taskSet.addTask(t)));
+    await Promise.all(models.map((m) => server.#modelSet.addModel(m)));
+    await Promise.all(
+      tasks.map(async (t) =>
+        server.#taskSet.addTask(await t.getTask(), t.modelCard.card.id),
+      ),
+    );
 
     return server;
   }
@@ -52,7 +71,8 @@ export class Server {
     app.use(express.json({ limit: "50mb" }));
     app.use(express.urlencoded({ limit: "50mb", extended: false }));
 
-    const taskRouter = new TaskRouter(this.#taskSet);
+    const taskRouter = new TaskRouter(this.#taskSet, this.#modelSet);
+    const modelRouter = new ModelRouter(this.#modelSet);
     const federatedRouter = new TrainingRouter(
       "federated",
       wsApplier,
@@ -71,6 +91,7 @@ export class Server {
     app.use("/federated", federatedRouter.router);
     app.use("/decentralized", decentralizedRouter.router);
     app.use("/tasks", taskRouter.router);
+    app.use("/models", modelRouter.router);
 
     const server = await new Promise<http.Server>((resolve, reject) => {
       const ret = app.listen(port);

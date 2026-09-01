@@ -1,9 +1,11 @@
 import { Map, List, Range } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 
-import { AggregationStep, Aggregator } from "./aggregator.js";
-import type { WeightsContainer, client } from "../index.js";
-import { aggregation } from "../index.js";
+import type { WeightsContainer } from "#weights/index";
+import type { NodeID } from "#client/types";
+import { sum, avg } from "#weights/index";
+
+import { AggregationStep, Aggregator } from "#aggregator/aggregator";
 
 /**
  * Aggregator implementing secure multi-party computation for decentralized learning.
@@ -27,7 +29,7 @@ export class SecureAggregator extends Aggregator {
         if (currentContributions === undefined)
           throw new Error("aggregating without any contribution");
 
-        return aggregation.sum(currentContributions.values());
+        return sum(currentContributions.values());
       }
       // Average the received partial sums
       case 1: {
@@ -35,7 +37,7 @@ export class SecureAggregator extends Aggregator {
         if (currentContributions === undefined)
           throw new Error("aggregating without any contribution");
 
-        return aggregation.avg(currentContributions.values());
+        return avg(currentContributions.values());
       }
       default:
         throw new Error("communication round is out of bounds");
@@ -43,7 +45,7 @@ export class SecureAggregator extends Aggregator {
   }
 
   _add(
-    nodeId: client.NodeID,
+    nodeId: NodeID,
     contribution: WeightsContainer,
     communicationRound: number,
   ): void {
@@ -77,7 +79,7 @@ export class SecureAggregator extends Aggregator {
 
   override makePayloads(
     weights: WeightsContainer,
-  ): Map<client.NodeID, WeightsContainer> {
+  ): Map<NodeID, WeightsContainer> {
     switch (this.communicationRound) {
       case 0: {
         const shares = this.generateAllShares(weights);
@@ -105,7 +107,7 @@ export class SecureAggregator extends Aggregator {
       .toList();
 
     // The last share completes the sum
-    return shares.push(secret.sub(aggregation.sum(shares)));
+    return shares.push(secret.sub(sum(shares)));
   }
 
   /**

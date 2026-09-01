@@ -1,9 +1,9 @@
 import createDebug from "debug";
 import { Map, type Set } from "immutable";
 
-import { Peer, type SignalData } from "./peer.js";
-import type { NodeID } from "../types.js";
-import { PeerConnection, type EventConnection } from "../event_connection.js";
+import { Peer, type SignalData } from "#client/decentralized/peer";
+import type { NodeID } from "#client/types";
+import { PeerConnection, type EventConnection } from "#client/event_connection";
 
 const debug = createDebug("discojs:client:decentralized:pool");
 

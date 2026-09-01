@@ -3,7 +3,7 @@ import * as tf from "@tensorflow/tfjs";
 import fs from "node:fs/promises";
 import { parse } from "ts-command-line-args";
 
-import { models, Tokenizer } from "@epfml/discojs";
+import { GPT, Tokenizer } from "@epfml/discojs";
 import { loadModelFromDisk } from "@epfml/discojs-node";
 
 interface Args {
@@ -173,7 +173,7 @@ function bleu1to4(reference: number[], candidate: number[]): number {
 }
 
 async function sampleGenerateGPT2(
-  model: models.GPT,
+  model: GPT,
   inputIds: number[],
   maxNewTokens: number,
   maxContextLength: number,
@@ -350,7 +350,7 @@ async function main() {
 
   console.log("Loading model...");
   const loadedModel = await loadModelFromDisk(args.modelPath);
-  if (!(loadedModel instanceof models.GPT)) {
+  if (!(loadedModel instanceof GPT)) {
     throw new Error("modelPath must point to a Disco GPT model");
   }
 
@@ -466,25 +466,25 @@ async function main() {
       if (shouldLogRecord) {
         console.log("================================");
         console.log("PROMPT LENGTH:", promptLength);
-        
+
         console.log("\nPROMPT IDS:");
         console.log(prompt.slice(0, 30));
-        
+
         console.log("\nGENERATED IDS:");
         console.log(generatedSuffix.slice(0, 30));
-        
+
         console.log("\nREFERENCE IDS:");
         console.log(reference.slice(0, 30));
-        
+
         console.log("\nPROMPT TEXT:");
         console.log(JSON.stringify(tokenizer.decode(prompt)));
-        
+
         console.log("\nGENERATED TEXT:");
         console.log(JSON.stringify(tokenizer.decode(generatedSuffix)));
-        
+
         console.log("\nREFERENCE TEXT:");
         console.log(JSON.stringify(tokenizer.decode(reference)));
-        
+
         console.log("================================");
       }
 

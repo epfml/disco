@@ -3,10 +3,14 @@
   "private": true,
   "type": "module",
   "main": "dist/index.js",
-  "exports": "./dist/index.js",
+  "exports": {
+    "@disco/source": "./src/index.ts",
+    "types": "./dist/index.d.ts",
+    "default": "./dist/index.js"
+  },
   "scripts": {
     "watch": "nodemon --ext ts --ignore dist --watch ../discojs-node/dist --watch . --exec pnpm run",
-    "start": "node dist/main.js",
+    "start": "pnpm run build && node dist/main.js",
     "build": "tsc --build",
     "test": "cd .. && vitest --run --project=server"
   },

@@ -2,24 +2,26 @@
  * Source: https://github.com/zemlyansky/gpt-tfjs and https://github.com/karpathy/build-nanogpt
  * With modifications from @peacefulotter, @lukemovement and the Disco team
  **/
-
 import createDebug from "debug";
 import { List, Range } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 
-import type { Batched, Dataset, DataFormat } from "../../index.js";
-import { WeightsContainer } from "../../index.js";
+import { WeightsContainer } from "#weights/index";
+import type { Dataset, Batched } from "#dataset/index";
+import type { DataFormat } from "#types/index";
 
-import { BatchLogs, Model, EpochLogs } from "../index.js";
-
-import { GPTModel } from "./model.js";
-import evaluate from "./evaluate.js";
-import { DefaultGPTConfig, DefaultGenerationConfig } from "./config.js";
+import type { BatchLogs } from "#models/logs";
+import { EpochLogs } from "#models/logs";
+import { Model } from "#models/model";
+import { GPTModel } from "#models/implementations/gpt/model";
+import evaluate from "#models/implementations/gpt/evaluate";
+import { DefaultGPTConfig } from "#models/implementations/gpt/config";
 import type {
-  GoldfishLossConfig,
   GPTConfig,
-  GenerationConfig,
-} from "./config.js";
+  GoldfishLossConfig,
+} from "#models/implementations/gpt/config";
+import { DefaultGenerationConfig } from "#models/generation";
+import type { GenerationConfig } from "#models/generation";
 
 const debug = createDebug("discojs:models:gpt");
 
@@ -29,6 +31,7 @@ export type GPTSerialization = {
 };
 
 export class GPT extends Model<"text"> {
+  readonly datatype = "text" as const;
   private readonly model: GPTModel;
 
   readonly #contextLength: number;
@@ -244,7 +247,9 @@ export class GPT extends Model<"text"> {
       logits
         .slice([logits.shape[0] - 1])
         .squeeze<tf.Tensor1D>([0])
-        .div<tf.Tensor1D>(config.temperature)
+        .div<tf.Tensor1D>(
+          config.doSample && config.temperature > 0 ? config.temperature : 1,
+        )
         .softmax(),
     );
     logits.dispose();
@@ -308,7 +313,7 @@ export class GPT extends Model<"text"> {
     return this.model;
   }
 
-  [Symbol.dispose](): void {
+  dispose(): void {
     if (this.model.optimizer !== undefined) {
       this.model.optimizer.dispose();
     }

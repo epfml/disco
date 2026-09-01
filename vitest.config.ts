@@ -1,9 +1,16 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  resolve: {
+    conditions: ["@disco/source"],
+  },
+  ssr: {
+    resolve: {
+      conditions: ["@disco/source"],
+    },
+  },
   test: {
     setupFiles: "./testSetupImportTFJSNode.ts",
-
     projects: [
       {
         extends: true,

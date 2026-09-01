@@ -21,17 +21,6 @@ export const datasets = {
     ];
     return positive.chain(negative);
   },
-  async loadSimpleFace() {
-    const [adult, child] = [
-      (
-        await loadImagesInDir(path.join(DATASET_DIR, "simple_face", "adult"))
-      ).zip(Repeat("adult")),
-      (
-        await loadImagesInDir(path.join(DATASET_DIR, "simple_face", "child"))
-      ).zip(Repeat("child")),
-    ];
-    return adult.chain(child);
-  },
   loadTitanic: () => loadCSV(path.join(DATASET_DIR, "titanic_train.csv")),
   loadWikitext: () =>
     loadText(path.join(DATASET_DIR, "wikitext", "wiki.train.tokens")).chain(

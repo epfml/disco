@@ -5,7 +5,6 @@
       "ignoreDependencies": ["typescript-eslint", "supports-color"]
     },
     "webapp": {
-      "ignore": ["env.d.ts"],
       "ignoreDependencies": ["buffer"]
     },
     "isomorphic-wrtc": {},

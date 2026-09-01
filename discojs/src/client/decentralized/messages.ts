@@ -1,17 +1,17 @@
-import { serialization } from "../../index.js";
+import * as serialization from "#serialization/index";
 
-import { type SignalData } from "./peer.js";
-import { isNodeID, type NodeID } from "../types.js";
-import { type, hasMessageType } from "../messages.js";
+import { type SignalData } from "#client/decentralized/peer";
+import { isNodeID, type NodeID } from "#client/types";
+import { MType, hasMessageType } from "#client/mtype";
 import type {
   ClientConnected,
   WaitingForMoreParticipants,
   EnoughParticipants,
-} from "../messages.js";
+} from "#client/mtype";
 
 /// Phase 0 communication (between server and peers)
 export interface NewDecentralizedNodeInfo {
-  type: type.NewDecentralizedNodeInfo;
+  type: MType.NewDecentralizedNodeInfo;
   id: NodeID;
   waitForMoreParticipants: boolean;
   nbOfParticipants: number;
@@ -19,24 +19,24 @@ export interface NewDecentralizedNodeInfo {
 
 // WebRTC signal to forward to other node
 export interface SignalForPeer {
-  type: type.SignalForPeer;
+  type: MType.SignalForPeer;
   peer: NodeID;
   signal: SignalData;
 }
 
 // peer wants to join the next round
 export interface JoinRound {
-  type: type.JoinRound;
+  type: MType.JoinRound;
 }
 
 // peer who sent is ready
 export interface PeerIsReady {
-  type: type.PeerIsReady;
+  type: MType.PeerIsReady;
 }
 
 // server sends to each peer the list of peers to connect to
 export interface PeersForRound {
-  type: type.PeersForRound;
+  type: MType.PeersForRound;
   peers: NodeID[];
   aggregationRound: number;
 }
@@ -44,7 +44,7 @@ export interface PeersForRound {
 /// Phase 1 communication (between peers)
 
 export interface Payload {
-  type: type.Payload;
+  type: MType.Payload;
   peer: NodeID;
   aggregationRound: number;
   communicationRound: number;
@@ -72,19 +72,19 @@ export function isMessageFromServer(o: unknown): o is MessageFromServer {
   if (!hasMessageType(o)) return false;
 
   switch (o.type) {
-    case type.NewDecentralizedNodeInfo:
+    case MType.NewDecentralizedNodeInfo:
       return (
         "id" in o &&
         isNodeID(o.id) &&
         "waitForMoreParticipants" in o &&
         typeof o.waitForMoreParticipants === "boolean"
       );
-    case type.SignalForPeer:
+    case MType.SignalForPeer:
       return "peer" in o && isNodeID(o.peer) && "signal" in o; // TODO check signal content?
-    case type.PeersForRound:
+    case MType.PeersForRound:
       return "peers" in o && Array.isArray(o.peers) && o.peers.every(isNodeID);
-    case type.WaitingForMoreParticipants:
-    case type.EnoughParticipants:
+    case MType.WaitingForMoreParticipants:
+    case MType.EnoughParticipants:
       return true;
   }
 
@@ -95,12 +95,12 @@ export function isMessageToServer(o: unknown): o is MessageToServer {
   if (!hasMessageType(o)) return false;
 
   switch (o.type) {
-    case type.ClientConnected:
+    case MType.ClientConnected:
       return true;
-    case type.SignalForPeer:
+    case MType.SignalForPeer:
       return "peer" in o && isNodeID(o.peer) && "signal" in o; // TODO check signal content?
-    case type.JoinRound:
-    case type.PeerIsReady:
+    case MType.JoinRound:
+    case MType.PeerIsReady:
       return true;
   }
 
@@ -111,7 +111,7 @@ export function isPeerMessage(o: unknown): o is PeerMessage {
   if (!hasMessageType(o)) return false;
 
   switch (o.type) {
-    case type.Payload:
+    case MType.Payload:
       return (
         "peer" in o &&
         isNodeID(o.peer) &&

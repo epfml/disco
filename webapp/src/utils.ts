@@ -8,3 +8,13 @@ export function scrollToTop() {
     appElement.scrollTop = 0;
   }
 }
+
+export function scrollDown() {
+  const appElement = document.getElementById("base-container");
+  if (appElement !== null) {
+    appElement.scrollBy({
+      top: window.innerHeight,
+      behavior: "smooth",
+    });
+  }
+}

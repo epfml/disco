@@ -1,8 +1,8 @@
 import * as tf from "@tensorflow/tfjs";
 
-import { WeightsContainer } from "./index.js";
+import { WeightsContainer } from "#weights/index";
 
-import type { WeightNormHistory } from "./training/trainer.js";
+import type { WeightNormHistory } from "#training/types";
 
 /** Computes the Frobenius norm of the given weights. */
 export async function frobeniusNorm(weights: tf.Tensor): Promise<number> {

@@ -1,10 +1,11 @@
 {
-  "composite": true,
   "compilerOptions": {
+    "composite": true,
     "declaration": true,
     "declarationMap": true,
 
     "module": "node16",
+    "moduleResolution": "node16",
     "target": "es2022",
 
     "strict": true,
@@ -16,6 +17,11 @@
     "noEmitOnError": true,
 
     // enforce using the override keyword
-    "noImplicitOverride": true
+    "noImplicitOverride": true,
+
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+
+    "customConditions": ["@disco/source"]
   }
 }

@@ -4,12 +4,13 @@ import * as msgpack from "@msgpack/msgpack";
 import type WebSocket from "ws";
 import { Map } from "immutable";
 
-import { client, DataType } from "@epfml/discojs";
+import type { DataType, NodeID } from "@epfml/discojs";
+import { mtype, decentralizedMessages } from "@epfml/discojs";
 
 import { TrainingController } from "./training_controller.js";
 
-import messages = client.decentralized.messages;
-import MessageTypes = client.messages.type;
+import messages = decentralizedMessages;
+import MessageTypes = mtype.MType;
 
 const debug = createDebug("server:controllers:decentralized");
 
@@ -20,7 +21,7 @@ export class DecentralizedController<
   // The boolean value indicates if the node is ready to exchange weight updates (i.e.
   // the node has already sent a PeerIsReady message)
   // We wait for all peers to be ready to exchange weight updates
-  #roundPeers = Map<client.NodeID, boolean>();
+  #roundPeers = Map<NodeID, boolean>();
   #aggregationRound = 0;
 
   handle(ws: WebSocket): void {
@@ -143,7 +144,7 @@ export class DecentralizedController<
         debug("Sending peer list to: %o", id.slice(0, 4));
 
         const encoded = msgpack.encode(readyPeerIDs);
-        return [id, encoded] as [client.NodeID, Buffer];
+        return [id, encoded] as [NodeID, Buffer];
       })
       .map(([id, encoded]) => {
         const conn = this.connections.get(id);

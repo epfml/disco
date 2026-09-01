@@ -2,7 +2,7 @@
   "extends": "../tsconfig.base.json",
   "references": [
     {
-      "path": "../discojs"
+      "path": "../discojs/tsconfig.lib.json"
     }
   ],
   "compilerOptions": {

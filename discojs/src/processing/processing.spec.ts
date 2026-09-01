@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import type { Task } from "../index.js";
-import { Dataset } from "../index.js";
+import { preprocess } from "#processing/processing";
 
-import { preprocess } from "./index.js";
+import type { Task } from "#task/index";
+import { Dataset } from "#dataset/index";
 
 async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
   const ret: T[] = [];

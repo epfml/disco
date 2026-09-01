@@ -1,12 +1,13 @@
 import "@tensorflow/tfjs-node";
-import { models, Dataset, Tokenizer } from "@epfml/discojs";
+import type { GPTConfig } from "@epfml/discojs";
+import { GPT, Dataset, Tokenizer } from "@epfml/discojs";
 import { List } from "immutable";
 
 async function main(): Promise<void> {
   const data = "Lorem ipsum dolor sit amet, consectetur adipis";
   const seed = 42;
 
-  const config: models.GPTConfig = {
+  const config: GPTConfig = {
     modelType: "gpt-nano",
     lr: 0.01,
     maxIter: 50,
@@ -26,7 +27,7 @@ async function main(): Promise<void> {
     .repeat()
     .batch(8);
 
-  const model = new models.GPT(config);
+  const model = new GPT(config);
   for await (const logs of model.train(tokenDataset, undefined)) {
     console.log(logs);
   }

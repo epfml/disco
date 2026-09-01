@@ -2,7 +2,7 @@ import { parse } from "ts-command-line-args";
 import { Map, Set } from "immutable";
 
 import type { DataType, Network, TaskProvider } from "@epfml/discojs";
-import { defaultTasks, models } from "@epfml/discojs";
+import { defaultTasks, GPT } from "@epfml/discojs";
 
 type AggregationStrategy = "mean" | "byzantine" | "secure";
 
@@ -96,8 +96,7 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     task: {
       type: String,
       alias: "t",
-      description:
-        "Task: tinder_dog, titanic, simple_face, cifar10 or lus_covid",
+      description: "Task: tinder_dog, titanic, cifar10 or lus_covid",
       defaultValue: "tinder_dog",
     },
     numberOfUsers: {
@@ -296,12 +295,10 @@ const supportedTasks = Map(
     Set.of<TaskProvider<"image" | "tabular" | "text", Network>>(
       defaultTasks.cifar10,
       defaultTasks.lusCovid,
-      defaultTasks.simpleFace,
       defaultTasks.titanic,
       defaultTasks.tinderDog,
       defaultTasks.mnist,
       defaultTasks.goldfish,
-      defaultTasks.centralizedGPT2FineTune,
     ).map(
       async (t) =>
         [(await t.getTask()).id, t] as [
@@ -441,27 +438,30 @@ export const args: BenchmarkArguments = {
 
       return task;
     },
-    async getModel() {
-      const model = await provider.getModel();
+    modelCard: {
+      card: provider.modelCard.card,
+      async getModel() {
+        const model = await provider.modelCard.getModel();
 
-      if (unsafeArgs.learningRate !== undefined) {
-        if (!(model instanceof models.GPT))
-          throw new Error(
-            "learningRate override is only supported for GPT models",
+        if (unsafeArgs.learningRate !== undefined) {
+          if (!(model instanceof GPT))
+            throw new Error(
+              "learningRate override is only supported for GPT models",
+            );
+          if (
+            !Number.isFinite(unsafeArgs.learningRate) ||
+            unsafeArgs.learningRate <= 0
+          )
+            throw new Error("learningRate must be a positive finite number");
+
+          model.setLearningRate(unsafeArgs.learningRate);
+          console.log(
+            `Overriding GPT learning rate to ${unsafeArgs.learningRate}`,
           );
-        if (
-          !Number.isFinite(unsafeArgs.learningRate) ||
-          unsafeArgs.learningRate <= 0
-        )
-          throw new Error("learningRate must be a positive finite number");
+        }
 
-        model.setLearningRate(unsafeArgs.learningRate);
-        console.log(
-          `Overriding GPT learning rate to ${unsafeArgs.learningRate}`,
-        );
-      }
-
-      return model;
+        return model;
+      },
     },
   },
 };

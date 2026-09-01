@@ -5,22 +5,25 @@ import { parse } from "ts-command-line-args";
 
 import "@tensorflow/tfjs-node";
 import path from "node:path";
-import { models, serialization, Tokenizer } from "@epfml/discojs";
+import type { HellaSwagDataset } from "@epfml/discojs";
+import {
+  GPT,
+  ONNXModel,
+  modelDecode,
+  Tokenizer,
+  evaluate_hellaswag,
+} from "@epfml/discojs";
 import { loadHellaSwag } from "@epfml/discojs-node";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-async function evaluateModel(
-  model: models.GPT | models.ONNXModel,
-  numDataPoints = -1,
-) {
-  const hellaswagDataset: models.HellaSwagDataset =
-    await loadHellaSwag(numDataPoints);
+async function evaluateModel(model: GPT | ONNXModel, numDataPoints = -1) {
+  const hellaswagDataset: HellaSwagDataset = await loadHellaSwag(numDataPoints);
   const tokenizer = await Tokenizer.from_pretrained("Xenova/gpt2");
   console.log("Starting the HellaSwag benchmark...");
 
   const start = Date.now();
-  const accuracy = await models.evaluate_hellaswag(
+  const accuracy = await evaluate_hellaswag(
     model,
     tokenizer,
     hellaswagDataset,
@@ -91,15 +94,15 @@ async function main(): Promise<void> {
     { helpArg: "help" },
   );
 
-  let model: models.GPT | models.ONNXModel | undefined;
+  let model: GPT | ONNXModel | undefined;
   switch (args.model) {
     case "onnx":
       console.log("Using ONNX pretrained model Xenova/gpt2");
-      model = await models.ONNXModel.init_pretrained("Xenova/gpt2");
+      model = await ONNXModel.init_pretrained("Xenova/gpt2");
       break;
     case "gpt-tfjs-random":
       console.log("Using GPT-TFJS with random initialization");
-      model = new models.GPT({ seed: 42 });
+      model = new GPT({ seed: 42 });
       break;
     case "gpt-tfjs-pretrained":
       console.log("Using GPT-TFJS with pretrained weights");
@@ -109,7 +112,7 @@ async function main(): Promise<void> {
         );
       }
       const encodedModel = await fsPromise.readFile(args.pretrainedModelPath);
-      model = (await serialization.model.decode(encodedModel)) as models.GPT;
+      model = (await modelDecode(encodedModel)) as GPT;
       break;
   }
   await evaluateModel(model, args.numDataPoints);

@@ -1,7 +1,7 @@
 import path from "node:path";
 import { createReadStream } from "node:fs";
-import { Dataset, processing } from "@epfml/discojs";
-import { DataFormat, DataType, Image, Task, Text } from "@epfml/discojs";
+import { Dataset, extractColumn } from "@epfml/discojs";
+import type { DataFormat, DataType, Image, Task } from "@epfml/discojs";
 import { loadCSV, loadImage, loadImagesInDir } from "@epfml/discojs-node";
 import { Repeat } from "immutable";
 
@@ -9,7 +9,7 @@ function loadTextSamples(
   filePath: string,
   userIdx?: number,
   totalClient?: number,
-): Dataset<Text> {
+): Dataset<DataFormat.Raw["text"]> {
   return new Dataset(async function* () {
     const stream = createReadStream(filePath, { encoding: "utf8" });
     const sampleDelimiter = "<|endoftext|>";
@@ -55,24 +55,6 @@ function loadTextSamples(
   });
 }
 
-async function loadSimpleFaceData(
-  userIdx: number,
-  totalClient: number,
-): Promise<Dataset<DataFormat.Raw["image"]>> {
-  const folder = path.join("..", "datasets", "simple_face");
-
-  const [adults, childs]: Dataset<[Image, string]>[] = [
-    (await loadImagesInDir(path.join(folder, "adult"))).zip(Repeat("adult")),
-    (await loadImagesInDir(path.join(folder, "child"))).zip(Repeat("child")),
-  ];
-
-  const combinded = adults.chain(childs);
-
-  const sharded = combinded.filter((_, i) => i % totalClient === userIdx);
-
-  return sharded;
-}
-
 async function loadLusCovidData(
   userIdx: number,
   totalClient: number,
@@ -100,10 +82,7 @@ function loadTinderDogData(split: number): Dataset<DataFormat.Raw["image"]> {
   return loadCSV(path.join(folder, "labels.csv"))
     .map(
       (row) =>
-        [
-          processing.extractColumn(row, "filename"),
-          processing.extractColumn(row, "label"),
-        ] as const,
+        [extractColumn(row, "filename"), extractColumn(row, "label")] as const,
     )
     .map(async ([filename, label]) => {
       try {
@@ -127,10 +106,7 @@ function loadData(
   return loadCSV(path.join(folder, "labels.csv"))
     .map(
       (row) =>
-        [
-          processing.extractColumn(row, "filename"),
-          processing.extractColumn(row, "label"),
-        ] as const,
+        [extractColumn(row, "filename"), extractColumn(row, "label")] as const,
     )
     .map(async ([filename, label]) => {
       try {
@@ -154,14 +130,12 @@ export async function getTaskData<D extends DataType>(
   isValidation?: boolean,
   validationDatasetPath?: string,
 ): Promise<Dataset<DataFormat.Raw[D]>> {
-  if (validationDatasetPath && taskID !== "goldfish" && taskID !== "centralized-gpt2-finetune")
-    throw new Error("validationDatasetPath is currently only supported for text tasks")
+  if (validationDatasetPath && taskID !== "goldfish")
+    throw new Error(
+      "validationDatasetPath is currently only supported for the goldfish task",
+    );
 
   switch (taskID) {
-    case "simple_face": // remove
-      return (await loadSimpleFaceData(userIdx, totalClient)) as Dataset<
-        DataFormat.Raw[D]
-      >;
     case "titanic":
     case "titanic_decentralized":
       const titanicData = loadCSV(
@@ -183,8 +157,7 @@ export async function getTaskData<D extends DataType>(
     case "mnist_federated":
     case "mnist":
       return loadData("mnist", userIdx) as Dataset<DataFormat.Raw[D]>;
-    case "goldfish":
-    case "centralized-gpt2-finetune": {
+    case "goldfish": {
       const filePath =
         isValidation && validationDatasetPath
           ? validationDatasetPath

@@ -1,18 +1,6 @@
 import { defaultTasks } from "@epfml/discojs";
 import { setupServerWith } from "../../support/e2e";
 
-beforeEach(() =>
-  cy.wrap(async () => {
-    const root = await navigator.storage.getDirectory();
-    try {
-      await root.removeEntry("models", { recursive: true });
-    } catch (e) {
-      if (e instanceof DOMException && e.name === "NotFoundError") return;
-      throw e;
-    }
-  }),
-);
-
 it(
   "stores models",
   { retries: 5 }, // can exhaust memory
@@ -36,7 +24,7 @@ it(
 
     cy.visit("/evaluate");
     cy.contains("button", "download").click();
-    cy.contains("button", "test")
+    cy.contains("button", "chat")
       .should("exist")
       .then(
         () =>
@@ -45,6 +33,6 @@ it(
       );
 
     cy.reload();
-    cy.contains("button", "test").should("exist");
+    cy.contains("button", "chat").should("exist");
   },
 );

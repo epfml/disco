@@ -1,12 +1,12 @@
 import express from "express";
 import type expressWS from "express-ws";
+import type { Task, DataType, Network, Encoded } from "@epfml/discojs";
+import { modelDecode, weightsEncode } from "@epfml/discojs";
 import createDebug from "debug";
-import type { Task, DataType, Network } from "@epfml/discojs";
-import { serialization } from "@epfml/discojs";
 
 import type { TaskSet } from "../task_set.js";
+import type { TrainingController } from "../controllers/index.js";
 import {
-  TrainingController,
   FederatedController,
   DecentralizedController,
 } from "../controllers/index.js";
@@ -47,7 +47,7 @@ export class TrainingRouter<N extends Exclude<Network, "local">> {
   // websocket connections
   private async onNewTask<D extends DataType>(
     task: Task<D, N>,
-    encodedModel: serialization.Encoded,
+    encodedModel: Encoded,
   ): Promise<void> {
     // The controller handles the actual logic of collaborative training
     // in its `handle` method. Each task has a dedicated controller which
@@ -58,11 +58,11 @@ export class TrainingRouter<N extends Exclude<Network, "local">> {
 
       // The federated controller takes the initial model weights at initialization
       // so that it can send it to new clients
-      const model = await serialization.model.decode(encodedModel);
+      const model = await modelDecode(encodedModel);
       const weights = model.weights;
-      let encodedWeights: serialization.Encoded;
+      let encodedWeights: Encoded;
       try {
-        encodedWeights = await serialization.weights.encode(weights);
+        encodedWeights = await weightsEncode(weights);
       } catch (err) {
         debug("Failed to encode initial weights for task %s: %o", task.id, err);
         throw err;

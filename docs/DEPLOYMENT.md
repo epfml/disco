@@ -4,7 +4,7 @@ This automation happens via [a workflow of our CI](../.github/workflows/publish-
 
 ## Normal development
 
-Every merge to the default branch (`develop`) releases
+Every merge to the default branch (`main`) releases
 a patch version of the NPM packages (`discojs`, `discojs-node` & `discojs-web`).
 
 It will also create a

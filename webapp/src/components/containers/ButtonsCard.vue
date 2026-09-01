@@ -36,7 +36,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { List } from "immutable";
+import type { List } from "immutable";
 
 import CustomButton from "@/components/simple/CustomButton.vue";
 

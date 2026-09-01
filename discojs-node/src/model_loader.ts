@@ -1,14 +1,14 @@
 import fs from "node:fs/promises";
 
-import type { models, DataType } from "@epfml/discojs";
-import { serialization } from "@epfml/discojs";
+import type { Model, DataType } from "@epfml/discojs";
+import { modelEncode, modelDecode } from "@epfml/discojs";
 
 export async function saveModelToDisk(
-  model: models.Model<DataType>,
+  model: Model<DataType>,
   modelFolder: string,
   modelFileName: string,
 ): Promise<void> {
-  const encoded = await serialization.model.encode(model);
+  const encoded = await modelEncode(model);
 
   await fs.mkdir(modelFolder, { recursive: true });
   await fs.writeFile(`${modelFolder}/${modelFileName}`, encoded);
@@ -16,8 +16,8 @@ export async function saveModelToDisk(
 
 export async function loadModelFromDisk(
   modelPath: string,
-): Promise<models.Model<DataType>> {
+): Promise<Model<DataType>> {
   const content = await fs.readFile(modelPath);
 
-  return await serialization.model.decode(content);
+  return await modelDecode(content);
 }

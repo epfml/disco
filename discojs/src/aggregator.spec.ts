@@ -4,9 +4,9 @@ import {
   type Aggregator,
   MeanAggregator,
   SecureAggregator,
-} from "./aggregator/index.js";
-import type { NodeID } from "./client/types.js";
-import { WeightsContainer } from "./index.js";
+} from "#aggregator/index";
+import type { NodeID } from "#client/index";
+import { WeightsContainer } from "#weights/index";
 
 const AGGREGATORS: Set<[name: string, new () => Aggregator]> = Set.of<
   new () => Aggregator

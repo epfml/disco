@@ -1,8 +1,8 @@
 import * as tf from "@tensorflow/tfjs";
 import { Set } from "immutable";
 import { describe, expect, it } from "vitest";
-import { WeightsContainer } from "../index.js";
-import { MeanAggregator } from "./mean.js";
+import { WeightsContainer } from "#weights/index";
+import { MeanAggregator } from "#aggregator/mean";
 
 async function WSIntoArrays(ws: WeightsContainer): Promise<number[][]> {
   return (await Promise.all(ws.weights.map(async (w) => await w.data()))).map(
