@@ -1,27 +1,32 @@
-import type tf from '@tensorflow/tfjs'
+import type tf from "@tensorflow/tfjs";
 
-import type { DataType, Model } from '../index.js'
-import { models, serialization } from '../index.js'
-import { GPTConfig } from '../models/index.js'
+import { encode as w_encode, decode as w_decode } from "#serialization/weights";
+import { GPT, TFJS } from "#models/index";
+import type { Model, GPTConfig } from "#models/index";
+import type { DataType } from "#types/index";
 
-import * as coder from "./coder.js";
-import { Encoded, isEncoded } from "./coder.js";
+import type { Encoded } from "#serialization/coder";
+import {
+  encode as encodeGeneric,
+  decode as decodeGeneric,
+  isEncoded,
+} from "#serialization/coder";
 
 const Type = {
   TFJS: 0,
-  GPT: 1
-} as const
+  GPT: 1,
+} as const;
 
 export async function encode(model: Model<DataType>): Promise<Encoded> {
   switch (true) {
-    case model instanceof models.TFJS: {
+    case model instanceof TFJS: {
       const serialized = await model.serialize();
-      return coder.encode([Type.TFJS, ...serialized]);
+      return encodeGeneric([Type.TFJS, ...serialized]);
     }
-    case model instanceof models.GPT: {
+    case model instanceof GPT: {
       const { weights, config } = model.serialize();
-      const serializedWeights = await serialization.weights.encode(weights);
-      return coder.encode([Type.GPT, serializedWeights, config]);
+      const serializedWeights = await w_encode(weights);
+      return encodeGeneric([Type.GPT, serializedWeights, config]);
     }
     default:
       throw new Error("unknown model type");
@@ -29,16 +34,20 @@ export async function encode(model: Model<DataType>): Promise<Encoded> {
 }
 
 export async function decode(encoded: Encoded): Promise<Model<DataType>> {
-  const raw = coder.decode(encoded)
+  const raw = decodeGeneric(encoded);
 
   if (!Array.isArray(raw) || raw.length < 2) {
-    throw new Error("invalid encoding, encoding isn't an array or doesn't contain enough values")
+    throw new Error(
+      "invalid encoding, encoding isn't an array or doesn't contain enough values",
+    );
   }
-  const type = raw[0] as unknown
-  if (typeof type !== 'number') {
-    throw new Error('invalid encoding, first encoding field should be the model type')
+  const type = raw[0] as unknown;
+  if (typeof type !== "number") {
+    throw new Error(
+      "invalid encoding, first encoding field should be the model type",
+    );
   }
-  const rawModel = raw[1] as unknown
+  const rawModel = raw[1] as unknown;
   switch (type) {
     case Type.TFJS: {
       if (raw.length !== 3)
@@ -54,35 +63,35 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
           datatype = rawDatatype;
           break;
         default:
-          throw new Error(
-            "invalid TFJS model encoding: invalid DataType",
-          );
+          throw new Error("invalid TFJS model encoding: invalid DataType");
       }
 
-      return await models.TFJS.deserialize([
+      return await TFJS.deserialize([
         datatype,
         // TODO totally unsafe casting
         rawModel as tf.io.ModelArtifacts,
       ]);
     }
-    case Type.GPT: {  
-      let config
+    case Type.GPT: {
+      let config;
       if (raw.length == 2) {
-        config = undefined
+        config = undefined;
       } else if (raw.length == 3) {
-        config = raw[2] as GPTConfig
+        config = raw[2] as GPTConfig;
       } else {
-        throw new Error('invalid encoding, gpt-tfjs model encoding should be an array of length 2 or 3')
+        throw new Error(
+          "invalid encoding, gpt-tfjs model encoding should be an array of length 2 or 3",
+        );
       }
 
       if (!isEncoded(rawModel))
         throw new Error(
           "invalid encoding, gpt-tfjs model weights should be an encoding of its weights",
         );
-      const weights = serialization.weights.decode(rawModel)
-      return models.GPT.deserialize({weights, config})
+      const weights = w_decode(rawModel);
+      return GPT.deserialize({ weights, config });
     }
     default:
-      throw new Error('invalid encoding, model type unrecognized')
+      throw new Error("invalid encoding, model type unrecognized");
   }
 }

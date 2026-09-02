@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import { CONFIG } from "@/config";
-import { defaultTasks, serialization } from "@epfml/discojs";
+import { defaultTasks, modelEncode } from "@epfml/discojs";
 import { loadCSV } from "@epfml/discojs-web";
 import { createTestingPinia } from "@pinia/testing";
 import { mount } from "@vue/test-utils";
@@ -17,8 +17,8 @@ async function setupForTask() {
       url.toString() ===
       new URL("tasks/titanic/model.json", CONFIG.serverUrl).href
     ) {
-      const model = await provider.getModel();
-      const encoded = await serialization.model.encode(model);
+      const model = await provider.modelCard.getModel();
+      const encoded = await modelEncode(model);
       return new Response(new Uint8Array(encoded));
     }
     throw new Error(`unhandled get: ${url}`);

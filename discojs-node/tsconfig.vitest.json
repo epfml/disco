@@ -1,5 +1,12 @@
 {
-	"extends": "../tsconfig.base.json",
-	"compilerOptions": { "noEmit": true },
-	"include": ["src"]
+  "extends": "../tsconfig.base.json",
+  "references": [
+    {
+      "path": "../discojs/tsconfig.lib.json"
+    }
+  ],
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["src"]
 }

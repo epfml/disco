@@ -1,0 +1,30 @@
+name: build
+on:
+  workflow_call:
+
+jobs:
+  build-server-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - run: docker build .
+      - run: |
+          docker build --quiet --load . | \
+            xargs docker run --detach --publish 8080:8080
+          timeout=120
+          while ! curl http://localhost:8080
+          do
+            [ $timeout -eq 0 ] && exit 1
+            sleep 1
+            timeout=$((timeout - 1))
+          done
+
+  build-topological:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - run: pnpm -r run build
+      - uses: actions/upload-artifact@v7
+        with: { name: all-builds, path: "*/dist" }

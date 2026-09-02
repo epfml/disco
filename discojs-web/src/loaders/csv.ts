@@ -24,7 +24,7 @@ export function load(file: File): Dataset<Partial<Record<string, string>>> {
         skipEmptyLines: true, // TODO needed to avoid parsing last empty line
         complete(results) {
           if (results.errors.length > 0) {
-            const error = results.errors[0]
+            const error = results.errors[0];
             reject(new Error(error.message));
             return;
           }

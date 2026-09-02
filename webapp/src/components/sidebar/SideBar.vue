@@ -1,9 +1,7 @@
 <template>
   <div>
     <!-- Mini Sidebar (LHS) -->
-    <nav
-      class="flex flex-col shrink-0 h-full sm:px-4 px-2 py-4"
-    >
+    <nav class="flex flex-col shrink-0 h-full sm:px-4 px-2 py-4">
       <!-- Brand -->
       <div class="hidden sm:flex shrink-0">
         <RouterLink
@@ -18,22 +16,30 @@
       <div class="flex flex-col items-center justify-center flex-1 space-y-4">
         <RouterLink to="/">
           <SidebarButton id="tuto-home-bttn" text="Home" label="Home">
-            <HomeIcon/>
+            <HomeIcon />
           </SidebarButton>
         </RouterLink>
         <RouterLink to="/list">
-          <SidebarButton text="Join existing DISCOllaboratives" label="Join"> 
-            <TasksIcon class="w-6 h-6"/>
+          <SidebarButton text="Join existing DISCOllaboratives" label="Join">
+            <TasksIcon class="w-6 h-6" />
           </SidebarButton>
         </RouterLink>
         <RouterLink to="/create">
-          <SidebarButton id="tuto-create-bttn" text="Create a new DISCOllaborative" label="Create"> 
-            <CreateIcon/>
+          <SidebarButton
+            id="tuto-create-bttn"
+            text="Create a new DISCOllaborative"
+            label="Create"
+          >
+            <CreateIcon />
           </SidebarButton>
         </RouterLink>
         <RouterLink to="/evaluate">
-          <SidebarButton id="tuto-evaluate-bttn" text="Evaluate or download a model in the Model Library" label="Models"> 
-            <EvaluateIcon/>
+          <SidebarButton
+            id="tuto-evaluate-bttn"
+            text="Evaluate or download a model in the Model Library"
+            label="Models"
+          >
+            <EvaluateIcon />
           </SidebarButton>
         </RouterLink>
       </div>
@@ -47,16 +53,16 @@
           label="Theme"
           @click="toggleDarkMode"
         >
-          <MoonIcon v-if="themeStore.current === 'light'"/>
-          <SunIcon v-else/>
+          <MoonIcon v-if="themeStore.current === 'light'" />
+          <SunIcon v-else />
         </SidebarButton>
-        <SidebarButton 
-          id="tuto-help-bttn" 
+        <SidebarButton
+          id="tuto-help-bttn"
           text="Check out the tutorial"
           label="Tutorial"
           @click="tutorialStore.startFromSidebar"
         >
-          <QuestionMarkIcon/>
+          <QuestionMarkIcon />
         </SidebarButton>
       </div>
     </nav>
@@ -84,7 +90,6 @@ const tutorialStore = useTutorialStore();
 
 // Function to toggle the dark mode
 const toggleDarkMode = () => {
-  themeStore.current = (themeStore.current === "light") ? "dark" : "light";
+  themeStore.current = themeStore.current === "light" ? "dark" : "light";
 };
-
 </script>

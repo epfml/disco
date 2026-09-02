@@ -1,9 +1,12 @@
 import * as tf from "@tensorflow/tfjs";
 
-import { WeightsContainer } from "../index.js";
+import { WeightsContainer } from "#weights/index";
 
-import { Encoded } from "./coder.js";
-import * as coder from "./coder.js";
+import type { Encoded } from "#serialization/coder";
+import {
+  encode as encodeGeneric,
+  decode as decodeGeneric,
+} from "#serialization/coder";
 
 type Serialized = {
   shape: number[];
@@ -29,16 +32,16 @@ function isSerialized(raw: unknown): raw is Serialized {
 export async function encode(weights: WeightsContainer): Promise<Encoded> {
   const serialized: Serialized[] = await Promise.all(
     weights.weights.map(async (t) => ({
-      shape: t.shape as number[],
+      shape: t.shape,
       data: await t.data<"float32">(),
     })),
   );
 
-  return coder.encode(serialized);
+  return encodeGeneric(serialized);
 }
 
 export function decode(encoded: Encoded): WeightsContainer {
-  const raw = coder.decode(encoded);
+  const raw = decodeGeneric(encoded);
 
   if (!(Array.isArray(raw) && raw.every(isSerialized)))
     throw new Error("expected to decode an array of serialized weights");

@@ -2,16 +2,16 @@ import { EventEmitter } from "node:events";
 import * as msgpack from "@msgpack/msgpack";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type WebSocket from "ws";
-import { client, defaultTasks, type Task } from "@epfml/discojs";
+import type { Task, decentralizedMessages } from "@epfml/discojs";
+import { mtype, defaultTasks } from "@epfml/discojs";
 
 import { DecentralizedController } from "../../src/controllers/decentralized_controller.js";
 
-import MessageTypes = client.messages.type;
-import messages = client.decentralized.messages;
+import MessageTypes = mtype.MType;
 
 type FakeWebSocket = WebSocket & {
-  sentMessages: messages.MessageFromServer[];
-  emitMessage: (message: messages.MessageToServer) => void;
+  sentMessages: decentralizedMessages.MessageFromServer[];
+  emitMessage: (message: decentralizedMessages.MessageToServer) => void;
   emitClose: () => void;
 };
 
@@ -21,11 +21,13 @@ function makeFakeWebSocket(): FakeWebSocket {
   ws.sentMessages = [];
 
   ws.send = vi.fn((data: Buffer | Uint8Array) => {
-    const decoded = msgpack.decode(data) as messages.MessageFromServer;
+    const decoded = msgpack.decode(
+      data,
+    ) as decentralizedMessages.MessageFromServer;
     ws.sentMessages.push(decoded);
-  }) as unknown as WebSocket["send"];
+  }); // as unknown as WebSocket["send"]
 
-  ws.emitMessage = (message: messages.MessageToServer) => {
+  ws.emitMessage = (message: decentralizedMessages.MessageToServer) => {
     ws.emit("message", msgpack.encode(message));
   };
 
@@ -36,24 +38,37 @@ function makeFakeWebSocket(): FakeWebSocket {
   return ws;
 }
 
-function lastMessageOfType<T extends messages.MessageFromServer["type"]>(
+function lastMessageOfType<
+  T extends decentralizedMessages.MessageFromServer["type"],
+>(
   ws: FakeWebSocket,
   type: T,
-): Extract<messages.MessageFromServer, { type: T }> | undefined {
+): Extract<decentralizedMessages.MessageFromServer, { type: T }> | undefined {
   return ws.sentMessages
-    .filter((message): message is Extract<messages.MessageFromServer, { type: T }> =>
-      message.type === type,
+    .filter(
+      (
+        message,
+      ): message is Extract<
+        decentralizedMessages.MessageFromServer,
+        { type: T }
+      > => message.type === type,
     )
     .at(-1);
 }
 
-function messagesOfType<T extends messages.MessageFromServer["type"]>(
+function messagesOfType<
+  T extends decentralizedMessages.MessageFromServer["type"],
+>(
   ws: FakeWebSocket,
   type: T,
-): Extract<messages.MessageFromServer, { type: T }>[] {
+): Extract<decentralizedMessages.MessageFromServer, { type: T }>[] {
   return ws.sentMessages.filter(
-    (message): message is Extract<messages.MessageFromServer, { type: T }> =>
-      message.type === type,
+    (
+      message,
+    ): message is Extract<
+      decentralizedMessages.MessageFromServer,
+      { type: T }
+    > => message.type === type,
   );
 }
 
@@ -113,8 +128,12 @@ describe("DecentralizedController peer connection retry", () => {
     connectAndJoinRound(controller, ws1);
     connectAndJoinRound(controller, ws2);
 
-    expect(lastMessageOfType(ws1, MessageTypes.PeersForRound)).to.not.equal(undefined);
-    expect(lastMessageOfType(ws2, MessageTypes.PeersForRound)).to.not.equal(undefined);
+    expect(lastMessageOfType(ws1, MessageTypes.PeersForRound)).to.not.equal(
+      undefined,
+    );
+    expect(lastMessageOfType(ws2, MessageTypes.PeersForRound)).to.not.equal(
+      undefined,
+    );
 
     // Only one peer reports that its peer connections are ready.
     // The other peer never sends ConnectionsReady, so the server timeout should retry.
@@ -124,8 +143,12 @@ describe("DecentralizedController peer connection retry", () => {
 
     await vi.advanceTimersByTimeAsync(60_000);
 
-    expect(messagesOfType(ws1, MessageTypes.RetryPeerConnections)).to.have.length(1);
-    expect(messagesOfType(ws2, MessageTypes.RetryPeerConnections)).to.have.length(1);
+    expect(
+      messagesOfType(ws1, MessageTypes.RetryPeerConnections),
+    ).to.have.length(1);
+    expect(
+      messagesOfType(ws2, MessageTypes.RetryPeerConnections),
+    ).to.have.length(1);
 
     expect(messagesOfType(ws1, MessageTypes.ConnectionFail)).to.have.length(0);
     expect(messagesOfType(ws2, MessageTypes.ConnectionFail)).to.have.length(0);
@@ -141,32 +164,40 @@ describe("DecentralizedController peer connection retry", () => {
     connectAndJoinRound(controller, ws2);
 
     for (let attempt = 1; attempt <= 3; attempt++) {
-        // Simulate only ws1 finishing peer connection establishment.
-        ws1.emitMessage({
+      // Simulate only ws1 finishing peer connection establishment.
+      ws1.emitMessage({
         type: MessageTypes.ConnectionsReady,
-        });
+      });
 
-        await vi.advanceTimersByTimeAsync(60_000);
+      await vi.advanceTimersByTimeAsync(60_000);
 
-        expect(messagesOfType(ws1, MessageTypes.ConnectionFail)).to.have.length(0);
-        expect(messagesOfType(ws2, MessageTypes.ConnectionFail)).to.have.length(0);
+      expect(messagesOfType(ws1, MessageTypes.ConnectionFail)).to.have.length(
+        0,
+      );
+      expect(messagesOfType(ws2, MessageTypes.ConnectionFail)).to.have.length(
+        0,
+      );
 
-        expect(messagesOfType(ws1, MessageTypes.RetryPeerConnections)).to.have.length(attempt);
-        expect(messagesOfType(ws2, MessageTypes.RetryPeerConnections)).to.have.length(attempt);
+      expect(
+        messagesOfType(ws1, MessageTypes.RetryPeerConnections),
+      ).to.have.length(attempt);
+      expect(
+        messagesOfType(ws2, MessageTypes.RetryPeerConnections),
+      ).to.have.length(attempt);
 
-        // After RetryPeerConnections, clients will call establishPeerConnections() again and send PeerIsReady.
-        ws1.emitMessage({
+      // After RetryPeerConnections, clients will call establishPeerConnections() again and send PeerIsReady.
+      ws1.emitMessage({
         type: MessageTypes.PeerIsReady,
-        });
-        ws2.emitMessage({
+      });
+      ws2.emitMessage({
         type: MessageTypes.PeerIsReady,
-        });
+      });
     }
 
     // Reached retreis threshold, so the peer that never
     // sent ConnectionsReady should receive ConnectionFail.
     ws1.emitMessage({
-        type: MessageTypes.ConnectionsReady,
+      type: MessageTypes.ConnectionsReady,
     });
 
     await vi.advanceTimersByTimeAsync(60_000);
@@ -176,6 +207,8 @@ describe("DecentralizedController peer connection retry", () => {
     // The peer that did finish connecting stays in the round and is told to retry
     // with the remaining participants.
     expect(messagesOfType(ws1, MessageTypes.ConnectionFail)).to.have.length(0);
-    expect(messagesOfType(ws1, MessageTypes.RetryPeerConnections)).to.have.length(4);
-    });
+    expect(
+      messagesOfType(ws1, MessageTypes.RetryPeerConnections),
+    ).to.have.length(4);
+  });
 });

@@ -1,7 +1,6 @@
-export { cifar10 } from './cifar10.js'
-export { lusCovid } from './lus_covid.js'
-export { mnist } from './mnist.js'
-export { simpleFace } from './simple_face.js'
-export { titanic } from './titanic.js'
-export { wikitext } from './wikitext.js'
-export { tinderDog } from './tinder_dog.js'
+export { cifar10 } from "./cifar10.js";
+export { lusCovid } from "./lus_covid.js";
+export { mnist } from "./mnist.js";
+export { titanic } from "./titanic.js";
+export { wikitext } from "./wikitext.js";
+export { tinderDog } from "./tinder_dog.js";

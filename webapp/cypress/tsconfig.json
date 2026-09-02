@@ -1,7 +1,21 @@
 {
-  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "extends": [
+    "@vue/tsconfig/tsconfig.dom.json",
+    "../../tsconfig.base.lib.json"
+  ],
   "include": ["./e2e/**/*", "./support/**/*"],
+  "references": [
+    {
+      "path": "../../discojs/tsconfig.lib.json"
+    },
+    {
+      "path": "../../discojs-web/tsconfig.lib.json"
+    }
+  ],
   "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+
     "isolatedModules": false,
     "target": "es2022",
     "lib": ["es2022", "dom"],

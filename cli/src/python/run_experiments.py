@@ -6,7 +6,7 @@ from pathlib import Path
 def build_test_command(cfg):
     # Mandatory arguments
     cmd = [
-        "npm", "-w", "cli", "start", "--",
+        "pnpm", "-w", "cli", "start", "--",
         "--testID", cfg["testID"],
         "--task", cfg["task"],
         "--numberOfUsers", str(cfg["numberOfUsers"]),

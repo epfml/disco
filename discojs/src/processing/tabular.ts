@@ -1,4 +1,4 @@
-import { List } from "immutable";
+import type { List } from "immutable";
 
 /**
  * Convert a string to a number

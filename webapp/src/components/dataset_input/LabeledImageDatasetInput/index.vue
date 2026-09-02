@@ -1,5 +1,7 @@
 <template>
-  <div class="flex flex-col cards-gap">
+  <div
+    class="mx-auto w-full max-w-card lg:max-w-cards-2 flex flex-col cards-gap"
+  >
     <DatasetInput>
       <div class="mb-5 text-left">
         You can connect images by selecting the location of each data category
@@ -47,7 +49,8 @@
 <script lang="ts" setup>
 defineOptions({ name: "LabeledImageDatasetInput" });
 
-import { Set } from "immutable";
+// Vue turns immutable Set into the native JS Set
+import type { Set as ImmutableSet } from "immutable";
 import { ref } from "vue";
 
 import DatasetInput from "../DatasetInput.vue";
@@ -57,7 +60,7 @@ import ByCSV from "./ByCSV.vue";
 import ByGroup from "./ByGroup.vue";
 
 const props = defineProps<{
-  labels: Set<string>;
+  labels: ImmutableSet<string>;
 }>();
 
 const dataset = defineModel<NamedLabeledImageDataset>();

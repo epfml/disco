@@ -1,54 +1,57 @@
-import type { serialization } from "../../index.js";
+import type * as serialization from "#serialization/index";
+import type { NodeID } from "#client/types";
 
-import { type NodeID } from '..//types.js'
+import { MType, hasMessageType } from "#client/mtype";
+import type {
+  ClientConnected,
+  WaitingForMoreParticipants,
+  EnoughParticipants,
+} from "#client/mtype";
 
-import { type, hasMessageType } from '../messages.js'
- import type { ClientConnected, WaitingForMoreParticipants, EnoughParticipants } from '../messages.js'
-
- // See ../messages.ts for doc
+// See ../messages.ts for doc
 export type MessageFederated =
-  ClientConnected |
-  NewFederatedNodeInfo |
-  SendPayload |
-  ReceiveServerPayload |
-  WaitingForMoreParticipants |
-  EnoughParticipants
+  | ClientConnected
+  | NewFederatedNodeInfo
+  | SendPayload
+  | ReceiveServerPayload
+  | WaitingForMoreParticipants
+  | EnoughParticipants;
 
 export interface NewFederatedNodeInfo {
-  type: type.NewFederatedNodeInfo
-  id: NodeID
-  waitForMoreParticipants: boolean
+  type: MType.NewFederatedNodeInfo;
+  id: NodeID;
+  waitForMoreParticipants: boolean;
   payload: serialization.Encoded;
-  round: number
-  nbOfParticipants: number
+  round: number;
+  nbOfParticipants: number;
 }
 
 export interface SendPayload {
-  type: type.SendPayload
+  type: MType.SendPayload;
   payload: serialization.Encoded;
-  round: number
+  round: number;
 }
 export interface ReceiveServerPayload {
-  type: type.ReceiveServerPayload
+  type: MType.ReceiveServerPayload;
   payload: serialization.Encoded;
-  round: number,
-  nbOfParticipants: number // number of peers contributing to a federated training
+  round: number;
+  nbOfParticipants: number; // number of peers contributing to a federated training
 }
 
-export function isMessageFederated (raw: unknown): raw is MessageFederated {
+export function isMessageFederated(raw: unknown): raw is MessageFederated {
   if (!hasMessageType(raw)) {
-    return false
+    return false;
   }
 
   switch (raw.type) {
-    case type.ClientConnected:
-    case type.NewFederatedNodeInfo:
-    case type.SendPayload:
-    case type.ReceiveServerPayload:
-    case type.WaitingForMoreParticipants:
-    case type.EnoughParticipants:
-      return true
+    case MType.ClientConnected:
+    case MType.NewFederatedNodeInfo:
+    case MType.SendPayload:
+    case MType.ReceiveServerPayload:
+    case MType.WaitingForMoreParticipants:
+    case MType.EnoughParticipants:
+      return true;
   }
 
-  return false
+  return false;
 }

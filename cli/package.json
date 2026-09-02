@@ -1,26 +1,28 @@
 {
-	"name": "cli",
-	"private": true,
-	"type": "module",
-	"main": "dist/cli.js",
-	"scripts": {
-		"watch": "nodemon --ext ts --ignore dist --watch ../discojs-node/dist --watch ../server/dist --watch . --exec npm run",
-		"start": "npm run build && node dist/cli.js",
-		"benchmark_gpt": "npm run build && node dist/benchmark_gpt.js",
-		"train_gpt": "npm run build && node dist/train_gpt.js",
-		"hellaswag_gpt": "npm run build && node dist/hellaswag_gpt.js",
-		"build": "tsc --build",
-		"test": ": nothing"
-	},
-	"author": "",
-	"license": "ISC",
-	"dependencies": {
-		"@epfml/discojs-node": "*",
-		"server": "*",
-		"tslib": "2"
-	},
-	"devDependencies": {
-		"nodemon": "3",
-		"ts-command-line-args": "2"
-	}
+  "name": "cli",
+  "private": true,
+  "type": "module",
+  "main": "dist/cli.js",
+  "scripts": {
+    "watch": "nodemon --ext ts --ignore dist --watch ../discojs-node/dist --watch ../server/dist --watch . --exec pnpm run",
+    "start": "node dist/cli.js",
+    "benchmark_gpt": "pnpm run build && node dist/benchmark_gpt.js",
+    "train_gpt": "pnpm run build && node dist/train_gpt.js",
+    "hellaswag_gpt": "pnpm run build && node dist/hellaswag_gpt.js",
+    "build": "tsc --build",
+    "test": ": nothing"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@epfml/discojs": "workspace:",
+    "@epfml/discojs-node": "workspace:",
+    "@tensorflow/tfjs-node": "catalog:",
+    "immutable": "catalog:",
+    "server": "workspace:"
+  },
+  "devDependencies": {
+    "nodemon": "3.1.14",
+    "ts-command-line-args": "2.5.1"
+  }
 }

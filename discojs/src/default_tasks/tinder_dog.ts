@@ -1,21 +1,21 @@
-import * as tf from '@tensorflow/tfjs'
-
-import type { Model, TaskProvider } from '../index.js'
-import { models } from '../index.js'
+import type { TaskProvider } from "#task/index";
+import { cards } from "#models/index";
 
 export const tinderDog: TaskProvider<"image", "federated"> = {
   getTask() {
     return Promise.resolve({
-      id: 'tinder_dog',
+      id: "tinder_dog",
       dataType: "image",
       displayInformation: {
         title: "GDHF 2024 | TinderDog",
         summary: {
-          preview: 'Which dog is the cutest....or not?',
-          overview: "Binary classification model for dog cuteness."
+          preview: "Which dog is the cutest....or not?",
+          overview: "Binary classification model for dog cuteness.",
         },
-        model: 'The model is a simple Convolutional Neural Network composed of two convolutional layers with ReLU activations and max pooling layers, followed by a fully connected output layer. The data preprocessing reshapes images into 64x64 pixels and normalizes values between 0 and 1',
-        dataFormatInformation: 'Accepted image formats are .png .jpg and .jpeg.',
+        model:
+          "The model is a simple Convolutional Neural Network composed of two convolutional layers with ReLU activations and max pooling layers, followed by a fully connected output layer. The data preprocessing reshapes images into 64x64 pixels and normalizes values between 0 and 1",
+        dataFormatInformation:
+          "Accepted image formats are .png .jpg and .jpeg.",
         dataExample:
           "https://storage.googleapis.com/deai-313515.appspot.com/tinder_dog_preview.png",
         sampleDataset: {
@@ -31,59 +31,14 @@ export const tinderDog: TaskProvider<"image", "federated"> = {
         batchSize: 10,
         IMAGE_H: 64,
         IMAGE_W: 64,
-        LABEL_LIST: ['Cute dogs', 'Less cute dogs'],
-        scheme: 'federated',
-        aggregationStrategy: 'mean',
+        LABEL_LIST: ["Cute dogs", "Less cute dogs"],
+        scheme: "federated",
+        aggregationStrategy: "mean",
         minNbOfParticipants: 3,
-        tensorBackend: 'tfjs'
-      }
+        tensorBackend: "tfjs",
+      },
     });
   },
 
-
-  async getModel(): Promise<Model<'image'>> {
-    const task = await this.getTask();
-
-    const seed = 42 // set a seed to ensure reproducibility during GDHF demo
-    const imageHeight = task.trainingInformation.IMAGE_H
-    const imageWidth = task.trainingInformation.IMAGE_W
-    const imageChannels = 3
-
-    const model = tf.sequential()
-
-    model.add(
-      tf.layers.conv2d({
-        inputShape: [imageHeight, imageWidth, imageChannels],
-        kernelSize: 5,
-        filters: 8,
-        activation: 'relu',
-        kernelInitializer: tf.initializers.heNormal({ seed })
-      })
-    )
-    model.add(tf.layers.conv2d({
-      kernelSize: 5, filters: 16, activation: 'relu',
-      kernelInitializer: tf.initializers.heNormal({ seed })
-    }))
-    model.add(tf.layers.maxPooling2d({ poolSize: 2, strides: 2 }))
-    model.add(tf.layers.dropout({ rate: 0.25, seed }))
-
-    model.add(tf.layers.flatten())
-    model.add(tf.layers.dense({
-      units: 32, activation: 'relu',
-      kernelInitializer: tf.initializers.heNormal({ seed })
-     }))
-    model.add(tf.layers.dropout({rate:0.25, seed}))
-    model.add(tf.layers.dense({
-      units: 2, activation: 'softmax',
-      kernelInitializer: tf.initializers.heNormal({ seed })
-     }))
-
-    model.compile({
-      optimizer: tf.train.adam(0.0005),
-      loss: 'categoricalCrossentropy',
-      metrics: ['accuracy']
-    })
-
-    return Promise.resolve(new models.TFJS('image', model))
-  }
-}
+  modelCard: cards.DogClassifier,
+};

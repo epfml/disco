@@ -61,7 +61,7 @@ See [Naming convention section](#naming-conventions) for more information.
 
 ### `Container` directory
 
-The `container` directory holds all `vue` components that fulfil a container function. In other words, most components in this folder make extensive use of the [slot `vue` construct](https://v3.vuejs.org/guide/component-slots.html)
+The `container` directory holds all `vue` components that fulfill a container function. In other words, most components in this folder make extensive use of the [slot `vue` construct](https://v3.vuejs.org/guide/component-slots.html)
 
 ```html
 <slot name="XXX"></slot>

@@ -1,69 +1,71 @@
 import createDebug from "debug";
-import { v4 as randomUUID } from 'uuid'
+import { v4 as randomUUID } from "uuid";
 import * as msgpack from "@msgpack/msgpack";
-import type WebSocket from 'ws'
-import { Map, Set } from 'immutable'
+import type WebSocket from "ws";
+import { Map, Set } from "immutable";
 
-import { client, DataType } from "@epfml/discojs";
+import type { DataType, NodeID } from "@epfml/discojs";
+import { mtype, decentralizedMessages } from "@epfml/discojs";
 
-import { TrainingController } from './training_controller.js'
+import { TrainingController } from "./training_controller.js";
 
-import messages = client.decentralized.messages
-import MessageTypes = client.messages.type
+import messages = decentralizedMessages;
+import MessageTypes = mtype.MType;
 
-const debug = createDebug("server:controllers:decentralized")
+const debug = createDebug("server:controllers:decentralized");
 
 export class DecentralizedController<
-	D extends DataType,
+  D extends DataType,
 > extends TrainingController<D, "decentralized"> {
   // Map of nodes who want to join the round.
   // The boolean value indicates if the node is ready to exchange weight updates (i.e.
   // the node has already sent a PeerIsReady message)
   // We wait for all peers to be ready to exchange weight updates
-  #roundPeers = Map<client.NodeID, boolean>()
-  #connectFinishedNodes = Map<client.NodeID, boolean>()
-  #aggregationRound = 0
-  #timeout?: NodeJS.Timeout
+  #roundPeers = Map<NodeID, boolean>();
+  #connectFinishedNodes = Map<NodeID, boolean>();
+  #aggregationRound = 0;
+  #timeout?: NodeJS.Timeout;
 
   // number of connection retries for the training round
-  #connectionRetry = 0
+  #connectionRetry = 0;
 
   // Client selected to provide the latest model to peers
   // joining in the middle of training
-  #providerNode?: client.NodeID
+  #providerNode?: NodeID;
 
   // Set of nodes that are syncing node
-  #syncingNodes = Set<client.NodeID>()
+  #syncingNodes = Set<NodeID>();
 
-  handle (ws: WebSocket): void {
-    const minNbOfParticipants = this.task.trainingInformation.minNbOfParticipants
+  handle(ws: WebSocket): void {
+    const minNbOfParticipants =
+      this.task.trainingInformation.minNbOfParticipants;
 
     // Peer id of the message sender
-    let peerId = randomUUID()
+    let peerId = randomUUID();
     while (this.connections.has(peerId)) {
-      peerId = randomUUID()
+      peerId = randomUUID();
     }
-    const shortId = peerId.slice(0, 4)
+    const shortId = peerId.slice(0, 4);
 
     // How the server responds to messages
-    ws.on('message', (data: Buffer) => {
+    ws.on("message", (data: Buffer) => {
       try {
-        const msg: unknown = msgpack.decode(data)
+        const msg: unknown = msgpack.decode(data);
         if (!messages.isMessageToServer(msg))
           return debug("invalid message received: %o", msg);
 
         switch (msg.type) {
           // A new peer joins the network for a task
           case MessageTypes.ClientConnected: {
-            debug(`peer [%s] joined ${this.task.id}`, shortId)
-            this.connections = this.connections.set(peerId, ws)
-            
-            // If the new peer joins in the middle of training, 
+            debug(`peer [%s] joined ${this.task.id}`, shortId);
+            this.connections = this.connections.set(peerId, ws);
+
+            // If the new peer joins in the middle of training,
             // it needs to get the latest model from an existing peer
-            let joinedMidTraining = false
-            if (this.#aggregationRound > 0){
-              joinedMidTraining = true
-              this.#syncingNodes = this.#syncingNodes.add(peerId)
+            let joinedMidTraining = false;
+            if (this.#aggregationRound > 0) {
+              joinedMidTraining = true;
+              this.#syncingNodes = this.#syncingNodes.add(peerId);
             }
 
             // Answer with client id in an NewNodeInfo message
@@ -71,28 +73,29 @@ export class DecentralizedController<
               type: MessageTypes.NewDecentralizedNodeInfo,
               id: peerId,
               nbOfParticipants: this.connections.size,
-              waitForMoreParticipants: this.connections.size < minNbOfParticipants,
+              waitForMoreParticipants:
+                this.connections.size < minNbOfParticipants,
               joinedMidTraining: joinedMidTraining,
-            }
-            ws.send(msgpack.encode(msg), { binary: true })
+            };
+            ws.send(msgpack.encode(msg), { binary: true });
             // Send an update to participants if we can start/resume training
-            this.sendEnoughParticipantsMsgIfNeeded(peerId)
-            break
+            this.sendEnoughParticipantsMsgIfNeeded(peerId);
+            break;
           }
-          // Send by peers at the beginning of each training round to notify 
+          // Send by peers at the beginning of each training round to notify
           // the server that they want to join the round
           case MessageTypes.JoinRound: {
-            this.#syncingNodes = this.#syncingNodes.delete(peerId)
-            this.#roundPeers = this.#roundPeers.set(peerId, false)
-            break
+            this.#syncingNodes = this.#syncingNodes.delete(peerId);
+            this.#roundPeers = this.#roundPeers.set(peerId, false);
+            break;
           }
           // Send by peers when they are ready to exchange weight updates to get the list
           // of active peers for this round.
           case MessageTypes.PeerIsReady: {
-            this.#roundPeers = this.#roundPeers.set(peerId, true)
-            debug("Received peer ready from: %o", shortId)
-            this.sendPeersForRoundIfNeeded()
-            break
+            this.#roundPeers = this.#roundPeers.set(peerId, true);
+            debug("Received peer ready from: %o", shortId);
+            this.sendPeersForRoundIfNeeded();
+            break;
           }
           // Forwards a peer's message to another destination peer
           // Used to exchange peer's information and establish a direct
@@ -101,121 +104,138 @@ export class DecentralizedController<
             const forward: messages.SignalForPeer = {
               type: MessageTypes.SignalForPeer,
               peer: peerId,
-              signal: msg.signal
-            }
-            this.connections.get(msg.peer)?.send(msgpack.encode(forward))
-            break
+              signal: msg.signal,
+            };
+            this.connections.get(msg.peer)?.send(msgpack.encode(forward));
+            break;
           }
           case MessageTypes.ConnectionsReady: {
             // Select the first client that finishes peer connections
             // as the model provider for clients joined mid-training
-            const numconnFinishedNodes = this.#connectFinishedNodes.reduce((acc, val) => acc + (val ? 1 : 0), 0)
-            if (!numconnFinishedNodes){
-              this.#providerNode = peerId
+            const numconnFinishedNodes = this.#connectFinishedNodes.reduce(
+              (acc, val) => acc + (val ? 1 : 0),
+              0,
+            );
+            if (!numconnFinishedNodes) {
+              this.#providerNode = peerId;
             }
 
-            this.#connectFinishedNodes = this.#connectFinishedNodes.set(peerId, true)
-            this.signalWeightSharing()
-            break
+            this.#connectFinishedNodes = this.#connectFinishedNodes.set(
+              peerId,
+              true,
+            );
+            this.signalWeightSharing();
+            break;
           }
           case MessageTypes.ModelSyncRequest: {
             // Upon receiving a model sync request, send relevant client information
             // to both the model provider and the newly joined client
             if (!this.#providerNode) {
-              debug("There is no provider node to share the latest model")
-              break
+              debug("There is no provider node to share the latest model");
+              break;
             }
-            
-            // Signal the newly joined client with the provider client's information
-            const providerInfo: messages.SignalModelProvider = {
-              type: MessageTypes.SignalModelProvider,
-              providerNode: this.#providerNode
-            }
-            this.connections.get(peerId)?.send(msgpack.encode(providerInfo))
 
-            // Signal the provider client with newly joined client's information 
-            const newNodeInfo: messages.SignalNewPeer = {
-              type: MessageTypes.SignalNewPeer,
-              newNode: peerId
-            }
-            this.connections.get(this.#providerNode)?.send(msgpack.encode(newNodeInfo))
-            break
+            // Signal the newly joined client with the provider client's information
+            const providerInfo: messages.ModelProviderInfo = {
+              type: MessageTypes.ModelProviderInfo,
+              providerNode: this.#providerNode,
+            };
+            this.connections.get(peerId)?.send(msgpack.encode(providerInfo));
+
+            // Signal the provider client with newly joined client's information
+            const newNodeInfo: messages.ProvideModelToPeer = {
+              type: MessageTypes.ProvideModelToPeer,
+              newNode: peerId,
+            };
+            this.connections
+              .get(this.#providerNode)
+              ?.send(msgpack.encode(newNodeInfo));
+            break;
           }
           default: {
-            const _: never = msg
-            throw new Error('should never happen')
+            const _: never = msg;
+            throw new Error("should never happen");
           }
         }
       } catch (e) {
         debug("when processing WebSocket message: %o", e);
       }
-    })
+    });
     // Setup callback for client leaving the session
-    ws.on('close', () => {
+    ws.on("close", () => {
       // Remove the participant when the websocket is closed
-      this.connections = this.connections.delete(peerId)
-      this.#roundPeers = this.#roundPeers.delete(peerId)
-      this.#connectFinishedNodes = this.#connectFinishedNodes.delete(peerId)
+      this.connections = this.connections.delete(peerId);
+      this.#roundPeers = this.#roundPeers.delete(peerId);
+      this.#connectFinishedNodes = this.#connectFinishedNodes.delete(peerId);
 
       // Reset the training session when all participants leave
-      if (this.connections.size === 0){
-        debug("All participants left. Resetting decentralized training session")
-        this.reset()
-        return
+      if (this.connections.size === 0) {
+        debug(
+          "All participants left. Resetting decentralized training session",
+        );
+        this.reset();
+        return;
       }
 
-      debug("client [%s] left", shortId)
+      debug("client [%s] left", shortId);
 
       // If this participant was a latest model provider node,
       // replace the provider node to another node and make sure this node is not newly joined node
       if (this.#providerNode === peerId) {
-        this.#providerNode = this.connections.keySeq().find(nodeId => !this.#syncingNodes.has(nodeId))
+        this.#providerNode = this.connections
+          .keySeq()
+          .find((nodeId) => !this.#syncingNodes.has(nodeId));
       }
 
       // Check if we are already waiting for new participants to join
-      if (this.waitingForMoreParticipants) return
+      if (this.waitingForMoreParticipants) return;
       // If no, check if we are still above the minimum number of participant required
       if (this.connections.size >= minNbOfParticipants) {
-        this.sendPeersForRoundIfNeeded()
-        return
+        this.sendPeersForRoundIfNeeded();
+        return;
       }
       // If we are below the minimum number of participants
       // tell remaining participants to wait until more participants join
-      this.sendWaitForMoreParticipantsMsg()
-    }) 
+      this.sendWaitForMoreParticipantsMsg();
+    });
   }
 
   reset(): void {
-    this.resetConnectionState()
+    this.resetConnectionState();
 
-    this.#roundPeers = Map<client.NodeID, boolean>()
-    this.#connectFinishedNodes = Map<client.NodeID, boolean>()
-    this.#aggregationRound = 0
-    this.#connectionRetry = 0
-    this.#providerNode = undefined
-    this.#syncingNodes = Set<client.NodeID>()
+    this.#roundPeers = Map<NodeID, boolean>();
+    this.#connectFinishedNodes = Map<NodeID, boolean>();
+    this.#aggregationRound = 0;
+    this.#connectionRetry = 0;
+    this.#providerNode = undefined;
+    this.#syncingNodes = Set<NodeID>();
 
     // Reset the timeout
-    if (this.#timeout !== undefined){
-      clearTimeout(this.#timeout)
-      this.#timeout = undefined
+    if (this.#timeout !== undefined) {
+      clearTimeout(this.#timeout);
+      this.#timeout = undefined;
     }
   }
 
-  private sendMessageToNode(nodeId: client.NodeID, message: messages.MessageFromServer): void{
-    const conn = this.connections.get(nodeId)
-    if (conn === undefined){
-      throw new Error(`peer ${nodeId} marked as ready but not connection to it`)
+  private sendMessageToNode(
+    nodeId: NodeID,
+    message: messages.MessageFromServer,
+  ): void {
+    const conn = this.connections.get(nodeId);
+    if (conn === undefined) {
+      throw new Error(
+        `peer ${nodeId} marked as ready but not connection to it`,
+      );
     }
-    conn.send(msgpack.encode(message))
+    conn.send(msgpack.encode(message));
   }
 
   private broadcastMessageToNodes(
-    nodeIds: Iterable<client.NodeID>, 
-    createMessage: (nodeId: client.NodeID) => messages.MessageFromServer,
+    nodeIds: Iterable<NodeID>,
+    createMessage: (nodeId: NodeID) => messages.MessageFromServer,
   ): void {
     for (const nodeId of nodeIds) {
-      this.sendMessageToNode(nodeId, createMessage(nodeId))
+      this.sendMessageToNode(nodeId, createMessage(nodeId));
     }
   }
 
@@ -225,162 +245,174 @@ export class DecentralizedController<
    * If so, send the list of peers for this round to all participants
    */
   private sendPeersForRoundIfNeeded(): void {
-    const minNbOfParticipants = this.task.trainingInformation.minNbOfParticipants
-    const nbOfPeersReady = this.#roundPeers.filter(ready => ready).size
+    const minNbOfParticipants =
+      this.task.trainingInformation.minNbOfParticipants;
+    const nbOfPeersReady = this.#roundPeers.filter((ready) => ready).size;
     // participating peers are connected peers expect the ones that are in process of syncing
-    const participatingPeers = this.connections.keySeq().toSet().subtract(this.#syncingNodes)
+    const participatingPeers = this.connections
+      .keySeq()
+      .toSet()
+      .subtract(this.#syncingNodes);
 
     // First check if there are enough participants to start the round
     // Then check if all peers that wanted to join this round are ready
-    // All peers that are connected to the server (except for newly joining peers waiting for the latest model) 
+    // All peers that are connected to the server (except for newly joining peers waiting for the latest model)
     // are expected to participate in the round
 
-    if (nbOfPeersReady < minNbOfParticipants
-      || nbOfPeersReady != participatingPeers.size) return
+    if (
+      nbOfPeersReady < minNbOfParticipants ||
+      nbOfPeersReady != participatingPeers.size
+    )
+      return;
     // Once every peer that joined the round is ready, we can start the round
     this.broadcastMessageToNodes(
       this.#roundPeers.keySeq(),
       (id): messages.PeersForRound => {
-        debug("Sending peer list to: %o", id.slice(0, 4))
+        debug("Sending peer list to: %o", id.slice(0, 4));
 
         return {
           type: MessageTypes.PeersForRound,
           peers: this.#roundPeers.delete(id).keySeq().toArray(),
           aggregationRound: this.#aggregationRound,
-        }
-      }
-    )
+        };
+      },
+    );
 
     // Initialize connectFinishedNodes with all peers set to false
-    this.#connectFinishedNodes = this.#roundPeers.map(() => false)
+    this.#connectFinishedNodes = this.#roundPeers.map(() => false);
     // Change the peer states to not ready
-    this.#roundPeers = this.#roundPeers.map(() => false)
-    
+    this.#roundPeers = this.#roundPeers.map(() => false);
+
     // Start timeout to check peer connections are successful
-    this.startTimeout()
+    this.startTimeout();
   }
 
   /**
-   * Check if all the participants of the round finished connecting 
+   * Check if all the participants of the round finished connecting
    * with other peers in the round
    * If so, send StartWeightSharing message to signal peers to proceed
    */
   private signalWeightSharing(): void {
     // Return if not all participants are ready
-    if (!this.#connectFinishedNodes.every((ready) => ready))
-      return
+    if (!this.#connectFinishedNodes.every((ready) => ready)) return;
 
     // Stop the timeout
-    this.clearTimeout()
+    this.clearTimeout();
 
     // Send round participants StartWeightSharing messages
     this.broadcastMessageToNodes(
       this.#roundPeers.keySeq(),
       (id): messages.StartWeightSharing => {
-        debug("Signaling weight sharing to: %o", id.slice(0, 4))
+        debug("Signaling weight sharing to: %o", id.slice(0, 4));
 
         return {
           type: MessageTypes.StartWeightSharing,
-        }
-      }
-    )
+        };
+      },
+    );
 
     // empty the list of peers for the next round
-    this.#roundPeers = Map()
-    this.#connectFinishedNodes = Map()
-    this.#aggregationRound++
+    this.#roundPeers = Map();
+    this.#connectFinishedNodes = Map();
+    this.#aggregationRound++;
   }
 
   /**
    * Set a timeout to check peer connections establishment
    */
-  private startTimeout(maxTime: number = this.task.trainingInformation.maxPeerConnectionTime): void {
+  private startTimeout(
+    maxTime: number = this.task.trainingInformation.maxPeerConnectionTime,
+  ): void {
     this.#timeout = setTimeout(() => {
-      this.handleTimeout()
-    }, maxTime)
+      this.handleTimeout();
+    }, maxTime);
   }
 
   /**
-   * Clear previously set timeout once all peer connections 
+   * Clear previously set timeout once all peer connections
    * are established before the timeout
    */
   private clearTimeout(): void {
-    if (this.#timeout !== undefined){
-      clearTimeout(this.#timeout)
-      this.#timeout = undefined
+    if (this.#timeout !== undefined) {
+      clearTimeout(this.#timeout);
+      this.#timeout = undefined;
     }
   }
-  
+
   /**
    * Called when a timeout occurs during peer connection
    * Signals peers to discard existing connections and
    * reestablish connections with the current set of peers
    */
   private handleTimeout(): void {
-    this.clearTimeout()
-    debug(`Connection setup timeout for round ${this.#aggregationRound}, Retrying with same peers`)
+    this.clearTimeout();
+    debug(
+      `Connection setup timeout for round ${this.#aggregationRound}, Retrying with same peers`,
+    );
     // Increment the connection retry count
     this.#connectionRetry += 1;
 
     // If the number of retries exceeds the threshold, exclude the failed peers from the round
     // and retry peer connection only with the remaining peers
-    if (this.#connectionRetry > this.task.trainingInformation.maxConnectionRetry){
+    if (
+      this.#connectionRetry > this.task.trainingInformation.maxConnectionRetry
+    ) {
       // Exclude the failed peers
       this.#connectFinishedNodes.forEach((connected, nodeId) => {
-        if (!connected){
+        if (!connected) {
           // If the node failed connection, exclude from #roundPeers
-          this.#roundPeers = this.#roundPeers.delete(nodeId)
-          this.#connectFinishedNodes = this.#connectFinishedNodes.delete(nodeId)
+          this.#roundPeers = this.#roundPeers.delete(nodeId);
+          this.#connectFinishedNodes =
+            this.#connectFinishedNodes.delete(nodeId);
           // Signal the node that connection is failed for that node
-          debug("Signaling connection failure to: %o", nodeId.slice(0, 4))
+          debug("Signaling connection failure to: %o", nodeId.slice(0, 4));
 
           this.sendMessageToNode(nodeId, {
             type: MessageTypes.ConnectionFail,
-          })
+          });
         }
-      })
+      });
 
       // Restart the round with remaining clients
       this.broadcastMessageToNodes(
         this.#roundPeers.keySeq(),
         (id): messages.RetryPeerConnections => {
-          debug("Signaling connection retry to: %o", id.slice(0, 4))
+          debug("Signaling connection retry to: %o", id.slice(0, 4));
 
           return {
             type: MessageTypes.RetryPeerConnections,
-          }
-        }
-      )
+          };
+        },
+      );
 
       // Reset the ready and connection status of roundPeers
-      this.#roundPeers = this.#roundPeers.map(() => false)
-      this.#connectFinishedNodes = this.#roundPeers.map(() => false)
+      this.#roundPeers = this.#roundPeers.map(() => false);
+      this.#connectFinishedNodes = this.#roundPeers.map(() => false);
 
       // Reset the connectionRetry since we excluded the failed clients
-      this.#connectionRetry = 0
+      this.#connectionRetry = 0;
       // Restart the timeout after sending retry messages
-      this.startTimeout()
-      return
+      this.startTimeout();
+      return;
     }
 
     // Retry peer connection with original roundPeers
     // Reset the ready and connection status of roundPeers
-    this.#roundPeers = this.#roundPeers.map(() => false)
-    this.#connectFinishedNodes = this.#roundPeers.map(() => false)
+    this.#roundPeers = this.#roundPeers.map(() => false);
+    this.#connectFinishedNodes = this.#roundPeers.map(() => false);
 
     this.broadcastMessageToNodes(
       this.#roundPeers.keySeq(),
       (id): messages.RetryPeerConnections => {
-        debug("Signaling connection retry to: %o", id.slice(0, 4))
+        debug("Signaling connection retry to: %o", id.slice(0, 4));
 
         return {
           type: MessageTypes.RetryPeerConnections,
-        }
-      }
-    )
-    
+        };
+      },
+    );
+
     // Restart the timeout after sending retry messages
-    this.startTimeout()
+    this.startTimeout();
   }
 }
-

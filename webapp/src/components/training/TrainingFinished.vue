@@ -1,5 +1,7 @@
 <template>
-  <div class="grid grid-cols-1 md:grid-cols-2 cards-gap mt-10 items-stretch">
+  <div
+    class="mx-auto w-full max-w-card md:max-w-cards-2 grid grid-cols-1 md:grid-cols-2 cards-gap mt-10 items-stretch"
+  >
     <!-- Test the model -->
     <ButtonsCard :buttons="List.of(['test model', onTestModel])">
       <template #title> Test the model </template>
@@ -12,8 +14,8 @@
     <ButtonsCard :buttons="List.of(['save model', onSaveModel])">
       <template #title> Save the model </template>
 
-      Saving the model will allow you to access it later to update training in
-      a new <DISCOllaborative />.
+      Saving the model will allow you to access it later to update training in a
+      new <DISCOllaborative />.
     </ButtonsCard>
   </div>
 </template>

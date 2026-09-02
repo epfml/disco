@@ -9,74 +9,24 @@ jobs:
   download-datasets:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/cache@v5
-        with:
-          path: datasets
-          key: datasets-${{ hashFiles('datasets/**') }}
-      - run: datasets/populate
-
-  build-lib:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-      - run: npm --workspace=discojs run build
-
-  build-lib-web:
-    needs: build-lib
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-      - run: npm run --workspace=discojs build
-      - run: npm run --workspace=discojs-web build
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/download-datasets
 
   record-test-webapp:
-    needs: [build-lib, build-lib-web, download-datasets]
+    needs: download-datasets
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/cache@v5
-        with:
-          path: datasets
-          key: datasets-${{ hashFiles('datasets/**') }}
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/cache@v5
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/Cypress
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-      - run: npm --workspace={discojs,discojs-web} run build
-      - run: npm --workspace=webapp run test:unit
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/pull-dataset-artifacts
+      - run: pnpm -F webapp run build
+      - run: pnpm -F webapp run test:unit
       - uses: cypress-io/github-action@v7
         with:
           working-directory: webapp
           install: false
-          start: npm start
-          wait-on: 'http://localhost:8081' # Waits for above
+          start: pnpm start
+          wait-on: "http://localhost:8081" # Waits for above
           # Records to Cypress Cloud
           # https://docs.cypress.io/guides/cloud/projects#Set-up-a-project-to-record
           record: true

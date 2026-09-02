@@ -1,0 +1,16 @@
+name: Setup Node
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v6
+      with:
+        node-version-file: .nvmrc
+    - uses: pnpm/action-setup@v6
+      with:
+        cache: true
+    - uses: actions/cache@v5
+      with:
+        path: ~/.cache/Cypress
+        key: cypress-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+    - run: pnpm ci
+      shell: bash

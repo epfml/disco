@@ -1,0 +1,26 @@
+{
+  "workspaces": {
+    ".": {
+      "ignore": ["docs/**"],
+      "ignoreDependencies": ["typescript-eslint", "supports-color"]
+    },
+    "webapp": {
+      "ignoreDependencies": ["buffer"]
+    },
+    "isomorphic-wrtc": {},
+    "cli": {
+      "entry": [
+        "src/benchmark_gpt.ts",
+        "src/hellaswag_gpt.ts",
+        "src/train_gpt.ts"
+      ]
+    },
+    "onnx-converter": {
+      "entry": [
+        "src/convert_onnx.ts",
+        "src/protobuf/onnx-proto.d.ts",
+        "src/protobuf/onnx.d.ts"
+      ]
+    }
+  }
+}

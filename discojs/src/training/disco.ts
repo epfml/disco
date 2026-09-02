@@ -1,28 +1,25 @@
-import {
-  async_iterator,
-  client as clients,
-  BatchLogs,
-  ConsoleLogger,
-  EpochLogs,
-  Logger,
-  processing,
-  Dataset,
-} from "../index.js";
-import type {
-  Batched,
-  DataFormat,
-  DataType,
-  Model,
-  Network,
-  Task,
-} from "../index.js";
-import { WeightsContainer } from "../index.js";
-import type { Aggregator } from "../aggregator/index.js";
-import { getAggregator } from "../aggregator/index.js";
-import { enumerate, split } from "../utils/async_iterator.js";
-import { EventEmitter } from "../utils/event_emitter.js";
+import type { Model } from "#models/index";
+import type { DataType, DataFormat, Network } from "#types/index";
+import type { Task } from "#task/index";
+import type { Batched } from "#dataset/index";
+import type { Aggregator } from "#aggregator/index";
+import type { WeightsContainer } from "#weights/index";
 
-import { RoundLogs, Trainer } from "./trainer.js";
+import { Dataset } from "#dataset/index";
+import type { Logger } from "#logging/index";
+import { ConsoleLogger } from "#logging/index";
+import type { BatchLogs, EpochLogs } from "#models/index";
+import { getAggregator } from "#aggregator/index";
+import { enumerate, split } from "#utils/async_iterator";
+import { EventEmitter } from "#utils/event_emitter";
+
+import * as clients from "#client/index";
+import * as processing from "#processing/index";
+import * as async_iterator from "#utils/async_iterator";
+
+import type { RoundLogs } from "#training/trainer";
+import { Trainer } from "#training/trainer";
+import type { RoundStatus, SummaryLogs } from "#training/types";
 
 interface DiscoConfig<N extends Network> {
   scheme: N;
@@ -38,39 +35,25 @@ interface DiscoConfig<N extends Network> {
   preprocessOnce: boolean;
 }
 
-export type SummaryLogs = {
-  round: number,
-  epoch: number,
-  trainingLoss: number,
-  trainingAccuracy: number,
-  peakMemory: number,
-  epochTime: number,
-  roundValidationLoss?: number,
-  roundValidationAccuracy?: number,
-  validationLoss?: number,
-  validationAccuracy?: number
-}
-
-export type RoundStatus = 'not enough participants' | // Server notification to wait for more participants
-  'updating model' | // fetching/aggregating local updates into a global model
-  'local training' | // Training the model locally
-  'connecting to peers' // for decentralized only, fetch the server's list of participating peers
-
-function buildSummaryLog(roundNum: number, epochNum: number, roundLogs: RoundLogs, epochLogs: EpochLogs): SummaryLogs {
+function buildSummaryLog(
+  roundNum: number,
+  epochNum: number,
+  roundLogs: RoundLogs,
+  epochLogs: EpochLogs,
+): SummaryLogs {
   return {
-      round: roundNum,
-      epoch: epochNum,
-      trainingLoss: epochLogs.training.loss,
-      trainingAccuracy: epochLogs.training.accuracy,
-      peakMemory: epochLogs.peakMemory,
-      epochTime: epochLogs.epochTime,
-      roundValidationLoss: roundLogs.preRoundValidation?.loss,
-      roundValidationAccuracy: roundLogs.preRoundValidation?.accuracy,
-      validationLoss: epochLogs.validation?.loss,
-      validationAccuracy: epochLogs.validation?.accuracy,
-    }
+    round: roundNum,
+    epoch: epochNum,
+    trainingLoss: epochLogs.training.loss,
+    trainingAccuracy: epochLogs.training.accuracy,
+    peakMemory: epochLogs.peakMemory,
+    epochTime: epochLogs.epochTime,
+    roundValidationLoss: roundLogs.preRoundValidation?.loss,
+    roundValidationAccuracy: roundLogs.preRoundValidation?.accuracy,
+    validationLoss: epochLogs.validation?.loss,
+    validationAccuracy: epochLogs.validation?.accuracy,
+  };
 }
-
 
 /**
  * Top-level class handling distributed training from a client's perspective. It is meant to be
@@ -97,7 +80,10 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
    */
   constructor(
     task: Task<D, N>,
-    clientConfig: clients.Client<N> | URL | { aggregator: Aggregator; url: URL },
+    clientConfig:
+      | clients.Client<N>
+      | URL
+      | { aggregator: Aggregator; url: URL },
     config: Partial<DiscoConfig<N>>,
   ) {
     super();
@@ -133,10 +119,12 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
 
     // Simply propagate the training status events emitted by the client
     this.#client.on("status", (status) => this.emit("status", status));
-    this.#client.on("participants", (nbParticipants) => this.emit("participants", nbParticipants));
+    this.#client.on("participants", (nbParticipants) =>
+      this.emit("participants", nbParticipants),
+    );
     this.#client.on("modelSynced", (latestWeights) => {
-      this.trainer.model.weights = latestWeights
-      this.emit("modelSynced", latestWeights)
+      this.trainer.model.weights = latestWeights;
+      this.emit("modelSynced", latestWeights);
     });
   }
 
@@ -172,14 +160,15 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
       for await (const epoch of round) yield* epoch;
   }
 
-  /** Train on dataset, yielding summary logs */  
+  /** Train on dataset, yielding summary logs */
   async *trainSummary(
     dataset: Dataset<DataFormat.Raw[D]>,
   ): AsyncGenerator<SummaryLogs> {
     for await (const [roundNum, round] of enumerate(this.train(dataset))) {
       const [roundGen, roundLogsPromise] = async_iterator.split(round);
 
-      const epochResults: Array<{epochNum: number; epochLogs: EpochLogs}> = [];
+      const epochResults: Array<{ epochNum: number; epochLogs: EpochLogs }> =
+        [];
 
       for await (const [epochNum, epoch] of enumerate(roundGen)) {
         const [epochGen, epochLogsPromise] = async_iterator.split(epoch);
@@ -191,7 +180,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
 
       const roundLogs = await roundLogsPromise;
 
-      for (const {epochNum, epochLogs} of epochResults) {
+      for (const { epochNum, epochLogs } of epochResults) {
         yield buildSummaryLog(roundNum, epochNum, roundLogs, epochLogs);
       }
     }
@@ -220,7 +209,6 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
       await this.#preprocessSplitAndBatch(dataset);
 
     // the client fetches the latest weights upon connection
-    // TODO unsafe cast
     this.trainer.model = (await this.#client.connect()) as Model<D>;
 
     for await (const [roundNum, round] of enumerate(
@@ -228,7 +216,8 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     )) {
       yield async function* (this: Disco<D, N>) {
         const [roundGen, roundLogsPromise] = split(round);
-        const epochResults: Array<{epochNum: number; epochLogs: EpochLogs}> = []; 
+        const epochResults: Array<{ epochNum: number; epochLogs: EpochLogs }> =
+          [];
 
         for await (const [epochNum, epoch] of enumerate(roundGen)) {
           const [epochGen, epochLogsPromise] = split(epoch);
@@ -248,7 +237,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
           ].join("\n"),
         );
 
-        for (const {epochNum, epochLogs} of epochResults){
+        for (const { epochNum, epochLogs } of epochResults) {
           this.#logger.success(
             [
               `Round: ${roundNum}`,
@@ -277,7 +266,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
    */
   async close(): Promise<void> {
     // Dispose the model tensor
-    try{
+    try {
       await this.#client.disconnect();
     } finally {
       this.trainer[Symbol.dispose]();
@@ -296,13 +285,12 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
 
     let preprocessed = processing.preprocess(this.#task, dataset);
 
-    preprocessed = (
-      this.#preprocessOnce
-        ? new Dataset(await arrayFromAsync(preprocessed))
-        : preprocessed
-    )
-    if (validationSplit === 0) return [preprocessed.batch(batchSize).cached(), undefined];
-    
+    preprocessed = this.#preprocessOnce
+      ? new Dataset(await arrayFromAsync(preprocessed))
+      : preprocessed;
+    if (validationSplit === 0)
+      return [preprocessed.batch(batchSize).cached(), undefined];
+
     const [training, validation] = preprocessed.split(validationSplit);
 
     return [
