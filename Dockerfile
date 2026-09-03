@@ -1,7 +1,7 @@
 # TODO freeze to 22 until tfjs#8425 is merged
 FROM node:22 AS builder
 
-RUN npm i -g pnpm
+RUN npm i -g pnpm@11.11.0
 
 WORKDIR /disco
 
@@ -28,7 +28,7 @@ FROM node:22-slim AS runner
 
 WORKDIR /disco
 
-RUN npm i -g pnpm
+RUN npm i -g pnpm@11.11.0
 
 COPY --link --from=builder /disco/package.json /disco/pnpm*.yaml /disco/
 COPY --link --from=builder /disco/isomorphic-wrtc/package.json isomorphic-wrtc/
