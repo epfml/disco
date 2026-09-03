@@ -90,7 +90,11 @@ export class FederatedClient extends Client<"federated"> {
       `[${shortenId(this.ownId)}] upon connecting, wait for participant flag %o`,
       this.waitingForMoreParticipants,
     );
-    model.weights = weightsDecode(payload);
+    if (payload != null) {
+      const latestWeights = weightsDecode(payload);
+      model.weights = latestWeights;
+    } else debug(`[${shortenId(this.ownId)}] received an undefined payload`);
+
     return model;
   }
 
@@ -143,20 +147,34 @@ export class FederatedClient extends Client<"federated"> {
       .get(SERVER_NODE_ID);
     if (payloadToServer === undefined)
       throw new Error("aggregator didn't make a payload for the server");
-    const msg: messages.SendPayload = {
-      type: MType.SendPayload,
-      payload: await weightsEncode(payloadToServer),
-      round: this.aggregator.round,
-    };
 
-    // Need to await the resulting global model right after sending our local contribution
-    // to make sure we don't miss it
+    const round = this.aggregator.round;
+    // block-scope the encoded payload so the potentially large buffer can be GC'd
+    // while we await the server's response below
+    {
+      const payload = await weightsEncode(payloadToServer);
+      debug(
+        "[%s] encoded payload for round %d byteLength=%d",
+        shortenId(this.ownId),
+        round,
+        payload.byteLength,
+      );
+
+      const msg: messages.SendPayload = {
+        type: MType.SendPayload,
+        payload,
+        round,
+      };
+
+      // Need to await the resulting global model right after sending our local contribution
+      // to make sure we don't miss it
+      this.server.send(msg);
+    }
     debug(
-      `[${shortenId(this.ownId)}] sent its local update to the server for round ${this.aggregator.round}`,
+      `[${shortenId(this.ownId)}] sent its local update to the server for round ${round}`,
     );
-    this.server.send(msg);
     debug(
-      `[${shortenId(this.ownId)}] is waiting for server update for round ${this.aggregator.round + 1}`,
+      `[${shortenId(this.ownId)}] is waiting for server update for round ${round + 1}`,
     );
     const {
       payload: payloadFromServer,

@@ -16,7 +16,10 @@ import { Model } from "#models/model";
 import { GPTModel } from "#models/implementations/gpt/model";
 import evaluate from "#models/implementations/gpt/evaluate";
 import { DefaultGPTConfig } from "#models/implementations/gpt/config";
-import type { GPTConfig } from "#models/implementations/gpt/config";
+import type {
+  GPTConfig,
+  GoldfishLossConfig,
+} from "#models/implementations/gpt/config";
 import { DefaultGenerationConfig } from "#models/generation";
 import type { GenerationConfig } from "#models/generation";
 
@@ -34,6 +37,7 @@ export class GPT extends Model<"text"> {
   readonly #contextLength: number;
   readonly #maxBatchCount: number;
   readonly #vocabSize: number;
+  #iterationCount = 0;
 
   constructor(
     partialConfig?: Partial<GPTConfig>,
@@ -49,6 +53,18 @@ export class GPT extends Model<"text"> {
       partialConfig?.contextLength ?? DefaultGPTConfig.contextLength;
     this.#maxBatchCount = partialConfig?.maxIter ?? DefaultGPTConfig.maxIter;
     this.#vocabSize = partialConfig?.vocabSize ?? DefaultGPTConfig.vocabSize;
+  }
+
+  setDebugLabel(label: string): void {
+    this.model.setDebugLabel(label);
+  }
+
+  setGoldfishLoss(config: GoldfishLossConfig | undefined): void {
+    this.model.setGoldfishLoss(config);
+  }
+
+  setLearningRate(lr: number): void {
+    this.model.setLearningRate(lr);
   }
 
   /**
@@ -70,7 +86,7 @@ export class GPT extends Model<"text"> {
     for await (const [batch, _] of trainingDataset.zip(
       Range(0, this.#maxBatchCount),
     )) {
-      const batchLogs = await this.#runBatch(batch);
+      const batchLogs = await this.#runBatch(batch, ++this.#iterationCount);
 
       yield batchLogs;
       batchesLogs = batchesLogs.push(batchLogs);
@@ -83,14 +99,50 @@ export class GPT extends Model<"text"> {
     return new EpochLogs(batchesLogs, epochTime, validation);
   }
 
+  async *trainNextBatches(
+    trainingIterator: AsyncIterator<Batched<DataFormat.ModelEncoded["text"]>>,
+    maxBatchCount: number,
+    validationDataset?: Dataset<Batched<DataFormat.ModelEncoded["text"]>>,
+    setDone?: (done: boolean) => void,
+  ): AsyncGenerator<BatchLogs, EpochLogs> {
+    let batchesLogs = List<BatchLogs>();
+    let epochTime = performance.now();
+    let done = false;
+
+    for (let batchCount = 0; batchCount < maxBatchCount; batchCount++) {
+      const next = await trainingIterator.next();
+      if (next.done === true) {
+        done = true;
+        break;
+      }
+
+      const batchLogs = await this.#runBatch(
+        next.value,
+        ++this.#iterationCount,
+      );
+
+      yield batchLogs;
+      batchesLogs = batchesLogs.push(batchLogs);
+    }
+
+    const validation =
+      validationDataset && (await this.evaluate(validationDataset));
+    epochTime = performance.now() - epochTime;
+    setDone?.(done);
+
+    return new EpochLogs(batchesLogs, epochTime, validation);
+  }
+
   async #runBatch(
     batch: Batched<DataFormat.ModelEncoded["text"]>,
+    iterationNumber: number,
   ): Promise<BatchLogs> {
     const tfBatch = this.#batchToTF(batch);
 
     let logs: tf.Logs | undefined;
     await this.model.fitDataset(tf.data.array([tfBatch]), {
       epochs: 1,
+      iterationOffset: iterationNumber - 1,
       verbose: 0, // don't pollute
       callbacks: {
         onEpochEnd: (_, cur) => {

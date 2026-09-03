@@ -67,6 +67,20 @@ export function diff(
 export function avg(
   weights: Iterable<WeightsLike | WeightsContainer>,
 ): WeightsContainer {
-  const ws = List(weights);
-  return sum(ws).map((w) => w.div(ws.size));
+  const ws = parseWeights(weights);
+  const first = ws.first();
+  if (first === undefined) throw new Error("no weights to work with");
+  let summed: WeightsContainer = first.map((weight) => weight.clone());
+
+  try {
+    for (const weights of ws.rest()) {
+      const next: WeightsContainer = summed.add(weights);
+      summed.dispose();
+      summed = next;
+    }
+
+    return summed.map((weight) => weight.div(ws.size));
+  } finally {
+    summed.dispose();
+  }
 }

@@ -53,7 +53,11 @@ export {
   evaluate_hellaswag,
   DefaultGenerationConfig,
 } from "./models/index.js";
-export type { GPTConfig, HellaSwagExample } from "./models/index.js";
+export type {
+  GPTConfig,
+  HellaSwagExample,
+  GoldfishLossConfig,
+} from "./models/index.js";
 
 export { EventEmitter } from "./utils/event_emitter.js";
 

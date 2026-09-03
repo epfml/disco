@@ -1,3 +1,4 @@
+import * as tf from "@tensorflow/tfjs";
 import { Set } from "immutable";
 import { describe, expect, it } from "vitest";
 import { WeightsContainer } from "#weights/index";
@@ -63,6 +64,29 @@ describe("mean aggregator", () => {
     expect((await result1).equals(await result2)).to.be.true;
 
     expect(await WSIntoArrays(await results)).to.deep.equal([[1], [2]]);
+  });
+
+  it("aggregation leaves no dangling tensors", async () => {
+    const baseline = tf.memory().numTensors;
+
+    const aggregator = new MeanAggregator(0, 2, "absolute");
+    const [id1, id2] = ["client 1", "client 2"];
+    aggregator.setNodes(Set.of(id1, id2));
+
+    const contribution1 = WeightsContainer.of([0], [1]);
+    const contribution2 = WeightsContainer.of([2], [3]);
+
+    const result = aggregator.getPromiseForAggregation();
+    aggregator.add(id1, contribution1, 0);
+    aggregator.add(id2, contribution2, 0);
+    expect(await WSIntoArrays(await result)).to.deep.equal([[1], [2]]);
+
+    // the aggregator clones contributions on add and disposes the clones when
+    // aggregating; only the caller-owned inputs and the result should remain
+    contribution1.dispose();
+    contribution2.dispose();
+    (await result).dispose();
+    expect(tf.memory().numTensors).to.equal(baseline);
   });
 
   it("waits for 100% of the contributions by default", async () => {

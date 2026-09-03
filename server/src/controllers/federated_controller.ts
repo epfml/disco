@@ -3,7 +3,7 @@ import type WebSocket from "ws";
 import { v4 as randomUUID } from "uuid";
 import * as msgpack from "@msgpack/msgpack";
 
-import type { DataType, Task, Encoded } from "@epfml/discojs";
+import type { DataType, Task, Encoded, NodeID } from "@epfml/discojs";
 import {
   mtype,
   federatedMessages,
@@ -23,10 +23,15 @@ export class FederatedController<D extends DataType> extends TrainingController<
   "federated"
 > {
   /**
+   * WebSockets of clients whose update was accepted for the current round.
+   * They receive the resulting global weights when aggregation completes.
+   */
+  #pendingUpdateRecipients = new Map<NodeID, WebSocket>();
+  /**
    * Aggregators for each hosted task.
     By default the server waits for 100% of the nodes to send their contributions before aggregating the updates
    */
-  #aggregator = new MeanAggregator(undefined, 1, "relative");
+  #aggregator = this.#makeAggregator();
   /**
    * The most up to date global weights. The model weights are already serialized and
    * can be sent to participants, before starting training, or when joining mid-training
@@ -40,11 +45,70 @@ export class FederatedController<D extends DataType> extends TrainingController<
   ) {
     super(task);
     this.#latestGlobalWeights = this.initialWeights;
+  }
 
-    // Save the latest weight updates to be able to send it to new or outdated clients
-    this.#aggregator.on("aggregation", async (weightUpdate) => {
-      this.#latestGlobalWeights = await weightsEncode(weightUpdate);
+  /**
+   * Creates an aggregator and registers the handler that caches and broadcasts
+   * the global weights produced at the end of each aggregation round.
+   */
+  #makeAggregator(): MeanAggregator {
+    const aggregator = new MeanAggregator(undefined, 1, "relative");
+
+    aggregator.on("aggregation", async (weightUpdate) => {
+      try {
+        const payload = await weightsEncode(weightUpdate);
+        const recipients = this.#pendingUpdateRecipients;
+        this.#pendingUpdateRecipients = new Map();
+
+        debug(
+          "round %o aggregate payload byteLength=%d",
+          aggregator.round,
+          payload.byteLength,
+        );
+        this.#latestGlobalWeights = payload;
+
+        const msg: federatedMessages.ReceiveServerPayload = {
+          type: MessageTypes.ReceiveServerPayload,
+          round: aggregator.round,
+          payload,
+          nbOfParticipants: this.connections.size,
+        };
+        const encodedMsg = msgpack.encode(msg);
+
+        recipients.forEach((recipientWs, recipientId) => {
+          try {
+            debug(
+              "Sending global weights for round %o to client [%s]",
+              aggregator.round,
+              recipientId.slice(0, 4),
+            );
+            recipientWs.send(encodedMsg);
+            debug(
+              "Aggregated payload sent to client [%s] for round %o",
+              recipientId.slice(0, 4),
+              aggregator.round,
+            );
+          } catch (err) {
+            debug(
+              "Failed to send global weights for round %o to client [%s]: %o",
+              aggregator.round,
+              recipientId.slice(0, 4),
+              err,
+            );
+          }
+        });
+      } catch (err) {
+        debug(
+          "Failed to serialize or encode weights for round %o: %o",
+          aggregator.round,
+          err,
+        );
+      } finally {
+        weightUpdate.dispose();
+      }
     });
+
+    return aggregator;
   }
 
   /**
@@ -67,6 +131,10 @@ export class FederatedController<D extends DataType> extends TrainingController<
       clientId = randomUUID();
     }
     const shortId = clientId.slice(0, 4);
+
+    ws.on("error", (err) => {
+      debug("websocket error for client [%s]: %o", shortId, err);
+    });
 
     // Setup callbacks triggered upon receiving the different client messages
     ws.on("message", (data: Buffer) => {
@@ -92,7 +160,10 @@ export class FederatedController<D extends DataType> extends TrainingController<
             id: clientId,
             waitForMoreParticipants:
               this.connections.size < minNbOfParticipants,
-            payload: this.#latestGlobalWeights,
+            payload:
+              this.#aggregator.round === 0
+                ? undefined
+                : this.#latestGlobalWeights,
             round: this.#aggregator.round,
             nbOfParticipants: this.connections.size,
           };
@@ -107,30 +178,32 @@ export class FederatedController<D extends DataType> extends TrainingController<
         case MessageTypes.SendPayload: {
           const { payload, round } = msg;
           if (this.#aggregator.isValidContribution(clientId, round)) {
+            debug(
+              "Received valid contribution from client [%s] for round %d (participants=%d)",
+              shortId,
+              round,
+              this.connections.size,
+            );
             const weights = weightsDecode(payload);
-
-            // Create a callback to send the aggregated weight to the client
-            // when enough contributions are received
-            this.#aggregator.once("aggregation", async (weightUpdate) => {
+            let added = false;
+            try {
+              // Add the contribution
               debug(
-                "Sending global weights for round %o to client [%s]",
-                this.#aggregator.round,
+                "Adding contribution from client [%s] to aggregator for round %d",
+                shortId,
+                round,
+              );
+              this.#pendingUpdateRecipients.set(clientId, ws);
+              this.#aggregator.add(clientId, weights, round);
+              added = true;
+              debug(
+                `Successfully added contribution from client [%s] for round ${round}`,
                 shortId,
               );
-              const msg: federatedMessages.ReceiveServerPayload = {
-                type: MessageTypes.ReceiveServerPayload,
-                round: this.#aggregator.round, // send the current round number after aggregation
-                payload: await weightsEncode(weightUpdate),
-                nbOfParticipants: this.connections.size,
-              };
-              ws.send(msgpack.encode(msg));
-            });
-            // Add the contribution
-            this.#aggregator.add(clientId, weights, round);
-            debug(
-              `Successfully added contribution from client [%s] for round ${round}`,
-              shortId,
-            );
+            } finally {
+              weights.dispose();
+              if (!added) this.#pendingUpdateRecipients.delete(clientId);
+            }
           } else {
             // If the client sent an invalid or outdated contribution
             // the server answers with the current round and last global model update
@@ -159,13 +232,15 @@ export class FederatedController<D extends DataType> extends TrainingController<
     ws.on("close", () => {
       // Remove the participant when the websocket is closed
       this.connections = this.connections.delete(clientId);
+      this.#pendingUpdateRecipients.delete(clientId);
       this.#aggregator.removeNode(clientId);
       debug("client [%s] left", shortId);
 
       // Reset the training session when all participants left
       if (this.connections.size === 0) {
         debug("All participants left. Resetting the training session");
-        this.#aggregator = new MeanAggregator(undefined, 1, "relative");
+        this.#pendingUpdateRecipients.clear();
+        this.#aggregator = this.#makeAggregator();
         this.#latestGlobalWeights = this.initialWeights;
       }
 

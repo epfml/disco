@@ -4,3 +4,4 @@ export { mnist } from "./mnist.js";
 export { titanic } from "./titanic.js";
 export { wikitext } from "./wikitext.js";
 export { tinderDog } from "./tinder_dog.js";
+export { goldfish } from "./goldfish.js";

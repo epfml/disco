@@ -9,6 +9,8 @@
     "benchmark_gpt": "pnpm run build && node dist/benchmark_gpt.js",
     "train_gpt": "pnpm run build && node dist/train_gpt.js",
     "hellaswag_gpt": "pnpm run build && node dist/hellaswag_gpt.js",
+    "eval_finetuned_gpt2": "pnpm run build && node dist/evaluate_finetuned_gpt2.js",
+    "measure_memorization_gpt2": "pnpm run build && node dist/measure_memorization_gpt2.js",
     "build": "tsc --build",
     "test": ": nothing"
   },
@@ -17,7 +19,9 @@
   "dependencies": {
     "@epfml/discojs": "workspace:",
     "@epfml/discojs-node": "workspace:",
+    "@tensorflow/tfjs": "catalog:",
     "@tensorflow/tfjs-node": "catalog:",
+    "debug": "catalog:",
     "immutable": "catalog:",
     "server": "workspace:"
   },

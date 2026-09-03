@@ -15,14 +15,17 @@ import { EventEmitter } from "#utils/event_emitter";
 import * as clients from "#client/index";
 import * as processing from "#processing/index";
 import * as async_iterator from "#utils/async_iterator";
-
+import type { GoldfishLossConfig } from "#models/implementations/gpt/config";
 import type { RoundLogs } from "#training/trainer";
 import { Trainer } from "#training/trainer";
 import type { RoundStatus, SummaryLogs } from "#training/types";
+import createDebug from "debug";
+const debug = createDebug("discojs:training:disco");
 
 interface DiscoConfig<N extends Network> {
   scheme: N;
   logger: Logger;
+  debugLabel?: string;
 
   /**
    * keep preprocessed dataset in memory while training
@@ -51,6 +54,9 @@ function buildSummaryLog(
     roundValidationAccuracy: roundLogs.preRoundValidation?.accuracy,
     validationLoss: epochLogs.validation?.loss,
     validationAccuracy: epochLogs.validation?.accuracy,
+    postAggregationValidationLoss: roundLogs.postAggregationValidation?.loss,
+    postAggregationValidationAccuracy:
+      roundLogs.postAggregationValidation?.accuracy,
   };
 }
 
@@ -68,6 +74,8 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   readonly #logger: Logger;
   readonly #task: Task<D, N>;
   readonly #preprocessOnce: boolean;
+  // Forwarded to compatible models to identify this client in debug output.
+  readonly #debugLabel?: string;
 
   /**
    * Connect to the given task and get ready to train.
@@ -85,7 +93,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     config: Partial<DiscoConfig<N>>,
   ) {
     super();
-    const { scheme, logger, preprocessOnce } = {
+    const { scheme, logger, preprocessOnce, debugLabel } = {
       // cast as typescript is bad at generic
       scheme: task.trainingInformation.scheme as N,
       logger: new ConsoleLogger(),
@@ -111,6 +119,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
 
     this.#logger = logger;
     this.#preprocessOnce = preprocessOnce;
+    this.#debugLabel = debugLabel;
     this.#client = client;
     this.#task = task;
     this.trainer = new Trainer(task, client);
@@ -148,20 +157,26 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   /** Train on dataset, yielding logs of every batch. */
   async *trainByBatch(
     dataset: Dataset<DataFormat.Raw[D]>,
+    validationDataset?: Dataset<DataFormat.Raw[D]>,
   ): AsyncGenerator<BatchLogs> {
-    for await (const round of this.train(dataset))
+    for await (const round of this.train(dataset, validationDataset))
       for await (const epoch of round) yield* epoch;
   }
 
   /** Train on dataset, yielding summary logs */
   async *trainSummary(
     dataset: Dataset<DataFormat.Raw[D]>,
+    validationDataset?: Dataset<DataFormat.Raw[D]>,
   ): AsyncGenerator<SummaryLogs> {
-    for await (const [roundNum, round] of enumerate(this.train(dataset))) {
+    for await (const [roundNum, round] of enumerate(
+      this.train(dataset, validationDataset),
+    )) {
       const [roundGen, roundLogsPromise] = async_iterator.split(round);
 
       const epochResults: Array<{ epochNum: number; epochLogs: EpochLogs }> =
         [];
+
+      debug("Starting round %d", roundNum);
 
       for await (const [epochNum, epoch] of enumerate(roundGen)) {
         const [epochGen, epochLogsPromise] = async_iterator.split(epoch);
@@ -180,8 +195,11 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   }
 
   /** Run whole train on dataset. */
-  async trainFully(dataset: Dataset<DataFormat.Raw[D]>): Promise<void> {
-    for await (const round of this.train(dataset))
+  async trainFully(
+    dataset: Dataset<DataFormat.Raw[D]>,
+    validationDataset?: Dataset<DataFormat.Raw[D]>,
+  ): Promise<void> {
+    for await (const round of this.train(dataset, validationDataset))
       for await (const epoch of round) for await (const _ of epoch);
   }
 
@@ -193,19 +211,27 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
    **/
   async *train(
     dataset: Dataset<DataFormat.Raw[D]>,
+    validationDataset?: Dataset<DataFormat.Raw[D]>,
   ): AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>
   > {
     this.#logger.success("Training started");
 
-    const [trainingDataset, validationDataset] =
-      await this.#preprocessSplitAndBatch(dataset);
+    const [trainingDataset, validationDataset_] =
+      validationDataset !== undefined
+        ? await this.#preprocessDatasets(dataset, validationDataset)
+        : await this.#preprocessSplitAndBatch(dataset);
 
     // the client fetches the latest weights upon connection
+    debug("Connecting to client and fetching initial model...");
+    // TODO unsafe cast
     this.trainer.model = (await this.#client.connect()) as Model<D>;
+    this.#setModelDebugLabel(this.trainer.model);
+    this.#setModelTrainingOptions(this.trainer.model);
+    debug("Initial model fetched successfully");
 
     for await (const [roundNum, round] of enumerate(
-      this.trainer.train(trainingDataset, validationDataset),
+      this.trainer.train(trainingDataset, validationDataset_),
     )) {
       yield async function* (this: Disco<D, N>) {
         const [roundGen, roundLogsPromise] = split(round);
@@ -239,14 +265,26 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
               `    Training accuracy: ${epochLogs.training.accuracy}`,
               `    Peak memory: ${epochLogs.peakMemory}`,
               epochLogs.validation !== undefined
-                ? `    Validation loss: ${epochLogs.validation.loss}`
+                ? `    Pre-aggregation validation loss: ${epochLogs.validation.loss}`
                 : "",
               epochLogs.validation !== undefined
-                ? `    Validation accuracy: ${epochLogs.validation.accuracy}`
+                ? `    Pre-aggregation validation accuracy: ${epochLogs.validation.accuracy}`
                 : "",
             ].join("\n"),
           );
         }
+
+        this.#logger.success(
+          [
+            `Round: ${roundNum}`,
+            roundLogs.postAggregationValidation !== undefined
+              ? `Post-aggregation loss: ${roundLogs.postAggregationValidation.loss}`
+              : "",
+            roundLogs.postAggregationValidation
+              ? `Post-aggregation accuracy: ${roundLogs.postAggregationValidation.accuracy}`
+              : "",
+          ].join("\n"),
+        );
 
         return roundLogs;
       }.bind(this)();
@@ -259,6 +297,44 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
    */
   async close(): Promise<void> {
     await this.#client.disconnect();
+  }
+
+  #setModelDebugLabel(model: Model<D>): void {
+    if (this.#debugLabel === undefined) return;
+
+    const labeledModel = model as Model<D> & {
+      setDebugLabel?: (label: string) => void;
+    };
+
+    labeledModel.setDebugLabel?.(this.#debugLabel);
+  }
+
+  #setModelTrainingOptions(model: Model<D>): void {
+    if (this.#task.dataType !== "text") return;
+
+    const configurableModel = model as Model<D> & {
+      setGoldfishLoss?: (config: GoldfishLossConfig | undefined) => void;
+      setLearningRate?: (learningRate: number) => void;
+    };
+
+    configurableModel.setGoldfishLoss?.(
+      this.#task.trainingInformation.goldfishLoss,
+    );
+    if (this.#task.trainingInformation.goldfishLoss?.enabled === true) {
+      const { k, h, padTokenId } = this.#task.trainingInformation.goldfishLoss;
+      debug(
+        `Using Goldfish loss with k=${k}, h=${h}` +
+          (padTokenId === undefined ? "" : `, padTokenId=${padTokenId}`),
+      );
+    }
+    if (this.#task.trainingInformation.learningRate !== undefined) {
+      configurableModel.setLearningRate?.(
+        this.#task.trainingInformation.learningRate,
+      );
+      debug(
+        `Using GPT learning rate ${this.#task.trainingInformation.learningRate}`,
+      );
+    }
   }
 
   async #preprocessSplitAndBatch(
@@ -284,6 +360,41 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     return [
       training.batch(batchSize).cached(),
       validation.batch(batchSize).cached(),
+    ];
+  }
+
+  async #preprocessDatasets(
+    trainingDataset: Dataset<DataFormat.Raw[D]>,
+    validationDataset: Dataset<DataFormat.Raw[D]>,
+  ): Promise<
+    [
+      Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+      Dataset<Batched<DataFormat.ModelEncoded[D]>> | undefined,
+    ]
+  > {
+    const { batchSize } = this.#task.trainingInformation;
+
+    let preprocessedTraining = processing.preprocess(
+      this.#task,
+      trainingDataset,
+    );
+    let preprocessedValidation = processing.preprocess(
+      this.#task,
+      validationDataset,
+    );
+
+    if (this.#preprocessOnce) {
+      preprocessedTraining = new Dataset(
+        await arrayFromAsync(preprocessedTraining),
+      );
+      preprocessedValidation = new Dataset(
+        await arrayFromAsync(preprocessedValidation),
+      );
+    }
+
+    return [
+      preprocessedTraining.batch(batchSize).cached(),
+      preprocessedValidation.batch(batchSize).cached(),
     ];
   }
 }

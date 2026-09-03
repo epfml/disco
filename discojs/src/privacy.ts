@@ -6,7 +6,9 @@ import type { WeightNormHistory } from "#training/types";
 
 /** Computes the Frobenius norm of the given weights. */
 export async function frobeniusNorm(weights: tf.Tensor): Promise<number> {
-  const squared = await weights.square().sum().data();
+  const squaredTensor = tf.tidy(() => weights.square().sum());
+  const squared = await squaredTensor.data();
+  squaredTensor.dispose();
   if (squared.length !== 1) throw new Error("unexpected weights shape");
   return Math.sqrt(squared[0]);
 }
@@ -52,9 +54,13 @@ export async function addOptimalNoise(
   );
   const clippedWeights = await clipNorm(weightUpdates, clippingRadius);
 
-  return clippedWeights.map((w, i) =>
-    w.add(tf.randomNormal(w.shape, 0, sigmas[i])),
-  );
+  try {
+    return clippedWeights.map((w, i) =>
+      tf.tidy(() => w.add(tf.randomNormal(w.shape, 0, sigmas[i]))),
+    );
+  } finally {
+    clippedWeights.dispose();
+  }
 }
 
 /**

@@ -2,6 +2,7 @@ import express from "express";
 import type expressWS from "express-ws";
 import type { Task, DataType, Network, Encoded } from "@epfml/discojs";
 import { modelDecode, weightsEncode } from "@epfml/discojs";
+import createDebug from "debug";
 
 import type { TaskSet } from "../task_set.js";
 import type { TrainingController } from "../controllers/index.js";
@@ -9,6 +10,8 @@ import {
   FederatedController,
   DecentralizedController,
 } from "../controllers/index.js";
+
+const debug = createDebug("server:routes:training");
 
 /**
  * The TrainingRouter handles client requests related the federated
@@ -55,8 +58,17 @@ export class TrainingRouter<N extends Exclude<Network, "local">> {
 
       // The federated controller takes the initial model weights at initialization
       // so that it can send it to new clients
-      const model = modelDecode(encodedModel);
-      const encodedWeights = await weightsEncode((await model).weights);
+      const model = await modelDecode(encodedModel);
+      const weights = model.weights;
+      let encodedWeights: Encoded;
+      try {
+        encodedWeights = await weightsEncode(weights);
+      } catch (err) {
+        debug("Failed to encode initial weights for task %s: %o", task.id, err);
+        throw err;
+      } finally {
+        model[Symbol.dispose]();
+      }
       taskController = new FederatedController(t, encodedWeights);
     } else {
       const t = task as Task<D, "decentralized">;
