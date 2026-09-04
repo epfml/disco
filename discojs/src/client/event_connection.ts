@@ -1,7 +1,8 @@
 import createDebug from "debug";
 import WebSocket from "isomorphic-ws";
 import * as msgpack from "@msgpack/msgpack";
-import type { Peer, SignalData } from "#client/decentralized/peer";
+import type { SignalData } from "#client/decentralized/peer";
+import { Peer } from "#client/decentralized/peer";
 import type { NodeID } from "#client/types";
 import * as decentralizedMessages from "#client/decentralized/messages";
 import { MType } from "#client/mtype";
@@ -55,26 +56,29 @@ export class PeerConnection
   implements EventConnection
 {
   readonly #isConnectedPromise: Promise<void>;
+  readonly #peer: Peer;
 
   constructor(
     private readonly _ownId: NodeID,
-    private readonly peer: Peer,
-    private readonly signallingServer: EventConnection,
+    otherId: NodeID,
+    signallingServer: EventConnection,
   ) {
     super();
-    this.peer.on("signal", (signal) => {
+    this.#peer = new Peer(otherId, this._ownId < otherId);
+    // creating Peer immediately emit a "signal" event
+    this.#peer.on("signal", (signal) => {
       const msg: decentralizedMessages.SignalForPeer = {
         type: MType.SignalForPeer,
-        peer: this.peer.id,
+        peer: otherId,
         signal,
       };
       debug(
-        `[${shortenId(this._ownId)}] sent a SignalForPeer ${this.peer.id} to the server`,
+        `[${shortenId(this._ownId)}] sent a SignalForPeer ${otherId} to the server`,
       );
-      this.signallingServer.send(msg);
+      signallingServer.send(msg);
     });
 
-    this.peer.on("data", (data) => {
+    this.#peer.on("data", (data) => {
       const msg: unknown = msgpack.decode(data);
 
       if (!decentralizedMessages.isPeerMessage(msg)) {
@@ -84,27 +88,27 @@ export class PeerConnection
       this.emit(msg.type, msg);
     });
 
+    // Init a promise that is resolved when the connection is established
     this.#isConnectedPromise = new Promise<void>((resolve) => {
-      this.peer.on("connect", () => resolve());
+      this.#peer.on("connect", () => resolve());
     });
 
-    this.peer.on("close", () => {
-      debug(
-        `[${shortenId(this._ownId)}] peer ${this.peer.id} closed connection`,
-      );
+    this.#peer.on("close", () => {
+      debug(`[${shortenId(this._ownId)}] peer ${otherId} closed connection`);
     });
 
-    this.peer.on("error", (err: Error) => {
+    this.#peer.on("error", (err: Error) => {
       debug(`[${shortenId(this._ownId)}] errored with error ${err}`);
     });
   }
 
+  // Resolves when the connection is established
   async connect(): Promise<void> {
     await this.#isConnectedPromise;
   }
 
   signal(signal: SignalData): void {
-    this.peer.signal(signal);
+    this.#peer.signal(signal);
   }
 
   send<T extends Message>(msg: T): void {
@@ -113,11 +117,11 @@ export class PeerConnection
         `can't send this type of message: ${JSON.stringify(msg)}`,
       );
     }
-    this.peer.send(Buffer.from(msgpack.encode(msg)));
+    this.#peer.send(Buffer.from(msgpack.encode(msg)));
   }
 
   async disconnect(): Promise<void> {
-    await this.peer.destroy();
+    await this.#peer.destroy();
   }
 }
 

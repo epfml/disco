@@ -1,7 +1,7 @@
 import createDebug from "debug";
 import { Map, type Set, List } from "immutable";
 
-import { Peer, type SignalData } from "#client/decentralized/peer";
+import type { SignalData } from "#client/decentralized/peer";
 import type { NodeID } from "#client/types";
 import { PeerConnection, type EventConnection } from "#client/event_connection";
 import { shortenId } from "#client/utils";
@@ -11,7 +11,7 @@ const debug = createDebug("discojs:client:decentralized:pool");
 // TODO cleanup old peers
 
 // Minimum delay in ms between the creation of two peers.
-// Creating too many peers back to back creates an ICE deadlock 
+// Creating too many peers back to back creates an ICE deadlock
 const PEER_CREATION_STAGGER = 100;
 
 let peerCreationQueue: Promise<unknown> = Promise.resolve();
@@ -83,21 +83,16 @@ export class PeerPool {
     debug(`[${this.id}] is connecting peers: %o`, peersToConnect.toArray());
 
     let newPeersConnections = Map<NodeID, PeerConnection>();
-    for (const id of peersToConnect.filterNot((id) => this.peers.has(id))) {
+    for (const thatId of peersToConnect.filterNot((id) => this.peers.has(id))) {
       const connection = await createStaggered(
-        () =>
-          new PeerConnection(
-            this.id,
-            new Peer(id, id < this.id),
-            signallingServer,
-          ),
+        () => new PeerConnection(this.id, thatId, signallingServer),
       );
-      newPeersConnections = newPeersConnections.set(id, connection);
+      newPeersConnections = newPeersConnections.set(thatId, connection);
 
       // add the peer to the pool as soon as it exists so that `signal` reaches
       // it, then replay the signals that arrived while it did not exist
-      this.peers = this.peers.set(id, connection);
-      this.replayPendingSignals(id, connection);
+      this.peers = this.peers.set(thatId, connection);
+      this.replayPendingSignals(thatId, connection);
     }
 
     clientHandle(this.peers);
