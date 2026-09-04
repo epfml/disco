@@ -1,16 +1,40 @@
 import createDebug from "debug";
-import { Map, type Set } from "immutable";
+import { Map, type Set, List } from "immutable";
 
 import { Peer, type SignalData } from "#client/decentralized/peer";
 import type { NodeID } from "#client/types";
 import { PeerConnection, type EventConnection } from "#client/event_connection";
+import { shortenId } from "#client/client";
 
 const debug = createDebug("discojs:client:decentralized:pool");
 
 // TODO cleanup old peers
 
+// Minimum delay in ms between the creation of two peers.
+// Creating too many peers back to back creates an ICE deadlock 
+const PEER_CREATION_STAGGER = 100;
+
+let peerCreationQueue: Promise<unknown> = Promise.resolve();
+
+async function createStaggered<T>(create: () => T): Promise<T> {
+  const ready = peerCreationQueue;
+  peerCreationQueue = ready.then(
+    () => new Promise((resolve) => setTimeout(resolve, PEER_CREATION_STAGGER)),
+  );
+
+  await ready;
+  return create();
+}
+
 export class PeerPool {
   private peers = Map<NodeID, PeerConnection>();
+
+  // Signals received for peers we have not created yet.
+  //
+  // Peers create their connections at different times and in a different order,
+  // so one can signal us before we reach it in our own creation loop. Its
+  // signals are buffered here and replayed, in order, once we create our side.
+  private pendingSignals = Map<NodeID, List<SignalData>>();
 
   constructor(private readonly id: NodeID) {}
 
@@ -23,6 +47,7 @@ export class PeerPool {
       new Promise((res, _) => setTimeout(res, 1000)), // Wait for other peers to finish
     ]);
     this.peers = Map();
+    this.pendingSignals = Map();
   }
 
   signal(peerId: NodeID, signal: SignalData): void {
@@ -30,7 +55,16 @@ export class PeerPool {
 
     const peer = this.peers.get(peerId);
     if (peer === undefined) {
-      throw new Error(`received signal for unknown peer: ${peerId}`);
+      debug(
+        `[${shortenId(this.id)}] buffers a signal for the not yet created %s`,
+        shortenId(peerId),
+      );
+      this.pendingSignals = this.pendingSignals.update(
+        peerId,
+        List<SignalData>(),
+        (signals) => signals.push(signal),
+      );
+      return;
     }
 
     peer.signal(signal);
@@ -48,22 +82,23 @@ export class PeerPool {
 
     debug(`[${this.id}] is connecting peers: %o`, peersToConnect.toArray());
 
-    const newPeers = Map(
-      peersToConnect
-        .filter((id) => !this.peers.has(id))
-        .map((id) => [id, new Peer(id, id < this.id)] as [string, Peer]),
-    );
+    let newPeersConnections = Map<NodeID, PeerConnection>();
+    for (const id of peersToConnect.filterNot((id) => this.peers.has(id))) {
+      const connection = await createStaggered(
+        () =>
+          new PeerConnection(
+            this.id,
+            new Peer(id, id < this.id),
+            signallingServer,
+          ),
+      );
+      newPeersConnections = newPeersConnections.set(id, connection);
 
-    debug(
-      `[${this.id}] asked to connect new peers: %o`,
-      newPeers.keySeq().toArray(),
-    );
-    const newPeersConnections = newPeers.map(
-      (peer) => new PeerConnection(this.id, peer, signallingServer),
-    );
-
-    // adding peers to pool before connecting them because they must be set to call signal on them
-    this.peers = this.peers.merge(newPeersConnections);
+      // add the peer to the pool as soon as it exists so that `signal` reaches
+      // it, then replay the signals that arrived while it did not exist
+      this.peers = this.peers.set(id, connection);
+      this.replayPendingSignals(id, connection);
+    }
 
     clientHandle(this.peers);
 
@@ -76,5 +111,20 @@ export class PeerPool {
     );
 
     return this.peers.filter((_, id) => peersToConnect.has(id));
+  }
+
+  private replayPendingSignals(id: NodeID, connection: PeerConnection): void {
+    const pending = this.pendingSignals.get(id);
+    if (pending === undefined) return;
+    this.pendingSignals = this.pendingSignals.delete(id);
+
+    debug(
+      `[${shortenId(this.id)}] replays %d buffered signals for %s`,
+      pending.size,
+      id,
+    );
+    pending.forEach((signal) => {
+      connection.signal(signal);
+    });
   }
 }

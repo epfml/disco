@@ -26,6 +26,7 @@ export type SignalData =
 interface Events {
   close: () => void;
   connect: () => void;
+  error: (err: Error) => void;
   signal: (signal: SignalData) => void;
   data: (data: Buffer) => void;
 }
