@@ -11,3 +11,7 @@ export async function timeout(
     }, ms);
   });
 }
+
+export function shortenId(id: string): string {
+  return id.slice(0, 4);
+}

@@ -7,6 +7,7 @@ import * as decentralizedMessages from "#client/decentralized/messages";
 import { MType } from "#client/mtype";
 import { type NarrowMessage, type Message } from "#client/messages";
 import { timeout } from "#client/utils";
+import { shortenId } from "#client/utils";
 
 import { EventEmitter } from "#utils/event_emitter";
 
@@ -53,21 +54,23 @@ export class PeerConnection
   extends EventEmitter<{ [K in MType]: NarrowMessage<K> }>
   implements EventConnection
 {
+  readonly #isConnectedPromise: Promise<void>;
+
   constructor(
     private readonly _ownId: NodeID,
     private readonly peer: Peer,
     private readonly signallingServer: EventConnection,
   ) {
     super();
-  }
-
-  async connect(): Promise<void> {
     this.peer.on("signal", (signal) => {
       const msg: decentralizedMessages.SignalForPeer = {
         type: MType.SignalForPeer,
         peer: this.peer.id,
         signal,
       };
+      debug(
+        `[${shortenId(this._ownId)}] sent a SignalForPeer ${this.peer.id} to the server`,
+      );
       this.signallingServer.send(msg);
     });
 
@@ -81,13 +84,23 @@ export class PeerConnection
       this.emit(msg.type, msg);
     });
 
-    this.peer.on("close", () => {
-      debug(`[${this._ownId}] peer ${this.peer.id} closed connection`);
+    this.#isConnectedPromise = new Promise<void>((resolve) => {
+      this.peer.on("connect", () => resolve());
     });
 
-    await new Promise<void>((resolve) => {
-      this.peer.on("connect", resolve);
+    this.peer.on("close", () => {
+      debug(
+        `[${shortenId(this._ownId)}] peer ${this.peer.id} closed connection`,
+      );
     });
+
+    this.peer.on("error", (err: Error) => {
+      debug(`[${shortenId(this._ownId)}] errored with error ${err}`);
+    });
+  }
+
+  async connect(): Promise<void> {
+    await this.#isConnectedPromise;
   }
 
   signal(signal: SignalData): void {

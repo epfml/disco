@@ -4,7 +4,7 @@ import { Map, type Set, List } from "immutable";
 import { Peer, type SignalData } from "#client/decentralized/peer";
 import type { NodeID } from "#client/types";
 import { PeerConnection, type EventConnection } from "#client/event_connection";
-import { shortenId } from "#client/client";
+import { shortenId } from "#client/utils";
 
 const debug = createDebug("discojs:client:decentralized:pool");
 

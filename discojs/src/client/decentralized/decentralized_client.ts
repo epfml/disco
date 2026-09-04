@@ -5,10 +5,10 @@ import { WeightsContainer } from "#weights/index";
 import type { Model } from "#models/index";
 import type { DataType } from "#types/index";
 import { weightsEncode, weightsDecode } from "#serialization/index";
-import { Client, shortenId } from "#client/client";
+import { Client } from "#client/client";
 import type { NodeID } from "#client/types";
 import { MType, type ClientConnected } from "#client/mtype";
-import { timeout } from "#client/utils";
+import { timeout, shortenId } from "#client/utils";
 import {
   WebSocketServer,
   waitMessage,

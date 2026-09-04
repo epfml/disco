@@ -13,6 +13,7 @@ import { modelDecode } from "#serialization/index";
 import type { EventConnection } from "#client/event_connection";
 import type { NodeID } from "#client/types";
 import { MType } from "#client/mtype";
+import { shortenId } from "#client/utils";
 
 const debug = createDebug("discojs:client");
 
@@ -247,8 +248,4 @@ export abstract class Client<N extends Network> extends EventEmitter<{
   get waitingForMoreParticipants(): boolean {
     return this.promiseForMoreParticipants !== undefined;
   }
-}
-
-export function shortenId(id: string): string {
-  return id.slice(0, 4);
 }

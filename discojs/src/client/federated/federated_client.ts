@@ -4,10 +4,11 @@ import type { Model } from "#models/index";
 import type { DataType } from "#types/index";
 import type { WeightsContainer } from "#weights/index";
 import { weightsEncode, weightsDecode } from "#serialization/index";
-import { Client, shortenId } from "#client/client";
+import { Client } from "#client/client";
 import { MType, type ClientConnected } from "#client/mtype";
 import { waitMessage, WebSocketServer } from "#client/event_connection";
 import * as messages from "#client/federated/messages";
+import { shortenId } from "#client/utils";
 
 const debug = createDebug("discojs:client:federated");
 
