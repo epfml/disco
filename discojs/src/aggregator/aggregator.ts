@@ -78,6 +78,16 @@ export abstract class Aggregator extends EventEmitter<{
     );
   }
 
+  private disposeContributions(): void {
+    this.contributions.forEach((roundContributions) => {
+      roundContributions.forEach((contribution) => {
+        contribution.dispose();
+      });
+    });
+
+    this.contributions = Map();
+  }
+
   /**
    * Adds a node's contribution to the aggregator for the given aggregation and communication rounds.
    * The aggregation round is increased whenever a new global model is obtained and local models are updated.
@@ -116,7 +126,8 @@ export abstract class Aggregator extends EventEmitter<{
       if (this.communicationRound === this.communicationRounds) {
         this._communicationRound = 0;
         this._round++;
-        this.contributions = Map();
+
+        this.disposeContributions();
       }
       // Emitting the 'aggregation' communicates the weights to subscribers
       this.emit("aggregation", aggregatedWeights);
@@ -221,6 +232,13 @@ export abstract class Aggregator extends EventEmitter<{
    */
   removeNode(nodeId: NodeID): void {
     this._nodes = this._nodes.delete(nodeId);
+  }
+
+  /**
+   * Dispose the contributions to clean tensor memory
+   */
+  dispose(): void {
+    this.disposeContributions();
   }
 
   /**

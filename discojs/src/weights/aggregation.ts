@@ -33,9 +33,14 @@ function reduce(
   weights: Iterable<WeightsLike | WeightsContainer>,
   fn: (a: tf.Tensor, b: tf.Tensor) => tf.Tensor,
 ): WeightsContainer {
-  return parseWeights(weights).reduce(
-    (acc: WeightsContainer, ws: WeightsContainer) => acc.mapWith(ws, fn),
+  const reduced = tf.tidy(
+    () =>
+      parseWeights(weights).reduce(
+        (acc: WeightsContainer, ws: WeightsContainer) => acc.mapWith(ws, fn),
+      ).weights,
   );
+
+  return new WeightsContainer(reduced);
 }
 
 /**
@@ -68,5 +73,7 @@ export function avg(
   weights: Iterable<WeightsLike | WeightsContainer>,
 ): WeightsContainer {
   const ws = List(weights);
-  return sum(ws).map((w) => w.div(ws.size));
+  const averaged = tf.tidy(() => sum(ws).map((w) => w.div(ws.size)).weights);
+
+  return new WeightsContainer(averaged);
 }

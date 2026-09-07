@@ -4,10 +4,11 @@ import type { Model } from "#models/index";
 import type { DataType } from "#types/index";
 import type { WeightsContainer } from "#weights/index";
 import { weightsEncode, weightsDecode } from "#serialization/index";
-import { Client, shortenId } from "#client/client";
+import { Client } from "#client/client";
 import { MType, type ClientConnected } from "#client/mtype";
 import { waitMessage, WebSocketServer } from "#client/event_connection";
 import * as messages from "#client/federated/messages";
+import { shortenId } from "#client/utils";
 
 const debug = createDebug("discojs:client:federated");
 
@@ -22,7 +23,8 @@ const SERVER_NODE_ID = "federated-server-node-id";
  * Client class that communicates with a centralized, federated server, when training
  * a specific task in the federated setting.
  *
- * See federated README.md for schema of the event flow.
+ * See docs/FEDERATED.md for a description and schema of the event flow.
+ *
  *
  */
 export class FederatedClient extends Client<"federated"> {
@@ -90,7 +92,13 @@ export class FederatedClient extends Client<"federated"> {
       `[${shortenId(this.ownId)}] upon connecting, wait for participant flag %o`,
       this.waitingForMoreParticipants,
     );
-    model.weights = weightsDecode(payload);
+
+    const initialWeights = weightsDecode(payload);
+    try {
+      model.weights = initialWeights;
+    } finally {
+      initialWeights.dispose();
+    }
     return model;
   }
 

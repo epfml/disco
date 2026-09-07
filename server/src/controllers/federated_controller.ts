@@ -33,6 +33,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
    * or staled participants
    */
   #latestGlobalWeights: Encoded;
+  #encodedAggregation!: Promise<Encoded>;
 
   constructor(
     task: Task<D, "federated">,
@@ -43,7 +44,11 @@ export class FederatedController<D extends DataType> extends TrainingController<
 
     // Save the latest weight updates to be able to send it to new or outdated clients
     this.#aggregator.on("aggregation", async (weightUpdate) => {
-      this.#latestGlobalWeights = await weightsEncode(weightUpdate);
+      this.#encodedAggregation = weightsEncode(weightUpdate);
+      this.#latestGlobalWeights = await this.#encodedAggregation;
+
+      // Dispose WeightContainer created for weightUpdate sharing
+      weightUpdate.dispose();
     });
   }
 
@@ -111,7 +116,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
 
             // Create a callback to send the aggregated weight to the client
             // when enough contributions are received
-            this.#aggregator.once("aggregation", async (weightUpdate) => {
+            this.#aggregator.once("aggregation", async (_) => {
               debug(
                 "Sending global weights for round %o to client [%s]",
                 this.#aggregator.round,
@@ -120,7 +125,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
               const msg: federatedMessages.ReceiveServerPayload = {
                 type: MessageTypes.ReceiveServerPayload,
                 round: this.#aggregator.round, // send the current round number after aggregation
-                payload: await weightsEncode(weightUpdate),
+                payload: await this.#encodedAggregation,
                 nbOfParticipants: this.connections.size,
               };
               ws.send(msgpack.encode(msg));
@@ -164,9 +169,8 @@ export class FederatedController<D extends DataType> extends TrainingController<
 
       // Reset the training session when all participants left
       if (this.connections.size === 0) {
-        debug("All participants left. Resetting the training session");
-        this.#aggregator = new MeanAggregator(undefined, 1, "relative");
-        this.#latestGlobalWeights = this.initialWeights;
+        debug("All participants left. Resetting federated training session");
+        this.reset();
       }
 
       // Check if we dropped below the minimum number of participant required
@@ -179,6 +183,24 @@ export class FederatedController<D extends DataType> extends TrainingController<
 
       // tell remaining participants to wait until more participants join
       this.sendWaitForMoreParticipantsMsg();
+    });
+  }
+
+  reset(): void {
+    this.resetConnectionState();
+
+    // Dispose first before generating a new aggregator
+    this.#aggregator.dispose();
+
+    this.#aggregator = new MeanAggregator(undefined, 1, "relative");
+    this.#latestGlobalWeights = this.initialWeights;
+
+    // Since we replaced aggregator, we also need to register new aggregation listener
+    this.#aggregator.on("aggregation", async (weightUpdate) => {
+      this.#encodedAggregation = weightsEncode(weightUpdate);
+      this.#latestGlobalWeights = await this.#encodedAggregation;
+
+      weightUpdate.dispose();
     });
   }
 }
