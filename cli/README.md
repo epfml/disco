@@ -125,3 +125,28 @@ Results are printed to the console and saved to a log file: `../datasets/logFile
 This allows for a direct comparison between the inference performance and accuracy of the two architectures.
 
 The TFJS implementation is generally slower and more memory-intensive than ONNX, but offers compatibility with browser-based environments and custom training workflows. See the [Benchmarking GPT-TF.js](#benchmarking-gpt-tfjs) section for more details on performance tradeoffs.
+
+## Training GPT-2 on Hellaswag with Goldfish loss
+
+```bash
+pnpm --filter server start
+
+DEBUG=* pnpm --filter cli start --task goldfish \
+  -d ../datasets/trainAnswersPHIx10.txt \
+  -V ../datasets/val_medFullAnswers100.txt \
+  --learningRate 0.0001 \
+  --testID arbitrary_task_id \
+  --numberOfUsers 2 --goldfishLoss true --epochs 1 \
+  --roundIterations 15 \ # aggregate every 15 batches
+  --validationSplit 0 \ # 0 because we specified a val dataset path
+  --validationMode both \ # evaluate before and after aggreation
+  --saveCheckpoints true --saveLogs true --saveModel true \
+  -o ./logs/fed_LR0001fullanswersPHIx10proba
+```
+
+
+### Evaluating a fine-tuned model
+
+```bash
+pnpm -F cli run eval_finetuned_gpt2 --modelPath path/to/model.json --testPath ../datasets/test_medFullAnswers.txt --maxSamples 100
+```

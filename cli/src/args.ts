@@ -114,13 +114,13 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     roundDuration: {
       type: Number,
       alias: "r",
-      description: "Round duration (in epochs)",
+      description: "Round duration (in epochs). Ignored if roundIterations is specified",
       defaultValue: 2,
     },
     roundIterations: {
       type: Number,
       description:
-        "For GPT text tasks, aggregate every N training batches without rewinding the dataset",
+        "For GPT text tasks, aggregate every N training batches without rewinding the dataset. Takes precedence over roundIterations",
       optional: true,
     },
     batchSize: {
