@@ -18,13 +18,13 @@ catalog:
   "@tensorflow/tfjs-node": "4.22.0"
   "typescript": "6.0.3"
 
+overrides:
+  "@xenova/transformers>sharp": 0.35.3
+
 allowBuilds:
-  "@koush/wrtc": true
   "@tensorflow/tfjs-node": true
   canvas: true
   core-js: true
   cypress: true
-  node-datachannel: true
-  protobufjs: true
-  sharp: true
-  wrtc: true
+  protobufjs: false
+  sharp: false
