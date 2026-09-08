@@ -1,11 +1,5 @@
 <div align="center">
   <h1>DISCO <code>developer guide</code></h1>
-  <p>
-    <a href="https://github.com/epfml/disco/actions/workflows/verify.yml"><img src="https://github.com/epfml/disco/actions/workflows/lint-test-build.yml/badge.svg" alt="build status" /></a>
-    <a href="https://github.com/epfml/disco/actions/workflows/deploy-server.yml"><img src="https://github.com/epfml/disco/actions/workflows/publish-deploy.yml/badge.svg" alt="build status" /></a>
-  </p>
-  </br>
-
 </div>
 
 Welcome to the DISCO developer guide.
@@ -182,13 +176,14 @@ As there are many guides in the project, here is a table of contents referencing
 - [Developer guide](./DEV.md)
 - The `docs` folder contains in-depth documentation on the project:
   - [Contributing guide](./docs/CONTRIBUTING.md)
-  - [TASK.md: training on your own dataset](./docs/TASK.md)
-  - [Disco.js under the hood](./docs/DISCOJS.md)
-  - [`examples` folder: using `discojs-node`, adding a custom task](./docs/examples)
+  - [Federated learning](./docs/FEDERATED.md)
+  - [Decentralized learning](./docs/DECENTRALIZED.md)
   - [Privacy in DISCO](./docs/PRIVACY.md)
   - [Vue.js in DISCO](./docs/VUEJS.md)
   - [FAQ](./docs/FAQ.md)
   - [Notes about tooling](./docs/TOOLING.md)
+  - [TASK.md: training on your own dataset](./docs/TASK.md)
+  - [`examples` folder: using `discojs-node`, adding a custom task](./docs/examples)
 - `README` files contain information relevant to their respective module:
   - [`server` README](./server/README.md), with API and deployment information
   - [`cli` README](./cli/README.md)
