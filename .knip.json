@@ -12,7 +12,10 @@
       "entry": [
         "src/benchmark_gpt.ts",
         "src/hellaswag_gpt.ts",
-        "src/train_gpt.ts"
+        "src/train_gpt.ts",
+        "src/evaluate_finetuned_gpt2_full_answer.ts",
+        "src/evaluate_finetuned_gpt2.ts",
+        "src/measure_memorization_gpt2.ts"
       ]
     },
     "onnx-converter": {

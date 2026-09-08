@@ -2,7 +2,7 @@ import type { Map } from "immutable";
 
 import type { WeightsContainer } from "#weights/index";
 import type { NodeID } from "#client/types";
-import { avg } from "#weights/index";
+import { avg as computeAvg } from "#weights/index";
 
 import { AggregationStep } from "#aggregator/aggregator";
 import type { ThresholdType } from "#aggregator/multiround";
@@ -10,6 +10,7 @@ import { MultiRoundAggregator } from "#aggregator/multiround";
 
 /**
  * Mean aggregator whose aggregation step consists in computing the mean of the received weights.
+ * This aggregator extends MultiRoundAggregator while only performing a single round
  *
  */
 export class MeanAggregator extends MultiRoundAggregator {
@@ -23,13 +24,20 @@ export class MeanAggregator extends MultiRoundAggregator {
   }
 
   override _add(nodeId: NodeID, contribution: WeightsContainer): void {
+    const previous = this.contributions.getIn([0, nodeId]) as
+      | WeightsContainer
+      | undefined;
     this.log(
       this.contributions.hasIn([0, nodeId])
         ? AggregationStep.UPDATE
         : AggregationStep.ADD,
       nodeId,
     );
-    this.contributions = this.contributions.setIn([0, nodeId], contribution);
+    if (previous !== undefined) previous.dispose();
+    this.contributions = this.contributions.setIn(
+      [0, nodeId],
+      contribution.map((weight) => weight.clone()),
+    );
   }
 
   override aggregate(): WeightsContainer {
@@ -39,8 +47,10 @@ export class MeanAggregator extends MultiRoundAggregator {
 
     this.log(AggregationStep.AGGREGATE);
 
-    const result = avg(currentContributions.values());
-    return result;
+    const contributions = Array.from(currentContributions.values());
+    const avg = computeAvg(contributions);
+    contributions.forEach((contribution) => contribution.dispose());
+    return avg;
   }
 
   override makePayloads(

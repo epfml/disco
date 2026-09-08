@@ -205,9 +205,8 @@ export abstract class Client<N extends Network> extends EventEmitter<{
     return await modelDecode(encoded);
   }
 
-  public finishRound(_weights: WeightsContainer): void {
-    // DecentralizedClient override the method to clean up round state
-  }
+  // DecentralizedClient override the method to clean up round state
+  abstract finishRound(_weights: WeightsContainer): void;
 
   /**
    * Number of contributors to a collaborative session

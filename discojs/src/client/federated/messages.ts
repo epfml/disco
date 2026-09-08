@@ -21,7 +21,7 @@ export interface NewFederatedNodeInfo {
   type: MType.NewFederatedNodeInfo;
   id: NodeID;
   waitForMoreParticipants: boolean;
-  payload: serialization.Encoded;
+  payload?: serialization.Encoded | null;
   round: number;
   nbOfParticipants: number;
 }

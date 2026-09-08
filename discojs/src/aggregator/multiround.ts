@@ -6,7 +6,7 @@ export type ThresholdType = "relative" | "absolute";
 const debug = createDebug("discojs:aggregator:multiround");
 
 /**
- * Base class for multi-round aggregators.
+ * Base class for multi-round aggregators, with potentially only one round.
  * Multi-round aggregators are aggregators that wait for a certain number of contributions before aggregating.
  * They can be used to implement different aggregation strategies, such as Byzantine robust aggregation or Mean Aggregator.
  */

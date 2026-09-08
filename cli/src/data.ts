@@ -1,9 +1,59 @@
 import path from "node:path";
-import type { Dataset } from "@epfml/discojs";
-import { extractColumn } from "@epfml/discojs";
+import { createReadStream } from "node:fs";
+import { Dataset, extractColumn } from "@epfml/discojs";
 import type { DataFormat, DataType, Image, Task } from "@epfml/discojs";
 import { loadCSV, loadImage, loadImagesInDir } from "@epfml/discojs-node";
 import { Repeat } from "immutable";
+
+function loadTextSamples(
+  filePath: string,
+  userIdx?: number,
+  totalClient?: number,
+): Dataset<DataFormat.Raw["text"]> {
+  return new Dataset(async function* () {
+    const stream = createReadStream(filePath, { encoding: "utf8" });
+    const sampleDelimiter = "<|endoftext|>";
+    let buffer = "";
+    let sampleIndex = 0;
+
+    for await (const chunk of stream) {
+      if (typeof chunk !== "string") {
+        throw new Error("Expected file stream to yield string");
+      }
+
+      buffer += chunk;
+
+      let delimiterIndex = buffer.indexOf(sampleDelimiter);
+      while (delimiterIndex !== -1) {
+        const sample = buffer
+          .slice(0, delimiterIndex + sampleDelimiter.length)
+          .trim();
+        const shouldYield =
+          userIdx === undefined ||
+          totalClient === undefined ||
+          sampleIndex % totalClient === userIdx;
+
+        if (sample !== "" && shouldYield) {
+          yield sample;
+        }
+
+        sampleIndex++;
+        buffer = buffer.slice(delimiterIndex + sampleDelimiter.length);
+        delimiterIndex = buffer.indexOf(sampleDelimiter);
+      }
+    }
+
+    const trailingSample = buffer.trim();
+    const shouldYieldTrailing =
+      userIdx === undefined ||
+      totalClient === undefined ||
+      sampleIndex % totalClient === userIdx;
+
+    if (trailingSample !== "" && shouldYieldTrailing) {
+      yield trailingSample;
+    }
+  });
+}
 
 async function loadLusCovidData(
   userIdx: number,
@@ -76,7 +126,15 @@ export async function getTaskData<D extends DataType>(
   taskID: Task.ID,
   userIdx: number,
   totalClient: number,
+  datasetPath?: string,
+  isValidation?: boolean,
+  validationDatasetPath?: string,
 ): Promise<Dataset<DataFormat.Raw[D]>> {
+  if (validationDatasetPath && taskID !== "goldfish")
+    throw new Error(
+      "validationDatasetPath is currently only supported for the goldfish task",
+    );
+
   switch (taskID) {
     case "titanic":
     case "titanic_decentralized":
@@ -99,6 +157,21 @@ export async function getTaskData<D extends DataType>(
     case "mnist_federated":
     case "mnist":
       return loadData("mnist", userIdx) as Dataset<DataFormat.Raw[D]>;
+    case "goldfish": {
+      const filePath =
+        isValidation && validationDatasetPath
+          ? validationDatasetPath
+          : (datasetPath ?? "../datasets/med_mcq/train.txt");
+
+      // Keep validation shared, but shard training data across clients by MCQ sample.
+      if (isValidation) {
+        return loadTextSamples(filePath) as Dataset<DataFormat.Raw[D]>;
+      }
+
+      return loadTextSamples(filePath, userIdx, totalClient) as Dataset<
+        DataFormat.Raw[D]
+      >;
+    }
     default:
       throw new Error(`Data loader for ${taskID} not implemented.`);
   }

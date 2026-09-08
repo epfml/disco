@@ -417,37 +417,42 @@ export class DecentralizedClient extends Client<"decentralized"> {
             "Timeout waiting for a contribution from peer " + peerId,
           );
           const decoded = weightsDecode(message.payload);
-
-          if (
-            !this.aggregator.isValidContribution(
-              peerId,
-              message.aggregationRound,
-            )
-          ) {
-            debug(
-              `[${shortenId(this.ownId)}] failed to add contribution from peer ${shortenId(peerId)}`,
-            );
-          } else {
-            debug(
-              `[${shortenId(this.ownId)}] received payload from peer ${shortenId(peerId)}` +
-                ` for round (%d, %d)`,
-              message.aggregationRound,
-              message.communicationRound,
-            );
-            this.aggregator.once("aggregation", () =>
+          // the aggregator takes a copy of what it needs, so the decoded
+          // container stays ours to dispose
+          try {
+            if (
+              !this.aggregator.isValidContribution(
+                peerId,
+                message.aggregationRound,
+              )
+            ) {
               debug(
-                `[${shortenId(this.ownId)}] aggregated the model` +
+                `[${shortenId(this.ownId)}] failed to add contribution from peer ${shortenId(peerId)}`,
+              );
+            } else {
+              debug(
+                `[${shortenId(this.ownId)}] received payload from peer ${shortenId(peerId)}` +
                   ` for round (%d, %d)`,
                 message.aggregationRound,
                 message.communicationRound,
-              ),
-            );
-            this.aggregator.add(
-              peerId,
-              decoded,
-              message.aggregationRound,
-              message.communicationRound,
-            );
+              );
+              this.aggregator.once("aggregation", () =>
+                debug(
+                  `[${shortenId(this.ownId)}] aggregated the model` +
+                    ` for round (%d, %d)`,
+                  message.aggregationRound,
+                  message.communicationRound,
+                ),
+              );
+              this.aggregator.add(
+                peerId,
+                decoded,
+                message.aggregationRound,
+                message.communicationRound,
+              );
+            }
+          } finally {
+            decoded.dispose();
           }
         } catch (e) {
           if (this.isDisconnected) return;
@@ -488,10 +493,10 @@ export class DecentralizedClient extends Client<"decentralized"> {
           .entrySeq()
           .map(async ([id, payload]) => {
             if (id === this.ownId) {
-              // add our own contribution to the aggregator
+              // add our own contribution to the aggregator, which takes a copy
               this.aggregator.add(
                 this.ownId,
-                this.cloneWeights(payload),
+                payload,
                 this.aggregator.round,
                 communicationRound,
               );
@@ -533,7 +538,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
           ),
         ]);
       } catch (e) {
-        if (this.isDisconnected) return weights;
+        if (this.isDisconnected) return weights.clone();
 
         debug(
           `[${shortenId(this.ownId)}] while waiting for aggregation: %o`,

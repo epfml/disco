@@ -29,18 +29,35 @@ function parseWeights(
   return r;
 }
 
+/**
+ * Folds the given iterable of weights with the binary operator, disposing each
+ * intermediate result immediately.
+ *
+ * `tf.tidy` only frees the intermediates once the whole
+ * fold is over, so the peak memory would grow with the number of operands.
+ */
 function reduce(
   weights: Iterable<WeightsLike | WeightsContainer>,
   fn: (a: tf.Tensor, b: tf.Tensor) => tf.Tensor,
 ): WeightsContainer {
-  const reduced = tf.tidy(
-    () =>
-      parseWeights(weights).reduce(
-        (acc: WeightsContainer, ws: WeightsContainer) => acc.mapWith(ws, fn),
-      ).weights,
-  );
+  const ws = parseWeights(weights);
 
-  return new WeightsContainer(reduced);
+  const first = ws.first();
+  if (first === undefined) throw new Error("no weights to work with");
+
+  let acc = first.clone();
+  try {
+    for (const operand of ws.rest()) {
+      const next = acc.mapWith(operand, fn);
+      acc.dispose();
+      acc = next;
+    }
+  } catch (e) {
+    acc.dispose();
+    throw e;
+  }
+
+  return acc;
 }
 
 /**
@@ -72,8 +89,12 @@ export function diff(
 export function avg(
   weights: Iterable<WeightsLike | WeightsContainer>,
 ): WeightsContainer {
-  const ws = List(weights);
-  const averaged = tf.tidy(() => sum(ws).map((w) => w.div(ws.size)).weights);
+  const ws = parseWeights(weights);
+  const summed = reduce(ws, tf.add);
 
-  return new WeightsContainer(averaged);
+  try {
+    return summed.map((weight) => weight.div(ws.size));
+  } finally {
+    summed.dispose();
+  }
 }

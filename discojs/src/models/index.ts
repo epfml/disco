@@ -7,6 +7,7 @@ export type { GenerationConfig } from "./generation.js";
 
 export type {
   GPTConfig,
+  GoldfishLossConfig,
   HellaSwagDataset,
   HellaSwagExample,
 } from "./implementations/index.js";

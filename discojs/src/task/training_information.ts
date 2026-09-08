@@ -66,6 +66,13 @@ export namespace TrainingInformation {
     // number of epochs between each weight sharing round.
     // e.g.if 3 then weights are shared every 3 epochs (in the distributed setting).
     roundDuration: z.number().positive().int(),
+    // for GPT text tasks, number of training batches between each weight sharing round.
+    // roundDuration is ignored if roundIterations is set
+    roundIterations: z.number().positive().int().optional(),
+    // run validation every N aggregation rounds. If 0, validation metrics are skipped.
+    validationFrequency: z.number().nonnegative().int().optional(),
+    // whether to validate before aggregation, after aggregation, or at both points
+    validationMode: z.enum(["before", "after", "both"]).optional(),
     // fraction of data to keep for validation, note this only works for image data
     validationSplit: z.number().min(0).max(1),
     // batch size of training data
@@ -96,6 +103,16 @@ export namespace TrainingInformation {
       // the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
       // truncate strings to a maximum length. The default value is tokenizer.model_max_length
       contextLength: z.number().positive().int(),
+      // Goldfish loss drops a deterministic subset of shifted target-token losses while keeping full inputs.
+      goldfishLoss: z
+        .object({
+          enabled: z.boolean(),
+          k: z.number().positive().int().default(4),
+          h: z.number().positive().int().default(13),
+          padTokenId: z.number().int().optional(),
+        })
+        .optional(),
+      learningRate: z.number().positive().optional(),
     }),
   } satisfies Record<DataType, unknown>;
 

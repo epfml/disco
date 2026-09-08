@@ -59,6 +59,10 @@ export class Server {
   async serve(port?: number): Promise<[http.Server, URL]> {
     const wsApplier = expressWS(express(), undefined, {
       leaveRouterUntouched: true,
+      wsOptions: {
+        // GPT-sized federated updates can exceed the ws default payload limit.
+        maxPayload: 1024 * 1024 * 1024,
+      },
     });
     const app = wsApplier.app;
 

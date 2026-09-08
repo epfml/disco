@@ -64,9 +64,14 @@ export class SecureAggregator extends Aggregator {
       nodeId.slice(0, 4),
     );
 
+    const previous = this.contributions.getIn([communicationRound, nodeId]) as
+      | WeightsContainer
+      | undefined;
+    previous?.dispose();
+
     this.contributions = this.contributions.setIn(
       [communicationRound, nodeId],
-      contribution,
+      contribution.map((weight) => weight.clone()),
     );
   }
 

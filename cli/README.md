@@ -36,14 +36,34 @@ Non-mandatory fields will automatically use values from the task specification.
 - `testID`: (mandatory) arbitrary test ID defined by the user for the test run
 - `task`: (mandatory) pre-defined task (adding a new task is described in the next section)
 - `numberOfUsers`: number of users participating in the learning round
-- `save`: whether to save the logs of the test run
+- `host`: URL of the server to connect to, defaults to `http://localhost:8080`
+- `outputPath`: path to save logs and models, defaults to `./<testID>`
+- `saveLogs`: whether to save the logs of the test run
+- `saveModel`: whether to save the trained model to disk
+- `saveCheckpoints`: whether to save each client model after every completed round/aggregation
+
+### Dataset arguments
+
+- `datasetPath`: path to the training dataset
+- `validationDatasetPath`: path to a separate validation dataset shared by all clients, takes precedence over `validationSplit`
 
 ### Learning hyperparameters
 
 - `epochs`: total number of training epochs
-- `roundDuration`: number of epochs per round
+- `roundDuration`: number of epochs per round, ignored if `roundIterations` is set.
+- `roundIterations`: number of iterations per round, takes precedence over `roundDuration`
 - `batchSize`: batch size
-- `validationSplit`: ratio of the validation set used for evaluation
+- `validationSplit`: fraction of each client's training data used for validation, ignored when `validationDatasetPath` is set; 0 disables split-based validation
+- `validationFrequency`: how often to validate. Validate the first aggregation round and every N rounds after it; defaults to every round, 0 disables validation metrics
+- `validationMode`: when to run the validation: `before` model aggregation (default), `after`, or `both`
+- `learningRate`: override the learning rate (GPT text tasks only)
+
+### Goldfish loss parameters (GPT text tasks only)
+
+- `goldfishLoss`: train with the [goldfish loss](https://arxiv.org/abs/2406.10209), which drops a subset of target tokens from the loss to mitigate memorization
+- `goldfishK`: drop modulus k, a target token is dropped if hash(context) mod k == 0
+- `goldfishH`: localized hash context length
+- `goldfishPadTokenId`: (optional) padding token id to exclude from the goldfish loss denominator
 
 ### Aggregator parameters
 
@@ -57,7 +77,7 @@ Non-mandatory fields will automatically use values from the task specification.
 
 ## Adding new tasks
 
-The CLI can be used on several pre-defined tasks: titanic, lus_covid and CIFAR10. In order
+The CLI can be used on several pre-defined tasks: `cifar10`, `lus_covid`, `mnist`, `simple_face`, `tinder_dog`, `titanic` and `goldfish` (GPT-2 fine-tuning). In order
 to understand how to add a new task have a look at [TASK.md](../docs/TASK.md).
 
 Once a new task has been defined in `discojs`, it can be loaded in [data.ts](./src/data.ts) as it is already implemented for current tasks. There are currently [multiple classes](../discojs-node/src/loaders) you can use to load data using Node.js and preprocess data: loadImagesInDir, loadCSV and loadText.
@@ -105,3 +125,33 @@ Results are printed to the console and saved to a log file: `../datasets/logFile
 This allows for a direct comparison between the inference performance and accuracy of the two architectures.
 
 The TFJS implementation is generally slower and more memory-intensive than ONNX, but offers compatibility with browser-based environments and custom training workflows. See the [Benchmarking GPT-TF.js](#benchmarking-gpt-tfjs) section for more details on performance tradeoffs.
+
+## Training GPT-2 on Hellaswag with Goldfish loss
+
+```bash
+pnpm --filter server start
+
+DEBUG=* pnpm --filter cli start --task goldfish \
+  -d ../datasets/trainAnswersPHIx10.txt \
+  -V ../datasets/val_medFullAnswers100.txt \
+  --learningRate 0.0001 \
+  --testID arbitrary_task_id \
+  --numberOfUsers 2 --goldfishLoss true --epochs 1 \
+  --roundIterations 15 \ # aggregate every 15 batches
+  --validationSplit 0 \ # 0 because we specified a val dataset path
+  --validationMode both \ # evaluate before and after aggreation
+  --saveCheckpoints true --saveLogs true --saveModel true \
+  -o ./logs/goldfish_training
+```
+
+### Evaluating a fine-tuned model
+
+```bash
+pnpm -F cli run eval_finetuned_gpt2 --modelPath path/to/model.json --testPath ../datasets/test_medFullAnswers.txt --maxSamples 100
+```
+
+### Measuring the memorization of a fine-tuned model
+
+```bash
+pnpm -F cli measure_memorization_gpt2 --modelPath path/to/model.json --dataPath ../datasets/PHI_filtered_final.txt
+```

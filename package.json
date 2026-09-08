@@ -5,7 +5,7 @@
     "lint": "eslint",
     "format:check": "prettier -c .",
     "format:fix": "prettier -w --list-different .",
-    "check_cycles": "dpdm --tsconfig discojs/tsconfig.lib.json --circular --exit-code circular:1 'discojs/src/**/*.ts'"
+    "check_cycles": "dpdm --tsconfig discojs/tsconfig.lib.json --circular --no-warning --no-tree --exit-code circular:1 'discojs/src/**/*.ts'"
   },
   "dependencies": {
     "@tensorflow/tfjs-node": "catalog:"

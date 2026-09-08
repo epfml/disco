@@ -1,8 +1,10 @@
 import type tf from "@tensorflow/tfjs";
 
 import { encode as w_encode, decode as w_decode } from "#serialization/weights";
-import { GPT, TFJS } from "#models/index";
-import type { Model, GPTConfig } from "#models/index";
+import { GPT } from "#models/implementations/index";
+import type { GPTConfig } from "#models/implementations/index";
+import { TFJS } from "#models/tfjs";
+import type { Model } from "#models/model";
 import type { DataType } from "#types/index";
 
 import type { Encoded } from "#serialization/coder";
@@ -41,12 +43,14 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
       "invalid encoding, encoding isn't an array or doesn't contain enough values",
     );
   }
+
   const type = raw[0] as unknown;
   if (typeof type !== "number") {
     throw new Error(
       "invalid encoding, first encoding field should be the model type",
     );
   }
+
   const rawModel = raw[1] as unknown;
   switch (type) {
     case Type.TFJS: {
