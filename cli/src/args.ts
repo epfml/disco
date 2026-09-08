@@ -114,7 +114,8 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     roundDuration: {
       type: Number,
       alias: "r",
-      description: "Round duration (in epochs). Ignored if roundIterations is specified",
+      description:
+        "Round duration (in epochs). Ignored if roundIterations is specified",
       defaultValue: 2,
     },
     roundIterations: {

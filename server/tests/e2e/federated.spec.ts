@@ -15,6 +15,7 @@ import { List } from "immutable";
 import { assert, afterEach, describe, expect, it } from "vitest";
 import { Server } from "../../src/index.js";
 import { Queue, datasets } from "../utils.js";
+import * as tf from "@tensorflow/tfjs-node";
 
 // Array.fromAsync not yet widely used (2024)
 async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
@@ -28,6 +29,23 @@ async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
     ret.push(e);
   }
   return ret;
+}
+
+async function WSIntoList(ws: WeightsContainer): Promise<List<List<number>>> {
+  return List(
+    (await Promise.all(ws.weights.map(async (w) => await w.data()))).map(
+      (arr) => List(arr),
+    ),
+  );
+}
+
+async function expectWSToBeClose(
+  left: WeightsContainer,
+  right: WeightsContainer,
+): Promise<void> {
+  for (const tensors of (await WSIntoList(left)).zip(await WSIntoList(right)))
+    for (const [l, r] of tensors[0].zip(tensors[1]))
+      expect(l).to.be.closeTo(r, 1e-4);
 }
 
 describe("end-to-end federated", () => {
@@ -62,7 +80,6 @@ describe("end-to-end federated", () => {
     const disco = new Disco(task, url, { preprocessOnce });
 
     const logs = List(await arrayFromAsync(disco.trainByRound(dataset)));
-    await disco.close();
 
     expect(logs.first()?.epochs.first()?.training.loss).to.be.above(
       logs.last()?.epochs.last()?.training.loss as number,
@@ -70,8 +87,22 @@ describe("end-to-end federated", () => {
 
     const lastEpoch = logs.last()?.epochs.last();
     if (lastEpoch === undefined) throw new Error("no epoch ran");
-    return [disco.trainer.model.weights, lastEpoch];
+
+    const finalWeights = disco.trainer.model.weights.clone();
+    await disco.close();
+
+    return [finalWeights, lastEpoch];
   }
+
+  // Return tensor snapshot to check model weight reset
+  const tensorMemorySnapshot = () => {
+    const memory = tf.memory();
+
+    return {
+      numTensors: memory.numTensors,
+      numBytes: memory.numBytes,
+    };
+  };
 
   it("three cifar10 users reach consensus", { timeout: 200_000 }, async () => {
     const task = await defaultTasks.cifar10.getTask();
@@ -382,6 +413,215 @@ describe("end-to-end federated", () => {
         expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.4);
       }
       assert.isTrue(m1.equals(m2) && m2.equals(m3));
+    },
+  );
+
+  // Check memory difference between federated learning rounds
+  it(
+    "observes tensor memory across federated training rounds",
+    { timeout: 200_000 },
+    async () => {
+      const baseTask = await defaultTasks.lusCovid.getTask();
+      const task: Task<"image", "federated"> = {
+        ...baseTask,
+        trainingInformation: {
+          ...baseTask.trainingInformation,
+          scheme: "federated",
+          aggregationStrategy: "mean",
+          epochs: 10,
+          roundDuration: 1,
+          minNbOfParticipants: 2,
+        },
+      };
+      const lusCovidProvider = {
+        getTask: () => Promise.resolve(task),
+        modelCard: defaultModels.LUSClassifier,
+      };
+
+      const url = await startServer(
+        defaultModels.LUSClassifier,
+        lusCovidProvider,
+      );
+
+      const dataset = await datasets.loadLusCOVID();
+
+      const discoUser1 = new Disco(task, url, { preprocessOnce: true });
+      const discoUser2 = new Disco(task, url, { preprocessOnce: true });
+
+      try {
+        const generators = [
+          discoUser1.trainByRound(dataset),
+          discoUser2.trainByRound(dataset),
+        ];
+        const warmupRounds = 2;
+        const totalRounds = Math.trunc(
+          task.trainingInformation.epochs /
+            task.trainingInformation.roundDuration,
+        );
+
+        // Run warm up rounds before measuring memory so that model initialization happens
+        // and does not measured as memory leakage
+        for (let round = 0; round < warmupRounds; round++) {
+          const results = await Promise.all(
+            generators.map(async (generator) => await generator.next()),
+          );
+
+          results.forEach((result) => {
+            expect(result.done, "training ended during warm-up").to.equal(
+              false,
+            );
+          });
+        }
+
+        await new Promise((resolve) => setImmediate(resolve));
+
+        // Measure the memory before running rounds
+        const memoryBeforeMeasuredRounds = tensorMemorySnapshot();
+        const measuredRoundSnapshots: ReturnType<
+          typeof tensorMemorySnapshot
+        >[] = [];
+        const numberOfMeasuredRounds = totalRounds - warmupRounds;
+
+        // Record tensor memory after each round
+        // Pass condition is that memory should be disposed properly, and should not grow each round
+        for (let round = 0; round < numberOfMeasuredRounds; round++) {
+          const results = await Promise.all(
+            generators.map(async (generator) => await generator.next()),
+          );
+
+          results.forEach((result) => {
+            expect(
+              result.done,
+              `training ended during measured round ${round + 1}`,
+            ).to.equal(false);
+          });
+
+          // Finish the pending asynchronous work, and store the memory measurement for this round
+          await new Promise((resolve) => setImmediate(resolve));
+          measuredRoundSnapshots.push(tensorMemorySnapshot());
+        }
+
+        // Check if two users' models converge
+        await expectWSToBeClose(
+          discoUser1.trainer.model.weights,
+          discoUser2.trainer.model.weights,
+        );
+
+        expect(measuredRoundSnapshots).to.have.lengthOf(numberOfMeasuredRounds);
+
+        // Check the allocated tensors did not increase between rounds
+        for (let index = 1; index < measuredRoundSnapshots.length; index++) {
+          const previousSnapshot = measuredRoundSnapshots[index - 1];
+          const currentSnapshot = measuredRoundSnapshots[index];
+
+          expect(currentSnapshot.numTensors).to.be.at.most(
+            previousSnapshot.numTensors,
+          );
+          expect(currentSnapshot.numBytes).to.be.at.most(
+            previousSnapshot.numBytes,
+          );
+        }
+
+        // Get the final memory state
+        const finalSnapshot = measuredRoundSnapshots.at(-1);
+
+        if (finalSnapshot === undefined) {
+          throw new Error("No tensor memory snapshot was recorded");
+        }
+
+        // Check if the final memory state did not grow from the initial state
+        // measured after the warm up
+        expect(finalSnapshot.numTensors).to.be.at.most(
+          memoryBeforeMeasuredRounds.numTensors,
+        );
+        expect(finalSnapshot.numBytes).to.be.at.most(
+          memoryBeforeMeasuredRounds.numBytes,
+        );
+      } finally {
+        await Promise.all([
+          discoUser1.close().catch(() => {}),
+          discoUser2.close().catch(() => {}),
+        ]);
+      }
+    },
+  );
+
+  // Check if memory is cleaned after clients close
+  it(
+    "releases federated client tensors when clients close",
+    { timeout: 200_000 },
+    async () => {
+      const baseTask = await defaultTasks.lusCovid.getTask();
+      const task: Task<"image", "federated"> = {
+        ...baseTask,
+        trainingInformation: {
+          ...baseTask.trainingInformation,
+          scheme: "federated",
+          aggregationStrategy: "mean",
+          epochs: 1,
+          roundDuration: 1,
+          minNbOfParticipants: 2,
+        },
+      };
+      const lusCovidProvider = {
+        getTask: () => Promise.resolve(task),
+        modelCard: defaultModels.LUSClassifier,
+      };
+
+      const url = await startServer(
+        defaultModels.LUSClassifier,
+        lusCovidProvider,
+      );
+      const dataset = await datasets.loadLusCOVID();
+
+      // The server and dataset are initialized, but client models are not loaded
+      // Used for comparison with memory after closing clients
+      const memoryBeforeClients = tensorMemorySnapshot();
+
+      const discoUser1 = new Disco(task, url, { preprocessOnce: true });
+      const discoUser2 = new Disco(task, url, { preprocessOnce: true });
+      const generators = [
+        discoUser1.trainByRound(dataset),
+        discoUser2.trainByRound(dataset),
+      ];
+      let clientsClosed = false;
+
+      try {
+        // Run one decentalized round so clients allocate the model
+        // and establish communication state with other peers
+        const completedRounds = await Promise.all(
+          generators.map(async (generator) => await generator.next()),
+        );
+        completedRounds.forEach((result) => {
+          expect(
+            result.done,
+            "expected a completed federated training round",
+          ).to.equal(false);
+        });
+
+        // Close the clients, this should dispose tensors owned by them
+        await Promise.all([discoUser1.close(), discoUser2.close()]);
+        clientsClosed = true;
+
+        // After closing the clients, the memory state should return to the
+        // memory before clients are created
+        const memoryAfterClose = tensorMemorySnapshot();
+        expect(memoryAfterClose.numTensors).to.be.at.most(
+          memoryBeforeClients.numTensors,
+        );
+        expect(memoryAfterClose.numBytes).to.be.at.most(
+          memoryBeforeClients.numBytes,
+        );
+      } finally {
+        await Promise.allSettled(
+          generators.map(
+            async (generator) => await generator.return(undefined),
+          ),
+        );
+        if (!clientsClosed) {
+          await Promise.allSettled([discoUser1.close(), discoUser2.close()]);
+        }
+      }
     },
   );
 });

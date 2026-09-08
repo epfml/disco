@@ -3,6 +3,7 @@ import type { DataType, DataFormat, Network } from "#types/index";
 import type { Task } from "#task/index";
 import type { Batched } from "#dataset/index";
 import type { Aggregator } from "#aggregator/index";
+import type { WeightsContainer } from "#weights/index";
 
 import { Dataset } from "#dataset/index";
 import type { Logger } from "#logging/index";
@@ -68,6 +69,7 @@ function buildSummaryLog(
 export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   status: RoundStatus;
   participants: number;
+  modelSynced: WeightsContainer | undefined;
 }> {
   public readonly trainer: Trainer<D, N>;
   readonly #client: clients.Client<N>;
@@ -123,11 +125,16 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     this.#client = client;
     this.#task = task;
     this.trainer = new Trainer(task, client);
+
     // Simply propagate the training status events emitted by the client
     this.#client.on("status", (status) => this.emit("status", status));
     this.#client.on("participants", (nbParticipants) =>
       this.emit("participants", nbParticipants),
     );
+    this.#client.on("modelSynced", (latestWeights) => {
+      this.trainer.model.weights = latestWeights;
+      this.emit("modelSynced", latestWeights);
+    });
   }
 
   /** Train on dataset, yielding logs of every round. */
@@ -296,7 +303,12 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
    * Completely stops the ongoing training instance.
    */
   async close(): Promise<void> {
-    await this.#client.disconnect();
+    // Dispose the model tensor
+    try {
+      await this.#client.disconnect();
+    } finally {
+      this.trainer[Symbol.dispose]();
+    }
   }
 
   #setModelDebugLabel(model: Model<D>): void {

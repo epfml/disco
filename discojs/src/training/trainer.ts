@@ -114,6 +114,14 @@ export class Trainer<D extends DataType, N extends Network> {
     await this.#training?.return();
   }
 
+  [Symbol.dispose](): void {
+    this.#previousRoundWeights?.dispose();
+    this.#previousRoundWeights = undefined;
+
+    this.#model?.[Symbol.dispose]();
+    this.#model = undefined;
+  }
+
   async *train(
     dataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
@@ -156,10 +164,13 @@ export class Trainer<D extends DataType, N extends Network> {
     for (let round = 0; round < totalRound; round++) {
       await this.#client.onRoundBeginCommunication();
 
-      // Store the clean weight before starting the communication
-      this.#previousRoundWeights = new WeightsContainer(
-        this.model.weights.weights.map((t) => t.clone()),
-      );
+      if (this.#privacy !== undefined) {
+        // Store the clean weight before starting the communication
+        this.#previousRoundWeights?.dispose();
+        this.#previousRoundWeights = new WeightsContainer(
+          this.model.weights.weights.map((t) => t.clone()),
+        );
+      }
 
       const roundValidationDataset = this.#shouldValidateRound(round)
         ? validationDataset
@@ -209,9 +220,13 @@ export class Trainer<D extends DataType, N extends Network> {
       while (next.done !== true) {
         await this.#client.onRoundBeginCommunication();
 
-        this.#previousRoundWeights = new WeightsContainer(
-          this.model.weights.weights.map((t) => t.clone()),
-        );
+        // Set previousRoundWeights for next round if privacy is enabled
+        if (this.#privacy !== undefined) {
+          this.#previousRoundWeights?.dispose();
+          this.#previousRoundWeights = new WeightsContainer(
+            this.model.weights.weights.map((t) => t.clone()),
+          );
+        }
 
         let firstBatch: Batched<DataFormat.ModelEncoded[D]> | undefined =
           next.value;
@@ -384,7 +399,7 @@ export class Trainer<D extends DataType, N extends Network> {
     try {
       if (this.#privacy !== undefined) {
         if (this.#previousRoundWeights === undefined)
-          throw new Error("previous round weights were not captured");
+          throw new Error("previous round weights were not set");
 
         const previousRoundWeights = this.#previousRoundWeights;
         const roundUpdate = roundWeights.sub(previousRoundWeights);
@@ -414,11 +429,17 @@ export class Trainer<D extends DataType, N extends Network> {
       const networkWeights =
         await this.#client.onRoundEndCommunication(roundWeights);
       this.model.weights = networkWeights;
+      // Currently only does something for decentralized clients
+      // Save weights and cleanup state
+      this.#client.finishRound(networkWeights);
+      networkWeights.dispose();
 
       return validationDataset !== undefined
         ? await this.model.evaluate(validationDataset)
         : undefined;
     } finally {
+      // Only dispose if roundWeights have been reallocated
+      // otherwise we'd also dispose this.model.weights by reference
       if (disposeRoundWeightsAfterSend) roundWeights.dispose();
       this.#previousRoundWeights?.dispose();
       this.#previousRoundWeights = undefined;

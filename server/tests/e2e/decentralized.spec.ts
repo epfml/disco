@@ -6,6 +6,8 @@ import type {
   Task,
   TaskProvider,
   ModelCard,
+  Network,
+  EpochLogs,
 } from "@epfml/discojs";
 import {
   MeanAggregator,
@@ -20,6 +22,7 @@ import { List } from "immutable";
 import { afterEach, describe, expect, it } from "vitest";
 import { Server } from "../../src/index.js";
 import { datasets, Queue } from "../utils.js";
+import * as tf from "@tensorflow/tfjs-node";
 
 async function WSIntoList(ws: WeightsContainer): Promise<List<List<number>>> {
   return List(
@@ -37,6 +40,94 @@ async function expectWSToBeClose(
     for (const [l, r] of tensors[0].zip(tensors[1]))
       expect(l).to.be.closeTo(r, 1e-4);
 }
+
+// function from federated.spec.ts
+async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
+  const ret: T[] = [];
+  for await (const e of iter) {
+    // TODO trick to allow other Promises to run
+    // else one client might progress alone without communicating with others
+    // will be fixed when client orchestrations in the server is correctly done
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    ret.push(e);
+  }
+  return ret;
+}
+
+// function to check if weights across all participants are close to each other
+async function expectAllWSToBeClose(
+  weights: WeightsContainer[],
+): Promise<void> {
+  const reference = weights[0];
+
+  await Promise.all(
+    weights.map(async (current) => {
+      await expectWSToBeClose(reference, current);
+    }),
+  );
+}
+
+/**
+ * Records the model a peer holds at each round boundary: once
+ * onRoundEndCommunication has returned and before the next local round trains
+ * on it. Peers hold the very same model at those points, whereas
+ * `trainer.model.weights` read afterwards also contains each peer's own local
+ * training, which is not reproducible across peers.
+ *
+ * Pass `keep: "latest"` in the tests measuring tensor memory so that the
+ * recorded models don't grow with the number of rounds.
+ */
+function recordModelsAtRoundBoundary<D extends DataType, N extends Network>(
+  disco: Disco<D, N>,
+  { keep = "all" }: { keep?: "all" | "latest" } = {},
+): {
+  all: () => readonly WeightsContainer[];
+  latest: () => WeightsContainer;
+  dispose: () => void;
+} {
+  const models: WeightsContainer[] = [];
+
+  disco.on("status", (status) => {
+    if (status !== "local training") return;
+    if (keep === "latest") models.splice(0).forEach((m) => m.dispose());
+    models.push(
+      new WeightsContainer(
+        disco.trainer.model.weights.weights.map((w) => w.clone()),
+      ),
+    );
+  });
+
+  return {
+    all: () => models,
+    latest: () => {
+      const model = models.at(-1);
+      if (model === undefined)
+        throw new Error("the peer hasn't reached a round boundary yet");
+      return model;
+    },
+    dispose: () => models.splice(0).forEach((m) => m.dispose()),
+  };
+}
+
+/** The peers should hold the same model at their latest round boundary */
+async function expectPeersToAgreeOnModel(
+  ...recordings: { latest: () => WeightsContainer }[]
+): Promise<void> {
+  const [first, ...others] = recordings;
+  for (const other of others)
+    await expectWSToBeClose(first.latest(), other.latest());
+}
+
+const expectWeightsToEqual = (a: WeightsContainer, b: WeightsContainer) => {
+  expect(a.weights.length).to.equal(b.weights.length);
+
+  a.weights.forEach((w, i) => {
+    expect(Array.from(w.dataSync())).to.deep.equal(
+      Array.from(b.weights[i].dataSync()),
+    );
+  });
+};
 
 describe("end-to-end decentralized", { timeout: 50_000 }, () => {
   let handle: http.Server | undefined;
@@ -128,6 +219,24 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
     );
   }
 
+  // For task reset testing
+  const weightTensorShapes = (weights: WeightsContainer): number[][] =>
+    weights.weights.map((w) => [...w.shape]);
+
+  // Return tensor length to check model weight tensor reset
+  const modelTensorCount = (weights: WeightsContainer): number =>
+    weights.weights.length;
+
+  // Return tensor snapshot to check model weight reset
+  const tensorMemorySnapshot = () => {
+    const memory = tf.memory();
+
+    return {
+      numTensors: memory.numTensors,
+      numBytes: memory.numBytes,
+    };
+  };
+
   it("single round of cifar 10 with three mean aggregators yields consensus", async () => {
     const url = await startServer(
       defaultModels.CIFAR10Classifier,
@@ -160,8 +269,177 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
     await reachConsensus(url, "secure", 3);
   });
 
+  /**
+   * Unit tests with 10 participants
+   */
+  // Mean aggregator
+  it(
+    "ten cifar10 users reach consensus with mean aggregation",
+    { timeout: 300_000 },
+    async () => {
+      const baseTask = await defaultTasks.cifar10.getTask();
+      const task: Task<"image", "decentralized"> = {
+        ...baseTask,
+        trainingInformation: {
+          ...baseTask.trainingInformation,
+          scheme: "decentralized",
+          aggregationStrategy: "mean",
+          epochs: 3,
+          roundDuration: 1,
+          minNbOfParticipants: 10,
+        },
+      };
+
+      const url = await startServer(defaultModels.CIFAR10Classifier, {
+        ...defaultTasks.cifar10,
+        getTask: () => Promise.resolve(task),
+      });
+      const dataset = await datasets.loadCifar10();
+
+      const discos = Array.from(
+        { length: 10 },
+        () => new Disco(task, url, { preprocessOnce: true }),
+      );
+
+      try {
+        const results = await Promise.all(
+          discos.map(async (disco) => {
+            const logs = List(
+              await arrayFromAsync(disco.trainByRound(dataset)),
+            );
+            const lastEpoch = logs.last()?.epochs.last();
+            if (lastEpoch === undefined) throw new Error("no epoch ran");
+
+            return [disco.trainer.model.weights, lastEpoch] as [
+              WeightsContainer,
+              EpochLogs,
+            ];
+          }),
+        );
+
+        await expectAllWSToBeClose(results.map(([weights]) => weights));
+      } finally {
+        await Promise.all(discos.map((disco) => disco.close()));
+      }
+    },
+  );
+
+  // Byzantine aggregator
+  it(
+    "ten cifar10 users reach consensus with byzantine aggregation",
+    { timeout: 300_000 },
+    async () => {
+      const baseTask = await defaultTasks.cifar10.getTask();
+      const task: Task<"image", "decentralized"> = {
+        ...baseTask,
+        trainingInformation: {
+          ...baseTask.trainingInformation,
+          scheme: "decentralized",
+          aggregationStrategy: "byzantine",
+          epochs: 3,
+          roundDuration: 1,
+          minNbOfParticipants: 10,
+          privacy: {
+            byzantineFaultTolerance: {
+              clippingRadius: 10,
+              maxIterations: 1,
+              beta: 0.9,
+            },
+          },
+        },
+      };
+
+      const url = await startServer(defaultModels.CIFAR10Classifier, {
+        ...defaultTasks.cifar10,
+        getTask: () => Promise.resolve(task),
+      });
+      const dataset = await datasets.loadCifar10();
+
+      const discos = Array.from(
+        { length: 10 },
+        () => new Disco(task, url, { preprocessOnce: true }),
+      );
+
+      try {
+        const results = await Promise.all(
+          discos.map(async (disco) => {
+            const logs = List(
+              await arrayFromAsync(disco.trainByRound(dataset)),
+            );
+            const lastEpoch = logs.last()?.epochs.last();
+            if (lastEpoch === undefined) throw new Error("no epoch ran");
+
+            return [disco.trainer.model.weights, lastEpoch] as [
+              WeightsContainer,
+              EpochLogs,
+            ];
+          }),
+        );
+
+        await expectAllWSToBeClose(results.map(([weights]) => weights));
+      } finally {
+        await Promise.all(discos.map((disco) => disco.close()));
+      }
+    },
+  );
+
+  // Secure aggregator
+  it(
+    "ten cifar10 users reach consensus with secure aggregation",
+    { timeout: 500_000 },
+    async () => {
+      const baseTask = await defaultTasks.cifar10.getTask();
+      const task: Task<"image", "decentralized"> = {
+        ...baseTask,
+        trainingInformation: {
+          ...baseTask.trainingInformation,
+          scheme: "decentralized",
+          aggregationStrategy: "secure",
+          epochs: 10,
+          roundDuration: 1,
+          minNbOfParticipants: 10,
+          maxShareValue: 100,
+        },
+      };
+
+      const url = await startServer(defaultModels.CIFAR10Classifier, {
+        ...defaultTasks.cifar10,
+        getTask: () => Promise.resolve(task),
+      });
+      const dataset = await datasets.loadCifar10();
+
+      const discos = Array.from(
+        { length: 10 },
+        () => new Disco(task, url, { preprocessOnce: true }),
+      );
+
+      try {
+        const results = await Promise.all(
+          discos.map(async (disco) => {
+            const logs = List(
+              await arrayFromAsync(disco.trainByRound(dataset)),
+            );
+            const lastEpoch = logs.last()?.epochs.last();
+            if (lastEpoch === undefined) throw new Error("no epoch ran");
+
+            return [disco.trainer.model.weights, lastEpoch] as [
+              WeightsContainer,
+              EpochLogs,
+            ];
+          }),
+        );
+
+        await expectAllWSToBeClose(results.map(([weights]) => weights));
+      } finally {
+        await Promise.all(discos.map((disco) => disco.close()));
+      }
+    },
+  );
+
   /** The LUS COVID task, decentralized between at least two participants */
-  async function lusCovidDecentralized(): Promise<{
+  async function lusCovidDecentralized(
+    trainingInformationOverrides: { epochs?: number } = {},
+  ): Promise<{
     task: Task<"image", "decentralized">;
     taskProvider: TaskProvider<"image", "decentralized">;
   }> {
@@ -174,6 +452,10 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
         aggregationStrategy: "mean",
         roundDuration: 1,
         minNbOfParticipants: 2,
+        maxConnectionRetry: 3,
+        maxPeerConnectionTime: 60_000,
+        maxModelSyncTime: 30_000,
+        ...trainingInformationOverrides,
       },
     };
     return {
@@ -185,17 +467,20 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
     };
   }
 
-  it("peers emit expected events", { timeout: 100_000 }, async () => {
+  // syncs model after participants drop below minNbOfParticipants and newcomers join with mean aggregator
+  it("emit expected events", { timeout: 150_000 }, async () => {
     const { task, taskProvider } = await lusCovidDecentralized();
     const url = await startServer(defaultModels.LUSClassifier, taskProvider);
     const dataset = await datasets.loadLusCOVID();
 
     /**
-     * Then at each round (each call to `disco.trainByRound`) the event cycle is:
-     * a) During onRoundBeingCommunication,
-     *   1. the peer notifies the server that they want to join the next round
-     *   2. finishes by updating the status to "local training"
-     * (without waiting for a server answer)
+     * At each round (each call to `disco.trainByRound().next()`) the event cycle is:
+     * a) During onRoundBeginCommunication,
+     *   1. a peer that joined mid-training syncs its model with the latest one
+     *   2. the peer notifies the server that they want to join the next round
+     *   3. the peer waits until there are enough participants, setting the status
+     *      to "not enough participants" while it does
+     *   4. finishes by updating the status to "local training"
      * b) local training (the status remains "local training")
      * c) During onRoundEndCommunication
      *   1. the peer sets its status to "waiting for peers to share weights"
@@ -205,217 +490,675 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
      *   3. set status to "connecting to peers" and establish the connections
      *   4. set status to "updating model" and exchange weight updates
      *
-     * Given this, it is important to note that a single call to
-     * disco.trainByRound().next() performs a full round: a), b) and c).
-     * It only resolves once the peers exchanged their weight updates, so when
-     * a peer is alone (minNbOfParticipants isn't met) the call stays pending
-     * until another participant joins and the round completes. The test
-     * therefore holds the pending next() promises and choreographs through
-     * the status and participants events instead of awaiting next() right
-     * away. Note that RoundLogs.participants is the count seen at the end of
-     * local training, before the weight exchange.
+     * A single call to next() performs a full round: a), b) and c). It only
+     * resolves once the peers exchanged their weight updates, so a call made
+     * while the round can't complete stays pending. The test therefore holds
+     * the pending next() promises and choreographs through the status and
+     * participants events instead of awaiting next() right away.
+     * Note that RoundLogs.participants is the count seen at the end of local
+     * training, before the weight exchange.
      *
-     * In this test the timeline is:
-     * - User 1 joins the task by themselves
+     * Test timeline looks like this:
+     * - User 1 joins the task
      * - User 2 joins
-     * - User 1 leaves
-     * - User 3 joins
-     * - User 2 & 3 leave
+     * - User 2 leaves (Since minNbOfParticipants condition is not satisfied, the training stops)
+     * - User 3 joins (User 3 gets the latest model from User 1 and start local training from that model)
+     * - User 1 & 3 leave
      */
 
-    /* USER 1 JOINS */
-
     const discoUser1 = new Disco(task, url, { preprocessOnce: true });
+    const discoUser2 = new Disco(task, url, { preprocessOnce: true });
+
+    // Register listeners for user1 and user2 events
     const statusUser1 = new Queue<RoundStatus>();
     const nbParticipantsUser1 = new Queue<number>();
-    discoUser1.on("status", (status) => {
-      statusUser1.put(status);
-    });
-    discoUser1.on("participants", (participants) => {
-      nbParticipantsUser1.put(participants);
-    });
-    const generatorUser1 = discoUser1.trainByRound(dataset);
-
-    // Have User 1 join the task and train locally. The first next() call
-    // runs a), b) and c): the round can't complete while User 1 is alone so
-    // the promise stays pending in c)
-    const logUser1Round1Promise = generatorUser1.next();
-    // User 1 did a) and b) so their status should be Training
-    expect(await statusUser1.next()).equal("local training");
-    expect(await nbParticipantsUser1.next()).equal(1);
-    // User 1 then reaches c) where it is ready to share its weights
-    // but has to wait for more participants
-    expect(await statusUser1.next()).equal(
-      "waiting for peers to share weights",
-    );
-    expect(await statusUser1.next()).equal("not enough participants");
-
-    /* USER 2 JOINS */
-
-    const discoUser2 = new Disco(task, url, { preprocessOnce: true });
     const statusUser2 = new Queue<RoundStatus>();
     const nbParticipantsUser2 = new Queue<number>();
-    discoUser2.on("status", (status) => {
-      statusUser2.put(status);
-    });
-    discoUser2.on("participants", (participants) => {
-      nbParticipantsUser2.put(participants);
-    });
+    discoUser1.on("status", (status) => statusUser1.put(status));
+    discoUser1.on("participants", (participants) =>
+      nbParticipantsUser1.put(participants),
+    );
+    discoUser2.on("status", (status) => statusUser2.put(status));
+    discoUser2.on("participants", (participants) =>
+      nbParticipantsUser2.put(participants),
+    );
+
+    const modelsUser1 = recordModelsAtRoundBoundary(discoUser1);
+    const modelsUser2 = recordModelsAtRoundBoundary(discoUser2);
+
+    let user2Closed = false;
+
+    const generatorUser1 = discoUser1.trainByRound(dataset);
     const generatorUser2 = discoUser2.trainByRound(dataset);
 
-    // Have User 2 join the task and train for one round
-    const logUser2Round1Promise = generatorUser2.next();
-    // User 2 connects to the server which triggers the participant event
-    expect(await nbParticipantsUser2.next()).equal(2);
-    // User 2 did a) and b)
+    /* ROUND 1 */
+    /* USER 1 JOINS */
+
+    // User 1 is alone so it stays in a): it doesn't train yet and the round
+    // can't complete, so the promise stays pending
+    const round1User1Promise = generatorUser1.next();
+    expect(await statusUser1.next()).equal("not enough participants");
+    // We expect only one participant
+    expect(await nbParticipantsUser1.next()).equal(1);
+
+    /* USER 2 JOINS */
+    /* minNbOfParticipants condition satisfied, local training starts */
+
+    const round1User2Promise = generatorUser2.next();
+    // User 2 has enough participants right away and goes to b)
     expect(await statusUser2.next()).equal("local training");
-    // User 1 receives the EnoughParticipants message with the participants
-    // and its previous status is restored
+    // User 1 is released from a) and trains too
     expect(await nbParticipantsUser1.next()).equal(2);
-    expect(await statusUser1.next()).equal(
-      "waiting for peers to share weights",
-    );
-    // User 2 finishes training and is ready to share its weights too
-    expect(await statusUser2.next()).equal(
-      "waiting for peers to share weights",
-    );
+    expect(await statusUser1.next()).equal("local training");
+    expect(await nbParticipantsUser2.next()).equal(2);
 
     /* ROUND 1 COMPLETES */
 
-    // The server answers with the round's peers list, peers exchange their
-    // updates and both pending next() calls resolve
-    const logUser1Round1 = await logUser1Round1Promise;
-    const logUser2Round1 = await logUser2Round1Promise;
-    expect(logUser1Round1.done).to.be.false;
-    expect(logUser2Round1.done).to.be.false;
-    if (logUser1Round1.done || logUser2Round1.done)
+    // Both peers reach c), the server answers with the round's peers list,
+    // they exchange their updates and both pending next() calls resolve
+    const [round1User1, round1User2] = await Promise.all([
+      round1User1Promise,
+      round1User2Promise,
+    ]);
+    expect(round1User1.done).to.be.false;
+    expect(round1User2.done).to.be.false;
+    if (round1User1.done || round1User2.done)
       throw new Error("User 1 or 2 finished training at the 1st round");
-    // User 1 finished training alone, User 2 with both present
-    expect(logUser1Round1.value.participants).equal(1);
-    expect(logUser2Round1.value.participants).equal(2);
+    expect(round1User1.value.participants).equal(2);
+    expect(round1User2.value.participants).equal(2);
+
+    expect(await statusUser1.next()).equal(
+      "waiting for peers to share weights",
+    );
+    expect(await statusUser1.next()).equal("connecting to peers");
+    expect(await statusUser1.next()).equal("updating model");
+    expect(await statusUser2.next()).equal(
+      "waiting for peers to share weights",
+    );
+    expect(await statusUser2.next()).equal("connecting to peers");
+    expect(await statusUser2.next()).equal("updating model");
     // Receiving the peers list updates the participants
     expect(await nbParticipantsUser1.next()).equal(2);
     expect(await nbParticipantsUser2.next()).equal(2);
-    expect(await statusUser1.next()).equal("connecting to peers");
-    expect(await statusUser1.next()).equal("updating model");
-    expect(await statusUser2.next()).equal("connecting to peers");
-    expect(await statusUser2.next()).equal("updating model");
 
     /* ROUND 2 */
 
     // Both users are present so the round runs a), b) and c) to completion
-    const [logUser1Round2, logUser2Round2] = await Promise.all([
+    const [round2User1, round2User2] = await Promise.all([
       generatorUser1.next(),
       generatorUser2.next(),
     ]);
-    expect(logUser1Round2.done).to.be.false;
-    expect(logUser2Round2.done).to.be.false;
-    if (logUser1Round2.done || logUser2Round2.done)
+    expect(round2User1.done).to.be.false;
+    expect(round2User2.done).to.be.false;
+    if (round2User1.done || round2User2.done)
       throw new Error("User 1 or 2 finished training at the 2nd round");
-    expect(logUser1Round2.value.participants).equal(2);
-    expect(logUser2Round2.value.participants).equal(2);
-    expect(await nbParticipantsUser1.next()).equal(2);
-    expect(await nbParticipantsUser2.next()).equal(2);
-    // User 1 and 2 did a), b) and c)
+    expect(round2User1.value.participants).equal(2);
+    expect(round2User2.value.participants).equal(2);
+
+    // Both users did a), b) and c)
     expect(await statusUser1.next()).equal("local training");
     expect(await statusUser1.next()).equal(
       "waiting for peers to share weights",
     );
     expect(await statusUser1.next()).equal("connecting to peers");
     expect(await statusUser1.next()).equal("updating model");
-
     expect(await statusUser2.next()).equal("local training");
     expect(await statusUser2.next()).equal(
       "waiting for peers to share weights",
     );
     expect(await statusUser2.next()).equal("connecting to peers");
     expect(await statusUser2.next()).equal("updating model");
+    expect(await nbParticipantsUser1.next()).equal(2);
+    expect(await nbParticipantsUser2.next()).equal(2);
 
-    /* USER 1 LEAVES */
+    // Weights should have converged after exchanging updates
+    await expectPeersToAgreeOnModel(modelsUser1, modelsUser2);
 
-    await discoUser1.close();
-    // Disconnect updates the number of participants
-    expect(await nbParticipantsUser1.next()).equal(1);
-    // User 2 receives the WaitingForMoreParticipants message
-    expect(await nbParticipantsUser2.next()).equal(1);
-    // server notifies user 2 to wait
-    expect(await statusUser2.next()).equal("not enough participants");
-    // Make User 2 start round 3: it trains, then waits in c) for another
-    // participant, so the promise stays pending
-    const logUser2Round3Promise = generatorUser2.next();
-    expect(await statusUser2.next()).equal("local training");
-    expect(await statusUser2.next()).equal(
+    /* USER 2 LEAVES */
+
+    // Round 3 starts for User 1 before closing User 2, so User 1 trains and
+    // then enters c) where it emits "waiting for peers to share weights".
+    // It cannot reach "connecting to peers" yet: that only happens once the
+    // server answers with the round's peer list.
+    const round3User1Promise = generatorUser1.next();
+    expect(await statusUser1.next()).equal("local training");
+    expect(await statusUser1.next()).equal(
       "waiting for peers to share weights",
     );
-    expect(await statusUser2.next()).equal("not enough participants");
+
+    await discoUser2.close();
+    user2Closed = true;
+
+    // Check if User 1 got a signal that there is not enough participants
+    expect(await nbParticipantsUser1.next()).equal(1);
+    expect(await statusUser1.next()).equal("not enough participants");
 
     /* USER 3 JOINS */
 
-    // Create User 3
+    // Create User 3 and register event listeners
     const discoUser3 = new Disco(task, url, { preprocessOnce: true });
     const statusUser3 = new Queue<RoundStatus>();
     const nbParticipantsUser3 = new Queue<number>();
-    discoUser3.on("status", (status) => {
-      statusUser3.put(status);
+    discoUser3.on("status", (status) => statusUser3.put(status));
+    discoUser3.on("participants", (participants) =>
+      nbParticipantsUser3.put(participants),
+    );
+
+    const waitForUser3ModelSynced = new Promise<WeightsContainer>((resolve) => {
+      discoUser3.on("modelSynced", (weights) => {
+        if (weights !== undefined) resolve(weights);
+      });
     });
-    discoUser3.on("participants", (participants) => {
-      nbParticipantsUser3.put(participants);
-    });
+
+    const modelsUser3 = recordModelsAtRoundBoundary(discoUser3);
     const generatorUser3 = discoUser3.trainByRound(dataset);
 
-    // User 3 joins mid-training and trains one local round; the round can
-    // only complete once User 3 shares its update so hold the promise
-    const logUser3Round1Promise = generatorUser3.next();
+    /* ROUND 3 COMPLETES */
+    /* User 3's first round completes User 1's round 3 */
+
+    const round1User3Promise = generatorUser3.next();
     expect(await nbParticipantsUser3.next()).equal(2);
-    // User 3 did a) and b)
+    // User 3 syncs its model in a) then trains
     expect(await statusUser3.next()).equal("local training");
-    // User 2 receives the EnoughParticipants message and its previous
-    // status is restored, waiting for user 3 to be ready to exchange weights
-    expect(await nbParticipantsUser2.next()).equal(2);
-    expect(await statusUser2.next()).equal(
+    // User 1 learns User 3 joined and is still in c) waiting for User 3 to be
+    // ready, so it rolls back to the status it had before waiting for more
+    // participants
+    expect(await nbParticipantsUser1.next()).equal(2);
+    expect(await statusUser1.next()).equal(
       "waiting for peers to share weights",
     );
-    // User 3 finishes training and notifies the server that they are ready
+
+    // User 3's model should have been synced to the latest global model, i.e.
+    // the result of User 1 and User 2's last aggregation. User 1 hasn't
+    // started a new round, so that is still its latest round boundary.
+    const user3SyncedWeights = await waitForUser3ModelSynced;
+    await expectWSToBeClose(user3SyncedWeights, modelsUser1.latest());
+
+    // User 1 and User 3 exchange their updates and both rounds resolve
+    const [round3User1, round1User3] = await Promise.all([
+      round3User1Promise,
+      round1User3Promise,
+    ]);
+    expect(round3User1.done).to.be.false;
+    expect(round1User3.done).to.be.false;
+    if (round3User1.done || round1User3.done)
+      throw new Error("User 1 or 3 finished training at the 3rd round");
+    // User 1 trained while User 2 was still there
+    expect(round3User1.value.participants).equal(2);
+    expect(round1User3.value.participants).equal(2);
+
+    expect(await statusUser1.next()).equal("connecting to peers");
+    expect(await statusUser1.next()).equal("updating model");
+    expect(await nbParticipantsUser1.next()).equal(2);
     expect(await statusUser3.next()).equal(
       "waiting for peers to share weights",
     );
-
-    /* ROUND 3 COMPLETES */
-
-    // user 2 and 3 exchange weight updates and both rounds resolve
-    const logUser2Round3 = await logUser2Round3Promise;
-    const logUser3Round1 = await logUser3Round1Promise;
-    expect(logUser2Round3.done).to.be.false;
-    expect(logUser3Round1.done).to.be.false;
-    if (logUser2Round3.done || logUser3Round1.done)
-      throw new Error("User 2 or 3 finished training at the 3rd round");
-
-    // User 2 finished training alone, User 3 with both present
-    expect(logUser2Round3.value.participants).equal(1);
-    expect(logUser3Round1.value.participants).equal(2);
-    expect(await nbParticipantsUser2.next()).equal(2);
+    expect(await statusUser3.next()).equal("connecting to peers");
+    expect(await statusUser3.next()).equal("updating model");
     expect(await nbParticipantsUser3.next()).equal(2);
 
-    // both user 2 and 3 finish c)
-    expect(await statusUser2.next()).equal("connecting to peers");
-    expect(await statusUser2.next()).equal("updating model");
+    /* ROUND 4 */
+    /* first full round shared by User 1 and User 3 */
 
+    const [round4User1, round2User3] = await Promise.all([
+      generatorUser1.next(),
+      generatorUser3.next(),
+    ]);
+    expect(round4User1.done).to.be.false;
+    expect(round2User3.done).to.be.false;
+    if (round4User1.done || round2User3.done)
+      throw new Error("User 1 or 3 finished training at the 4th round");
+    expect(round4User1.value.participants).equal(2);
+    expect(round2User3.value.participants).equal(2);
+
+    expect(await statusUser1.next()).equal("local training");
+    expect(await statusUser1.next()).equal(
+      "waiting for peers to share weights",
+    );
+    expect(await statusUser1.next()).equal("connecting to peers");
+    expect(await statusUser1.next()).equal("updating model");
+    expect(await statusUser3.next()).equal("local training");
+    expect(await statusUser3.next()).equal(
+      "waiting for peers to share weights",
+    );
     expect(await statusUser3.next()).equal("connecting to peers");
     expect(await statusUser3.next()).equal("updating model");
 
-    /* USER 2 AND 3 LEAVE */
-
-    await discoUser2.close();
-    expect(await statusUser3.next()).equal("not enough participants");
-    expect(await nbParticipantsUser3.next()).equal(1);
+    // Weights should have converged between User 1 and User 3 after the exchange
+    await expectPeersToAgreeOnModel(modelsUser1, modelsUser3);
 
     await discoUser3.close();
+    await discoUser1.close().catch(() => {});
+    if (!user2Closed) await discoUser2.close().catch(() => {});
   });
+
+  /**
+   * We test if the latest model syncing is working when new participant
+   * joins in the middle of the training (when the round > 0).
+   *
+   * The test workflow
+   * 1. Start User1 and User2 starts training
+   * 2. Let them complete at least one aggregation round
+   * 3. Start User3 when aggregationRound is larger than 0
+   * 4. When User3 starts training, model synchronization should be triggered first
+   * 5. Compare User3's model weights with User1/User2's latest model weights
+   */
+  it(
+    "performs model syncing when new participant joins in the middle of the training",
+    { timeout: 200_000 },
+    async () => {
+      const { task, taskProvider } = await lusCovidDecentralized();
+      const url = await startServer(defaultModels.LUSClassifier, taskProvider);
+      const dataset = await datasets.loadLusCOVID();
+
+      const discoUser1 = new Disco(task, url, { preprocessOnce: true });
+      const discoUser2 = new Disco(task, url, { preprocessOnce: true });
+      const discoUser3 = new Disco(task, url, { preprocessOnce: true });
+
+      const modelsUser1 = recordModelsAtRoundBoundary(discoUser1);
+      const modelsUser2 = recordModelsAtRoundBoundary(discoUser2);
+
+      try {
+        const generatorUser1 = discoUser1.trainByRound(dataset);
+        const generatorUser2 = discoUser2.trainByRound(dataset);
+
+        await Promise.all([generatorUser1.next(), generatorUser2.next()]);
+
+        await Promise.all([generatorUser1.next(), generatorUser2.next()]);
+
+        // Existing participants should already have the same aggregated model.
+        await expectPeersToAgreeOnModel(modelsUser1, modelsUser2);
+
+        // A completed round already installed the aggregated model, so the
+        // peers hold a round-boundary model they haven't recorded yet: it is
+        // what their next "local training" would snapshot, and what a newcomer
+        // syncing now receives.
+        const boundaryAfterLastRound = [discoUser1, discoUser2].map(
+          (disco) =>
+            new WeightsContainer(
+              disco.trainer.model.weights.weights.map((w) => w.clone()),
+            ),
+        );
+
+        const waitForModelSynced = Promise.race([
+          new Promise<WeightsContainer>((resolve) => {
+            discoUser3.on("modelSynced", (weights) => {
+              if (weights !== undefined) resolve(weights);
+            });
+          }),
+          new Promise<never>((_, reject) =>
+            setTimeout(
+              () => reject(new Error("Timed out waiting for modelSynced")),
+              60_000,
+            ),
+          ),
+        ]);
+
+        const generatorUser3 = discoUser3.trainByRound(dataset);
+        // The newcomer's round only completes once the other peers join it, so
+        // hold the promise. Model syncing happens first, in a), and the
+        // provider answers it while the other peers sit between rounds.
+        const user3RoundPromise = generatorUser3.next();
+
+        const syncedWeights = await waitForModelSynced;
+
+        // User 3 should have been synced to a model one of the existing peers
+        // held at a round boundary, not to a partially trained one
+        const candidates = [
+          ...modelsUser1.all(),
+          ...modelsUser2.all(),
+          ...boundaryAfterLastRound,
+        ];
+        const matchesAProviderModel = candidates.some((candidate) => {
+          try {
+            expectWeightsToEqual(syncedWeights, candidate);
+            return true;
+          } catch {
+            return false;
+          }
+        });
+        expect(
+          matchesAProviderModel,
+          `synced model matches none of the ${candidates.length} models the peers held at a round boundary`,
+        ).to.be.true;
+
+        // The newcomer's round completes together with the other peers' next one
+        const [user3Round] = await Promise.all([
+          user3RoundPromise,
+          generatorUser1.next(),
+          generatorUser2.next(),
+        ]);
+        expect(user3Round.done).to.be.false;
+
+        boundaryAfterLastRound.forEach((model) => model.dispose());
+      } finally {
+        // Close clients if not already done
+        await discoUser1.close().catch(() => {});
+        await discoUser2.close().catch(() => {});
+        await discoUser3.close().catch(() => {});
+      }
+    },
+  );
+
+  it(
+    "resets decentralized session after all participants leave",
+    { timeout: 200_000 },
+    async () => {
+      const { task, taskProvider } = await lusCovidDecentralized();
+      const url = await startServer(defaultModels.LUSClassifier, taskProvider);
+
+      const dataset = await datasets.loadLusCOVID();
+
+      let shapesBeforeReset: number[][];
+      let modelTensorCountBeforeReset: number;
+
+      const discoUser1 = new Disco(task, url, { preprocessOnce: true });
+      const discoUser2 = new Disco(task, url, { preprocessOnce: true });
+      const modelsUser1 = recordModelsAtRoundBoundary(discoUser1);
+      const modelsUser2 = recordModelsAtRoundBoundary(discoUser2);
+
+      try {
+        const generatorUser1 = discoUser1.trainByRound(dataset);
+        const generatorUser2 = discoUser2.trainByRound(dataset);
+
+        await Promise.all([generatorUser1.next(), generatorUser2.next()]);
+
+        await Promise.all([generatorUser1.next(), generatorUser2.next()]);
+
+        shapesBeforeReset = weightTensorShapes(
+          discoUser1.trainer.model.weights,
+        );
+        modelTensorCountBeforeReset = modelTensorCount(
+          discoUser1.trainer.model.weights,
+        );
+
+        await expectPeersToAgreeOnModel(modelsUser1, modelsUser2);
+      } finally {
+        await discoUser1.close().catch(() => {});
+        await discoUser2.close().catch(() => {});
+      }
+
+      const discoUser3 = new Disco(task, url, { preprocessOnce: true });
+      const discoUser4 = new Disco(task, url, { preprocessOnce: true });
+      const modelsUser3 = recordModelsAtRoundBoundary(discoUser3);
+      const modelsUser4 = recordModelsAtRoundBoundary(discoUser4);
+
+      let user3ModelSynced = false;
+      let user4ModelSynced = false;
+
+      discoUser3.on("modelSynced", () => {
+        user3ModelSynced = true;
+      });
+      discoUser4.on("modelSynced", () => {
+        user4ModelSynced = true;
+      });
+
+      try {
+        const generatorUser3 = discoUser3.trainByRound(dataset);
+        const generatorUser4 = discoUser4.trainByRound(dataset);
+
+        await Promise.all([generatorUser3.next(), generatorUser4.next()]);
+
+        await Promise.all([generatorUser3.next(), generatorUser4.next()]);
+
+        const shapesAfterReset = weightTensorShapes(
+          discoUser3.trainer.model.weights,
+        );
+        const modelTensorCountAfterReset = modelTensorCount(
+          discoUser3.trainer.model.weights,
+        );
+
+        expect(shapesAfterReset).to.deep.equal(shapesBeforeReset);
+        expect(modelTensorCountAfterReset).to.equal(
+          modelTensorCountBeforeReset,
+        );
+
+        expect(user3ModelSynced).to.equal(false);
+        expect(user4ModelSynced).to.equal(false);
+
+        await expectPeersToAgreeOnModel(modelsUser3, modelsUser4);
+      } finally {
+        await discoUser3.close().catch(() => {});
+        await discoUser4.close().catch(() => {});
+      }
+    },
+  );
+
+  it(
+    "does not accumulate excessive tensors during decentralized training",
+    { timeout: 200_000 },
+    async () => {
+      const { task, taskProvider } = await lusCovidDecentralized();
+      const url = await startServer(defaultModels.LUSClassifier, taskProvider);
+
+      const dataset = await datasets.loadLusCOVID();
+
+      const discoUser1 = new Disco(task, url, { preprocessOnce: true });
+      const discoUser2 = new Disco(task, url, { preprocessOnce: true });
+
+      const modelsUser1 = recordModelsAtRoundBoundary(discoUser1, {
+        keep: "latest",
+      });
+      const modelsUser2 = recordModelsAtRoundBoundary(discoUser2, {
+        keep: "latest",
+      });
+
+      // Take the baseline after client/model initialization so expected model
+      const memoryBeforeTraining = tensorMemorySnapshot();
+
+      try {
+        const generatorUser1 = discoUser1.trainByRound(dataset);
+        const generatorUser2 = discoUser2.trainByRound(dataset);
+
+        await Promise.all([generatorUser1.next(), generatorUser2.next()]);
+
+        await Promise.all([generatorUser1.next(), generatorUser2.next()]);
+
+        await expectPeersToAgreeOnModel(modelsUser1, modelsUser2);
+      } finally {
+        // release the recorded models, they are not part of what we measure
+        modelsUser1.dispose();
+        modelsUser2.dispose();
+        await discoUser1.close().catch(() => {});
+        await discoUser2.close().catch(() => {});
+      }
+
+      // Let pending close/disconnect microtasks finish before reading tf.memory().
+      await new Promise((resolve) => setImmediate(resolve));
+
+      const memoryAfterTraining = tensorMemorySnapshot();
+
+      expect(memoryAfterTraining.numTensors).to.be.at.most(
+        memoryBeforeTraining.numTensors,
+      );
+    },
+  );
+
+  // Check memory difference between decentralized learning rounds
+  it(
+    "observes tensor memory across decentralized training rounds",
+    { timeout: 200_000 },
+    async () => {
+      const { task, taskProvider } = await lusCovidDecentralized({
+        epochs: 10,
+      });
+      const url = await startServer(defaultModels.LUSClassifier, taskProvider);
+
+      const dataset = await datasets.loadLusCOVID();
+
+      const discoUser1 = new Disco(task, url, { preprocessOnce: true });
+      const discoUser2 = new Disco(task, url, { preprocessOnce: true });
+      // a single model is kept per peer, so the recording doesn't grow with the
+      // number of rounds and the per-round memory measurements stay comparable
+      const modelsUser1 = recordModelsAtRoundBoundary(discoUser1, {
+        keep: "latest",
+      });
+      const modelsUser2 = recordModelsAtRoundBoundary(discoUser2, {
+        keep: "latest",
+      });
+
+      try {
+        const generators = [
+          discoUser1.trainByRound(dataset),
+          discoUser2.trainByRound(dataset),
+        ];
+        const warmupRounds = 2;
+        const totalRounds = Math.trunc(
+          task.trainingInformation.epochs /
+            task.trainingInformation.roundDuration,
+        );
+
+        // Run warm up rounds before measuring memory so that model initialization happens
+        // and does not measured as memory leakage
+        for (let round = 0; round < warmupRounds; round++) {
+          const results = await Promise.all(
+            generators.map(async (generator) => await generator.next()),
+          );
+
+          results.forEach((result) => {
+            expect(result.done, "training ended during warm-up").to.equal(
+              false,
+            );
+          });
+        }
+
+        await new Promise((resolve) => setImmediate(resolve));
+
+        // Measure the memory before running rounds
+        const memoryBeforeMeasuredRounds = tensorMemorySnapshot();
+        const measuredRoundSnapshots: ReturnType<
+          typeof tensorMemorySnapshot
+        >[] = [];
+        const numberOfMeasuredRounds = totalRounds - warmupRounds;
+
+        // Record tensor memory after each round
+        // Pass condition is that memory should be disposed properly, and should not grow each round
+        for (let round = 0; round < numberOfMeasuredRounds; round++) {
+          const results = await Promise.all(
+            generators.map(async (generator) => await generator.next()),
+          );
+
+          results.forEach((result) => {
+            expect(
+              result.done,
+              `training ended during measured round ${round + 1}`,
+            ).to.equal(false);
+          });
+
+          // Finish the pending asynchronous work, and store the memory measurement for this round
+          await new Promise((resolve) => setImmediate(resolve));
+          measuredRoundSnapshots.push(tensorMemorySnapshot());
+        }
+
+        // Check if two users' models converge
+        await expectPeersToAgreeOnModel(modelsUser1, modelsUser2);
+
+        expect(measuredRoundSnapshots).to.have.lengthOf(numberOfMeasuredRounds);
+
+        // Check the allocated tensors did not increase between rounds
+        for (let index = 1; index < measuredRoundSnapshots.length; index++) {
+          const previousSnapshot = measuredRoundSnapshots[index - 1];
+          const currentSnapshot = measuredRoundSnapshots[index];
+
+          expect(currentSnapshot.numTensors).to.be.at.most(
+            previousSnapshot.numTensors,
+          );
+          expect(currentSnapshot.numBytes).to.be.at.most(
+            previousSnapshot.numBytes,
+          );
+        }
+
+        // Get the final memory state
+        const finalSnapshot = measuredRoundSnapshots.at(-1);
+
+        if (finalSnapshot === undefined) {
+          throw new Error("No tensor memory snapshot was recorded");
+        }
+
+        // Check if the final memory state did not grow from the initial state
+        // measured after the warm up
+        expect(finalSnapshot.numTensors).to.be.at.most(
+          memoryBeforeMeasuredRounds.numTensors,
+        );
+        expect(finalSnapshot.numBytes).to.be.at.most(
+          memoryBeforeMeasuredRounds.numBytes,
+        );
+      } finally {
+        // release the recorded models, they are not part of what we measure
+        modelsUser1.dispose();
+        modelsUser2.dispose();
+        await Promise.all([
+          discoUser1.close().catch(() => {}),
+          discoUser2.close().catch(() => {}),
+        ]);
+      }
+    },
+  );
+
+  // Check if all the memories are cleaned when clients close
+  it(
+    "releases decentralized client tensors when clients close",
+    { timeout: 200_000 },
+    async () => {
+      const { task, taskProvider } = await lusCovidDecentralized({ epochs: 1 });
+      const url = await startServer(defaultModels.LUSClassifier, taskProvider);
+      const dataset = await datasets.loadLusCOVID();
+
+      // The server and dataset are initialized, but client models are not loaded
+      // Used for comparison with memory after closing clients
+      const memoryBeforeClients = tensorMemorySnapshot();
+
+      const discoUser1 = new Disco(task, url, { preprocessOnce: true });
+      const discoUser2 = new Disco(task, url, { preprocessOnce: true });
+      const generators = [
+        discoUser1.trainByRound(dataset),
+        discoUser2.trainByRound(dataset),
+      ];
+      let clientsClosed = false;
+
+      try {
+        // Run one decentalized round so clients allocate the model
+        // and establish communication state with other peers
+        const completedRounds = await Promise.all(
+          generators.map(async (generator) => await generator.next()),
+        );
+        completedRounds.forEach((result) => {
+          expect(
+            result.done,
+            "expected a completed decentralized training round",
+          ).to.equal(false);
+        });
+
+        // Close the clients, this should dispose tensors owned by them
+        await Promise.all([discoUser1.close(), discoUser2.close()]);
+        clientsClosed = true;
+
+        // After closing the clients, the memory state should return to the
+        // memory before clients are created
+        const memoryAfterClose = tensorMemorySnapshot();
+        expect(memoryAfterClose.numTensors).to.be.at.most(
+          memoryBeforeClients.numTensors,
+        );
+        expect(memoryAfterClose.numBytes).to.be.at.most(
+          memoryBeforeClients.numBytes,
+        );
+      } finally {
+        await Promise.allSettled(
+          generators.map(
+            async (generator) => await generator.return(undefined),
+          ),
+        );
+        if (!clientsClosed) {
+          await Promise.allSettled([discoUser1.close(), discoUser2.close()]);
+        }
+      }
+    },
+  );
 
   // regression test, peer used to display missing participants when
   // it was not the case
   it(
-    "peer sharing its weights doesn't report missing participants",
+    "doesn't report missing participants when peer is sharing its weights",
     { timeout: 100_000 },
     async () => {
       const { task, taskProvider } = await lusCovidDecentralized();
@@ -423,17 +1166,19 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
       const dataset = await datasets.loadLusCOVID();
 
       /**
-       * A call to trainByRound().next() runs a full round: a), b) and c),
-       * so User 1's first round only resolves once User 2 joined and the
-       * round was aggregated. The timeline is:
-       * - User 1 joins the task by themselves, trains locally and waits in c)
-       *   to share its weights ("not enough participants" is expected there,
-       *   User 1 really is alone)
-       * - User 2 joins and trains while User 1 is ready to share
+       * A call to trainByRound().next() runs a full round: a), b) and c), and
+       * the wait for more participants happens in a). The timeline is:
+       * - User 1 joins the task by themselves and waits in a) for a second
+       *   participant ("not enough participants" is expected there, User 1
+       *   really is alone)
+       * - User 2 joins, both train locally
+       * - User 1 is done training and waits in c) for User 2 to share its
+       *   weights
        *
        * User 1 has to wait for User 2 to be ready but, once User 2 joined,
        * shouldn't be told that participants are missing: User 2 is here, only
-       * still training.
+       * still training. The statuses following "local training" must go
+       * straight to the weight exchange.
        */
 
       /* USER 1 JOINS */
@@ -445,17 +1190,12 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
       });
       const generatorUser1 = discoUser1.trainByRound(dataset);
 
-      // a), b) and c): User 1 trains then waits in c) until User 2 joins
-      // and the round completes, so the promise stays pending
-      const logUser1Round1Promise = generatorUser1.next();
-      expect(await statusUser1.next()).equal("local training");
-      expect(await statusUser1.next()).equal(
-        "waiting for peers to share weights",
-      );
-      // User 1 is genuinely alone at this point
+      // a) blocks until a second participant joins and the round can only
+      // complete afterwards, so don't await it yet
+      const logUser1Round1 = generatorUser1.next();
       expect(await statusUser1.next()).equal("not enough participants");
 
-      /* USER 2 JOINS, WHILE USER 1 IS READY TO SHARE ITS WEIGHTS */
+      /* USER 2 JOINS, BOTH CAN TRAIN */
 
       const discoUser2 = new Disco(task, url, { preprocessOnce: true });
       const statusUser2 = new Queue<RoundStatus>();
@@ -463,25 +1203,28 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
         statusUser2.put(status);
       });
       const generatorUser2 = discoUser2.trainByRound(dataset);
-      const logUser2Round1Promise = generatorUser2.next(); // a), b) and c)
+      const logUser2Round1 = generatorUser2.next();
 
-      // There are enough participants now: User 1's status is restored while
-      // User 2 trains. User 1 waits for User 2 to be ready but should NOT
-      // report missing participants: the next status updates must be
-      // "connecting to peers", without any "not enough participants"
+      // there are enough participants now, User 1 trains locally
+      expect(await statusUser1.next()).equal("local training");
+      expect(await statusUser2.next()).equal("local training");
+
+      /* USER 1 IS DONE TRAINING, USER 2 HASN'T SHARED ITS WEIGHTS YET */
+
+      // User 1 waits in c) for User 2 to be ready but should NOT report
+      // missing participants: the next statuses must be the weight exchange
       expect(await statusUser1.next()).equal(
         "waiting for peers to share weights",
       );
-      expect(await statusUser2.next()).equal("local training");
+
+      /* USER 2 IS DONE TRAINING TOO */
+
+      await Promise.all([logUser1Round1, logUser2Round1]);
+      expect(await statusUser1.next()).equal("connecting to peers");
+      expect(await statusUser1.next()).equal("updating model");
       expect(await statusUser2.next()).equal(
         "waiting for peers to share weights",
       );
-
-      /* USER 2 IS DONE TRAINING, PEERS EXCHANGE THEIR UPDATES */
-
-      await Promise.all([logUser1Round1Promise, logUser2Round1Promise]);
-      expect(await statusUser1.next()).equal("connecting to peers");
-      expect(await statusUser1.next()).equal("updating model");
       expect(await statusUser2.next()).equal("connecting to peers");
       expect(await statusUser2.next()).equal("updating model");
 

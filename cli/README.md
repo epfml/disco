@@ -141,12 +141,17 @@ DEBUG=* pnpm --filter cli start --task goldfish \
   --validationSplit 0 \ # 0 because we specified a val dataset path
   --validationMode both \ # evaluate before and after aggreation
   --saveCheckpoints true --saveLogs true --saveModel true \
-  -o ./logs/fed_LR0001fullanswersPHIx10proba
+  -o ./logs/goldfish_training
 ```
-
 
 ### Evaluating a fine-tuned model
 
 ```bash
 pnpm -F cli run eval_finetuned_gpt2 --modelPath path/to/model.json --testPath ../datasets/test_medFullAnswers.txt --maxSamples 100
+```
+
+### Measuring the memorization of a fine-tuned model
+
+```bash
+pnpm -F cli measure_memorization_gpt2 --modelPath path/to/model.json --dataPath ../datasets/PHI_filtered_final.txt
 ```

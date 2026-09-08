@@ -13,6 +13,7 @@ import { modelDecode } from "#serialization/index";
 import type { EventConnection } from "#client/event_connection";
 import type { NodeID } from "#client/types";
 import { MType } from "#client/mtype";
+import { shortenId } from "#client/utils";
 
 const debug = createDebug("discojs:client");
 
@@ -23,6 +24,7 @@ const debug = createDebug("discojs:client");
 export abstract class Client<N extends Network> extends EventEmitter<{
   status: RoundStatus;
   participants: number;
+  modelSynced: WeightsContainer;
 }> {
   // Own ID provided by the network's server.
   protected _ownId?: NodeID;
@@ -203,6 +205,9 @@ export abstract class Client<N extends Network> extends EventEmitter<{
     return await modelDecode(encoded);
   }
 
+  // DecentralizedClient override the method to clean up round state
+  abstract finishRound(_weights: WeightsContainer): void;
+
   /**
    * Number of contributors to a collaborative session
    * If decentralized, it should be the number of peers
@@ -242,8 +247,4 @@ export abstract class Client<N extends Network> extends EventEmitter<{
   get waitingForMoreParticipants(): boolean {
     return this.promiseForMoreParticipants !== undefined;
   }
-}
-
-export function shortenId(id: string): string {
-  return id.slice(0, 4);
 }

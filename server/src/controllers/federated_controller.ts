@@ -57,6 +57,9 @@ export class FederatedController<D extends DataType> extends TrainingController<
     aggregator.on("aggregation", async (weightUpdate) => {
       try {
         const payload = await weightsEncode(weightUpdate);
+        // Check if a this.reset() has been called in the meantime
+        //  which recreates the aggregator
+        if (this.#aggregator !== aggregator) return;
         const recipients = this.#pendingUpdateRecipients;
         this.#pendingUpdateRecipients = new Map();
 
@@ -239,9 +242,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
       // Reset the training session when all participants left
       if (this.connections.size === 0) {
         debug("All participants left. Resetting the training session");
-        this.#pendingUpdateRecipients.clear();
-        this.#aggregator = this.#makeAggregator();
-        this.#latestGlobalWeights = this.initialWeights;
+        this.reset();
       }
 
       // Check if we dropped below the minimum number of participant required
@@ -255,5 +256,15 @@ export class FederatedController<D extends DataType> extends TrainingController<
       // tell remaining participants to wait until more participants join
       this.sendWaitForMoreParticipantsMsg();
     });
+  }
+
+  reset(): void {
+    this.resetConnectionState();
+    this.#pendingUpdateRecipients.clear();
+    // Dispose first before generating a new aggregator
+    this.#aggregator.dispose();
+    this.#aggregator = this.#makeAggregator();
+
+    this.#latestGlobalWeights = this.initialWeights;
   }
 }

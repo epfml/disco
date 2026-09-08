@@ -16,4 +16,6 @@ export class LocalClient extends Client<"local"> {
   ): Promise<WeightsContainer> {
     return Promise.resolve(weights.map((weight) => weight.clone()));
   }
+
+  override finishRound(_weights: WeightsContainer): void {}
 }

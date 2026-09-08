@@ -60,8 +60,15 @@ export class PercentileClippingAggregator extends MultiRoundAggregator {
         : AggregationStep.ADD,
       nodeId,
     );
-    // Store contribution as is, without client-side momentum
-    this.contributions = this.contributions.setIn([0, nodeId], contribution);
+    const previous = this.contributions.getIn([0, nodeId]) as
+      | WeightsContainer
+      | undefined;
+    previous?.dispose();
+
+    this.contributions = this.contributions.setIn(
+      [0, nodeId],
+      contribution.map((weight) => weight.clone()),
+    );
   }
 
   override aggregate(): WeightsContainer {

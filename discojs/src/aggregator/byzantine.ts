@@ -105,7 +105,10 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
         )
       : contribution.map((g) => g.mul(1 - this.beta));
 
-    this.historyMomentums = this.historyMomentums.set(nodeId, newMomentum);
+    const historyMomentum = newMomentum.clone();
+    prevMomentum?.dispose();
+
+    this.historyMomentums = this.historyMomentums.set(nodeId, historyMomentum);
     this.contributions = this.contributions.setIn([0, nodeId], newMomentum);
   }
 
