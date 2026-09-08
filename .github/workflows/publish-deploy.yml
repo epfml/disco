@@ -19,7 +19,7 @@ jobs:
           package-manager-cache: false # never use caching in release builds
           scope: "@epfml"
       - uses: pnpm/action-setup@v6
-      - run: pnpm ci
+      - run: pnpm ci --ignore-scripts # no need to download webapp dev tools or tfjs-node
       - run: pnpm -F 'discojs*' version prerelease --preid=p`date +%Y%m%d%H%M%S`
         if: github.ref_type == 'branch'
       - run: pnpm -F 'discojs*' run build
