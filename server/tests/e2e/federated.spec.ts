@@ -12,41 +12,19 @@ import type {
 } from "@epfml/discojs";
 import { Disco, defaultTasks, defaultModels, GPT } from "@epfml/discojs";
 import { List } from "immutable";
-import { assert, afterEach, describe, expect, it } from "vitest";
+import {
+  assert,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+} from "vitest";
 import { Server } from "../../src/index.js";
-import { Queue, datasets } from "../utils.js";
+import { datasets } from "../utils.js";
+import { Participant, arrayFromAsync, expectWSToBeClose } from "./helpers.js";
 import * as tf from "@tensorflow/tfjs-node";
-
-// Array.fromAsync not yet widely used (2024)
-async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
-  const ret: T[] = [];
-  for await (const e of iter) {
-    // TODO trick to allow other Promises to run
-    // else one client might progress alone without communicating with others
-    // will be fixed when client orchestrations in the server is correctly done
-    await new Promise((resolve) => setTimeout(resolve, 10));
-
-    ret.push(e);
-  }
-  return ret;
-}
-
-async function WSIntoList(ws: WeightsContainer): Promise<List<List<number>>> {
-  return List(
-    (await Promise.all(ws.weights.map(async (w) => await w.data()))).map(
-      (arr) => List(arr),
-    ),
-  );
-}
-
-async function expectWSToBeClose(
-  left: WeightsContainer,
-  right: WeightsContainer,
-): Promise<void> {
-  for (const tensors of (await WSIntoList(left)).zip(await WSIntoList(right)))
-    for (const [l, r] of tensors[0].zip(tensors[1]))
-      expect(l).to.be.closeTo(r, 1e-4);
-}
 
 describe("end-to-end federated", () => {
   let handle: http.Server | undefined;
@@ -227,150 +205,193 @@ describe("end-to-end federated", () => {
     assert.isTrue(r1[0].equals(r2[0]));
   });
 
-  it("clients emit expected events", { timeout: 100_000 }, async () => {
-    const task = await defaultTasks.lusCovid.getTask();
-    task.trainingInformation = {
-      ...task.trainingInformation,
-      roundDuration: 1,
-      minNbOfParticipants: 2,
-    };
-    const taskProvider = {
-      ...defaultTasks.lusCovid,
-      getTask: () => Promise.resolve(task),
-    };
-    const url = await startServer(defaultModels.LUSClassifier, taskProvider);
-    const dataset = await datasets.loadLusCOVID();
+  /**
+   * When disco.trainByRound is called for the first time, the client connects
+   * to the server which returns the latest model, current round and nb of
+   * participants. Then at each round the event cycle is:
+   * a) onRoundBeginCommunication which updates the status to "local training"
+   * b) local training (the status remains "local training")
+   * c) onRoundEndCommunication which sends the local update and
+   *    receives the global weights while emitting the status UPDATE
+   *
+   * Given this, it is important to note that a single call to
+   * disco.trainByRound().next() performs a full round: a), b) and c).
+   * It only resolves once the server aggregated the round, so when a client
+   * is alone (minNbOfParticipants isn't met) the call stays pending until
+   * another participant joins and the round completes. `Participant` therefore
+   * splits a round in `startRound()` and `completeRound()`, so that the tests
+   * can choreograph through the status and participants events instead of
+   * awaiting a round right away.
+   *
+   * Every step of that choreography is a named function below asserting the
+   * events it expects. Each test then plays the steps leading to the one it
+   * covers and ends with that step, which keeps a failure pointing at a single
+   * step of the timeline.
+   */
+  describe("clients emit expected events", { timeout: 100_000 }, () => {
+    type Client = Participant<"image", "federated">;
+
+    /** Statuses a client goes through during a round it can complete */
+    const FULL_ROUND: readonly RoundStatus[] = [
+      "local training",
+      "updating model",
+    ];
+
+    let task: Task<"image", "federated">;
+    let url: URL;
+    let dataset: Dataset<DataFormat.Raw["image"]>;
+    const joined: Client[] = [];
+
+    beforeAll(async () => {
+      dataset = await datasets.loadLusCOVID();
+    });
+
+    beforeEach(async () => {
+      const baseTask = await defaultTasks.lusCovid.getTask();
+      task = {
+        ...baseTask,
+        trainingInformation: {
+          ...baseTask.trainingInformation,
+          roundDuration: 1,
+          minNbOfParticipants: 2,
+        },
+      };
+
+      url = await startServer(defaultModels.LUSClassifier, {
+        ...defaultTasks.lusCovid,
+        getTask: () => Promise.resolve(task),
+      });
+    });
+
+    afterEach(async () => {
+      await Promise.all(joined.splice(0).map(async (c) => await c.leave()));
+    });
+
+    /** Have a new client join the task, closed at the end of the test */
+    function join(name: string): Client {
+      const client = new Participant(name, task, url, dataset);
+      joined.push(client);
+      return client;
+    }
 
     /**
-     * When disco.trainByRound is called for the first time, the client connects to the server
-     * which returns the latest model, current round and nb of participants.
-     * Then at each round the event cycle is:
-     * a) onRoundBeingCommunication which updates the status to "local training"
-     * b) local training (the status remains "local training")
-     * c) onRoundEndCommunication which sends the local update and
-     * receives the global weights while emitting the status UPDATE
-     *
-     * Given this, it is important to note that a single call to
-     * disco.trainByRound().next() performs a full round: a), b) and c).
-     * It only resolves once the server aggregated the round, so when a client
-     * is alone (minNbOfParticipants isn't met) the call stays pending until
-     * another participant joins and the round completes. Tests therefore hold
-     * the pending next() promise and choreograph through the status and
-     * participants events instead of awaiting next() right away.
-     *
-     * In this test the timeline is:
-     * - User 1 joins the task by themselves
-     * - User 2 joins
-     * - User 1 leaves
-     * - User 3 joins
-     * - User 2 & 3 leave
+     * A client joining a task nobody else is on: it trains locally right away
+     * but can't share its update, so it stays pending in c).
      */
+    async function joinsAlone(name: string): Promise<Client> {
+      const client = join(name).startRound();
 
-    // Create User 1
-    const discoUser1 = new Disco(task, url, { preprocessOnce: true });
-    const statusUser1 = new Queue<RoundStatus>();
-    const nbParticipantsUser1 = new Queue<number>();
-    discoUser1.on("status", (status) => statusUser1.put(status));
-    discoUser1.on("participants", (participants) =>
-      nbParticipantsUser1.put(participants),
-    );
-    const generatorUser1 = discoUser1.trainByRound(dataset);
+      // a) and b), the client trains without waiting for anyone
+      await client.expectStatuses("local training");
+      await client.expectParticipants(1);
+      // c), sharing the update needs a second participant
+      await client.expectStatuses("not enough participants");
 
-    // Have User 1 join the task and train locally. The round can't complete
-    // while User 1 is alone so the promise stays pending in c)
-    const logUser1Round1Promise = generatorUser1.next();
-    expect(await statusUser1.next()).equal("local training");
-    expect(await nbParticipantsUser1.next()).equal(1);
-    expect(await statusUser1.next()).equal("not enough participants");
+      return client;
+    }
 
-    // Create User 2
-    const discoUser2 = new Disco(task, url, { preprocessOnce: true });
-    const statusUser2 = new Queue<RoundStatus>();
-    const nbParticipantsUser2 = new Queue<number>();
-    discoUser2.on("status", (status) => statusUser2.put(status));
-    discoUser2.on("participants", (participants) =>
-      nbParticipantsUser2.put(participants),
-    );
-    const generatorUser2 = discoUser2.trainByRound(dataset);
+    /**
+     * A client joining a waiting one: both share their update, the server
+     * aggregates them and answers with the new global weights.
+     */
+    async function joinsWaitingClient(
+      waiting: Client,
+      name: string,
+    ): Promise<Client> {
+      const client = join(name).startRound();
 
-    // Have User 2 join the task and train for one round
-    const logUser2Round1Promise = generatorUser2.next();
-    // User 2 connects to the server which triggers the participant event
-    expect(await nbParticipantsUser2.next()).equal(2);
-    expect(await statusUser2.next()).equal("local training");
-    // User 1 receives the EnoughParticipants message with the participants,
-    // its previous status is restored and it proceeds to share its update
-    expect(await nbParticipantsUser1.next()).equal(2);
-    expect(await statusUser1.next()).equal("local training");
-    expect(await statusUser1.next()).equal("updating model");
-    // User 2 finishes training and shares its update too
-    expect(await statusUser2.next()).equal("updating model");
+      // the new client connects to the server, which triggers the participant
+      // event, and trains
+      await client.expectParticipants(2);
+      await client.expectStatuses("local training");
+      // the waiting client receives the EnoughParticipants message with the
+      // participants, its previous status is restored and it shares its update
+      await waiting.expectParticipants(2);
+      await waiting.expectStatuses("local training", "updating model");
+      // the new client finishes training and shares its update too
+      await client.expectStatuses("updating model");
 
-    // The server aggregates the round and answers with the new global weights
-    // along with the participants, resolving both pending next() calls
-    await Promise.all([logUser1Round1Promise, logUser2Round1Promise]);
-    expect(await nbParticipantsUser1.next()).equal(2);
-    expect(await nbParticipantsUser2.next()).equal(2);
+      // the server aggregates the round and answers with the new global
+      // weights along with the participants, resolving both pending rounds
+      await Promise.all([waiting.completeRound(), client.completeRound()]);
+      await waiting.expectParticipants(2);
+      await client.expectParticipants(2);
 
-    // Proceed with round 2, both users are present so the round completes
-    await Promise.all([generatorUser1.next(), generatorUser2.next()]);
-    // User 1 and 2 did a), b) and c)
-    expect(await statusUser1.next()).equal("local training");
-    expect(await statusUser1.next()).equal("updating model");
-    expect(await statusUser2.next()).equal("local training");
-    expect(await statusUser2.next()).equal("updating model");
-    // Receive the server payload during c) along with the participants
-    expect(await nbParticipantsUser1.next()).equal(2);
-    expect(await nbParticipantsUser2.next()).equal(2);
+      return client;
+    }
 
-    // Have user 1 quit the session
-    await discoUser1.close();
-    // User 2 receives the WaitingForMoreParticipants message
-    expect(await statusUser2.next()).equal("not enough participants");
-    expect(await nbParticipantsUser2.next()).equal(1);
+    /** A round during which every client is present, so a), b) and c) run */
+    async function runFullRound(...clients: readonly Client[]): Promise<void> {
+      await Promise.all(clients.map(async (c) => await c.completeRound()));
 
-    // Make User 2 start round 3, it trains and then waits in c) for
-    // another participant
-    const logUser2Round3Promise = generatorUser2.next();
-    expect(await statusUser2.next()).equal("local training");
-    expect(await statusUser2.next()).equal("not enough participants");
+      for (const client of clients) await client.expectStatuses(...FULL_ROUND);
+      // the server payload received during c) carries the participants
+      for (const client of clients)
+        await client.expectParticipants(clients.length);
+    }
 
-    // Create User 3
-    const discoUser3 = new Disco(task, url, { preprocessOnce: true });
-    const statusUser3 = new Queue<RoundStatus>();
-    const nbParticipantsUser3 = new Queue<number>();
-    discoUser3.on("status", (status) => statusUser3.put(status));
-    discoUser3.on("participants", (participants) =>
-      nbParticipantsUser3.put(participants),
-    );
-    const generatorUser3 = discoUser3.trainByRound(dataset);
+    /** A client leaving, the remaining one is left without enough participants */
+    async function leavesTask(
+      leaving: Client,
+      remaining: Client,
+    ): Promise<void> {
+      await leaving.leave();
 
-    // User 3 joins mid-training and trains one local round
-    const logUser3Round1Promise = generatorUser3.next();
-    expect(await nbParticipantsUser3.next()).equal(2);
-    expect(await statusUser3.next()).equal("local training");
+      // the remaining client receives the WaitingForMoreParticipants message
+      await remaining.expectStatuses("not enough participants");
+      await remaining.expectParticipants(1);
+    }
 
-    // User 2 receives the EnoughParticipants message, its previous status
-    // is restored and it proceeds to share its update
-    expect(await nbParticipantsUser2.next()).equal(2);
-    expect(await statusUser2.next()).equal("local training");
-    expect(await statusUser2.next()).equal("updating model");
-    // User 3 finishes training and sends their weights to the server
-    expect(await statusUser3.next()).equal("updating model");
+    /** A client starting a round while it knows it is the only participant */
+    async function startsRoundAlone(client: Client): Promise<void> {
+      client.startRound();
 
-    // the server should accept user 3's weights (should not be outdated)
-    // and aggregate the global weights, resolving both rounds
-    await Promise.all([logUser2Round3Promise, logUser3Round1Promise]);
-    // User 2 and 3 finish c)
-    expect(await nbParticipantsUser2.next()).equal(2);
-    expect(await nbParticipantsUser3.next()).equal(2);
+      // it trains, then waits in c) for another participant
+      await client.expectStatuses("local training", "not enough participants");
+    }
 
-    await discoUser2.close();
-    expect(await statusUser3.next()).equal("not enough participants");
-    // WaitForMoreParticipants message
-    expect(await nbParticipantsUser3.next()).equal(1);
+    it("a client joining alone trains then waits for a participant", async () => {
+      await joinsAlone("user 1");
+    });
 
-    await discoUser3.close();
+    it("a joining client completes the round of the waiting one", async () => {
+      const user1 = await joinsAlone("user 1");
+
+      await joinsWaitingClient(user1, "user 2");
+    });
+
+    it("a round runs the whole cycle when both clients are present", async () => {
+      const user1 = await joinsAlone("user 1");
+      const user2 = await joinsWaitingClient(user1, "user 2");
+
+      await runFullRound(user1, user2);
+    });
+
+    it("a client is notified when a participant leaves", async () => {
+      const user1 = await joinsAlone("user 1");
+      const user2 = await joinsWaitingClient(user1, "user 2");
+
+      await leavesTask(user1, user2);
+    });
+
+    it("a client left alone trains but waits to share its update", async () => {
+      const user1 = await joinsAlone("user 1");
+      const user2 = await joinsWaitingClient(user1, "user 2");
+      await leavesTask(user1, user2);
+
+      await startsRoundAlone(user2);
+    });
+
+    it("a client joining mid-training completes the pending round", async () => {
+      const user1 = await joinsAlone("user 1");
+      const user2 = await joinsWaitingClient(user1, "user 2");
+      await leavesTask(user1, user2);
+      await startsRoundAlone(user2);
+
+      // the server should accept user 3's weights (they should not be
+      // outdated) and aggregate them with user 2's pending round
+      await joinsWaitingClient(user2, "user 3");
+    });
   });
 
   /**
