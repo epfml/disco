@@ -23,7 +23,7 @@
   "homepage": "https://github.com/epfml/disco#readme",
   "dependencies": {
     "@epfml/discojs": "workspace:",
-    "csv-parse": "6.2.0",
+    "csv-parse": "7.0.2",
     "debug": "catalog:",
     "node-fetch": "2.7.0",
     "sharp": "0.35.3"

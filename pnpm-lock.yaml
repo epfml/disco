@@ -376,8 +376,8 @@ importers:
         specifier: 'workspace:'
         version: link:../discojs
       csv-parse:
-        specifier: 6.2.0
-        version: 6.2.0
+        specifier: 7.0.2
+        version: 7.0.2
       debug:
         specifier: 'catalog:'
         version: 4.4.3(supports-color@8.1.1)
@@ -2487,8 +2487,8 @@ packages:
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
 
-  csv-parse@6.2.0:
-    resolution: {integrity: sha512-Zv8KRHccD1q3BJlK4VcQiEn/+suOOp++89g/fpqOxB2U2tU66uC3yM+ZwU6nQQEJp8AqBIiNqB+pUTKNz4QzKg==}
+  csv-parse@7.0.2:
+    resolution: {integrity: sha512-uKZghv9UmPkMVLYy//KZ9HFAIJsl7wkhoEdIL0+rhuSY9pZQlhaeGEDPIe+/w7eh81MOql8Q/9+inAGWG6ZHYA==}
 
   cypress@15.17.0:
     resolution: {integrity: sha512-WL5Gcqi1GaDWozBwXmkSAtOPafTsVSRS764iX6xvuz3DPzvBAxbkRyEi4BreVdVWxLDpiYRgZCyJUafBw44njw==}
@@ -6610,7 +6610,7 @@ snapshots:
 
   csstype@3.2.3: {}
 
-  csv-parse@6.2.0: {}
+  csv-parse@7.0.2: {}
 
   cypress@15.17.0:
     dependencies:
