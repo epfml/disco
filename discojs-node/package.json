@@ -26,7 +26,7 @@
     "csv-parse": "7.0.2",
     "debug": "catalog:",
     "node-fetch": "2.7.0",
-    "sharp": "0.35.3"
+    "sharp": "0.35.4"
   },
   "devDependencies": {
     "@types/node": "22.19.15",
