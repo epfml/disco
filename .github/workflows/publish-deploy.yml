@@ -94,6 +94,7 @@ jobs:
           workload_identity_provider: projects/905419434797/locations/global/workloadIdentityPools/github/providers/disco
       - uses: google-github-actions/deploy-cloudrun@v3
         with:
+          flags: "--memory=4Gi --cpu=2 --timeout=5m"
           service: disco
           region: europe-west6
           image: europe-west6-docker.pkg.dev/disco-367212/github/epfml/disco@${{ needs.publish-github-container.outputs.digest }}
