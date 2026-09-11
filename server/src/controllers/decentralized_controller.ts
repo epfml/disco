@@ -283,6 +283,7 @@ export class DecentralizedController<
           type: MessageTypes.PeersForRound,
           peers: this.#roundPeers.delete(id).keySeq().toArray(),
           aggregationRound: this.#aggregationRound,
+          nbOfParticipants: this.connections.size,
         };
       },
     );

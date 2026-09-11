@@ -363,10 +363,10 @@ export class DecentralizedClient extends Client<"decentralized"> {
         throw new Error("received peer list contains our own id");
       }
       // Store the list of peers for the current round including ourselves
-      const roundNodes = peers.add(this.ownId);
-      this.aggregator.setNodes(roundNodes);
-      // the server told us who takes part in the round, emits `participants`
-      this.nbOfParticipants = roundNodes.size;
+      this.aggregator.setNodes(peers.add(this.ownId));
+      // the peers of the round leave out those still syncing their model, so
+      // the server tells us how many participants the session has
+      this.nbOfParticipants = receivedMessage.nbOfParticipants;
       this.aggregator.setRound(receivedMessage.aggregationRound); // the server gives us the round number
 
       // Initiate peer to peer connections with each peer

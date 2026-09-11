@@ -283,6 +283,7 @@ describe("peer failing to begin a round", () => {
       type: mtype.MType.PeersForRound,
       peers: [ownId],
       aggregationRound: 0,
+      nbOfParticipants: 2,
     };
 
     let push: ((msg: ServerMessage) => void) | undefined;

@@ -247,6 +247,48 @@ describe("DecentralizedController participants updates", () => {
       (msg) => msg.nbOfParticipants,
     );
 
+  it("counts a peer syncing its model like every other message does", async () => {
+    const controller = await makeController();
+
+    const [ws1, ws2, ws3] = [
+      makeFakeWebSocket(),
+      makeFakeWebSocket(),
+      makeFakeWebSocket(),
+    ];
+
+    // two peers run a first round together
+    connect(controller, ws1);
+    connect(controller, ws2);
+    for (const ws of [ws1, ws2]) {
+      ws.emitMessage({ type: MessageTypes.JoinRound });
+      ws.emitMessage({ type: MessageTypes.PeerIsReady });
+    }
+    for (const ws of [ws1, ws2])
+      ws.emitMessage({ type: MessageTypes.ConnectionsReady });
+
+    // a third one joins, which has to sync its model before taking part
+    connect(controller, ws3);
+    expect(
+      lastMessageOfType(ws3, MessageTypes.NewDecentralizedNodeInfo)
+        ?.joinedMidTraining,
+    ).to.be.true;
+    expect(
+      lastMessageOfType(ws3, MessageTypes.NewDecentralizedNodeInfo)
+        ?.nbOfParticipants,
+    ).to.equal(3);
+    expect(participantsSeen(ws1)).to.deep.equal([3]);
+
+    // the other two start a round without it, as it is still syncing
+    for (const ws of [ws1, ws2]) {
+      ws.emitMessage({ type: MessageTypes.JoinRound });
+      ws.emitMessage({ type: MessageTypes.PeerIsReady });
+    }
+    const peersForRound = lastMessageOfType(ws1, MessageTypes.PeersForRound);
+    // the round leaves the syncing peer out, but it is still a participant
+    expect(peersForRound?.peers).to.have.length(1);
+    expect(peersForRound?.nbOfParticipants).to.equal(3);
+  });
+
   it("tells the peers when one joins or leaves", async () => {
     const controller = await makeController();
 

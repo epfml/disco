@@ -41,6 +41,9 @@ export interface PeersForRound {
   type: MType.PeersForRound;
   peers: NodeID[];
   aggregationRound: number;
+  // the peers of a round are only those able to take part in it, so they
+  // aren't the number of participants of the session
+  nbOfParticipants: number;
 }
 
 // peer sends to server to signal all the connections to other peers
