@@ -46,9 +46,14 @@ export const titanic: TaskProvider<"tabular", "federated"> = {
           'SibSp',
           'Parch',
           'Fare',
-          'Pclass'
+          'Pclass',
+          'Sex',
+          'Embarked'
         ],
-        categoricalColumns: {},
+        categoricalColumns: {
+          Sex: ["male", "female"],
+          Embarked: ["C", "S", "Q", "Missing"]
+        },
         outputColumn: 'Survived',
         scheme: 'federated',
         aggregationStrategy: 'mean',
@@ -63,7 +68,7 @@ export const titanic: TaskProvider<"tabular", "federated"> = {
 
     model.add(
       tf.layers.dense({
-        inputShape: [5],
+        inputShape: [11],
         units: 124,
         activation: 'relu',
         kernelInitializer: 'leCunNormal'
