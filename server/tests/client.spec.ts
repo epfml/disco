@@ -14,6 +14,7 @@ import {
   MeanAggregator,
   DecentralizedClient,
   FederatedClient,
+  WeightsContainer,
   mtype,
   defaultTasks,
   defaultModels,
@@ -123,6 +124,49 @@ describe("federated client", () => {
   });
 });
 
+type ServerMessage =
+  | federatedMessages.MessageFederated
+  | decentralizedMessages.MessageFromServer;
+
+/** Have a client skip fetching the base model, only messages matter here */
+function withoutModel<
+  C extends { getLatestModel: () => Promise<Model<DataType>> },
+>(client: C): C {
+  client.getLatestModel = () => Promise.resolve({} as Model<DataType>);
+  return client;
+}
+
+/**
+ * A server answering a client's messages with whatever `answer` sends, so that
+ * a test can produce orderings the real server doesn't.
+ */
+async function serveStub(
+  answer: (
+    msg: { type: mtype.MType },
+    send: (msg: ServerMessage) => void,
+  ) => void,
+): Promise<[http.Server, URL]> {
+  const handle = http.createServer();
+  new WebSocketServer({ server: handle }).on("connection", (ws) =>
+    ws.on("message", (data: Buffer) => {
+      const msg: unknown = msgpack.decode(data);
+      if (!mtype.hasMessageType(msg)) return;
+      answer(msg, (answer) => ws.send(msgpack.encode(answer)));
+    }),
+  );
+
+  const url = await new Promise<URL>((resolve) =>
+    handle.listen(0, "127.0.0.1", () => {
+      const address = handle.address();
+      if (address === null || typeof address === "string")
+        throw new Error("server didn't listen on a port");
+      resolve(new URL(`http://127.0.0.1:${address.port}/`));
+    }),
+  );
+
+  return [handle, url];
+}
+
 /**
  * A client learns how many participants there are from the message answering
  * its join request, but the server computes that count when sending it. As that
@@ -134,47 +178,6 @@ describe("federated client", () => {
  * the real server doesn't do, hence the stubbed one below.
  */
 describe("client joining while the participants change", () => {
-  type JoinAnswer =
-    | federatedMessages.MessageFederated
-    | decentralizedMessages.MessageFromServer;
-
-  /** Have the client skip fetching the base model, only messages matter here */
-  function withoutModel<
-    C extends { getLatestModel: () => Promise<Model<DataType>> },
-  >(client: C): C {
-    client.getLatestModel = () => Promise.resolve({} as Model<DataType>);
-    return client;
-  }
-
-  /** Answer a join request with the given messages, in the order given */
-  async function serveJoinAnswer(
-    ...answers: readonly JoinAnswer[]
-  ): Promise<[http.Server, URL]> {
-    const handle = http.createServer();
-    new WebSocketServer({ server: handle }).on("connection", (ws) =>
-      ws.on("message", (data: Buffer) => {
-        const msg: unknown = msgpack.decode(data);
-        if (
-          !mtype.hasMessageType(msg) ||
-          msg.type !== mtype.MType.ClientConnected
-        )
-          return;
-        for (const answer of answers) ws.send(msgpack.encode(answer));
-      }),
-    );
-
-    const url = await new Promise<URL>((resolve) =>
-      handle.listen(0, "127.0.0.1", () => {
-        const address = handle.address();
-        if (address === null || typeof address === "string")
-          throw new Error("server didn't listen on a port");
-        resolve(new URL(`http://127.0.0.1:${address.port}/`));
-      }),
-    );
-
-    return [handle, url];
-  }
-
   // sent when another participant joined between the two messages
   const enoughParticipants: mtype.EnoughParticipants = {
     type: mtype.MType.EnoughParticipants,
@@ -190,7 +193,11 @@ describe("client joining while the participants change", () => {
       round: 0,
       nbOfParticipants: 1,
     };
-    const [handle, url] = await serveJoinAnswer(joinAnswer, enoughParticipants);
+    const [handle, url] = await serveStub((msg, send) => {
+      if (msg.type !== mtype.MType.ClientConnected) return;
+      send(joinAnswer);
+      send(enoughParticipants);
+    });
 
     const client = withoutModel(
       new FederatedClient(
@@ -219,7 +226,11 @@ describe("client joining while the participants change", () => {
       joinedMidTraining: false,
       nbOfParticipants: 1,
     };
-    const [handle, url] = await serveJoinAnswer(joinAnswer, enoughParticipants);
+    const [handle, url] = await serveStub((msg, send) => {
+      if (msg.type !== mtype.MType.ClientConnected) return;
+      send(joinAnswer);
+      send(enoughParticipants);
+    });
 
     const client = withoutModel(
       new DecentralizedClient(
@@ -236,6 +247,82 @@ describe("client joining while the participants change", () => {
       expect(client.waitingForMoreParticipants).to.be.false;
     } finally {
       await client.disconnect();
+      handle.close();
+    }
+  });
+});
+
+/**
+ * Failing to connect to the round's peers leaves the aggregator with nobody to
+ * expect a contribution from, but the peers are still part of the session: the
+ * server is the one telling the client how many participants there are, so a
+ * failed round start must not have the client report being alone.
+ */
+describe("peer failing to begin a round", () => {
+  it("keeps reporting the participants the server gave", async () => {
+    const ownId = "node-id";
+
+    const joinAnswer: decentralizedMessages.NewDecentralizedNodeInfo = {
+      type: mtype.MType.NewDecentralizedNodeInfo,
+      id: ownId,
+      waitForMoreParticipants: false,
+      joinedMidTraining: false,
+      nbOfParticipants: 2,
+    };
+    // a peer list containing our own id makes the client fail to begin the
+    // round, as connecting to the peers of the round would
+    const badPeersForRound: decentralizedMessages.PeersForRound = {
+      type: mtype.MType.PeersForRound,
+      peers: [ownId],
+      aggregationRound: 0,
+    };
+
+    let rounds = 0;
+    const [handle, url] = await serveStub((msg, send) => {
+      switch (msg.type) {
+        case mtype.MType.ClientConnected:
+          send(joinAnswer);
+          break;
+        case mtype.MType.PeerIsReady:
+          send(badPeersForRound);
+          // let the client handle the failure and listen again before telling
+          // it to retry, then to give up
+          rounds++;
+          setTimeout(() =>
+            send(
+              rounds === 1
+                ? { type: mtype.MType.RetryPeerConnections }
+                : { type: mtype.MType.ConnectionFail },
+            ),
+          );
+          break;
+      }
+    });
+
+    const client = withoutModel(
+      new DecentralizedClient(
+        url,
+        await defaultTasks.cifar10.getTask(),
+        new MeanAggregator(),
+      ),
+    );
+    const participants: number[] = [];
+    client.on("participants", (nbOfParticipants) =>
+      participants.push(nbOfParticipants),
+    );
+
+    try {
+      await client.connect();
+      await client.onRoundBeginCommunication();
+
+      await expect(
+        client.onRoundEndCommunication(new WeightsContainer([[1]])),
+      ).rejects.toThrow("Client disconnected after connection failure");
+
+      // the server only ever said there were two of us
+      expect(participants).to.deep.equal([2]);
+      expect(rounds).to.equal(2); // the retry did happen
+    } finally {
       handle.close();
     }
   });
