@@ -146,6 +146,14 @@ export abstract class Client<N extends Network> extends EventEmitter<{
       this.promiseForMoreParticipants = this.createPromiseForMoreParticipants();
     });
 
+    // The server tells us whenever a participant joined or left, so that we
+    // don't have to wait for the end of the round to display how many of us
+    // are training together
+    this.server.on(MType.ParticipantsUpdate, (event) => {
+      this.#nbOfParticipantsUpdatedSinceJoining = true;
+      this.nbOfParticipants = event.nbOfParticipants;
+    });
+
     // As an example assume we need at least 2 participants to train,
     // When two participants join almost at the same time, the server
     // sends a NewNodeInfo with waitForMoreParticipants=true to the first participant

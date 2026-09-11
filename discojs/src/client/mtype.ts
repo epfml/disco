@@ -52,6 +52,12 @@ export enum MType {
   EnoughParticipants,
   SendPayload,
   ReceiveServerPayload,
+
+  /* Both schemes */
+  // Message sent by the server when a participant joined or left, so that
+  // clients don't have to wait for the end of the round to learn about it.
+  // Kept last as the enum values are what goes over the wire.
+  ParticipantsUpdate,
 }
 
 export function hasMessageType(
@@ -78,5 +84,10 @@ export interface EnoughParticipants {
 
 export interface WaitingForMoreParticipants {
   type: MType.WaitingForMoreParticipants;
+  nbOfParticipants: number;
+}
+
+export interface ParticipantsUpdate {
+  type: MType.ParticipantsUpdate;
   nbOfParticipants: number;
 }

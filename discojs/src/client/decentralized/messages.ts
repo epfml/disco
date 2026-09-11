@@ -7,6 +7,7 @@ import type {
   ClientConnected,
   WaitingForMoreParticipants,
   EnoughParticipants,
+  ParticipantsUpdate,
 } from "#client/mtype";
 
 /// Phase 0 communication (between server and peers)
@@ -107,6 +108,7 @@ export type MessageFromServer =
   | PeersForRound
   | WaitingForMoreParticipants
   | EnoughParticipants
+  | ParticipantsUpdate
   | StartWeightSharing
   | RetryPeerConnections
   | ConnectionFail
@@ -140,6 +142,7 @@ export function isMessageFromServer(o: unknown): o is MessageFromServer {
       return "peers" in o && Array.isArray(o.peers) && o.peers.every(isNodeID);
     case MType.WaitingForMoreParticipants:
     case MType.EnoughParticipants:
+    case MType.ParticipantsUpdate:
     case MType.StartWeightSharing:
     case MType.RetryPeerConnections:
     case MType.ConnectionFail:

@@ -171,8 +171,11 @@ export class FederatedController<D extends DataType> extends TrainingController<
             nbOfParticipants: this.connections.size,
           };
           ws.send(msgpack.encode(msg));
-          // Send an update to participants if we can start/resume training
-          this.sendEnoughParticipantsMsgIfNeeded(clientId);
+          // Send an update to participants if we can start/resume training,
+          // which already carries the number of participants
+          if (!this.sendEnoughParticipantsMsgIfNeeded(clientId))
+            // otherwise just tell them that someone joined
+            this.sendParticipantsUpdateMsg(clientId);
           break;
         }
         /*
@@ -250,10 +253,14 @@ export class FederatedController<D extends DataType> extends TrainingController<
       if (
         this.connections.size >= minNbOfParticipants ||
         this.waitingForMoreParticipants
-      )
+      ) {
+        // tell the remaining participants that one of them left
+        this.sendParticipantsUpdateMsg();
         return;
+      }
 
-      // tell remaining participants to wait until more participants join
+      // tell remaining participants to wait until more participants join,
+      // which already carries the number of participants
       this.sendWaitForMoreParticipantsMsg();
     });
   }
