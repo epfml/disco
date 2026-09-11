@@ -156,7 +156,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
       await waitMessage(this.server, MType.NewDecentralizedNodeInfo);
 
     this.#modelSyncNeeded = joinedMidTraining;
-    this.nbOfParticipants = nbOfParticipants;
+    this.setNbOfParticipantsUponJoining(nbOfParticipants);
 
     // This should come right after receiving the message to make sure
     // we don't miss a subsequent message from the server
