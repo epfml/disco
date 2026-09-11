@@ -86,6 +86,7 @@ describe("tabular dataset input", () => {
     setupServerWith(
       basicTask("tabular", {
         inputColumns: ["a", "b"],
+        categoricalColumns: {},
         outputColumn: "c",
       }),
     );

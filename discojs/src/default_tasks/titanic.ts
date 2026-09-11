@@ -48,6 +48,7 @@ export const titanic: TaskProvider<"tabular", "federated"> = {
           'Fare',
           'Pclass'
         ],
+        categoricalColumns: {},
         outputColumn: 'Survived',
         scheme: 'federated',
         aggregationStrategy: 'mean',

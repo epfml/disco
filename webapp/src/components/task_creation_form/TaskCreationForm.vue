@@ -150,6 +150,84 @@
 
             <FormLabel
               v-if="dataType === 'tabular'"
+              label="Categorical input columns"
+            >
+              <FieldArray
+                v-slot="{
+                  fields: columns,
+                  push: pushColumn,
+                  remove: removeColumn,
+                }"
+                name="trainingInformation.categoricalColumns"
+              >
+                <div class="flex flex-col elems-gap">
+                  <div
+                    v-for="(columnEntry, i) in columns"
+                    :key="columnEntry.key"
+                    class="flex flex-col elems-gap"
+                  >
+                    <!-- Categorical column name -->
+                    <div class="flex flex-row elems-gap">
+                      <FormField
+                        :name="`trainingInformation.categoricalColumns[${i}].column`"
+                        placeholder="field_name"
+                        as="input"
+                      />
+
+                      <CustomButton @click="removeColumn(i)">
+                        <i class="fa-solid fa-xmark"></i>
+                      </CustomButton>
+                    </div>
+
+                    <!-- Categories belonging to this feature -->
+                    <FieldArray
+                      v-slot="{
+                        fields: categories,
+                        push: pushCategory,
+                        remove: removeCategory,
+                      }"
+                      :name="`trainingInformation.categoricalColumns[${i}].categories`"
+                    >
+                      <div class="flex flex-row flex-wrap elems-gap">
+                        <div
+                          v-for="(categoryEntry, j) in categories"
+                          :key="categoryEntry.key"
+                          class="flex flex-row elems-gap"
+                        >
+                          <FormField
+                            :name="`trainingInformation.categoricalColumns[${i}].categories[${j}]`"
+                            placeholder="category"
+                            as="input"
+                          />
+
+                          <CustomButton @click="removeCategory(j)">
+                            <i class="fa-solid fa-xmark"></i>
+                          </CustomButton>
+                        </div>
+
+                        <CustomButton @click="pushCategory('')">
+                          add category
+                        </CustomButton>
+                      </div>
+                    </FieldArray>
+                  </div>
+
+                  <CustomButton
+                    @click="
+                      pushColumn({
+                        column: '',
+                        categories: [''],
+                      })
+                    "
+                  >
+                    add categorical column
+                  </CustomButton>
+                </div>
+              </FieldArray>
+            </FormLabel>
+            
+            <FormLabel
+              v-if="dataType === 'tabular'"
               label="Output column name"
               type="required"
             >
@@ -659,6 +737,7 @@ watch([dataType, form], ([dataType, form]) => {
       break;
     case "tabular":
       form.setFieldValue("trainingInformation.inputColumns", [""]);
+      form.setFieldValue("trainingInformation.categoricalColumns", []);
       break;
   }
 });
@@ -855,9 +934,18 @@ const schema = z
       z.object({
         ...Task.dataTypeToSchema.tabular.shape,
         ...TFJSModelSchema,
-        trainingInformation: TrainingInformation.dataTypeToSchema.tabular.and(
-          trainingInformationNetworks,
-        ),
+        trainingInformation: TrainingInformation.dataTypeToSchema.tabular.extend({
+          categoricalColumns: z.array(
+            z.object({
+              column: z.string().trim().min(1),
+              categories: z.array(z.string().min(1)).min(1)
+            })
+          ).default([]).transform((columns) => Object.fromEntries(columns.map(({column, categories}) => [
+            column,
+            categories,
+          ])))
+        })
+        .and(trainingInformationNetworks,),
       }),
       z.object({
         ...Task.dataTypeToSchema.text.shape,

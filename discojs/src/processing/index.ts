@@ -38,15 +38,15 @@ export function preprocess<D extends DataType, N extends Network>(
     case "tabular": {
       // cast as typescript doesn't reduce generic type
       const d = dataset as Dataset<DataFormat.Raw["tabular"]>;
-      const { inputColumns, outputColumn } = task.trainingInformation;
+      const { inputColumns, outputColumn, categoricalColumns } = task.trainingInformation;
       const stats = metadata?.tabularStandardization;
 
       return d.map((row) => {
         const output = processing.extractColumn(row, outputColumn);
 
-        const inputs = stats
-          ? List(processing.standardizeRow(row, inputColumns, stats))
-          : extractToNumbers(inputColumns, row);
+        const inputs = List(
+          processing.encodeTabularRow(row, inputColumns, categoricalColumns, stats)
+        );
 
         return [
           inputs,
@@ -92,13 +92,13 @@ export function preprocessWithoutLabel<D extends DataType>(
     case "tabular": {
       // cast as typescript doesn't reduce generic type
       const d = dataset as Dataset<DataFormat.Raw["tabular"]>;
-      const { inputColumns } = task.trainingInformation;
+      const { inputColumns, categoricalColumns } = task.trainingInformation;
       const stats = metadata?.tabularStandardization;
 
       return d.map((row) => 
-        stats
-          ? List(processing.standardizeRow(row, inputColumns, stats))
-          : extractToNumbers(inputColumns, row)
+        List(
+          processing.encodeTabularRow(row, inputColumns, categoricalColumns, stats)
+        )
       );
     }
     case "text": {

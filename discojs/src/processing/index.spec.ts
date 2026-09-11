@@ -23,6 +23,7 @@ describe("preprocess", () => {
         batchSize: 1,
         validationSplit: 0,
         inputColumns: ["a", "b"],
+        categoricalColumns: {},
         outputColumn: "c",
       },
     };

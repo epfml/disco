@@ -84,22 +84,63 @@ export function standardizeValue(
 }
 
 /**
- * Apply standardization for a row
+ * Apply one hot encoding for a row
  * 
- * standardization function is called for each row in dataset
+ * One hot encoding function is called for each row in dataset
  */
-export function standardizeRow(
+export function oneHotEncode(
+  value: string,
+  categories: Array<string>,
+): Array<number> {
+  // Get the index of the value among the possible categories
+  const index = categories.indexOf(value);
+
+  // If the value does not exist, raise an error
+  if (index === -1) {
+    throw new Error(`"${value}" is not a valid category for this column`);
+  }
+
+  return categories.map((_, categoryIndex) => 
+    categoryIndex === index ? 1 : 0
+  );
+}
+
+/**
+ * Apply standardization for numerical columns and 
+ * apply one hot encoding for categorical columns and return the final row
+ */
+export function encodeTabularRow(
   row: Partial<Record<string, string>>,
-  columns: Array<string>,
-  stats: StandardizationStats,
-): Array<number>{
-  return columns.map((col) => {
-    const rawValue = extractColumn(row, col)
-    // Handle cases where the dataset contains empty strings.
-    // This only occurs in test cases, as empty strings are not allowed in the web app.
-    const value = convertToNumber(rawValue !== "" ? rawValue : "0");
-    const mean = stats.means[col];
-    const std = stats.stds[col];
-    return standardizeValue(value, mean, std);
-  })
+  inputColumns: Array<string>,
+  categoricalColumns: Record<string, Array<string>>,
+  stats?: StandardizationStats,
+): Array<number> {
+  const outputRow = inputColumns.flatMap((column) => {
+    const raw = extractColumn(row, column);
+    const categories = categoricalColumns[column];
+
+    // If the column exists in the list of categorical columns, apply one hot encoding
+    if (categories !== undefined){
+      return oneHotEncode(raw, categories);
+    }
+
+    // If the column is numerical column, apply standardization
+    const value = convertToNumber(raw !== "" ? raw : "0");
+
+    if (stats === undefined) {
+      return [value];
+    }
+
+    const mean = stats.means[column];
+    const std = stats.stds[column];
+
+    // Raise an error when stats is not defined
+    if (mean === undefined || std === undefined){
+      throw new Error(`Standardization statistics is not defined for column ${column}`);
+    }
+
+    return [standardizeValue(value, mean, std)];
+  });
+
+  return outputRow;
 }

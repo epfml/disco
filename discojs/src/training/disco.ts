@@ -218,7 +218,11 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
         const rows = await arrayFromAsync(dataset as Dataset<DataFormat.Raw["tabular"]>);
         const inputColumns = this.#task.trainingInformation.inputColumns;
 
-        const stats = processing.computeStandardizationStats(rows, inputColumns);
+        // Make sure to compute standardization stats for numerical features
+        const categoricalColumns = new Set(Object.keys(this.#task.trainingInformation.categoricalColumns));
+        const numericalColumns = inputColumns.filter(column => !categoricalColumns.has(column));
+
+        const stats = processing.computeStandardizationStats(rows, numericalColumns);
         this.trainer.model.metadata = {
           tabularStandardization: stats,
         };
@@ -247,7 +251,12 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     if (this.#task.dataType == "tabular"){
       const trainingRows = await arrayFromAsync(training as Dataset<DataFormat.Raw["tabular"]>);
       const inputColumns = this.#task.trainingInformation.inputColumns;
-      const stats = processing.computeStandardizationStats(trainingRows, inputColumns);
+
+      // Make sure to compute standardization stats for numerical features
+      const categoricalColumns = new Set(Object.keys(this.#task.trainingInformation.categoricalColumns));
+      const numericalColumns = inputColumns.filter(column => !categoricalColumns.has(column));
+
+      const stats = processing.computeStandardizationStats(trainingRows, numericalColumns);
 
       this.trainer.model.metadata = {
         tabularStandardization: stats,
