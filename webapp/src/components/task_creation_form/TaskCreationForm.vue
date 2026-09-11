@@ -134,7 +134,7 @@
                   >
                     <FormField
                       :name="`trainingInformation.inputColumns[${i}]`"
-                      placeholder="field_name"
+                      placeholder="feature name"
                       as="input"
                     />
 
@@ -167,14 +167,20 @@
                     class="flex flex-col elems-gap"
                   >
                     <!-- Categorical column name -->
-                    <div class="flex flex-row elems-gap">
-                      <FormField
-                        :name="`trainingInformation.categoricalColumns[${i}].column`"
-                        placeholder="field_name"
-                        as="input"
-                      />
+                    <div class="flex flex-row items-start elems-gap">
+                      <div class="flex w-48 min-w-0 flex-col">
+                        <FormField
+                          :name="`trainingInformation.categoricalColumns[${i}].column`"
+                          placeholder="field_name"
+                          as="input"
+                          class="w-full"
+                        />
+                      </div>
 
-                      <CustomButton @click="removeColumn(i)">
+                      <CustomButton 
+                        class="self-start shrink-0"
+                        @click="removeColumn(i)"
+                      >
                         <i class="fa-solid fa-xmark"></i>
                       </CustomButton>
                     </div>
@@ -188,7 +194,7 @@
                       }"
                       :name="`trainingInformation.categoricalColumns[${i}].categories`"
                     >
-                      <div class="flex flex-row flex-wrap elems-gap">
+                      <div class="flex flex-row flex-wrap elems-gap pl-6">
                         <div
                           v-for="(categoryEntry, j) in categories"
                           :key="categoryEntry.key"
@@ -198,6 +204,7 @@
                             :name="`trainingInformation.categoricalColumns[${i}].categories[${j}]`"
                             placeholder="category"
                             as="input"
+                            class="w-42"
                           />
 
                           <CustomButton @click="removeCategory(j)">
@@ -945,7 +952,7 @@ const schema = z
             categories,
           ])))
         })
-        .and(trainingInformationNetworks,),
+        .and(trainingInformationNetworks),
       }),
       z.object({
         ...Task.dataTypeToSchema.text.shape,
@@ -968,7 +975,21 @@ const schema = z
           .and(trainingInformationNetworks),
       }),
     ]),
-  );
+  ).superRefine((task, ctx) => {
+    if (task.dataType !== "tabular") return;
+
+    const {inputColumns, categoricalColumns} = task.trainingInformation;
+
+    Object.keys(categoricalColumns).forEach((column, idx) => {
+      if (inputColumns.includes(column)) return;
+
+      ctx.addIssue({
+        code: "custom",
+        path: ["trainingInformation", "categoricalColumns", idx, "column"],
+        message: "Categorical columns must also be included in input columns"
+      });
+    });
+  });
 
 async function onSubmit(form: unknown): Promise<void> {
   // TODO double check as @submit isn't generic vee-validate#4845
