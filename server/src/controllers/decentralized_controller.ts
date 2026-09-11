@@ -78,8 +78,11 @@ export class DecentralizedController<
               joinedMidTraining: joinedMidTraining,
             };
             ws.send(msgpack.encode(msg), { binary: true });
-            // Send an update to participants if we can start/resume training
-            this.sendEnoughParticipantsMsgIfNeeded(peerId);
+            // Send an update to participants if we can start/resume training,
+            // which already carries the number of participants
+            if (!this.sendEnoughParticipantsMsgIfNeeded(peerId))
+              // otherwise just tell them that someone joined
+              this.sendParticipantsUpdateMsg(peerId);
             break;
           }
           // Send by peers at the beginning of each training round to notify
@@ -188,14 +191,20 @@ export class DecentralizedController<
       }
 
       // Check if we are already waiting for new participants to join
-      if (this.waitingForMoreParticipants) return;
+      if (this.waitingForMoreParticipants) {
+        // tell the remaining participants that one of them left
+        this.sendParticipantsUpdateMsg();
+        return;
+      }
       // If no, check if we are still above the minimum number of participant required
       if (this.connections.size >= minNbOfParticipants) {
+        this.sendParticipantsUpdateMsg();
         this.sendPeersForRoundIfNeeded();
         return;
       }
       // If we are below the minimum number of participants
-      // tell remaining participants to wait until more participants join
+      // tell remaining participants to wait until more participants join,
+      // which already carries the number of participants
       this.sendWaitForMoreParticipantsMsg();
     });
   }
@@ -274,6 +283,7 @@ export class DecentralizedController<
           type: MessageTypes.PeersForRound,
           peers: this.#roundPeers.delete(id).keySeq().toArray(),
           aggregationRound: this.#aggregationRound,
+          nbOfParticipants: this.connections.size,
         };
       },
     );

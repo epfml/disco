@@ -49,6 +49,11 @@ export abstract class Client<N extends Network> extends EventEmitter<{
 
   // Current number of participants including this client in the training session
   #nbOfParticipants: number = 1;
+  /**
+   * Whether the server sent us a more recent number of participants than the
+   * one carried by the message answering our join request.
+   */
+  #nbOfParticipantsUpdatedSinceJoining = false;
 
   constructor(
     public readonly url: URL, // The network server's URL to connect to
@@ -119,6 +124,8 @@ export abstract class Client<N extends Network> extends EventEmitter<{
    * between a NewNodeInfo message and an EnoughParticipant message.
    */
   protected setupServerCallbacks(setMessageInversionFlag: () => void) {
+    this.#nbOfParticipantsUpdatedSinceJoining = false;
+
     // Setup an event callback if the server signals that we should
     // wait for more participants
     this.server.on(MType.WaitingForMoreParticipants, (event) => {
@@ -131,11 +138,20 @@ export abstract class Client<N extends Network> extends EventEmitter<{
       );
       // Display the waiting status right away
       this.emit("status", "not enough participants");
+      this.#nbOfParticipantsUpdatedSinceJoining = true;
       this.nbOfParticipants = event.nbOfParticipants; // emits the `participants` event
       // Upon receiving a WaitingForMoreParticipants message,
       // the client will await for this promise to resolve before sending its
       // local weight update
       this.promiseForMoreParticipants = this.createPromiseForMoreParticipants();
+    });
+
+    // The server tells us whenever a participant joined or left, so that we
+    // don't have to wait for the end of the round to display how many of us
+    // are training together
+    this.server.on(MType.ParticipantsUpdate, (event) => {
+      this.#nbOfParticipantsUpdatedSinceJoining = true;
+      this.nbOfParticipants = event.nbOfParticipants;
     });
 
     // As an example assume we need at least 2 participants to train,
@@ -147,9 +163,24 @@ export abstract class Client<N extends Network> extends EventEmitter<{
     this.server.once(MType.EnoughParticipants, (event) => {
       if (this._ownId === undefined) {
         setMessageInversionFlag();
+        this.#nbOfParticipantsUpdatedSinceJoining = true;
         this.nbOfParticipants = event.nbOfParticipants;
       }
     });
+  }
+
+  /**
+   * Set the number of participants carried by the message answering our join
+   * request.
+   *
+   * The server computes that count when sending its answer, which we can
+   * process much later as the message also carries the model weights. Any
+   * WaitingForMoreParticipants or EnoughParticipants message processed in the
+   * meantime carries a more recent count, which we keep instead.
+   */
+  protected setNbOfParticipantsUponJoining(nbOfParticipants: number): void {
+    if (this.#nbOfParticipantsUpdatedSinceJoining) return;
+    this.nbOfParticipants = nbOfParticipants;
   }
   /**
    * Method called when the server notifies the client that there aren't enough

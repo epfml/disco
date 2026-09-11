@@ -7,6 +7,7 @@ import type {
   ClientConnected,
   WaitingForMoreParticipants,
   EnoughParticipants,
+  ParticipantsUpdate,
 } from "#client/mtype";
 
 /// Phase 0 communication (between server and peers)
@@ -40,6 +41,9 @@ export interface PeersForRound {
   type: MType.PeersForRound;
   peers: NodeID[];
   aggregationRound: number;
+  // the peers of a round are only those able to take part in it, so they
+  // aren't the number of participants of the session
+  nbOfParticipants: number;
 }
 
 // peer sends to server to signal all the connections to other peers
@@ -107,6 +111,7 @@ export type MessageFromServer =
   | PeersForRound
   | WaitingForMoreParticipants
   | EnoughParticipants
+  | ParticipantsUpdate
   | StartWeightSharing
   | RetryPeerConnections
   | ConnectionFail
@@ -140,6 +145,7 @@ export function isMessageFromServer(o: unknown): o is MessageFromServer {
       return "peers" in o && Array.isArray(o.peers) && o.peers.every(isNodeID);
     case MType.WaitingForMoreParticipants:
     case MType.EnoughParticipants:
+    case MType.ParticipantsUpdate:
     case MType.StartWeightSharing:
     case MType.RetryPeerConnections:
     case MType.ConnectionFail:

@@ -54,13 +54,6 @@ export class DecentralizedClient extends Client<"decentralized"> {
     return this._server === undefined;
   }
 
-  private setAggregatorNodes(nodes: Set<NodeID>) {
-    this.aggregator.setNodes(nodes);
-    // Emits the `participants` event
-    this.nbOfParticipants =
-      this.aggregator.nodes.size === 0 ? 1 : this.aggregator.nodes.size;
-  }
-
   private cloneWeights(weights: WeightsContainer): WeightsContainer {
     return new WeightsContainer(weights.weights.map((t) => t.clone()));
   }
@@ -156,7 +149,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
       await waitMessage(this.server, MType.NewDecentralizedNodeInfo);
 
     this.#modelSyncNeeded = joinedMidTraining;
-    this.nbOfParticipants = nbOfParticipants;
+    this.setNbOfParticipantsUponJoining(nbOfParticipants);
 
     // This should come right after receiving the message to make sure
     // we don't miss a subsequent message from the server
@@ -186,7 +179,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
 
     if (this.#connections !== undefined) {
       const peers = this.#connections.keySeq().toSet();
-      this.setAggregatorNodes(this.aggregator.nodes.subtract(peers));
+      this.aggregator.setNodes(this.aggregator.nodes.subtract(peers));
     }
     // Disconnect from server
     await this.server?.disconnect();
@@ -311,9 +304,10 @@ export class DecentralizedClient extends Client<"decentralized"> {
         // clear the communication round peer pool
         await this.#pool?.shutdown();
         this.#pool = new PeerPool(this.ownId);
-        // clear the connections
+        // clear the connections. The peers are still part of the session,
+        // so the number of participants is left as the server reported it
         this.#connections = Map();
-        this.setAggregatorNodes(Set(this.ownId));
+        this.aggregator.setNodes(Set([this.ownId]));
         continue;
       } else if (msg.type === MType.ConnectionFail) {
         debug(`[${shortenId(this.ownId)}] disconnect from the server`);
@@ -369,7 +363,10 @@ export class DecentralizedClient extends Client<"decentralized"> {
         throw new Error("received peer list contains our own id");
       }
       // Store the list of peers for the current round including ourselves
-      this.setAggregatorNodes(peers.add(this.ownId));
+      this.aggregator.setNodes(peers.add(this.ownId));
+      // the peers of the round leave out those still syncing their model, so
+      // the server tells us how many participants the session has
+      this.nbOfParticipants = receivedMessage.nbOfParticipants;
       this.aggregator.setRound(receivedMessage.aggregationRound); // the server gives us the round number
 
       // Initiate peer to peer connections with each peer
@@ -394,7 +391,9 @@ export class DecentralizedClient extends Client<"decentralized"> {
         `Error for [${shortenId(this.ownId)}] while beginning round: %o`,
         e,
       );
-      this.setAggregatorNodes(Set(this.ownId));
+      // we can't aggregate with peers we failed to connect to, but they are
+      // still part of the session: leave the number of participants alone
+      this.aggregator.setNodes(Set([this.ownId]));
       this.#connections = Map();
     }
   }

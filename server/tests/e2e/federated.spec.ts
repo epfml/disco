@@ -330,6 +330,39 @@ describe("end-to-end federated", () => {
         await client.expectParticipants(clients.length);
     }
 
+    /**
+     * A client joining a session which already has enough participants. It
+     * releases nobody and completes nobody's round, it only makes the others
+     * one more: the server is the only one able to tell them.
+     */
+    async function joinsSession(
+      present: readonly Client[],
+      name: string,
+    ): Promise<Client> {
+      const client = join(name).startRound();
+
+      const participants = present.length + 1;
+      await client.expectParticipants(participants);
+      await client.expectStatuses("local training");
+      for (const other of present) await other.expectParticipants(participants);
+
+      return client;
+    }
+
+    /**
+     * A client leaving a session which keeps enough participants: the others
+     * carry on, one fewer.
+     */
+    async function leavesSession(
+      leaving: Client,
+      remaining: readonly Client[],
+    ): Promise<void> {
+      await leaving.leave();
+
+      for (const other of remaining)
+        await other.expectParticipants(remaining.length);
+    }
+
     /** A client leaving, the remaining one is left without enough participants */
     async function leavesTask(
       leaving: Client,
@@ -380,6 +413,25 @@ describe("end-to-end federated", () => {
       await leavesTask(user1, user2);
 
       await startsRoundAlone(user2);
+    });
+
+    it("clients are notified when a participant joins", async () => {
+      const user1 = await joinsAlone("user 1");
+      const user2 = await joinsWaitingClient(user1, "user 2");
+
+      // the minimum is already met so user 3 changes nothing but the count,
+      // which the others would otherwise only learn when a round of theirs
+      // completes, if one ever does
+      await joinsSession([user1, user2], "user 3");
+    });
+
+    it("clients are notified when a participant leaves", async () => {
+      const user1 = await joinsAlone("user 1");
+      const user2 = await joinsWaitingClient(user1, "user 2");
+      const user3 = await joinsSession([user1, user2], "user 3");
+
+      // the remaining two still have enough participants to carry on
+      await leavesSession(user3, [user1, user2]);
     });
 
     it("a client joining mid-training completes the pending round", async () => {

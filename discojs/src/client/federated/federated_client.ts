@@ -85,7 +85,7 @@ export class FederatedClient extends Client<"federated"> {
     this._ownId = id;
     debug(`[${shortenId(id)}] joined session at round ${round} `);
     this.aggregator.setRound(round);
-    this.nbOfParticipants = nbOfParticipants;
+    this.setNbOfParticipantsUponJoining(nbOfParticipants);
     // Upon connecting, the server answers with a boolean
     // which indicates whether there are enough participants or not
     debug(

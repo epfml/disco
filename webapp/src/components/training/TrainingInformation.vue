@@ -41,7 +41,9 @@
         <ModelUpdateIcon />
       </IconCardSmall>
 
+      <!-- Hide the participants when training alone -->
       <IconCardSmall
+        v-if="!isTrainingAlone"
         v-tippy="{
           content:
             'Number of collaborators concurrently training a model and sharing model updates.',

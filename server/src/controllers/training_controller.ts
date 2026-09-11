@@ -54,11 +54,39 @@ export abstract class TrainingController<
   }
 
   /**
+   * Notifies participants of how many of them there are.
+   *
+   * @param exclude a participant to leave out, typically one which just joined
+   * and already learned the count from the answer to its join request
+   */
+  protected sendParticipantsUpdateMsg(exclude?: NodeID): void {
+    const msg: mtype.ParticipantsUpdate = {
+      type: mtype.MType.ParticipantsUpdate,
+      nbOfParticipants: this.connections.size,
+    };
+    const encoded = msgpack.encode(msg);
+
+    const recipients =
+      exclude !== undefined
+        ? this.connections.delete(exclude)
+        : this.connections;
+    recipients.forEach((participantWs, participantId) => {
+      debug(
+        "Sending participants update to client [%s]",
+        participantId.slice(0, 4),
+      );
+      participantWs.send(encoded);
+    });
+  }
+
+  /**
    * If enough participants joined, notifies them that the training can start/resume
    *
    * @param currentId the id of the participant that just joined
+   * @returns whether the participants were notified, which also tells them the
+   * number of participants
    */
-  protected sendEnoughParticipantsMsgIfNeeded(currentId: NodeID) {
+  protected sendEnoughParticipantsMsgIfNeeded(currentId: NodeID): boolean {
     // If we are currently waiting for more participants to join and we now have enough,
     // broadcast to previously waiting participants that the training can start
     if (
@@ -81,7 +109,10 @@ export abstract class TrainingController<
           participantWs.send(msgpack.encode(msg));
         });
       this.waitingForMoreParticipants = false; // update the attribute
+      return true;
     }
+
+    return false;
   }
 
   /**

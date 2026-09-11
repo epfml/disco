@@ -98,7 +98,7 @@
         :batches-of-epoch="batchesOfEpochLogs"
         :has-validation-data="hasValidationData"
         :is-training="isTraining"
-        :is-training-alone="isTrainingAlone"
+        :is-training-alone="isTrainingLocally"
         :nb-participants="nbParticipants"
       />
     </div>
@@ -167,6 +167,12 @@ const hasValidationData = computed(
 
 const isTraining = computed(() => trainingGenerator.value !== undefined);
 const isTrainingAlone = ref(false);
+// Whether the training involves no collaborator at all: either the user chose
+// to train alone or the task itself is a local one
+const isTrainingLocally = computed(
+  () =>
+    isTrainingAlone.value || props.task.trainingInformation.scheme === "local",
+);
 // number of participants in the training session
 const nbParticipants = ref(1);
 
@@ -180,6 +186,9 @@ async function startTraining(): Promise<void> {
   roundsLogs.value = List<RoundLogs>();
   epochsOfRoundLogs.value = List<EpochLogs>();
   batchesOfEpochLogs.value = List<BatchLogs>();
+  // the client tells us how many participants there are once connected,
+  // until then we only know about ourselves
+  nbParticipants.value = 1;
 
   // Vue proxy doesn't work with Dataset's private fields
   const dataset = toRaw(props.dataset);
@@ -192,7 +201,7 @@ async function startTraining(): Promise<void> {
 
   console.log("server URL:", CONFIG.serverUrl.toString());
   const disco = new Disco(props.task, CONFIG.serverUrl, {
-    scheme: isTrainingAlone.value
+    scheme: isTrainingLocally.value
       ? "local"
       : props.task.trainingInformation.scheme,
   });
