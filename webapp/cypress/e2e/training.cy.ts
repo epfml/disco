@@ -1,13 +1,7 @@
 import { defaultTasks } from "@epfml/discojs";
 
 import { setupServerWith } from "../support/e2e";
-
-function goToTaskOverview() {
-  cy.visit("/");
-  cy.contains("a", "Start training").click();
-  cy.get(".driver-popover-close-btn").click();
-  cy.contains("button", "participate").click();
-}
+import { goToTaskOverview } from "../support/training";
 
 describe("training page", () => {
   it("is navigable", () => {

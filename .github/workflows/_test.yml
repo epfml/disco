@@ -66,6 +66,36 @@ jobs:
           working-directory: webapp
           install: false
           start: pnpm exec vite --mode test --port 1351
+          config: excludeSpecPattern=cypress/e2e/local_training/**/*.cy.ts
+
+  test-local-training:
+    name: local training (${{ matrix.task }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        task: [titanic, lus_covid, wikitext]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/pull-dataset-artifacts
+      - uses: actions/download-artifact@v8
+        with: { name: all-builds }
+      - uses: cypress-io/github-action@v7
+        with:
+          working-directory: webapp
+          install: false
+          start: pnpm exec vite --mode test --port 1351
+          wait-on: http://localhost:1351
+          browser: electron
+          spec: cypress/e2e/local_training/${{ matrix.task }}.cy.ts
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: local-training-${{ matrix.task }}-screenshots
+          path: webapp/cypress/screenshots
+          if-no-files-found: ignore
 
   test-cli:
     runs-on: ubuntu-latest

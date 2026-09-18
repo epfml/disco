@@ -1,6 +1,7 @@
 import * as fs from "node:fs/promises";
+import * as tf from "@tensorflow/tfjs";
 import { CONFIG } from "@/config";
-import { defaultTasks, modelEncode } from "@epfml/discojs";
+import { defaultTasks, modelEncode, type Model } from "@epfml/discojs";
 import { loadCSV } from "@epfml/discojs-web";
 import { createTestingPinia } from "@pinia/testing";
 import { mount } from "@vue/test-utils";
@@ -10,6 +11,9 @@ import TrainerDashboard from "../TrainerDashboard.vue";
 import TrainingInformation from "../TrainingInformation.vue";
 
 async function setupForTask() {
+  // Match browser execution: native TensorFlow optimizer arrays belong to
+  // another realm and cannot be serialized by TFJS in jsdom.
+  await tf.setBackend("cpu");
   const provider = defaultTasks.titanic;
 
   vi.stubGlobal("fetch", async (url: string | URL) => {
@@ -55,6 +59,17 @@ it("increases accuracy when training alone", { timeout: 20_000 }, async () => {
   expect(
     infos.props("rounds").last()?.epochs.last()?.training.accuracy,
   ).toBeGreaterThan(0);
+
+  await vi.waitFor(() => expect(infos.props("isTraining")).toBe(false));
+  const model = wrapper.emitted<[Model<"tabular">]>("model")?.at(-1)?.[0];
+  if (model === undefined) throw new Error("No trained model emitted");
+  try {
+    // The completed session is closed, but its output must still be savable.
+    expect((await modelEncode(model)).length).toBeGreaterThan(0);
+  } finally {
+    model.dispose();
+    wrapper.unmount();
+  }
 });
 
 it("hides the participants when training alone", async () => {
