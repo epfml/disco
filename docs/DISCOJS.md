@@ -33,7 +33,8 @@ flowchart LR
 
 ```
 
-The user-facing object of Disco.js is the `Disco` class, which is composed of different classes enabling distributed learning. These classes are the `Trainer` and the `Client`, the former handles training and the latter deals with communication. Since different training and communication schemes are available, these classes are abstract and various inheriting classes exist for the different schemes (e.g., `FederatedClient` for federated communication with a central server).
+The user-facing object of Disco.js is the `Disco` class, which is composed of different classes enabling distributed learning. These classes are the `Trainer` and the `Client`, the former handles training and the latter deals with communication. Since different training and communication schemes are available, the `Client` is abstract and various inheriting classes exist (e.g., `FederatedClient` for federated communication with a central server).
+
 Once you understand how these classes work you will have a good grasp of DISCO. The remaining classes mostly deal with building these objects and making them work together.
 
 > [!Note]
@@ -41,39 +42,38 @@ Once you understand how these classes work you will have a good grasp of DISCO. 
 
 ## Trainer
 
-The `Trainer` class is instantiated by client nodes and contains all the code relevant for local training. Its main method is `fit`, which trains a model on a given dataset and is a wrapper around [TensorFlow.js' method](https://js.tensorflow.org/api/latest/#tf.LayersModel.fitDataset). The `Trainer` class is abstract, and requires two callbacks (`onRoundBegin` & `onRoundEnd`) related to distributed learning to be implemented.
+The `Trainer` class is instantiated by client nodes and contains all the code relevant for local training. Its main method is `train`, which trains a model (`model.train`) on a given dataset.
 
 A round is measured in epochs, so if we say, "share weights every round" and the `roundDuration` is 5, it means that weights are shared every 5 epochs.
 
-`onRoundBegin` is the perfect place to perform weight sharing, pushing local weights and pulling the new aggregated weights.
+The trainer does not handle any communication with the server or other clients, it only trains the model and calls the client's `onRoundBeginCommunication` and `onRoundEndCommunication` methods respectively at the beginning and the end of each round.
 
-The `DistributedTrainer` and `LocalTrainer` classes inheriting from `Trainer` implement the actual callbacks and what happens when a round ends. The `LocalTrainer` is class dedicated to training a model on a single node, i.e., centralized training. As such, the `LocalTrainer` simply updates its local model weights at the end of each round. In comparison, `DistributedTrainer` sends an update containing its local weights, and then pulls the new weights resulting from the aggregation of other updates.
+The `stopTraining` method ends the training process. It does not interrupt the current round in progress but no further round begins.
+
+If enabled, a differential privacy mechanism is applied to the model's weights before sending them to the server or peers. More details can be found in the [privacy guide](./PRIVACY.md).
 
 ## Client
 
-The `Client` class mostly handles sending and receiving weights from the current client to the server (or other peers in decentralized learning). `Client` is an abstract class that requires the methods such as `onRoundEndCommunication` to be implemented. Currently, the two classes implementing `Client` are the `FederatedClient` and the `DecentralizedClient`. For simplicity, we explain here how the
-`FederatedClient` works.
+The `Client` class mostly handles sending and receiving weights from the current client to the server (or other peers in decentralized learning). `Client` is an abstract class that requires the methods such as `onRoundBeginCommunication` and `onRoundEndCommunication` to be implemented. Currently, the three classes implementing `Client` are the `FederatedClient`, the `DecentralizedClient` and the `LocalClient`. For simplicity, we explain here how the `FederatedClient` works.
 
-In the federated case, pushing the new weights to the "aggregator" will let the `Trainer` use these weights in the next round without aggregating anything.
+In the federated case, pushing the new weights to the "aggregator" will let the `Trainer` use these weights in the next round without aggregating anything. The main aggregation is done by the server.
 
 ### Aggregators
 
 The aggregator object is used by every nodes, clients and server. In the federated case, the server leverages an aggregator instance to aggregate the local weight updates it received into new model weights. In decentralized learning, the `Client` stores its peer's local weight updates into the aggregator which in turn aggregates the weights when it received enough updates. While the `FederatedClient` relies on an aggregator, it only receives weight updates from the server and the aggregator simply transmits the new weights to the `Trainer`. In fact, the federated client's aggregator works the same as in the decentralized scheme, but aggregates the updates whenever it receives an update. After aggregation, the `Trainer` pulls the aggregator's latest weights into the model.
 
-There are currently two aggregation strategies. The federated aggregation strategy is to simply average the weight updates, implemented by the `MeanAggregator`. `SecureAggregator` is used in decentralized learning, and implements secure-multi party computation.
+There are currently three aggregation strategies. The federated aggregation strategy is to simply average the weight updates, implemented by the `MeanAggregator`. `SecureAggregator` is used in decentralized learning, and implements secure-multi party computation. The last one is the `ByzantineRobustAggregator`, which implements a robust aggregation strategy by adding centered clipping and per-client momentum.
+All three can be used in the decentralized case. As for the federated case, only the `MeanAggregator` and `ByzantineRobustAggregator` are available.
 
 ## Disco
 
-The `Disco` object is composed of the `Trainer` and `Client` classes along with some other helper classes. Once it's built you can
-start the magic by calling `disco.fit(data)`!
+The `Disco` object is composed of the `Trainer` and `Client` classes along with some other helper classes. Once it's built you can start the magic by calling `disco.trainFully(data)`!
 
-In the federated case, the `Disco` objet will instantiate a `DistributedTrainer` and a `FederatedClient`. Users start training with `disco.fit()`,
-for example via a browser UI, the CLI or a Node.js script. In turns, `Disco` calls its `Trainer`'s `fitModel()` method. The `Trainer` and the
-`Client` interact between each rounds, to push local weights and pull aggregated weights from the server.
+In the federated case, the `Disco` object will instantiate a `Trainer`, a `FederatedClient` and an `Aggregator` depending on the strategy. Users start training with `disco.trainFully(data)`, which can be called for example via a browser UI, the CLI or a Node.js script. In turns, `Disco` calls its `Trainer`'s `train` method. The `Trainer` and the `Client` interact between each rounds, to push local weights and pull aggregated weights from the server.
 
 ```mermaid
 flowchart LR
-    User-->Disco-->|fit|Trainer-->|fitModel|state
+    User-->Disco-->|train|Trainer-->|train|state
     subgraph state [Training loop]
     direction BT
     id1{{Training}}-->|onRoundEnd|id2{{Push and fetch weights}}
@@ -121,7 +121,7 @@ flowchart LR
 
 ### Memory
 
-The `DistributedTrainer` has a `memory` attribute that is used to abstract how trained models are stored by the client. As mentioned in various guides, `discojs` is platform-agnostic and only what endpoints the memory storage should offer. The actual implementation is in `discojs-web` used by the browser UI and implements the memory via IndexedDB, a browser storage. `discojs` also implements a dummy memory, used by the CLI for example, to benchmark performance metrics without saving any models.
+As mentioned in various guides, `discojs` is platform-agnostic and only what endpoints the memory storage should offer. The actual implementation is in `discojs-web` used by the browser UI and implements the memory via IndexedDB, a browser storage. `discojs` also implements a dummy memory, used by the CLI for example, to benchmark performance metrics without saving any models.
 
 ### Developing
 
