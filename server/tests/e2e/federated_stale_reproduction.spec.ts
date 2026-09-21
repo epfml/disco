@@ -17,7 +17,7 @@ import { FederatedController } from "../../src/controllers/federated_controller.
 
 const MType = mtype.MType;
 
-// Characterization tests: these assert the observed bugs, not desired behavior.
+// Regression tests cover the staleness behavior at the controller boundary.
 // Only the socket transport is simulated; controller, aggregation, tensors, and
 // message/weight serialization are the production implementations.
 describe("federated stale contribution reproductions", () => {
@@ -120,7 +120,7 @@ describe("federated stale contribution reproductions", () => {
     clientRound.dispose();
   });
 
-  it("counts a departed contributor and advances before D submits, then rejects D", async () => {
+  it("waits for remaining clients after a contributor leaves", async () => {
     const controller = await makeController(2);
     const a = connect(controller);
     const b = connect(controller);
@@ -133,20 +133,22 @@ describe("federated stale contribution reproductions", () => {
     await b.submit(0, 6);
     expect(b.updates).toHaveLength(0);
     await c.submit(0, 9);
-    await vi.waitFor(() => expect(b.updates).toHaveLength(1));
-
-    // (A=3 + B=6 + C=9) / 3 = 6, even though A left and D never sent.
-    expect(scalar(b.updates[0].payload)).toBe(6);
-    expect(b.updates[0].round).toBe(1);
-    expect(c.updates).toHaveLength(1);
+    expect(b.updates).toHaveLength(0);
+    expect(c.updates).toHaveLength(0);
     expect(d.updates).toHaveLength(0);
     expect(a.updates).toHaveLength(0);
 
     await d.submit(0, 100);
-    expect(d.updates).toHaveLength(1);
-    expect(d.updates[0].round).toBe(0);
-    expect(scalar(d.updates[0].payload)).toBe(6);
-    expect(b.updates).toHaveLength(1);
+    await vi.waitFor(() => expect(b.updates).toHaveLength(1));
+
+    // Only the remaining connected contributors are aggregated:
+    // (B=6 + C=9 + D=100) / 3 = 115 / 3.
+    expect(scalar(b.updates[0].payload)).toBeCloseTo(115 / 3);
+    expect(b.updates[0].round).toBe(1);
+    expect(scalar(c.updates[0].payload)).toBeCloseTo(115 / 3);
+    expect(c.updates[0].round).toBe(1);
+    expect(scalar(d.updates[0].payload)).toBeCloseTo(115 / 3);
+    expect(d.updates[0].round).toBe(1);
   });
 
   it("returns initial weights with round -1 for a rejected first-round submission", async () => {

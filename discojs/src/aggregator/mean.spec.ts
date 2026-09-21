@@ -89,6 +89,25 @@ describe("mean aggregator", () => {
     expect(tf.memory().numTensors).to.equal(baseline);
   });
 
+  it("discards and disposes a departed node's pending contribution", () => {
+    const baseline = tf.memory().numTensors;
+    const aggregator = new MeanAggregator();
+    const [departedId, remainingId] = ["departed client", "remaining client"];
+    aggregator.setNodes(Set.of(departedId, remainingId));
+
+    const departedContribution = WeightsContainer.of([1]);
+    aggregator.add(departedId, departedContribution, 0);
+    aggregator.removeNode(departedId);
+
+    // The remaining client has not contributed yet, so the departed update
+    // cannot make the smaller membership group appear complete.
+    expect(aggregator.isFull()).to.be.false;
+
+    departedContribution.dispose();
+    aggregator.dispose();
+    expect(tf.memory().numTensors).to.equal(baseline);
+  });
+
   it("waits for 100% of the contributions by default", async () => {
     const aggregator = new MeanAggregator();
     const [id1, id2] = ["client 1", "client 2"];

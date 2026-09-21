@@ -227,11 +227,18 @@ export abstract class Aggregator extends EventEmitter<{
   }
 
   /**
-   * Remove a node's id from the set of active nodes.
+   * Remove a node's id from the set of active nodes and discard any pending
+   * contributions it made. A departed node must not count towards the
+   * aggregation threshold for the remaining members.
    * @param nodeId The node to be removed
    */
   removeNode(nodeId: NodeID): void {
     this._nodes = this._nodes.delete(nodeId);
+    this.contributions = this.contributions.map((roundContributions) => {
+      const contribution = roundContributions.get(nodeId);
+      contribution?.dispose();
+      return roundContributions.delete(nodeId);
+    });
   }
 
   /**
