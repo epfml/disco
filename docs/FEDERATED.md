@@ -18,6 +18,8 @@ The server then sends the aggregated result to each participants using a `Receiv
 
 After every successful aggregation, the server also stores the resulting weights as the latest global model weights.
 
+If a client sends a stale or invalid contribution, the server drops that contribution and returns the latest global model with the round number the client must use for its next contribution. Before the first aggregation, the latest global model is the initial model and its round is `0`. This lets an out-of-sync client resynchronize and retry without waiting for another aggregation.
+
 ## Clients Joining During Training
 
 When a new client joins an ongoing training round, the server sends it the latest available global model weights. The new client can then begin local training from the latest globally aggregated model.
@@ -74,8 +76,8 @@ sequenceDiagram
 
     opt stale or invalid contribution
         Note over S: contribution dropped, no aggregation
-        S-->>C: ReceiveServerPayload with the previous<br/>round's global weights
-        Note over S: nothing is sent if there is no global<br/>model yet, i.e. on the first round
+        S-->>C: ReceiveServerPayload with the latest global<br/>weights and its next submission round
+        Note over S: before the first aggregation, returns the<br/>initial weights with round 0
     end
 
     opt participants drop below the minimum, at any point

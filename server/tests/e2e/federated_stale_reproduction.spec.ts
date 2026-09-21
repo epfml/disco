@@ -150,4 +150,13 @@ describe("federated stale contribution handling", () => {
     expect(scalar(d.updates[0].payload)).toBe(6);
     expect(b.updates).toHaveLength(1);
   });
+
+  it("returns initial weights with round 0 for a rejected first-round submission", async () => {
+    const controller = await makeController(1);
+    const client = connect(controller);
+    await client.submit(-1, 99);
+    expect(client.updates).toHaveLength(1);
+    expect(client.updates[0].round).toBe(0);
+    expect(scalar(client.updates[0].payload)).toBe(10);
+  });
 });
