@@ -33,18 +33,18 @@ export class FederatedController<D extends DataType> extends TrainingController<
    */
   #aggregator = this.#makeAggregator();
   /**
-   * The most up to date global weights. The model weights are already serialized and
-   * can be sent to participants, before starting training, or when joining mid-training
-   * or staled participants
+   * The most up-to-date global model and the round clients must use when submitting
+   * their next contribution. The model is serialized so it can be sent to joining
+   * or stale participants.
    */
-  #latestGlobalWeights: Encoded;
+  #latestGlobalModel: { payload: Encoded; round: number };
 
   constructor(
     task: Task<D, "federated">,
     private readonly initialWeights: Encoded,
   ) {
     super(task);
-    this.#latestGlobalWeights = this.initialWeights;
+    this.#latestGlobalModel = { payload: this.initialWeights, round: 0 };
   }
 
   /**
@@ -55,6 +55,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
     const aggregator = new MeanAggregator(undefined, 1, "relative");
 
     aggregator.on("aggregation", async (weightUpdate) => {
+      const aggregationRound = aggregator.round;
       try {
         const payload = await weightsEncode(weightUpdate);
         // Check if a this.reset() has been called in the meantime
@@ -65,14 +66,14 @@ export class FederatedController<D extends DataType> extends TrainingController<
 
         debug(
           "round %o aggregate payload byteLength=%d",
-          aggregator.round,
+          aggregationRound,
           payload.byteLength,
         );
-        this.#latestGlobalWeights = payload;
+        this.#latestGlobalModel = { payload, round: aggregationRound };
 
         const msg: federatedMessages.ReceiveServerPayload = {
           type: MessageTypes.ReceiveServerPayload,
-          round: aggregator.round,
+          round: aggregationRound,
           payload,
           nbOfParticipants: this.connections.size,
         };
@@ -82,19 +83,19 @@ export class FederatedController<D extends DataType> extends TrainingController<
           try {
             debug(
               "Sending global weights for round %o to client [%s]",
-              aggregator.round,
+              aggregationRound,
               recipientId.slice(0, 4),
             );
             recipientWs.send(encodedMsg);
             debug(
               "Aggregated payload sent to client [%s] for round %o",
               recipientId.slice(0, 4),
-              aggregator.round,
+              aggregationRound,
             );
           } catch (err) {
             debug(
               "Failed to send global weights for round %o to client [%s]: %o",
-              aggregator.round,
+              aggregationRound,
               recipientId.slice(0, 4),
               err,
             );
@@ -103,7 +104,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
       } catch (err) {
         debug(
           "Failed to serialize or encode weights for round %o: %o",
-          aggregator.round,
+          aggregationRound,
           err,
         );
       } finally {
@@ -166,7 +167,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
             payload:
               this.#aggregator.round === 0
                 ? undefined
-                : this.#latestGlobalWeights,
+                : this.#latestGlobalModel.payload,
             round: this.#aggregator.round,
             nbOfParticipants: this.connections.size,
           };
@@ -215,16 +216,14 @@ export class FederatedController<D extends DataType> extends TrainingController<
             // the server answers with the current round and last global model update
             debug(
               `Dropped contribution from client [%s] for round ${round} ` +
-                `Sending last global model from round ${this.#aggregator.round - 1}`,
+                `Sending last global model for round ${this.#latestGlobalModel.round}`,
               shortId,
             );
-            // no latest model at the first round
-            if (this.#latestGlobalWeights === undefined) return;
 
             const msg: federatedMessages.ReceiveServerPayload = {
               type: MessageTypes.ReceiveServerPayload,
-              round: this.#aggregator.round - 1, // send the model from the previous round
-              payload: this.#latestGlobalWeights,
+              round: this.#latestGlobalModel.round,
+              payload: this.#latestGlobalModel.payload,
               nbOfParticipants: this.connections.size,
             };
             ws.send(msgpack.encode(msg));
@@ -272,6 +271,6 @@ export class FederatedController<D extends DataType> extends TrainingController<
     this.#aggregator.dispose();
     this.#aggregator = this.#makeAggregator();
 
-    this.#latestGlobalWeights = this.initialWeights;
+    this.#latestGlobalModel = { payload: this.initialWeights, round: 0 };
   }
 }

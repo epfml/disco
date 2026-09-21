@@ -17,10 +17,9 @@ import { FederatedController } from "../../src/controllers/federated_controller.
 
 const MType = mtype.MType;
 
-// Characterization tests: these assert the observed bugs, not desired behavior.
 // Only the socket transport is simulated; controller, aggregation, tensors, and
 // message/weight serialization are the production implementations.
-describe("federated stale contribution reproductions", () => {
+describe("federated stale contribution handling", () => {
   const controllers: FederatedController<"image">[] = [];
 
   beforeAll(async () => {
@@ -97,7 +96,7 @@ describe("federated stale contribution reproductions", () => {
     };
   }
 
-  it("labels the same cached weights one round lower on stale replies, repeatedly", async () => {
+  it("resynchronizes a stale client so its next contribution is accepted", async () => {
     const controller = await makeController(1);
     const client = connect(controller);
     await client.submit(0, 20);
@@ -108,19 +107,22 @@ describe("federated stale contribution reproductions", () => {
     // Simulate an out-of-sync client. This is the exact setRound operation
     // FederatedClient performs upon receiving each server response.
     const clientRound = new MeanAggregator();
-    for (let attempt = 0; attempt < 3; attempt++) {
-      await client.submit(clientRound.round, 99);
-      expect(client.updates).toHaveLength(attempt + 2);
-      const response = client.updates.at(-1)!;
-      clientRound.setRound(response.round);
-      expect(response.round).toBe(0);
-      expect(clientRound.round).toBe(0);
-      expect(scalar(response.payload)).toBe(20);
-    }
+    await client.submit(clientRound.round, 99);
+    expect(client.updates).toHaveLength(2);
+    const recovery = client.updates.at(-1)!;
+    clientRound.setRound(recovery.round);
+    expect(recovery.round).toBe(1);
+    expect(clientRound.round).toBe(1);
+    expect(scalar(recovery.payload)).toBe(20);
+
+    await client.submit(clientRound.round, 99);
+    await vi.waitFor(() => expect(client.updates).toHaveLength(3));
+    expect(client.updates.at(-1)!.round).toBe(2);
+    expect(scalar(client.updates.at(-1)!.payload)).toBe(99);
     clientRound.dispose();
   });
 
-  it("counts a departed contributor and advances before D submits, then rejects D", async () => {
+  it("counts a departed contributor and advances before D submits", async () => {
     const controller = await makeController(2);
     const a = connect(controller);
     const b = connect(controller);
@@ -144,17 +146,8 @@ describe("federated stale contribution reproductions", () => {
 
     await d.submit(0, 100);
     expect(d.updates).toHaveLength(1);
-    expect(d.updates[0].round).toBe(0);
+    expect(d.updates[0].round).toBe(1);
     expect(scalar(d.updates[0].payload)).toBe(6);
     expect(b.updates).toHaveLength(1);
-  });
-
-  it("returns initial weights with round -1 for a rejected first-round submission", async () => {
-    const controller = await makeController(1);
-    const client = connect(controller);
-    await client.submit(-1, 99);
-    expect(client.updates).toHaveLength(1);
-    expect(client.updates[0].round).toBe(-1);
-    expect(scalar(client.updates[0].payload)).toBe(10);
   });
 });
