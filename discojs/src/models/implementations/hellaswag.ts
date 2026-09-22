@@ -4,8 +4,10 @@ import type { Tokenizer } from "#models/tokenizer";
 import type { ONNXModel } from "#models/onnx";
 import { GPT } from "#models/implementations/gpt/index";
 
+// https://github.com/rowanz/hellaswag/tree/master/data is currently taken down due to copyright
+// In the meantime, I recreated the jsonl file from https://huggingface.co/datasets/Rowan/hellaswag
 export const HELLASWAG_URL =
-  "https://raw.githubusercontent.com/rowanz/hellaswag/master/data/hellaswag_val.jsonl";
+  "https://storage.googleapis.com/deai-313515.appspot.com/hellaswag_val.jsonl";
 
 /**
  * Represents a single example from the HellaSwag dataset.
