@@ -52,7 +52,12 @@ export class FederatedController<D extends DataType> extends TrainingController<
    * the global weights produced at the end of each aggregation round.
    */
   #makeAggregator(): MeanAggregator {
-    const aggregator = new MeanAggregator(undefined, 1, "relative");
+    const aggregator = new MeanAggregator(0, 1, "relative");
+
+    // Set the minimum number of participants required for aggregation
+    // In case we recreate the aggregator after a reset
+    aggregator.minNbOfParticipants =
+      this.task.trainingInformation.minNbOfParticipants;
 
     aggregator.on("aggregation", async (weightUpdate) => {
       try {
@@ -127,7 +132,6 @@ export class FederatedController<D extends DataType> extends TrainingController<
   handle(ws: WebSocket): void {
     const minNbOfParticipants =
       this.task.trainingInformation.minNbOfParticipants;
-    this.#aggregator.minNbOfParticipants = minNbOfParticipants;
     // Try generating a new Client id until there no collision with existing ones
     let clientId = randomUUID();
     while (!this.#aggregator.registerNode(clientId)) {
@@ -165,7 +169,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
               this.connections.size < minNbOfParticipants,
             payload:
               this.#aggregator.round === 0
-                ? undefined
+                ? undefined // Optimization: no needs to send the initial weights, the client already has them
                 : this.#latestGlobalWeights,
             round: this.#aggregator.round,
             nbOfParticipants: this.connections.size,
@@ -183,7 +187,30 @@ export class FederatedController<D extends DataType> extends TrainingController<
          */
         case MessageTypes.SendPayload: {
           const { payload, round } = msg;
-          if (this.#aggregator.isValidContribution(clientId, round)) {
+          if (this.#aggregator.round < round) {
+            debug(
+              "Received contribution from client [%s] for future round %d (current round=%d)",
+              shortId,
+              round,
+              this.#aggregator.round,
+            );
+            // This case should generally not happen under normal operation,
+            // as clients should only contribute to the current round
+            // and have no way to be ahead of the server's current round
+            // We may want to notify the client that it is contributing to a future
+            // round for it to recalibrate its local state
+          } else if (!this.connections.has(clientId)) {
+            debug(
+              "Received contribution from an unconnected client [%s]",
+              shortId,
+            );
+            // Ignore contributions from unconnected clients for now
+            // TODO: We may want to notify the client that it is not connected
+            // Or do the same procedure as if we received a ClientConnected message
+            // A registered websocket but not connected stopps any progress
+            // Or register the client from handle() to the ClientConnected case
+            // as the relative threashold of 1 cannot be reached
+          } else if (this.#aggregator.isValidContribution(clientId, round)) {
             debug(
               "Received valid contribution from client [%s] for round %d (participants=%d)",
               shortId,
@@ -215,15 +242,13 @@ export class FederatedController<D extends DataType> extends TrainingController<
             // the server answers with the current round and last global model update
             debug(
               `Dropped contribution from client [%s] for round ${round} ` +
-                `Sending last global model from round ${this.#aggregator.round - 1}`,
+                `Sending last global model from current round ${this.#aggregator.round}`,
               shortId,
             );
-            // no latest model at the first round
-            if (this.#latestGlobalWeights === undefined) return;
 
             const msg: federatedMessages.ReceiveServerPayload = {
               type: MessageTypes.ReceiveServerPayload,
-              round: this.#aggregator.round - 1, // send the model from the previous round
+              round: this.#aggregator.round,
               payload: this.#latestGlobalWeights,
               nbOfParticipants: this.connections.size,
             };
@@ -257,6 +282,12 @@ export class FederatedController<D extends DataType> extends TrainingController<
         // tell the remaining participants that one of them left
         this.sendParticipantsUpdateMsg();
         return;
+      }
+
+      // Check if we now validate the absolute threshold
+      if (this.connections.size >= minNbOfParticipants) {
+        debug("Absolute threshold validated");
+        // We should
       }
 
       // tell remaining participants to wait until more participants join,
