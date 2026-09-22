@@ -21,7 +21,7 @@ export type FakeWebSocket<
 };
 
 /** Create a fake WebSocket */
-export function makeFakeWebSocket<
+function makeFakeWebSocket<
   Sent extends AnyMessage,
   Received extends AnyMessage,
 >(): FakeWebSocket<Sent, Received> {

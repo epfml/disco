@@ -562,7 +562,6 @@ describe("leaving and reset", () => {
     const controller = await makeController(3);
     const ws1 = makeFederatedFakeWebSocket();
     const ws2 = makeFederatedFakeWebSocket();
-    const ws3 = makeFederatedFakeWebSocket();
 
     connect(controller, ws1);
     await wait(100); // Make sure ws1 receives
