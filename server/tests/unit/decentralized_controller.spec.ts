@@ -1,76 +1,15 @@
-import { EventEmitter } from "node:events";
-import * as msgpack from "@msgpack/msgpack";
+import type { Task } from "@epfml/discojs";
+import { defaultTasks, mtype } from "@epfml/discojs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type WebSocket from "ws";
-import type { Task, decentralizedMessages } from "@epfml/discojs";
-import { mtype, defaultTasks } from "@epfml/discojs";
-
 import { DecentralizedController } from "../../src/controllers/decentralized_controller.js";
+import type { DecentralizedFakeWebSocket } from "./fake_websocket.js";
+import {
+  lastMessageOfType,
+  makeDecentralizedFakeWebSocket,
+  messagesOfType,
+} from "./fake_websocket.js";
 
 import MessageTypes = mtype.MType;
-
-type FakeWebSocket = WebSocket & {
-  sentMessages: decentralizedMessages.MessageFromServer[];
-  emitMessage: (message: decentralizedMessages.MessageToServer) => void;
-  emitClose: () => void;
-};
-
-function makeFakeWebSocket(): FakeWebSocket {
-  const ws = new EventEmitter() as FakeWebSocket;
-
-  ws.sentMessages = [];
-
-  ws.send = vi.fn((data: Buffer | Uint8Array) => {
-    const decoded = msgpack.decode(
-      data,
-    ) as decentralizedMessages.MessageFromServer;
-    ws.sentMessages.push(decoded);
-  }); // as unknown as WebSocket["send"]
-
-  ws.emitMessage = (message: decentralizedMessages.MessageToServer) => {
-    ws.emit("message", msgpack.encode(message));
-  };
-
-  ws.emitClose = () => {
-    ws.emit("close");
-  };
-
-  return ws;
-}
-
-function lastMessageOfType<
-  T extends decentralizedMessages.MessageFromServer["type"],
->(
-  ws: FakeWebSocket,
-  type: T,
-): Extract<decentralizedMessages.MessageFromServer, { type: T }> | undefined {
-  return ws.sentMessages
-    .filter(
-      (
-        message,
-      ): message is Extract<
-        decentralizedMessages.MessageFromServer,
-        { type: T }
-      > => message.type === type,
-    )
-    .at(-1);
-}
-
-function messagesOfType<
-  T extends decentralizedMessages.MessageFromServer["type"],
->(
-  ws: FakeWebSocket,
-  type: T,
-): Extract<decentralizedMessages.MessageFromServer, { type: T }>[] {
-  return ws.sentMessages.filter(
-    (
-      message,
-    ): message is Extract<
-      decentralizedMessages.MessageFromServer,
-      { type: T }
-    > => message.type === type,
-  );
-}
 
 describe("DecentralizedController peer connection retry", () => {
   beforeEach(() => {
@@ -102,7 +41,7 @@ describe("DecentralizedController peer connection retry", () => {
 
   function connectAndJoinRound(
     controller: DecentralizedController<"image">,
-    ws: FakeWebSocket,
+    ws: DecentralizedFakeWebSocket,
   ): void {
     controller.handle(ws);
 
@@ -122,8 +61,8 @@ describe("DecentralizedController peer connection retry", () => {
   it("broadcasts RetryPeerConnections when not all peers finish connecting before timeout", async () => {
     const controller = await makeController(3);
 
-    const ws1 = makeFakeWebSocket();
-    const ws2 = makeFakeWebSocket();
+    const ws1 = makeDecentralizedFakeWebSocket();
+    const ws2 = makeDecentralizedFakeWebSocket();
 
     connectAndJoinRound(controller, ws1);
     connectAndJoinRound(controller, ws2);
@@ -157,8 +96,8 @@ describe("DecentralizedController peer connection retry", () => {
   it("excludes failed peers only after maxConnectionRetry retries are exhausted", async () => {
     const controller = await makeController(3);
 
-    const ws1 = makeFakeWebSocket();
-    const ws2 = makeFakeWebSocket();
+    const ws1 = makeDecentralizedFakeWebSocket();
+    const ws2 = makeDecentralizedFakeWebSocket();
 
     connectAndJoinRound(controller, ws1);
     connectAndJoinRound(controller, ws2);
@@ -235,14 +174,14 @@ describe("DecentralizedController participants updates", () => {
 
   function connect(
     controller: DecentralizedController<"image">,
-    ws: FakeWebSocket,
+    ws: DecentralizedFakeWebSocket,
   ): void {
     controller.handle(ws);
     ws.emitMessage({ type: MessageTypes.ClientConnected });
   }
 
   /** The counts a peer was told about, after it joined */
-  const participantsSeen = (ws: FakeWebSocket): number[] =>
+  const participantsSeen = (ws: DecentralizedFakeWebSocket): number[] =>
     messagesOfType(ws, MessageTypes.ParticipantsUpdate).map(
       (msg) => msg.nbOfParticipants,
     );
@@ -251,9 +190,9 @@ describe("DecentralizedController participants updates", () => {
     const controller = await makeController();
 
     const [ws1, ws2, ws3] = [
-      makeFakeWebSocket(),
-      makeFakeWebSocket(),
-      makeFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
     ];
 
     // two peers run a first round together
@@ -293,9 +232,9 @@ describe("DecentralizedController participants updates", () => {
     const controller = await makeController();
 
     const [ws1, ws2, ws3] = [
-      makeFakeWebSocket(),
-      makeFakeWebSocket(),
-      makeFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
     ];
 
     connect(controller, ws1);
