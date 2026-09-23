@@ -3,7 +3,7 @@
     "@vue/tsconfig/tsconfig.dom.json",
     "../../tsconfig.base.lib.json"
   ],
-  "include": ["./e2e/**/*", "./support/**/*"],
+  "include": ["./collaborative/**/*", "./e2e/**/*", "./support/**/*"],
   "references": [
     {
       "path": "../../discojs/tsconfig.lib.json"
