@@ -84,6 +84,24 @@ jobs:
           start: pnpm exec vite --mode test --port 1353 --strictPort
           config-file: cypress.config.federated.ts
 
+  test-e2e-decentralized:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: actions/download-artifact@v8
+        with: { name: all-builds }
+      - uses: cypress-io/github-action@v7
+        env:
+          DEBUG: server:controllers:decentralized,discojs:client:decentralized
+          VITE_SERVER_URL: http://localhost:8081
+        with:
+          working-directory: webapp
+          install: false
+          browser: chrome
+          start: pnpm exec vite --mode test --port 1354 --strictPort
+          config-file: cypress.config.decentralized.ts
+
   test-cli:
     runs-on: ubuntu-latest
     steps:
