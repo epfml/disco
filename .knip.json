@@ -6,7 +6,10 @@
     },
     "webapp": {
       "entry": [
+        "cypress.config.decentralized.ts",
+        "cypress/e2e/training/decentralized/node_peers.cy.ts",
         "cypress/e2e/training/federated/*.cy.ts",
+        "cypress/support/decentralized_harness.ts",
         "cypress/support/federated.ts"
       ],
       "ignoreDependencies": ["buffer"]
