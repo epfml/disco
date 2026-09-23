@@ -1,6 +1,7 @@
 import "@tensorflow/tfjs-node";
 
 import type * as http from "node:http";
+import type * as net from "node:net";
 import path from "node:path";
 
 import { Disco, defaultModels, defaultTasks } from "@epfml/discojs";
@@ -24,6 +25,7 @@ interface ParticipantRun {
 
 let serverHandle: http.Server | undefined;
 let serverUrl: URL | undefined;
+const serverSockets = new Set<net.Socket>();
 let participant: ParticipantRun | undefined;
 
 async function startServer(): Promise<void> {
@@ -34,6 +36,10 @@ async function startServer(): Promise<void> {
     [defaultTasks.titanic],
   );
   [serverHandle, serverUrl] = await server.serve(SERVER_PORT);
+  serverHandle.on("connection", (socket) => {
+    serverSockets.add(socket);
+    socket.once("close", () => serverSockets.delete(socket));
+  });
 }
 
 async function startParticipant(projectRoot: string): Promise<null> {
@@ -131,9 +137,12 @@ async function stopServer(): Promise<void> {
   serverUrl = undefined;
   if (handle === undefined) return;
 
-  await new Promise<void>((resolve, reject) =>
+  const closing = new Promise<void>((resolve, reject) =>
     handle.close((error) => (error === undefined ? resolve() : reject(error))),
   );
+  for (const socket of serverSockets) socket.destroy();
+  serverSockets.clear();
+  await settleWithin(closing, 5_000);
 }
 
 export default defineConfig({
