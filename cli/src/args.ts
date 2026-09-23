@@ -1,4 +1,4 @@
-import { parse } from "ts-command-line-args";
+import { parse, type ExitReason } from "ts-command-line-args";
 import { Map, Set } from "immutable";
 
 import type { DataType, Network, TaskProvider } from "@epfml/discojs";
@@ -288,6 +288,7 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
         content: "pnpm start [Options]\n" + argExample,
       },
     ],
+    processExitCode: (reason: ExitReason) => (reason === "usageGuide" ? 0 : 1),
   },
 );
 
