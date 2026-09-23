@@ -76,7 +76,11 @@ jobs:
       - uses: actions/download-artifact@v8
         with: { name: all-builds }
       - name: Verify CLI fails when required arguments are missing
-        run: ! pnpm -F cli start -t cifar10 -u 3 -e 1 -r 1
+        run: |
+          if pnpm -F cli start -t cifar10 -u 3 -e 1 -r 1; then
+            echo "Expected CLI to fail when required argument testID is missing, but it succeeded"
+            exit 1
+          fi
       - name: Run CLI decentralized training
         run: |
           node server/dist/main.js &
