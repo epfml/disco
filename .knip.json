@@ -7,7 +7,8 @@
     "webapp": {
       "entry": [
         "cypress.config.federated.ts",
-        "cypress/collaborative/federated.cy.ts"
+        "cypress/collaborative/federated.cy.ts",
+        "cypress/support/federated_harness.ts"
       ],
       "ignoreDependencies": ["buffer"]
     },
