@@ -6,8 +6,11 @@
     },
     "webapp": {
       "entry": [
+        "cypress.config.decentralized.ts",
         "cypress.config.federated.ts",
+        "cypress/collaborative/decentralized.cy.ts",
         "cypress/collaborative/federated.cy.ts",
+        "cypress/support/decentralized_harness.ts",
         "cypress/support/federated_harness.ts"
       ],
       "ignoreDependencies": ["buffer"]
