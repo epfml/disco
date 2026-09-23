@@ -141,10 +141,18 @@ export class WebSocketServer
     validateReceived: (msg: unknown) => msg is Message,
     validateSent: (msg: Message) => boolean,
   ): Promise<WebSocketServer> {
-    const ws = new WebSocket(url, {
-      // Federated GPT updates can exceed the default ws payload limit.
-      maxPayload: 1024 * 1024 * 1024,
-    });
+    // Browsers interpret the second WebSocket constructor argument as a list
+    // of subprotocols. `maxPayload` is an option specific to the Node `ws`
+    // implementation used by isomorphic-ws.
+    const useNativeBrowserWebSocket =
+      (globalThis.WebSocket as unknown) === (WebSocket as unknown);
+    const ws =
+      useNativeBrowserWebSocket
+        ? new WebSocket(url)
+        : new WebSocket(url, {
+            // Federated GPT updates can exceed the default ws payload limit.
+            maxPayload: 1024 * 1024 * 1024,
+          });
     ws.binaryType = "arraybuffer";
 
     const server: WebSocketServer = new WebSocketServer(ws, validateSent);
