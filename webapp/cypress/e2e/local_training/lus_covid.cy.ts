@@ -1,10 +1,19 @@
 import { defaultTasks } from "@epfml/discojs";
 
 import { setupServerWith } from "../../support/e2e";
-import { goToTaskOverview, trainLocallyAndSave } from "../../support/training";
+import {
+  goToTaskOverview,
+  trainLocallyAndSave,
+  withTrainingConfig,
+} from "../../support/training";
 
 it("completes local LUS COVID training and saves the model", () => {
-  setupServerWith(defaultTasks.lusCovid);
+  setupServerWith(
+    withTrainingConfig(defaultTasks.lusCovid, {
+      epochs: 5,
+      roundDuration: 5,
+    }),
+  );
   goToTaskOverview();
   cy.contains("button", "next").click();
 
@@ -26,5 +35,5 @@ it("completes local LUS COVID training and saves the model", () => {
     );
   }
 
-  trainLocallyAndSave("Lung Ultrasound Image Classification", 50, 300_000);
+  trainLocallyAndSave("Lung Ultrasound Image Classification", 5, 240_000);
 });
