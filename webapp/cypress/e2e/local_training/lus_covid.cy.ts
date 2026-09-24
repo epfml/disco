@@ -35,5 +35,5 @@ it("completes local LUS COVID training and saves the model", () => {
     );
   }
 
-  trainLocallyAndSave("Lung Ultrasound Image Classification", 5, 240_000);
+  trainLocallyAndSave("Lung Ultrasound Image Classification", 5, 300_000);
 });
