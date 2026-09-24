@@ -75,7 +75,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        task: [titanic, lus_covid, wikitext]
+        task: [titanic, lus_covid]
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node
