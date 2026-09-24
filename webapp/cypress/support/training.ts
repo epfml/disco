@@ -1,3 +1,29 @@
+import type {
+  DataType,
+  Network,
+  TaskProvider,
+  TrainingInformation,
+} from "@epfml/discojs";
+
+export function withTrainingConfig<D extends DataType, N extends Network>(
+  provider: TaskProvider<D, N>,
+  trainingConfig: Pick<TrainingInformation<D>, "epochs" | "roundDuration">,
+): TaskProvider<D, N> {
+  return {
+    modelCard: provider.modelCard,
+    async getTask() {
+      const task = await provider.getTask();
+      return {
+        ...task,
+        trainingInformation: {
+          ...task.trainingInformation,
+          ...trainingConfig,
+        },
+      };
+    },
+  };
+}
+
 export function goToTaskOverview(): void {
   cy.visit("/");
   cy.contains("a", "Start training").click();
