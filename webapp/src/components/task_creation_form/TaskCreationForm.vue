@@ -177,7 +177,7 @@
                         />
                       </div>
 
-                      <CustomButton 
+                      <CustomButton
                         class="self-start shrink-0"
                         @click="removeColumn(i)"
                       >
@@ -232,7 +232,7 @@
                 </div>
               </FieldArray>
             </FormLabel>
-            
+
             <FormLabel
               v-if="dataType === 'tabular'"
               label="Output column name"
@@ -431,6 +431,66 @@
                   type="number"
                 />
               </FormLabel>
+            </FormLabel>
+
+            <FormLabel
+              v-if="scheme === 'decentralized'"
+              label="Maximum connection retries"
+              type="required"
+            >
+              <div class="text-sm text-gray-500 mb-1">
+                Maximum number of connection retries before disconnecting failed
+                participants.
+              </div>
+
+              <FormField
+                name="trainingInformation.maxConnectionRetry"
+                placeholder="3"
+                as="input"
+                type="number"
+                min="0"
+              />
+            </FormLabel>
+
+            <FormLabel
+              v-if="scheme === 'decentralized'"
+              label="Maximum peer connection time"
+              type="required"
+            >
+              <div class="text-sm text-gray-500 mb-1">
+                Maximum time in milliseconds, allowed for establishing peer
+                connections. Peer connection attempts time out after this
+                duration.
+              </div>
+
+              <FormField
+                name="trainingInformation.maxPeerConnectionTime"
+                placeholder="30000"
+                as="input"
+                type="number"
+                min="10000"
+              />
+            </FormLabel>
+
+            <FormLabel
+              v-if="scheme === 'decentralized'"
+              label="Maximum model synchronization time"
+              type="required"
+            >
+              <div class="text-sm text-gray-500 mb-1">
+                Maximum time in milliseconds scale for a newly joined peer to
+                synchronize the latest model. Model synchronization times out
+                after this duration. Larger models may require longer time for
+                model synchronization.
+              </div>
+
+              <FormField
+                name="trainingInformation.maxModelSyncTime"
+                placeholder="30000"
+                as="input"
+                type="number"
+                min="10000"
+              />
             </FormLabel>
 
             <!-- Byzantine Robust Aggregator Parameters -->
@@ -691,7 +751,7 @@
 
 <script lang="ts" setup>
 import createDebug from "debug";
-import * as immutable from "immutable";
+import { isSet as isImmutableSet } from "immutable";
 import { storeToRefs } from "pinia";
 import { FieldArray, Form } from "vee-validate";
 import { ref, useTemplateRef, watch } from "vue";
@@ -701,7 +761,7 @@ import * as z from "zod";
 import * as tf from "@tensorflow/tfjs";
 
 import {
-  models,
+  TFJS,
   pushTask,
   Task,
   Tokenizer,
@@ -843,13 +903,23 @@ const trainingInformationNetworks = z.union([
   z
     .object({
       scheme: z.literal("decentralized"),
-      aggregationStrategy: z.literal(["byzantine", "mean"]),
+      aggregationStrategy: z.literal(["byzantine", "mean", "secure"]),
+
+      // Maximum number of retries for connection failures
+      maxConnectionRetry: z.number().nonnegative().int().default(3),
+
+      // Maximum time for waiting peer connection
+      maxPeerConnectionTime: z.number().nonnegative().int().default(60_000),
+
+      // Maximum time for waiting for the latest model syncing
+      // (used when new client joins in the middle of the training)
+      maxModelSyncTime: z.number().nonnegative().int().default(30_000),
     })
     .and(nonLocalNetworkSchema),
   z
     .object({
       scheme: z.literal("federated"),
-      aggregationStrategy: z.literal(["byzantine", "mean", "secure"]),
+      aggregationStrategy: z.literal(["byzantine", "mean"]),
     })
     .and(nonLocalNetworkSchema),
   z.object({
@@ -904,7 +974,7 @@ const TFJSModelSchema = {
       switch (true) {
         case fileOrSet instanceof File:
           return fileOrSet;
-        case immutable.isSet(fileOrSet): {
+        case isImmutableSet(fileOrSet): {
           const file = fileOrSet.first();
 
           if (file === undefined || fileOrSet.size !== 1)
@@ -941,18 +1011,23 @@ const schema = z
       z.object({
         ...Task.dataTypeToSchema.tabular.shape,
         ...TFJSModelSchema,
-        trainingInformation: TrainingInformation.dataTypeToSchema.tabular.extend({
-          categoricalColumns: z.array(
-            z.object({
-              column: z.string().trim().min(1),
-              categories: z.array(z.string().min(1)).min(1)
-            })
-          ).default([]).transform((columns) => Object.fromEntries(columns.map(({column, categories}) => [
-            column,
-            categories,
-          ])))
-        })
-        .and(trainingInformationNetworks),
+        trainingInformation: TrainingInformation.dataTypeToSchema.tabular
+          .extend({
+            categoricalColumns: z
+              .array(
+                z.object({
+                  column: z.string().trim().min(1),
+                  categories: z.array(z.string().min(1)).min(1),
+                }),
+              )
+              .default([])
+              .transform((columns) =>
+                Object.fromEntries(
+                  columns.map(({ column, categories }) => [column, categories]),
+                ),
+              ),
+          })
+          .and(trainingInformationNetworks),
       }),
       z.object({
         ...Task.dataTypeToSchema.text.shape,
@@ -975,10 +1050,11 @@ const schema = z
           .and(trainingInformationNetworks),
       }),
     ]),
-  ).superRefine((task, ctx) => {
+  )
+  .superRefine((task, ctx) => {
     if (task.dataType !== "tabular") return;
 
-    const {inputColumns, categoricalColumns} = task.trainingInformation;
+    const { inputColumns, categoricalColumns } = task.trainingInformation;
 
     Object.keys(categoricalColumns).forEach((column, idx) => {
       if (inputColumns.includes(column)) return;
@@ -986,7 +1062,7 @@ const schema = z
       ctx.addIssue({
         code: "custom",
         path: ["trainingInformation", "categoricalColumns", idx, "column"],
-        message: "Categorical columns must also be included in input columns"
+        message: "Categorical columns must also be included in input columns",
       });
     });
   });
@@ -1050,7 +1126,7 @@ async function onSubmit(form: unknown): Promise<void> {
           loss,
           optimizer: tf.train[optimizer.name](optimizer.learningRate),
         });
-        model = new models.TFJS(task.dataType, loaded);
+        model = new TFJS(task.dataType, loaded);
         break;
       }
       case "text":

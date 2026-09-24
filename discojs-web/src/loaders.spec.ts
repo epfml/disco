@@ -22,14 +22,14 @@ describe("csv parser", () => {
 
 describe("text parser", () => {
   it("loads a simple sequence", async () => {
-    const text = ["first", "second", "third"].join("\n")
-    
+    const text = ["first", "second", "third"].join("\n");
+
     // jsdom doesn't implement .text on File/Blob
     // trick from https://github.com/jsdom/jsdom/issues/2555
     const file = await (
-      await fetch( "data:," + encodeURIComponent(text))
+      await fetch("data:," + encodeURIComponent(text))
     ).blob();
-    const parsed = loadText(file)
+    const parsed = loadText(file);
     expect(await parsed.size()).to.equal(1);
     expect((await arrayFromAsync(parsed))[0]).to.equal(text);
   });

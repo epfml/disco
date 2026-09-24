@@ -1,19 +1,22 @@
 {
-	"name": "@epfml/isomorphic-wrtc",
-	"version": "1.0.0",
-	"description": "Isomorphic implementation of WebRTC",
-	"type": "module",
-	"main": "node.js",
-	"browser": "browser.js",
-	"types": "types.d.ts",
-	"author": "",
-	"license": "MIT",
-	"scripts": {
-		"build": ": nothing",
-		"lint": ": nothing",
-		"test": ": nothing"
-	},
-	"peerDependencies": {
-		"@roamhq/wrtc": "*"
-	}
+  "name": "@epfml/isomorphic-wrtc",
+  "version": "1.0.0",
+  "description": "Isomorphic implementation of WebRTC",
+  "type": "module",
+  "main": "node.js",
+  "browser": "browser.js",
+  "types": "types.d.ts",
+  "author": "",
+  "license": "MIT",
+  "scripts": {
+    "build": ": nothing",
+    "lint": ": nothing",
+    "test": ": nothing"
+  },
+  "dependencies": {
+    "get-browser-rtc": "1.1.0"
+  },
+  "peerDependencies": {
+    "@roamhq/wrtc": "*"
+  }
 }

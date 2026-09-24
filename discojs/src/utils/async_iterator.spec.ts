@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { gather, split } from "./async_iterator.js";
+import { gather, split } from "#utils/async_iterator";
 
 // Array.fromAsync not yet widely used (2024)
 async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
@@ -39,9 +39,8 @@ describe("split", () => {
 
   it("throws returned when iterator throws", async () => {
     const [gen, ret] = split(
-      (
       // eslint-disable-next-line @typescript-eslint/require-await
-      async function* () {
+      (async function* () {
         throw new Error();
       })(),
     );

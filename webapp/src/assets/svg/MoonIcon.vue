@@ -5,7 +5,7 @@
     stroke="currentColor"
     :class="customClass"
     :viewBox="viewBox"
-    stroke-width="2" 
+    stroke-width="2"
   >
     <path
       stroke-linecap="round"
@@ -19,10 +19,10 @@
 export default {
   props: {
     customClass: {
-      default: 'bi bi-info-circle w-7 h-7',
-      type: String
+      default: "bi bi-info-circle w-7 h-7",
+      type: String,
     },
-    viewBox: { default: '0 0 24 24', type: String }
-  }
-}
+    viewBox: { default: "0 0 24 24", type: String },
+  },
+};
 </script>

@@ -6,7 +6,7 @@
           Connect the CSV file containing a mapping between images and labels
         </template>
 
-        <FileSelection v-model="csvFiles" type="tabular" private>
+        <FileSelection v-model="csvFiles" type="tabular" no-upload>
           <b>
             The CSV file must contain a header with only two columns (filename,
             label) </b
@@ -15,7 +15,7 @@
           <a
             class="underline text-blue-400"
             target="_blank"
-            href="https://github.com/epfml/disco/blob/develop/docs/examples/dataset_csv_creation.ipynb"
+            href="https://github.com/epfml/disco/blob/main/docs/examples/dataset_csv_creation.ipynb"
             >here</a
           >.
         </FileSelection>
@@ -39,11 +39,10 @@
       >
         <template #title> Connect the images </template>
 
-        <FileSelection v-model="images" type="image" multiple private>
+        <FileSelection v-model="images" type="image" multiple no-upload>
           Drag and drop or browse for the images referenced in the connected CSV
           file.
           <br />
-          {{ browsingTip }}
         </FileSelection>
       </IconCard>
     </div>
@@ -52,7 +51,8 @@
 
 <script lang="ts" setup>
 import * as d3 from "d3";
-import { Map, Set } from "immutable";
+import type { Set } from "immutable";
+import { Map } from "immutable";
 import { computed, ref, watch } from "vue";
 
 import { Dataset } from "@epfml/discojs";
@@ -64,7 +64,6 @@ import { useToaster } from "@/composables/toaster";
 import FileSelection from "../FileSelection.vue";
 
 import type { NamedLabeledImageDataset } from "../types.js";
-import { browsingTip } from "./strings.js";
 
 const toaster = useToaster();
 

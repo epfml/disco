@@ -1,31 +1,32 @@
-import {
-  async_iterator,
-  client as clients,
-  BatchLogs,
-  ConsoleLogger,
-  EpochLogs,
-  Logger,
-  processing,
-  Dataset,
-} from "../index.js";
-import type {
-  Batched,
-  DataFormat,
-  DataType,
-  Model,
-  Network,
-  Task,
-} from "../index.js";
-import type { Aggregator } from "../aggregator/index.js";
-import { getAggregator } from "../aggregator/index.js";
-import { enumerate, split } from "../utils/async_iterator.js";
-import { EventEmitter } from "../utils/event_emitter.js";
+import type { Model, ModelMetadata } from "#models/index";
+import type { DataType, DataFormat, Network } from "#types/index";
+import type { Task } from "#task/index";
+import type { Batched } from "#dataset/index";
+import type { Aggregator } from "#aggregator/index";
+import type { WeightsContainer } from "#weights/index";
 
-import { RoundLogs, Trainer } from "./trainer.js";
+import { Dataset } from "#dataset/index";
+import type { Logger } from "#logging/index";
+import { ConsoleLogger } from "#logging/index";
+import type { BatchLogs, EpochLogs } from "#models/index";
+import { getAggregator } from "#aggregator/index";
+import { enumerate, split } from "#utils/async_iterator";
+import { EventEmitter } from "#utils/event_emitter";
+
+import * as clients from "#client/index";
+import { preprocess, computeStandardizationStats } from "#processing/index";
+import * as async_iterator from "#utils/async_iterator";
+import type { GoldfishLossConfig } from "#models/implementations/gpt/config";
+import type { RoundLogs } from "#training/trainer";
+import { Trainer } from "#training/trainer";
+import type { RoundStatus, SummaryLogs } from "#training/types";
+import createDebug from "debug";
+const debug = createDebug("discojs:training:disco");
 
 interface DiscoConfig<N extends Network> {
   scheme: N;
   logger: Logger;
+  debugLabel?: string;
 
   /**
    * keep preprocessed dataset in memory while training
@@ -37,10 +38,28 @@ interface DiscoConfig<N extends Network> {
   preprocessOnce: boolean;
 }
 
-export type RoundStatus = 'not enough participants' | // Server notification to wait for more participants
-  'updating model' | // fetching/aggregating local updates into a global model
-  'local training' | // Training the model locally
-  'connecting to peers' // for decentralized only, fetch the server's list of participating peers
+function buildSummaryLog(
+  roundNum: number,
+  epochNum: number,
+  roundLogs: RoundLogs,
+  epochLogs: EpochLogs,
+): SummaryLogs {
+  return {
+    round: roundNum,
+    epoch: epochNum,
+    trainingLoss: epochLogs.training.loss,
+    trainingAccuracy: epochLogs.training.accuracy,
+    peakMemory: epochLogs.peakMemory,
+    epochTime: epochLogs.epochTime,
+    roundValidationLoss: roundLogs.preRoundValidation?.loss,
+    roundValidationAccuracy: roundLogs.preRoundValidation?.accuracy,
+    validationLoss: epochLogs.validation?.loss,
+    validationAccuracy: epochLogs.validation?.accuracy,
+    postAggregationValidationLoss: roundLogs.postAggregationValidation?.loss,
+    postAggregationValidationAccuracy:
+      roundLogs.postAggregationValidation?.accuracy,
+  };
+}
 
 /**
  * Top-level class handling distributed training from a client's perspective. It is meant to be
@@ -49,13 +68,16 @@ export type RoundStatus = 'not enough participants' | // Server notification to 
  */
 export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   status: RoundStatus;
-  participants: number
+  participants: number;
+  modelSynced: WeightsContainer | undefined;
 }> {
   public readonly trainer: Trainer<D, N>;
   readonly #client: clients.Client<N>;
   readonly #logger: Logger;
   readonly #task: Task<D, N>;
   readonly #preprocessOnce: boolean;
+  // Forwarded to compatible models to identify this client in debug output.
+  readonly #debugLabel?: string;
 
   /**
    * Connect to the given task and get ready to train.
@@ -66,11 +88,14 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
    */
   constructor(
     task: Task<D, N>,
-    clientConfig: clients.Client<N> | URL | { aggregator: Aggregator; url: URL },
+    clientConfig:
+      | clients.Client<N>
+      | URL
+      | { aggregator: Aggregator; url: URL },
     config: Partial<DiscoConfig<N>>,
   ) {
     super();
-    const { scheme, logger, preprocessOnce } = {
+    const { scheme, logger, preprocessOnce, debugLabel } = {
       // cast as typescript is bad at generic
       scheme: task.trainingInformation.scheme as N,
       logger: new ConsoleLogger(),
@@ -96,12 +121,20 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
 
     this.#logger = logger;
     this.#preprocessOnce = preprocessOnce;
+    this.#debugLabel = debugLabel;
     this.#client = client;
     this.#task = task;
     this.trainer = new Trainer(task, client);
+
     // Simply propagate the training status events emitted by the client
     this.#client.on("status", (status) => this.emit("status", status));
-    this.#client.on("participants", (nbParticipants) => this.emit("participants", nbParticipants));
+    this.#client.on("participants", (nbParticipants) =>
+      this.emit("participants", nbParticipants),
+    );
+    this.#client.on("modelSynced", (latestWeights) => {
+      this.trainer.model.weights = latestWeights;
+      this.emit("modelSynced", latestWeights);
+    });
   }
 
   /** Train on dataset, yielding logs of every round. */
@@ -131,14 +164,49 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   /** Train on dataset, yielding logs of every batch. */
   async *trainByBatch(
     dataset: Dataset<DataFormat.Raw[D]>,
+    validationDataset?: Dataset<DataFormat.Raw[D]>,
   ): AsyncGenerator<BatchLogs> {
-    for await (const round of this.train(dataset))
+    for await (const round of this.train(dataset, validationDataset))
       for await (const epoch of round) yield* epoch;
   }
 
+  /** Train on dataset, yielding summary logs */
+  async *trainSummary(
+    dataset: Dataset<DataFormat.Raw[D]>,
+    validationDataset?: Dataset<DataFormat.Raw[D]>,
+  ): AsyncGenerator<SummaryLogs> {
+    for await (const [roundNum, round] of enumerate(
+      this.train(dataset, validationDataset),
+    )) {
+      const [roundGen, roundLogsPromise] = async_iterator.split(round);
+
+      const epochResults: Array<{ epochNum: number; epochLogs: EpochLogs }> =
+        [];
+
+      debug("Starting round %d", roundNum);
+
+      for await (const [epochNum, epoch] of enumerate(roundGen)) {
+        const [epochGen, epochLogsPromise] = async_iterator.split(epoch);
+        for await (const _ of epochGen);
+        const epochLogs = await epochLogsPromise;
+
+        epochResults.push({ epochNum, epochLogs });
+      }
+
+      const roundLogs = await roundLogsPromise;
+
+      for (const { epochNum, epochLogs } of epochResults) {
+        yield buildSummaryLog(roundNum, epochNum, roundLogs, epochLogs);
+      }
+    }
+  }
+
   /** Run whole train on dataset. */
-  async trainFully(dataset: Dataset<DataFormat.Raw[D]>): Promise<void> {
-    for await (const round of this.train(dataset))
+  async trainFully(
+    dataset: Dataset<DataFormat.Raw[D]>,
+    validationDataset?: Dataset<DataFormat.Raw[D]>,
+  ): Promise<void> {
+    for await (const round of this.train(dataset, validationDataset))
       for await (const epoch of round) for await (const _ of epoch);
   }
 
@@ -150,47 +218,86 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
    **/
   async *train(
     dataset: Dataset<DataFormat.Raw[D]>,
+    validationDataset?: Dataset<DataFormat.Raw[D]>,
   ): AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>
   > {
     this.#logger.success("Training started");
 
+    // If a val dataset is not specified, split a ratio of the dataset for validation
+    const [trainingDataset, validationDataset_, tabularMetadata] =
+      validationDataset !== undefined
+        ? await this.#preprocessDatasets(dataset, validationDataset)
+        : await this.#preprocessSplitAndBatch(dataset);
+
     // the client fetches the latest weights upon connection
+    debug("Connecting to client and fetching initial model...");
     // TODO unsafe cast
     this.trainer.model = (await this.#client.connect()) as Model<D>;
+    this.#setModelDebugLabel(this.trainer.model);
+    this.#setModelTrainingOptions(this.trainer.model);
+    debug("Initial model fetched successfully");
 
-    const [trainingDataset, validationDataset] =
-      await this.#preprocessSplitAndBatch(dataset);
+    if (tabularMetadata !== undefined)
+      this.trainer.model.metadata = tabularMetadata;
 
-    for await (const [round, epochs] of enumerate(
-      this.trainer.train(trainingDataset, validationDataset),
+    for await (const [roundNum, round] of enumerate(
+      this.trainer.train(trainingDataset, validationDataset_),
     )) {
       yield async function* (this: Disco<D, N>) {
-        const [gen, returnedRoundLogs] = split(epochs);
-        for await (const [epoch, batches] of enumerate(gen)) {
-          const [gen, returnedEpochLogs] = split(batches);
+        const [roundGen, roundLogsPromise] = split(round);
+        const epochResults: Array<{ epochNum: number; epochLogs: EpochLogs }> =
+          [];
 
-          yield gen;
-          const epochLogs = await returnedEpochLogs;
+        for await (const [epochNum, epoch] of enumerate(roundGen)) {
+          const [epochGen, epochLogsPromise] = split(epoch);
 
+          yield epochGen;
+          const epochLogs = await epochLogsPromise;
+
+          epochResults.push({ epochNum, epochLogs });
+        }
+
+        const roundLogs = await roundLogsPromise;
+        this.#logger.success(
+          [
+            `Round: ${roundNum}`,
+            `Initial round loss: ${roundLogs.preRoundValidation?.loss}`,
+            `Initial round accuracy: ${roundLogs.preRoundValidation?.accuracy}`,
+          ].join("\n"),
+        );
+
+        for (const { epochNum, epochLogs } of epochResults) {
           this.#logger.success(
             [
-              `Round: ${round}`,
-              `  Epoch: ${epoch}`,
+              `Round: ${roundNum}`,
+              `  Epoch: ${epochNum}`,
               `    Training loss: ${epochLogs.training.loss}`,
               `    Training accuracy: ${epochLogs.training.accuracy}`,
               `    Peak memory: ${epochLogs.peakMemory}`,
               epochLogs.validation !== undefined
-                ? `    Validation loss: ${epochLogs.validation.loss}`
+                ? `    Pre-aggregation validation loss: ${epochLogs.validation.loss}`
                 : "",
               epochLogs.validation !== undefined
-                ? `    Validation accuracy: ${epochLogs.validation.accuracy}`
+                ? `    Pre-aggregation validation accuracy: ${epochLogs.validation.accuracy}`
                 : "",
             ].join("\n"),
           );
         }
 
-        return await returnedRoundLogs;
+        this.#logger.success(
+          [
+            `Round: ${roundNum}`,
+            roundLogs.postAggregationValidation !== undefined
+              ? `Post-aggregation loss: ${roundLogs.postAggregationValidation.loss}`
+              : "",
+            roundLogs.postAggregationValidation
+              ? `Post-aggregation accuracy: ${roundLogs.postAggregationValidation.accuracy}`
+              : "",
+          ].join("\n"),
+        );
+
+        return roundLogs;
       }.bind(this)();
     }
     this.#logger.success("Training finished");
@@ -200,7 +307,50 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
    * Completely stops the ongoing training instance.
    */
   async close(): Promise<void> {
-    await this.#client.disconnect();
+    // Dispose the model tensor
+    try {
+      await this.#client.disconnect();
+    } finally {
+      this.trainer[Symbol.dispose]();
+    }
+  }
+
+  #setModelDebugLabel(model: Model<D>): void {
+    if (this.#debugLabel === undefined) return;
+
+    const labeledModel = model as Model<D> & {
+      setDebugLabel?: (label: string) => void;
+    };
+
+    labeledModel.setDebugLabel?.(this.#debugLabel);
+  }
+
+  #setModelTrainingOptions(model: Model<D>): void {
+    if (this.#task.dataType !== "text") return;
+
+    const configurableModel = model as Model<D> & {
+      setGoldfishLoss?: (config: GoldfishLossConfig | undefined) => void;
+      setLearningRate?: (learningRate: number) => void;
+    };
+
+    configurableModel.setGoldfishLoss?.(
+      this.#task.trainingInformation.goldfishLoss,
+    );
+    if (this.#task.trainingInformation.goldfishLoss?.enabled === true) {
+      const { k, h, padTokenId } = this.#task.trainingInformation.goldfishLoss;
+      debug(
+        `Using Goldfish loss with k=${k}, h=${h}` +
+          (padTokenId === undefined ? "" : `, padTokenId=${padTokenId}`),
+      );
+    }
+    if (this.#task.trainingInformation.learningRate !== undefined) {
+      configurableModel.setLearningRate?.(
+        this.#task.trainingInformation.learningRate,
+      );
+      debug(
+        `Using GPT learning rate ${this.#task.trainingInformation.learningRate}`,
+      );
+    }
   }
 
   async #preprocessSplitAndBatch(
@@ -209,91 +359,103 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     [
       Dataset<Batched<DataFormat.ModelEncoded[D]>>,
       Dataset<Batched<DataFormat.ModelEncoded[D]>> | undefined,
+      ModelMetadata | undefined,
     ]
   > {
     const { batchSize, validationSplit } = this.#task.trainingInformation;
 
-    if (validationSplit === 0){
-      if (this.#task.dataType === "tabular"){
-        const rows = await arrayFromAsync(dataset as Dataset<DataFormat.Raw["tabular"]>);
-        const inputColumns = this.#task.trainingInformation.inputColumns;
+    // split raw tabular rows so that standardization stats
+    // are fitted on the training part only
+    if (this.#task.dataType === "tabular") {
+      if (validationSplit === 0) return this.#preprocessDatasets(dataset);
 
-        // Make sure to compute standardization stats for numerical features
-        const categoricalColumns = new Set(Object.keys(this.#task.trainingInformation.categoricalColumns));
-        const numericalColumns = inputColumns.filter(column => !categoricalColumns.has(column));
+      const [training, validation] = dataset.split(validationSplit);
+      return this.#preprocessDatasets(training, validation);
+    }
 
-        const stats = processing.computeStandardizationStats(rows, numericalColumns);
-        this.trainer.model.metadata = {
-          tabularStandardization: stats,
-        };
+    let preprocessed = preprocess(this.#task, dataset);
 
-        const preprocessed = processing.preprocess(
-          this.#task,
-          dataset,
-          this.trainer.model.metadata,
+    preprocessed = this.#preprocessOnce
+      ? new Dataset(await arrayFromAsync(preprocessed))
+      : preprocessed;
+    if (validationSplit === 0)
+      return [preprocessed.batch(batchSize).cached(), undefined, undefined];
+
+    const [training, validation] = preprocessed.split(validationSplit);
+
+    return [
+      training.batch(batchSize).cached(),
+      validation.batch(batchSize).cached(),
+      undefined,
+    ];
+  }
+
+  async #preprocessDatasets(
+    trainingDataset: Dataset<DataFormat.Raw[D]>,
+    validationDataset?: Dataset<DataFormat.Raw[D]>,
+  ): Promise<
+    [
+      Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+      Dataset<Batched<DataFormat.ModelEncoded[D]>> | undefined,
+      ModelMetadata | undefined,
+    ]
+  > {
+    const { batchSize } = this.#task.trainingInformation;
+    const tabularMetadata = await this.#fitTabularMetadata(trainingDataset);
+
+    let preprocessedTraining = preprocess(
+      this.#task,
+      trainingDataset,
+      tabularMetadata,
+    );
+    let preprocessedValidation =
+      validationDataset !== undefined
+        ? preprocess(this.#task, validationDataset, tabularMetadata)
+        : undefined;
+
+    if (this.#preprocessOnce) {
+      preprocessedTraining = new Dataset(
+        await arrayFromAsync(preprocessedTraining),
+      );
+      if (preprocessedValidation !== undefined)
+        preprocessedValidation = new Dataset(
+          await arrayFromAsync(preprocessedValidation),
         );
-        return [preprocessed.batch(batchSize).cached(), undefined];
-      }
-      // If task datatype is not tabular
-      let preprocessed = processing.preprocess(this.#task, dataset);
-
-      preprocessed = (
-        this.#preprocessOnce
-          ? new Dataset(await arrayFromAsync(preprocessed))
-          : preprocessed
-      )
-      return [preprocessed.batch(batchSize).cached(), undefined];
     }
-
-    // If training/validation splitting ratio is defined
-    const [training, validation] = dataset.split(validationSplit);
-
-    if (this.#task.dataType == "tabular"){
-      const trainingRows = await arrayFromAsync(training as Dataset<DataFormat.Raw["tabular"]>);
-      const inputColumns = this.#task.trainingInformation.inputColumns;
-
-      // Make sure to compute standardization stats for numerical features
-      const categoricalColumns = new Set(Object.keys(this.#task.trainingInformation.categoricalColumns));
-      const numericalColumns = inputColumns.filter(column => !categoricalColumns.has(column));
-
-      const stats = processing.computeStandardizationStats(trainingRows, numericalColumns);
-
-      this.trainer.model.metadata = {
-        tabularStandardization: stats,
-      };
-
-      let preprocessedTraining = processing.preprocess(this.#task, training, this.trainer.model.metadata);
-      let preprocessedValidation = processing.preprocess(this.#task, validation, this.trainer.model.metadata);
-      preprocessedTraining = this.#preprocessOnce
-          ? new Dataset(await arrayFromAsync(preprocessedTraining))
-          : preprocessedTraining;
-      
-      preprocessedValidation = this.#preprocessOnce
-          ? new Dataset(await arrayFromAsync(preprocessedValidation))
-          : preprocessedValidation;
-
-      return [
-        preprocessedTraining.batch(batchSize).cached(),
-        preprocessedValidation.batch(batchSize).cached(),
-      ];      
-    }
-    
-    // if task datatype is not tabular
-    let preprocessedTraining = processing.preprocess(this.#task, training);
-    let preprocessedValidation = processing.preprocess(this.#task, validation);
-
-    preprocessedTraining = this.#preprocessOnce
-        ? new Dataset(await arrayFromAsync(preprocessedTraining))
-        : preprocessedTraining;
-    
-    preprocessedValidation = this.#preprocessOnce
-        ? new Dataset(await arrayFromAsync(preprocessedValidation))
-        : preprocessedValidation;
 
     return [
       preprocessedTraining.batch(batchSize).cached(),
-      preprocessedValidation.batch(batchSize).cached(),
-    ];    
+      preprocessedValidation?.batch(batchSize).cached(),
+      tabularMetadata,
+    ];
+  }
+
+  /**
+   * Fit standardization stats of the numerical columns on the training rows
+   *
+   * @returns the model metadata, undefined for non-tabular tasks
+   */
+  async #fitTabularMetadata(
+    trainingDataset: Dataset<DataFormat.Raw[D]>,
+  ): Promise<ModelMetadata | undefined> {
+    if (this.#task.dataType !== "tabular") return undefined;
+
+    const { inputColumns, categoricalColumns } = this.#task.trainingInformation;
+    const categorical = new Set(Object.keys(categoricalColumns));
+    const numericalColumns = inputColumns.filter(
+      (column) => !categorical.has(column),
+    );
+
+    const rows = await arrayFromAsync(
+      trainingDataset as Dataset<DataFormat.Raw["tabular"]>,
+    );
+
+    return {
+      tabularStandardization: computeStandardizationStats(
+        rows,
+        numericalColumns,
+      ),
+    };
   }
 }
 

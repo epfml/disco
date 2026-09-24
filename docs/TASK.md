@@ -6,7 +6,7 @@ DISCO currently allows learning of arbitrary machine learning tasks, where tasks
 2. **Task creation UI**: new tasks can be defined via the [**task creation form**](https://discolab.ai/#/create)
 3. **Implementing custom tasks**: tasks too specific for the UI form need to be implemented in the repository directly.
 
-In any case, one user needs to upload the initial model that is going to be trained collaboratively.
+In either case, one user needs to upload the initial model that is going to be trained collaboratively.
 
 ### Uploading ML models
 
@@ -51,10 +51,10 @@ The [task creation form](https://discolab.ai/#/create) lets users create a custo
 ## 3. Implementing custom tasks
 
 Programming skills are necessary to add a custom task not supported by the task creation UI.
-A task is mainly defined by a `TaskProvider` which needs to implement two methods:
+A task is mainly defined by a `TaskProvider` which needs to implement two things:
 
 - `getTask` which returns a `Task` as defined by the [Task interface](../discojs/src/task/task.ts). The `Task` contains all the crucial information from training to the mode
-- `getModel` which returns a `Promise<tf.LayersModel>` specifying a model architecture for the task
+- `modelCard` which itself implements `getModel`, returning a `Promise<tf.LayersModel>` specifying a model architecture for the task. It also has information about the model.
 
 You can add a new task in two different ways:
 
@@ -76,11 +76,16 @@ const customTask: TaskProvider = {
     };
   },
 
-  async getModel(): Promise<tf.LayersModel> {
-    const model = tf.sequential();
-    // Configure your model architecture
-    return model;
-  },
+  modelCard: {
+    card: {
+      // information here
+    },
+    getModel(): Promise<tf.LayersModel> {
+      const model = tf.sequential();
+      // Configure your model architecture
+      return model;
+    },
+  }
 };
 
 async function runServer() {
@@ -150,8 +155,8 @@ scheme of distributed learning (federated or decentralized), along with other me
 
 The [`TrainingInformation` object](../discojs/src/task/training_information.ts) of a task contains all the customizable parameters and their descriptions.
 
-As an example, the task class for `simple-face` can be found [here](../discojs/src/default_tasks/simple_face.ts). Suppose
-our own task is a binary classification for age detection (similar to simple face), then we could write:
+As an example, the task class for `lus_covid` can be found [here](../discojs/src/default_tasks/lus_covid.ts). Suppose
+our own task is a binary classification for lung ultrasound COVID diagnostic , then we could write:
 
 ```js
 import { ImagePreprocessing } from '../dataset/preprocessing'
@@ -163,7 +168,7 @@ export const customTask: TaskProvider = {
       dataType: 'image',
       displayInformation: {
         title: 'My new task',
-        summary: 'Can you detect if the person in a picture is a child or an adult?',
+        summary: 'Can you detect if the lung ultra sound show COVID positive or negative?',
         ...
       },
       trainingInformation: {
@@ -177,8 +182,13 @@ export const customTask: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<tf.LayersModel> {
-    throw new Error('Not implemented')
+  modelCard: {
+    card: {
+      // information here
+    },
+    getModel(): Promise<tf.LayersModel> {
+      throw new Error('Not implemented')
+    },
   }
 }
 ```
@@ -250,14 +260,14 @@ export const task: Task = {
 ```
 
 > [!TIP]
-> Note that you need to rebuild discojs every time you make changes to it (`cd discojs; rm -rf dist/; npm run build`).
+> Note that you need to rebuild discojs every time you make changes to it (`rm -rf discojs/dist/; pnpm -F discojs run build`).
 
 ## Summary
 
 - In `discojs/src/default_tasks/` define your new custom task by implementing the `TaskProvider` interface.
 - In `discojs/src/default_tasks/index.ts` export your newly defined task
-- Run `npm -ws run build`
-- Instantiate a Disco server by running `npm start` from `server`
-- Instantiate a Disco client by running `npm start` from `webapp`
+- Run `pnpm -r run build`
+- Instantiate a Disco server by running `pnpm start` from `server`
+- Instantiate a Disco client by running `pnpm start` from `webapp`
 
 Your task has been successfully uploaded.

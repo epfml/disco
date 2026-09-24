@@ -1,12 +1,17 @@
 import type { Map } from "immutable";
-import { AggregationStep } from "./aggregator.js";
-import { MultiRoundAggregator, ThresholdType } from "./multiround.js";
-import type { WeightsContainer, client } from "../index.js";
-import { aggregation } from "../index.js";
 
-/** 
- * Mean aggregator whose aggregation step consists in computing the mean of the received weights. 
- * 
+import type { WeightsContainer } from "#weights/index";
+import type { NodeID } from "#client/types";
+import { avg as computeAvg } from "#weights/index";
+
+import { AggregationStep } from "#aggregator/aggregator";
+import type { ThresholdType } from "#aggregator/multiround";
+import { MultiRoundAggregator } from "#aggregator/multiround";
+
+/**
+ * Mean aggregator whose aggregation step consists in computing the mean of the received weights.
+ * This aggregator extends MultiRoundAggregator while only performing a single round
+ *
  */
 export class MeanAggregator extends MultiRoundAggregator {
   /**
@@ -18,27 +23,39 @@ export class MeanAggregator extends MultiRoundAggregator {
     super(roundCutoff, threshold, thresholdType);
   }
 
-  override _add(nodeId: client.NodeID, contribution: WeightsContainer): void {
+  override _add(nodeId: NodeID, contribution: WeightsContainer): void {
+    const previous = this.contributions.getIn([0, nodeId]) as
+      | WeightsContainer
+      | undefined;
     this.log(
-      this.contributions.hasIn([0, nodeId]) ? AggregationStep.UPDATE : AggregationStep.ADD,
+      this.contributions.hasIn([0, nodeId])
+        ? AggregationStep.UPDATE
+        : AggregationStep.ADD,
       nodeId,
     );
-    this.contributions = this.contributions.setIn([0, nodeId], contribution);
+    if (previous !== undefined) previous.dispose();
+    this.contributions = this.contributions.setIn(
+      [0, nodeId],
+      contribution.map((weight) => weight.clone()),
+    );
   }
 
   override aggregate(): WeightsContainer {
     const currentContributions = this.contributions.get(0);
-    if (!currentContributions) throw new Error("aggregating without any contribution");
+    if (!currentContributions)
+      throw new Error("aggregating without any contribution");
 
     this.log(AggregationStep.AGGREGATE);
 
-    const result = aggregation.avg(currentContributions.values());
-    return result;
+    const contributions = Array.from(currentContributions.values());
+    const avg = computeAvg(contributions);
+    contributions.forEach((contribution) => contribution.dispose());
+    return avg;
   }
 
   override makePayloads(
     weights: WeightsContainer,
-  ): Map<client.NodeID, WeightsContainer> {
+  ): Map<NodeID, WeightsContainer> {
     // Communicate our local weights to every other node, be it a peer or a server
     return this.nodes.toMap().map(() => weights);
   }

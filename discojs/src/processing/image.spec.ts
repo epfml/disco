@@ -1,7 +1,9 @@
 import { Repeat, Seq } from "immutable";
 import { describe, expect, it } from "vitest";
-import { Image } from "../index.js";
-import { removeAlpha, resize } from "./image.js";
+
+import { Image } from "#dataset/index";
+
+import { removeAlpha, resize } from "#processing/image";
 
 describe("resize", () => {
   it("doesn't change with same image dimensions", () => {

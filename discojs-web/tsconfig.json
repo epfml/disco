@@ -1,12 +1,6 @@
 {
-  "compilerOptions": {
-    "composite": true
-  },
   "files": [],
   "references": [
-    {
-      "path": "../discojs"
-    },
     {
       "path": "tsconfig.lib.json"
     },

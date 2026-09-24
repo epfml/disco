@@ -1,5 +1,9 @@
 <template>
-  <div id="base-container" class="flex flex-col h-full w-full overflow-y-auto">
+  <div
+    id="base-container"
+    ref="baseContainer"
+    class="flex flex-col h-full w-full overflow-y-auto"
+  >
     <main class="m-4 md:m-8 grow">
       <slot />
     </main>
@@ -33,3 +37,10 @@
     </footer>
   </div>
 </template>
+
+<script lang="ts" setup>
+import { provide, useTemplateRef } from "vue";
+
+const baseContainer = useTemplateRef<HTMLElement>("baseContainer");
+provide("scrollContainer", baseContainer);
+</script>

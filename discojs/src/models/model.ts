@@ -1,17 +1,13 @@
-import type {
-  Batched,
-  Dataset,
-  DataFormat,
-  DataType,
-  WeightsContainer,
-} from "../index.js";
+import type { WeightsContainer } from "#weights/index";
+import type { Dataset, Batched } from "#dataset/index";
+import type { DataFormat, DataType } from "#types/index";
 
-import type { BatchLogs, EpochLogs } from "./logs.js";
-import type { StandardizationStats } from "../processing/tabular.js";
+import type { StandardizationStats } from "#processing/tabular";
 
 export type ModelMetadata = {
   tabularStandardization?: StandardizationStats;
 };
+import type { BatchLogs, EpochLogs, ValidationMetrics } from "#models/logs";
 
 /**
  * Trainable predictor
@@ -20,6 +16,9 @@ export type ModelMetadata = {
  **/
 // TODO make it typesafe: same shape of data/input/weights
 export abstract class Model<D extends DataType> implements Disposable {
+  /** Kind of data this predictor understands */
+  abstract readonly datatype: D;
+
   // TODO don't allow external access but upgrade train to return weights on every epoch
   /** Return training state */
   abstract get weights(): WeightsContainer;
@@ -48,6 +47,13 @@ export abstract class Model<D extends DataType> implements Disposable {
   ): Promise<Batched<DataFormat.ModelEncoded[D][1]>>;
 
   /**
+   * Return validation metrics
+   */
+  abstract evaluate(
+    _validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+  ): Promise<ValidationMetrics>;
+
+  /**
    * This method is automatically called to cleanup the memory occupied by the model
    * when leaving the definition scope if the instance has been defined with the `using` keyword.
    * For example:
@@ -56,5 +62,9 @@ export abstract class Model<D extends DataType> implements Disposable {
    * }
    * Calling f() will call the model's dispose method when exiting the function.
    */
-  abstract [Symbol.dispose](): void;
+  [Symbol.dispose](): void {
+    this.dispose();
+  }
+
+  abstract dispose(): void;
 }

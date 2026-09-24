@@ -1,0 +1,104 @@
+{
+  "name": "basic_tests",
+  "defaults": {
+    "epochs": 50,
+    "roundDuration": 2,
+    "validationSplit": 0.2,
+    "save": true,
+    "host": "http://localhost:8080"
+  },
+  "experiments": [
+    {
+      "testID": "mnist_dec_mean_cnn3_p3_d600_e50_r2",
+      "task": "mnist",
+      "numberOfUsers": 3,
+      "batchSize": 32,
+      "aggregator": "mean"
+    },
+    {
+      "testID": "mnist_dec_byz_cnn3_p3_d600_e50_r2",
+      "task": "mnist",
+      "numberOfUsers": 3,
+      "batchSize": 32,
+      "aggregator": "byzantine",
+      "clippingRadius": 1,
+      "maxIterations": 1,
+      "beta": 0.9
+    },
+    {
+      "testID": "mnist_dec_sec_cnn3_p3_d600_e50_r2",
+      "task": "mnist",
+      "numberOfUsers": 3,
+      "batchSize": 32,
+      "aggregator": "secure",
+      "maxShareValue": 100
+    },
+    {
+      "testID": "titanic_fed_mean_mlp4_p3_d297_e50_r2",
+      "task": "titanic",
+      "numberOfUsers": 3,
+      "batchSize": 32,
+      "aggregator": "mean"
+    },
+    {
+      "testID": "titanic_fed_byz_mlp4_p3_d297_e50_r2",
+      "task": "titanic",
+      "numberOfUsers": 3,
+      "batchSize": 32,
+      "aggregator": "byzantine",
+      "clippingRadius": 1,
+      "maxIterations": 1,
+      "beta": 0.9
+    },
+
+    {
+      "testID": "lus_covid_fed_mean_cnn2_p3_d32_e30_r2",
+      "task": "lus_covid",
+      "numberOfUsers": 3,
+      "batchSize": 5,
+      "aggregator": "mean"
+    },
+    {
+      "testID": "lus_covid_fed_byz_cnn2_p3_d32_e30_r2",
+      "task": "lus_covid",
+      "numberOfUsers": 3,
+      "batchSize": 5,
+      "aggregator": "byzantine",
+      "clippingRadius": 1,
+      "maxIterations": 1,
+      "beta": 0.9
+    },
+
+    {
+      "testID": "cifar10_dec_mean_cnn4_p3_d600_e500_r5",
+      "task": "cifar10",
+      "numberOfUsers": 3,
+      "batchSize": 32,
+      "aggregator": "mean",
+      "epochs": 200,
+      "roundDuration": 5
+    },
+    {
+      "testID": "cifar10_dec_byz_cnn4_p3_d600_e500_r5",
+      "task": "cifar10",
+      "numberOfUsers": 3,
+      "batchSize": 32,
+      "epochs": 200,
+      "roundDuration": 5,
+      "aggregator": "byzantine",
+      "clippingRadius": 1,
+      "maxIterations": 1,
+      "beta": 0.9
+    },
+    {
+      "testID": "cifar10_dec_sec_cnn4_p3_d600_e500_r5",
+      "task": "cifar10",
+      "numberOfUsers": 3,
+      "batchSize": 32,
+      "epochs": 200,
+      "roundDuration": 5,
+      "aggregator": "secure",
+      "maxShareValue": 100
+    }
+  ]
+}

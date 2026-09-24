@@ -1,13 +1,13 @@
 <template>
   <div class="grid grid-cols-1">
     <DatasetInput>
-      <FileSelection v-model="files" type="tabular" private />
+      <FileSelection v-model="files" type="tabular" no-upload />
     </DatasetInput>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { Set } from "immutable";
+import type { Set } from "immutable";
 import { ref, watch } from "vue";
 
 import type { Dataset, Tabular } from "@epfml/discojs";

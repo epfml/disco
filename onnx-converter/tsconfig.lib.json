@@ -1,5 +1,14 @@
 {
-	"extends": "../tsconfig.base.json",
-	"compilerOptions": { "outDir": "dist" },
-	"include": ["src"]
+  "extends": "../tsconfig.base.lib.json",
+  "references": [
+    {
+      "path": "../discojs/tsconfig.lib.json"
+    }
+  ],
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "dist",
+    "types": ["node"]
+  },
+  "include": ["src"]
 }

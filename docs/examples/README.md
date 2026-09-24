@@ -15,7 +15,7 @@ You can run the training example as follows:
 
 ```
 cd docs/example
-npm run train # compiles TypeScript and runs training.ts
+pnpm run train # compiles TypeScript and runs training.ts
 ```
 
 As you can see in `training.ts` a client is represented by a `Disco` object:
@@ -23,8 +23,7 @@ As you can see in `training.ts` a client is represented by a `Disco` object:
 ```js
 const disco = new Disco(task, { url, scheme: "federated" });
 for await (const round of disco.fit(dataset))
-  for await (const epoch of round)
-    for await (const batch of epoch);
+  for await (const epoch of round) for await (const batch of epoch);
 await disco.close();
 ```
 
@@ -43,7 +42,7 @@ You can run the custom task example with:
 
 ```
 cd docs/examples
-npm run custom_task # compiles TypeScript and runs custom_task.ts
+pnpm run custom_task # compiles TypeScript and runs custom_task.ts
 ```
 
 ### Creating a CSV file to connect a dataset in DISCO

@@ -5,7 +5,7 @@
   >
     <LabeledDatasetInput v-model="dataset" :task>
       <template #header>
-        <IconCard class="mx-auto w-full max-w-[700px]">
+        <IconCard class="mx-auto w-full max-w-card">
           <template #title> Model Validation </template>
 
           It is very important that your model is tested against
@@ -21,7 +21,7 @@
 
   <div v-show="validationStore.step === 2">
     <!-- Test the model on a data set with labels -->
-    <div class="space-y-8 mb-8 w-full lg:max-w-[700px] mx-auto">
+    <div class="space-y-8 mb-8 w-full lg:max-w-card mx-auto">
       <IconCard>
         <template #title>Validate your model</template>
 
