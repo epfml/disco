@@ -224,8 +224,14 @@ async function startTraining(): Promise<void> {
 
   // Store the cleanup function such that it can be ran if users
   // manually interrupt the training
-  cleanupDisco.value = async () => await disco.close();
-
+  cleanupDisco.value = async () => {
+    // cleanup is called at the end of training or if interrupted
+    // in both cases, we emit the model
+    // transfer ownership before close() disposes the trainer's model
+    const model = disco.trainer.releaseModel();
+    if (model !== undefined) emit("model", model);
+    await disco.close();
+  };
   // For the training completed message
   let trainingCompleted = true;
 
@@ -289,7 +295,6 @@ async function startTraining(): Promise<void> {
     }
     debug("while training: %o", e);
   } finally {
-    emit("model", disco.trainer.model);
     await cleanupTrainingSession();
   }
 
@@ -313,13 +318,18 @@ async function cleanupTrainingSession() {
 }
 
 async function stopTraining(): Promise<void> {
-  await trainingGenerator.value?.throw(stopper);
+  const ignoreStopper = (e: unknown): void => {
+    if (e !== stopper) throw e;
+  };
+  // throwing stopper will be caught by startTraining and will interrupt the training
+  // but we want stopTraining to resolve successfully so we also catch it here and ignore it
+  await trainingGenerator.value?.throw(stopper).catch(ignoreStopper);
   trainingGenerator.value = undefined;
 
-  await roundGenerator.value?.throw(stopper);
+  await roundGenerator.value?.throw(stopper).catch(ignoreStopper);
   roundGenerator.value = undefined;
 
-  await epochGenerator.value?.throw(stopper);
+  await epochGenerator.value?.throw(stopper).catch(ignoreStopper);
   epochGenerator.value = undefined;
 
   // Cleanup the session, potentially already done if the
