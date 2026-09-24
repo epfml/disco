@@ -75,7 +75,7 @@ export function computeStandardizationStats(
 /**
  * Apply standardization for a single value
  */
-export function standardizeValue(
+function standardizeValue(
   value: number,
   mean: number,
   std: number,
@@ -89,7 +89,7 @@ export function standardizeValue(
  *
  * One hot encoding function is called for each row in dataset
  */
-export function oneHotEncode(
+function oneHotEncode(
   value: string,
   categories: Array<string>,
 ): Array<number> {
