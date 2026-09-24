@@ -7,7 +7,7 @@ import type {
 
 export function withTrainingConfig<D extends DataType, N extends Network>(
   provider: TaskProvider<D, N>,
-  trainingConfig: Pick<TrainingInformation<D>, "epochs" | "roundDuration">,
+  trainingConfig: Pick<TrainingInformation<D, N>, "epochs" | "roundDuration">,
 ): TaskProvider<D, N> {
   return {
     modelCard: provider.modelCard,
