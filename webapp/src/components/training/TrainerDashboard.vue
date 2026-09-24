@@ -122,7 +122,7 @@ import type {
   Task,
   Network,
 } from "@epfml/discojs";
-import { split, Disco, modelEncode, modelDecode } from "@epfml/discojs";
+import { split, Disco } from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster";
 import TrainingInformation from "@/components/training/TrainingInformation.vue";
