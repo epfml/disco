@@ -114,18 +114,6 @@ which should open the Cypress UI and let you choose the browser you wand to use 
 
 #### Cypress and Github Actions
 
-Local-training completion specs live in `webapp/cypress/e2e/local_training/`.
-CI runs Titanic, LUS COVID, and Wikitext in separate matrix jobs; the general
-E2E job excludes these specs to avoid duplicate runs. Local Cypress commands
-still include all specs, and the interactive runner lets you select one task.
-
-These tests initially use one epoch, round duration one, batch size one, and
-no validation split, with small inputs and the real default models. This is a
-baseline for increasing the workloads after measuring CI timings. The target
-is under five minutes per training spec on the GitHub runner, excluding setup.
-Cypress prints spec durations in the job logs, and failed training jobs upload
-screenshots as task-specific artifacts.
-
 It is possible to record the cypress tests ran in the Github Actions CI and visualize them in the [Cypress Cloud](cloud.cypress.io). It is currently used only when needed (because the free plan has a limited number of recordings). The [cypress documentation](https://docs.cypress.io/app/continuous-integration/github-actions) describes how to set up the recordings.
 
 1. A Disco project has been created in the Cypress Cloud and you need to be added to the project to be able to visualize the recordings.
