@@ -38,14 +38,18 @@ describe("training page", () => {
 
     cy.contains("button", "locally").click();
     cy.contains("button", "Start training").click();
+    cy.get(".v-toast__item--error", { timeout: 1_000 }).should("not.exist");
     cy.contains("h6", "epochs")
       .next({ timeout: 40_000 })
       .should("have.text", "10 / 10");
+    cy.get(".v-toast__item--error", { timeout: 1_000 }).should("not.exist");
     cy.contains("button", "next").click();
 
     cy.contains("button", "test model").click();
+    cy.get(".v-toast__item--error", { timeout: 1_000 }).should("not.exist");
 
-    cy.contains("Titanic Prediction");
+    cy.location("pathname").should("eq", "/evaluate");
+    cy.contains("Model Testing");
   });
 
   it("can start and stop training of lus_covid", () => {
@@ -84,5 +88,6 @@ describe("training page", () => {
       .should("have.text", "2");
 
     cy.contains("button", "stop training").click();
+    cy.get(".v-toast__item--error", { timeout: 1_000 }).should("not.exist");
   });
 });
