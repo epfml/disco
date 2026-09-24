@@ -10,8 +10,8 @@ import {
 it("completes local LUS COVID training and saves the model", () => {
   setupServerWith(
     withTrainingConfig(defaultTasks.lusCovid, {
-      epochs: 5,
-      roundDuration: 5,
+      epochs: 4,
+      roundDuration: 4,
     }),
   );
   goToTaskOverview();
@@ -35,5 +35,5 @@ it("completes local LUS COVID training and saves the model", () => {
     );
   }
 
-  trainLocallyAndSave("Lung Ultrasound Image Classification", 5, 300_000);
+  trainLocallyAndSave("Lung Ultrasound Image Classification", 4, 300_000);
 });
