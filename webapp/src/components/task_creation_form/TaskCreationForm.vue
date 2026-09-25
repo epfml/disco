@@ -1020,13 +1020,50 @@ const schema = z
                   categories: z.array(z.string().min(1)).min(1),
                 }),
               )
-              .default([])
-              .transform((columns) =>
-                Object.fromEntries(
-                  columns.map(({ column, categories }) => [column, categories]),
-                ),
-              ),
+              .default([]),
           })
+          // checked that there are no duplicate columns
+          .superRefine(({ inputColumns, categoricalColumns }, ctx) => {
+            const seenColumns = new Set<string>();
+
+            categoricalColumns.forEach(({ column, categories }, i) => {
+              if (seenColumns.has(column))
+                ctx.addIssue({
+                  code: "custom",
+                  path: ["categoricalColumns", i, "column"],
+                  message: "Categorical column is already defined",
+                });
+              seenColumns.add(column);
+
+              if (!inputColumns.includes(column))
+                ctx.addIssue({
+                  code: "custom",
+                  path: ["categoricalColumns", i, "column"],
+                  message:
+                    "Categorical columns must also be included in input columns",
+                });
+
+              const seenCategories = new Set<string>();
+              categories.forEach((category, j) => {
+                if (seenCategories.has(category))
+                  ctx.addIssue({
+                    code: "custom",
+                    path: ["categoricalColumns", i, "categories", j],
+                    message: "Category is already defined",
+                  });
+                seenCategories.add(category);
+              });
+            });
+          })
+          .transform(({ categoricalColumns, ...trainingInformation }) => ({
+            ...trainingInformation,
+            categoricalColumns: Object.fromEntries(
+              categoricalColumns.map(({ column, categories }) => [
+                column,
+                categories,
+              ]),
+            ),
+          }))
           .and(trainingInformationNetworks),
       }),
       z.object({
@@ -1050,22 +1087,7 @@ const schema = z
           .and(trainingInformationNetworks),
       }),
     ]),
-  )
-  .superRefine((task, ctx) => {
-    if (task.dataType !== "tabular") return;
-
-    const { inputColumns, categoricalColumns } = task.trainingInformation;
-
-    Object.keys(categoricalColumns).forEach((column, idx) => {
-      if (inputColumns.includes(column)) return;
-
-      ctx.addIssue({
-        code: "custom",
-        path: ["trainingInformation", "categoricalColumns", idx, "column"],
-        message: "Categorical columns must also be included in input columns",
-      });
-    });
-  });
+  );
 
 async function onSubmit(form: unknown): Promise<void> {
   // TODO double check as @submit isn't generic vee-validate#4845
