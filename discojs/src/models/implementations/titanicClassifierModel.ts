@@ -7,7 +7,7 @@ export function model() {
 
   model.add(
     tf.layers.dense({
-      inputShape: [5],
+      inputShape: [11],
       units: 124,
       activation: "relu",
       kernelInitializer: "leCunNormal",

@@ -4,7 +4,7 @@ import { encode as w_encode, decode as w_decode } from "#serialization/weights";
 import { GPT } from "#models/implementations/index";
 import type { GPTConfig } from "#models/implementations/index";
 import { TFJS } from "#models/tfjs";
-import type { Model } from "#models/model";
+import type { Model, ModelMetadata } from "#models/model";
 import type { DataType } from "#types/index";
 
 import type { Encoded } from "#serialization/coder";
@@ -54,11 +54,11 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
   const rawModel = raw[1] as unknown;
   switch (type) {
     case Type.TFJS: {
-      if (raw.length !== 3)
+      if (raw.length !== 3 && raw.length !== 4)
         throw new Error(
-          "invalid TFJS model encoding: should be an array of length 3",
+          "invalid TFJS model encoding: should be an array of length 3 or 4",
         );
-      const [rawDatatype, rawModel] = raw.slice(1) as unknown[];
+      const [rawDatatype, rawModel, rawMetadata] = raw.slice(1) as unknown[];
 
       let datatype;
       switch (rawDatatype) {
@@ -74,6 +74,8 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
         datatype,
         // TODO totally unsafe casting
         rawModel as tf.io.ModelArtifacts,
+        // metadata for tabular task standardization
+        rawMetadata === null ? undefined : (rawMetadata as ModelMetadata),
       ]);
     }
     case Type.GPT: {

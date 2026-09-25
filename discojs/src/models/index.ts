@@ -1,6 +1,7 @@
 export { Model } from "./model.js";
-export type { BatchLogs, ValidationMetrics } from "./logs.js";
+export type { ModelMetadata } from "./model.js";
 export { EpochLogs } from "./logs.js";
+export type { BatchLogs, ValidationMetrics } from "./logs.js";
 export { Tokenizer } from "./tokenizer.js";
 export { DefaultGenerationConfig } from "./generation.js";
 export type { GenerationConfig } from "./generation.js";

@@ -85,6 +85,7 @@ it("submits with tabular task", () => {
         validationSplit: 0,
         minNbOfParticipants: 2,
         inputColumns: ["input"],
+        categoricalColumns: {},
         outputColumn: "output",
         tensorBackend: "tfjs",
       },

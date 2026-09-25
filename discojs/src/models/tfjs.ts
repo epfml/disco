@@ -7,9 +7,10 @@ import { WeightsContainer } from "#weights/index";
 
 import type { BatchLogs } from "#models/logs";
 import { Model } from "#models/model";
+import type { ModelMetadata } from "#models/model";
 import { EpochLogs } from "#models/logs";
 
-type Serialized<D extends DataType> = [D, tf.io.ModelArtifacts];
+type Serialized<D extends DataType> = [D, tf.io.ModelArtifacts, ModelMetadata?];
 
 /** TensorFlow JavaScript model with standard training */
 export class TFJS<D extends "image" | "tabular"> extends Model<D> {
@@ -17,8 +18,10 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
   constructor(
     public readonly datatype: D,
     private readonly model: tf.LayersModel,
+    metadata?: ModelMetadata,
   ) {
     super();
+    this.metadata = metadata;
 
     if (model.loss === undefined) {
       throw new Error("TFJS models need to be compiled to be used");
@@ -179,12 +182,14 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
   static async deserialize<D extends "image" | "tabular">([
     datatype,
     artifacts,
+    metadata,
   ]: Serialized<D>): Promise<TFJS<D>> {
     return new this(
       datatype,
       await tf.loadLayersModel({
         load: () => Promise.resolve(artifacts),
       }),
+      metadata,
     );
   }
 
@@ -211,7 +216,10 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
       },
     );
 
-    return [this.datatype, await ret];
+    // omit metadata when absent, msgpack would encode an undefined entry as null
+    return this.metadata !== undefined
+      ? [this.datatype, await ret, this.metadata]
+      : [this.datatype, await ret];
   }
 
   dispose(): void {

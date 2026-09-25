@@ -63,6 +63,8 @@ watch([imageDataset, tabularDataset, textDataset], async () => {
         let msg = "Error when loading CSV";
         if (e instanceof Error) msg = `${msg}: ${e.message}`;
         toaster.error(msg);
+
+        tabularDataset.value = undefined;
       }
 
       dataset.value = tabularDataset.value as UnlabeledDataset[D];
