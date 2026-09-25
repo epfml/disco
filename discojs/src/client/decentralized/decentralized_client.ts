@@ -479,65 +479,82 @@ export class DecentralizedClient extends Client<"decentralized"> {
     // A communication round's payload is the aggregation result of the previous communication round. The first
     // communication round simply sends our training result, i.e. model weights updates. This scheme allows for
     // the aggregator to define any complex multi-round aggregation mechanism.
+    // `weights` is owned by the caller, every later `result` is ours to dispose
     let result = weights;
+    const disposeResult = () => {
+      if (result !== weights) result.dispose();
+    };
     for (
       let communicationRound = 0;
       communicationRound < this.aggregator.communicationRounds;
       communicationRound++
     ) {
       const connections = this.#connections;
-      if (connections === undefined)
+      if (connections === undefined) {
+        disposeResult();
         throw new Error("peer's connections is undefined");
+      }
       // Generate our payloads for this communication round and send them to all ready connected peers
       // Aggregation may complete while payloads are being encoded and sent, so
       // every contribution in this exchange must retain the same round number.
       const aggregationRound = this.aggregator.round;
       const payloads = this.aggregator.makePayloads(result);
-      await Promise.all(
+      const sent = Promise.all(
         payloads
           .entrySeq()
           .map(async ([id, payload]) => {
-            if (id === this.ownId) {
-              // add our own contribution to the aggregator, which takes a copy
-              this.aggregator.add(
-                this.ownId,
-                payload,
+            try {
+              if (id === this.ownId) {
+                // add our own contribution to the aggregator, which takes a copy
+                this.aggregator.add(
+                  this.ownId,
+                  payload,
+                  aggregationRound,
+                  communicationRound,
+                );
+                return;
+              }
+
+              const peer = connections.get(id);
+              if (peer === undefined) return;
+
+              const encoded = await weightsEncode(payload);
+
+              const msg: messages.PeerMessage = {
+                type: MType.Payload,
+                peer: id,
+                aggregationRound,
+                communicationRound,
+                payload: encoded,
+              };
+
+              peer.send(msg);
+
+              debug(
+                `[${shortenId(this.ownId)}] send weight update to peer ${shortenId(msg.peer)}` +
+                  ` for round (%d, %d)`,
                 aggregationRound,
                 communicationRound,
               );
-              return;
+            } finally {
+              payload.dispose();
             }
-
-            const peer = connections.get(id);
-            if (peer === undefined) return;
-
-            const encoded = await weightsEncode(payload);
-
-            const msg: messages.PeerMessage = {
-              type: MType.Payload,
-              peer: id,
-              aggregationRound,
-              communicationRound,
-              payload: encoded,
-            };
-
-            peer.send(msg);
-
-            debug(
-              `[${shortenId(this.ownId)}] send weight update to peer ${shortenId(msg.peer)}` +
-                ` for round (%d, %d)`,
-              aggregationRound,
-              communicationRound,
-            );
           })
           .toArray(),
       );
+      try {
+        await sent;
+      } catch (e) {
+        disposeResult();
+        throw e;
+      }
       // Wait for aggregation before proceeding to the next communication round.
       // The current result will be used as payload for the eventual next communication round.
       // By the timeout, every contribution has been received or given up on,
       // so a missing one would never come and we keep our local weights.
+      let aggregated: WeightsContainer;
       try {
-        result = await Promise.race([
+        aggregated = await Promise.race([
           this.aggregationResult,
           timeout(
             MAX_PAYLOAD_WAIT,
@@ -550,8 +567,12 @@ export class DecentralizedClient extends Client<"decentralized"> {
             `[${shortenId(this.ownId)}] while waiting for aggregation: %o`,
             e,
           );
+        disposeResult();
         return weights.clone();
       }
+      // the previous result has been sent, it is replaced by the new aggregation
+      disposeResult();
+      result = aggregated;
 
       // There is at least one communication round remaining
       if (communicationRound < this.aggregator.communicationRounds - 1) {
@@ -559,7 +580,10 @@ export class DecentralizedClient extends Client<"decentralized"> {
         this.aggregationResult = this.aggregator.getPromiseForAggregation();
       }
     }
-    return await this.aggregationResult;
+    const aggregationResult = await this.aggregationResult;
+    // on the normal path, the last result is the final aggregation itself
+    if (result !== aggregationResult) disposeResult();
+    return aggregationResult;
   }
 
   /**
