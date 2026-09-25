@@ -1,5 +1,6 @@
 import { Set } from "immutable";
 import { describe, expect, it } from "vitest";
+import * as tf from "@tensorflow/tfjs";
 
 import { WeightsContainer } from "#weights/index";
 import { PercentileClippingAggregator } from "#aggregator/percentile_clipping";
@@ -169,5 +170,46 @@ describe("PercentileClippingAggregator", () => {
     };
 
     expect(await run()).to.be.closeTo(await run(), 1e-6);
+  });
+
+  it("keeps working after the caller disposes the previous aggregate", async () => {
+    const agg = new PercentileClippingAggregator(0, 2, "absolute", 0.5);
+    agg.setNodes(Set(["a", "b"]));
+
+    const p1 = agg.getPromiseForAggregation();
+    agg.add("a", WeightsContainer.of([1]), 0);
+    agg.add("b", WeightsContainer.of([1]), 0);
+    // the caller owns the aggregate, disposing it must not break the next round
+    (await p1).dispose();
+
+    const p2 = agg.getPromiseForAggregation();
+    agg.add("a", WeightsContainer.of([2]), 1);
+    agg.add("b", WeightsContainer.of([2]), 1);
+    const out = await p2;
+    expect((await WSIntoArrays(out))[0][0]).to.be.closeTo(2, 1e-6);
+    out.dispose();
+    agg.dispose();
+  });
+
+  it("aggregation leaves no dangling tensors", async () => {
+    const baseline = tf.memory().numTensors;
+
+    const agg = new PercentileClippingAggregator(0, 3, "absolute", 0.5);
+    const ids = ["a", "b", "c"];
+    agg.setNodes(Set(ids));
+
+    for (let round = 0; round < 3; round++) {
+      const contributions = ids.map((_, i) =>
+        WeightsContainer.of([i, round], [100 * i]),
+      );
+      const p = agg.getPromiseForAggregation();
+      ids.forEach((id, i) => agg.add(id, contributions[i], round));
+      (await p).dispose();
+      contributions.forEach((c) => c.dispose());
+    }
+
+    // the aggregator only keeps the previous aggregate
+    agg.dispose();
+    expect(tf.memory().numTensors).to.equal(baseline);
   });
 });
