@@ -315,12 +315,16 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   async close(): Promise<void> {
     if (this.#closed) return;
 
-    // Dispose the model tensor
+    // Dispose the model tensor and the aggregator's buffered tensors
     try {
       await this.#client.disconnect();
     } finally {
-      this.trainer[Symbol.dispose]();
-      this.#closed = true;
+      try {
+        this.trainer[Symbol.dispose]();
+      } finally {
+        this.#client.aggregator.dispose();
+        this.#closed = true;
+      }
     }
   }
 
