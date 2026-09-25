@@ -180,7 +180,7 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
     weights: WeightsContainer,
   ): Map<NodeID, WeightsContainer> {
     // Communicate our local weights to every other node, be it a peer or a server
-    return this.nodes.toMap().map(() => weights);
+    return this.nodes.toMap().map(() => weights.clone());
   }
 }
 

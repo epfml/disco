@@ -148,16 +148,16 @@ export class FederatedClient extends Client<"federated"> {
     this.saveAndEmit("updating model");
     // Send our local contribution to the server
     // and receive the server global update for this round as an answer to our contribution
-    const payloadToServer = this.aggregator
-      .makePayloads(weights)
-      .get(SERVER_NODE_ID);
-    if (payloadToServer === undefined)
-      throw new Error("aggregator didn't make a payload for the server");
-
+    // the payloads are ours to dispose
+    const payloads = this.aggregator.makePayloads(weights);
     const round = this.aggregator.round;
-    // block-scope the encoded payload so the potentially large buffer can be GC'd
-    // while we await the server's response below
-    {
+    try {
+      const payloadToServer = payloads.get(SERVER_NODE_ID);
+      if (payloadToServer === undefined)
+        throw new Error("aggregator didn't make a payload for the server");
+
+      // block-scope the encoded payload so the potentially large buffer can be GC'd
+      // while we await the server's response below
       const payload = await weightsEncode(payloadToServer);
       debug(
         "[%s] encoded payload for round %d byteLength=%d",
@@ -175,6 +175,8 @@ export class FederatedClient extends Client<"federated"> {
       // Need to await the resulting global model right after sending our local contribution
       // to make sure we don't miss it
       this.server.send(msg);
+    } finally {
+      payloads.forEach((p) => p.dispose());
     }
     debug(
       `[${shortenId(this.ownId)}] sent its local update to the server for round ${round}`,
