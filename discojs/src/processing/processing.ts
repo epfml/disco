@@ -8,7 +8,7 @@ import type { ModelMetadata } from "#models/model";
 import { normalize, removeAlpha, resize } from "#processing/image";
 import {
   indexInList,
-  extractColumn,
+  extractValue,
   convertToNumber,
   encodeTabularRow,
 } from "#processing/tabular";
@@ -37,17 +37,11 @@ export function preprocess<D extends DataType, N extends Network>(
       const stats = metadata?.tabularStandardization;
 
       return d.map((row) => {
-        const output = extractColumn(row, outputColumn);
-
         const inputs = List(
           encodeTabularRow(row, inputColumns, categoricalColumns, stats),
         );
 
-        return [
-          inputs,
-          // TODO sanitization doesn't care about column distribution
-          output !== "" ? convertToNumber(output) : 0,
-        ];
+        return [inputs, convertToNumber(extractValue(row, outputColumn))];
       }) as Dataset<DataFormat.ModelEncoded[D]>;
     }
     case "text": {

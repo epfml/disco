@@ -1,13 +1,8 @@
 import { Range, Set } from "immutable";
 
+import { isMissingValue } from "@epfml/discojs";
+
 import type { LabeledDataset } from "./types";
-
-function isNaNValue(value: string | undefined): boolean {
-  if (value === undefined) return true;
-
-  const trimmed = value.trim();
-  return trimmed === "" || trimmed.toLowerCase() === "nan";
-}
 
 export async function tabular(
   wantedColumns: Set<string>,
@@ -24,8 +19,8 @@ export async function tabular(
       );
 
     for (const col of wantedColumns) {
-      if (isNaNValue(row[col]))
-        throw new Error(`row ${i} column "${col}" contains NaN`);
+      if (isMissingValue(row[col]))
+        throw new Error(`row ${i} column "${col}" is missing a value`);
     }
   }
 }

@@ -31,6 +31,33 @@ export function extractColumn(
 }
 
 /**
+ * Whether a CSV cell should be considered as missing data
+ *
+ * Absent, blank and "NaN" cells are missing.
+ */
+export function isMissingValue(raw: string | undefined): boolean {
+  if (raw === undefined) return true;
+
+  const trimmed = raw.trim();
+  return trimmed === "" || trimmed.toLowerCase() === "nan";
+}
+
+/**
+ * Return the named field of an object with string values
+ *
+ * @throws if the named field isn't there or is missing data
+ */
+export function extractValue(
+  row: Partial<Record<string, string>>,
+  column: string,
+): string {
+  const raw = extractColumn(row, column);
+  if (isMissingValue(raw))
+    throw new Error(`missing value in column "${column}"`);
+  return raw;
+}
+
+/**
  * Return the index of the element in the given list
  *
  * @throws if not found
@@ -55,10 +82,7 @@ export function computeStandardizationStats(
   const stds: Record<string, number> = {};
 
   for (const col of columns) {
-    const values = rows.map((row) => {
-      const rawValue = extractColumn(row, col);
-      return convertToNumber(rawValue !== "" ? rawValue : "0");
-    });
+    const values = rows.map((row) => convertToNumber(extractValue(row, col)));
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
     const variance =
       values.reduce((acc, val) => acc + (val - mean) ** 2, 0) / values.length;
@@ -75,11 +99,7 @@ export function computeStandardizationStats(
 /**
  * Apply standardization for a single value
  */
-function standardizeValue(
-  value: number,
-  mean: number,
-  std: number,
-): number {
+function standardizeValue(value: number, mean: number, std: number): number {
   if (std == 0) return 0; // avoid divide by 0
   return (value - mean) / std;
 }
@@ -89,10 +109,7 @@ function standardizeValue(
  *
  * One hot encoding function is called for each row in dataset
  */
-function oneHotEncode(
-  value: string,
-  categories: Array<string>,
-): Array<number> {
+function oneHotEncode(value: string, categories: Array<string>): Array<number> {
   // Get the index of the value among the possible categories
   const index = categories.indexOf(value);
 
@@ -117,7 +134,7 @@ export function encodeTabularRow(
   stats?: StandardizationStats,
 ): Array<number> {
   const outputRow = inputColumns.flatMap((column) => {
-    const raw = extractColumn(row, column);
+    const raw = extractValue(row, column);
     const categories = categoricalColumns[column];
 
     // If the column exists in the list of categorical columns, apply one hot encoding
@@ -126,7 +143,7 @@ export function encodeTabularRow(
     }
 
     // If the column is numerical column, apply standardization
-    const value = convertToNumber(raw !== "" ? raw : "0");
+    const value = convertToNumber(raw);
 
     if (stats === undefined) {
       return [value];

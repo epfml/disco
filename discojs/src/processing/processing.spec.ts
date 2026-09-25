@@ -49,6 +49,35 @@ describe("preprocess", () => {
     expect(false, "should have thrown").to.be.true;
   });
 
+  it("throws on missing label in tabular", async () => {
+    const task: Task<"tabular", "local"> = {
+      id: "task",
+      dataType: "tabular",
+      displayInformation: {
+        title: "",
+        summary: { preview: "", overview: "" },
+      },
+      trainingInformation: {
+        tensorBackend: "tfjs",
+        scheme: "local",
+        aggregationStrategy: "mean",
+        epochs: 1,
+        roundDuration: 1,
+        batchSize: 1,
+        validationSplit: 0,
+        inputColumns: ["a"],
+        categoricalColumns: {},
+        outputColumn: "c",
+      },
+    };
+
+    const dataset = new Dataset([{ a: "1", c: "" }]);
+
+    await expect(arrayFromAsync(preprocess(task, dataset))).rejects.toThrow(
+      /missing value in column "c"/,
+    );
+  });
+
   it("drops incomplete text windows", async () => {
     const task = {
       id: "task",
