@@ -1,3 +1,5 @@
+import * as tf from "@tensorflow/tfjs";
+
 import type { WeightsContainer } from "#weights/index";
 import { avg } from "#weights/index";
 
@@ -47,19 +49,27 @@ export class SecureHistoryAggregator extends SecureAggregator {
     const contribAvg = avg(currentContributions.values());
 
     if (this.prevAggregate === null) {
-      this.prevAggregate = contribAvg;
+      // Keep our own copy, the returned aggregate is owned (and disposed) by the caller
+      this.prevAggregate = contribAvg.clone();
       return contribAvg;
     }
 
     const updatedMomentum = this.prevAggregate.mapWith(
       contribAvg,
-      (prevT, currT) => prevT.mul(this.beta).add(currT.mul(1 - this.beta)),
+      (prevT, currT) =>
+        tf.tidy(() => prevT.mul(this.beta).add(currT.mul(1 - this.beta))),
     );
+    contribAvg.dispose();
 
-    // Dispose old tensors to avoid memory leaks
-    this.prevAggregate.weights.forEach((t) => t.dispose());
-    this.prevAggregate = updatedMomentum;
+    this.prevAggregate.dispose();
+    this.prevAggregate = updatedMomentum.clone();
 
     return updatedMomentum;
+  }
+
+  override dispose(): void {
+    this.prevAggregate?.dispose();
+    this.prevAggregate = null;
+    super.dispose();
   }
 }
