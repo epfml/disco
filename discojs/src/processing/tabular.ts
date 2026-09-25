@@ -157,7 +157,7 @@ function oneHotEncode(value: string, categories: Array<string>): Array<number> {
 export function encodeTabularRow(
   row: Partial<Record<string, string>>,
   inputColumns: Array<string>,
-  categoricalColumns: Record<string, Array<string>>,
+  categoricalColumns: Record<string, Array<string>> = {},
   stats?: StandardizationStats,
 ): Array<number> {
   const outputRow = inputColumns.flatMap((column) => {

@@ -441,7 +441,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     if (this.#task.dataType !== "tabular") return undefined;
 
     const { inputColumns, categoricalColumns } = this.#task.trainingInformation;
-    const categorical = new Set(Object.keys(categoricalColumns));
+    const categorical = new Set(Object.keys(categoricalColumns ?? {}));
     const numericalColumns = inputColumns.filter(
       (column) => !categorical.has(column),
     );

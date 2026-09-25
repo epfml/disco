@@ -64,6 +64,12 @@ describe("encodeTabularRow", () => {
     ).to.deep.equal([1, 0, 1]);
   });
 
+  it("treats every column as numerical without categorical columns", () => {
+    expect(
+      encodeTabularRow({ age: "40" }, ["age"], undefined, stats),
+    ).to.deep.equal([1]);
+  });
+
   it("throws on missing numerical value", () => {
     expect(() =>
       encodeTabularRow(

@@ -94,11 +94,11 @@ export namespace TrainingInformation {
     tabular: z.object({
       // the columns to be chosen as input data for the model
       inputColumns: z.array(z.string()),
-      // categorical columns to be chosen as input data for the model
+      // categorical columns to be chosen as input data for the model,
+      // mapped to their categories; other input columns are numerical
       categoricalColumns: z
         .record(z.string(), z.array(z.string().min(1)).min(1))
-        .optional()
-        .default({}),
+        .optional(),
       // the columns to be predicted by the model
       outputColumn: z.string(),
     }),
