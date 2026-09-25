@@ -123,19 +123,88 @@ flowchart LR
 
 The `DistributedTrainer` has a `memory` attribute that is used to abstract how trained models are stored by the client. As mentioned in various guides, `discojs` is platform-agnostic and only what endpoints the memory storage should offer. The actual implementation is in `discojs-web` used by the browser UI and implements the memory via IndexedDB, a browser storage. `discojs` also implements a dummy memory, used by the CLI for example, to benchmark performance metrics without saving any models.
 
-### Developing
+### TensorFlow.js memory management
 
-Both the server and browser use hot-reloading, this means that they are both _watching_ the files for changes,
-and so whenever you change a server .ts file, then the server will reload (ditto for the browser).
+Tensors are **not** garbage collected by JavaScript. When a tensor object becomes unreachable, the JavaScript wrapper is collected but the memory it points to is not: it stays allocated until the tensor is explicitly disposed. Since every TF.js operation returns a _new_ tensor, forgetting to dispose tensors quickly leaks memory, especially in code that runs at every batch, epoch or round.
 
-However at the time of writing there is no such mechanism (this could be a fun first contribution!) for discojs.
-If you noticed in the quick start before building the library we do `rm -rf dist`, we remove the `dist/` directory
-which is where discojs is transpiled to (this contains JS code); so if we re-build discojs this acts as cache which
-may sadly on some edge cases prevent new code from being built, so to be sure, it is recommended to remove this
-cache before building.
+You can monitor the number of allocated tensors and bytes with `tf.memory()`:
 
-### Debugging
+```ts
+console.log(tf.memory().numTensors, tf.memory().numBytes);
+```
 
-To debug a specific module, use the [`debug` package](https://www.npmjs.com/package/debug).
-You can see the module's logs by setting the environnement variable `DEBUG=discojs:name_of_your_module`,
-or if you want to see all the logs of discojs, you can use `DEBUG=discojs:*`.
+See the [TensorFlow.js documentation](https://www.tensorflow.org/js/guide/tensors_operations#memory) for the API.
+
+#### Leaking intermediate tensors
+
+A common leak comes from chaining operations:
+
+```ts
+// Leaks! `weights.square()` allocates a tensor that is never disposed
+function squaredNorm(weights: tf.Tensor): tf.Tensor {
+  return weights.square().sum();
+}
+```
+
+Here, `weights.square()` creates an intermediate tensor which is only used as input to `.sum()`. Another common leak is re-assigning a variable in a loop, which loses the reference to the previous tensor:
+
+```ts
+let acc = tf.zeros([10]);
+for (const t of tensors) acc = acc.add(t); // leaks the previous value of `acc` at every iteration
+```
+
+#### `tensor.dispose()` and `tf.dispose`
+
+The most explicit way to free memory is to call `dispose()` on every tensor once it isn't needed anymore. `tf.dispose` accepts a single tensor, an array or an object of tensors (`tf.dispose([a, b, c])`) and ignores non-tensor values.
+
+```ts
+let acc = tf.zeros([10]);
+for (const t of tensors) {
+  const next = acc.add(t);
+  acc.dispose();
+  acc = next;
+}
+```
+
+Use `try`/`finally` to make sure tensors are disposed even if an error is thrown in between.
+
+#### `tf.tidy`
+
+`tf.tidy(fn)` runs `fn` and disposes every tensor allocated during its execution, **except** the tensors returned by `fn`. This is usually the simplest way to avoid leaking intermediate tensors:
+
+```ts
+function squaredNorm(weights: tf.Tensor): tf.Tensor {
+  // the tensor returned by `square()` is disposed, the one returned by `sum()` is kept
+  return tf.tidy(() => weights.square().sum());
+}
+```
+
+How would you fix the previous example with `acc` using `tf.tidy`?
+
+#### Asynchronous computations
+
+`fn` must be **synchronous**: `tf.tidy` throws if `fn` returns a `Promise`. Therefore, never `await` inside `tf.tidy`.
+
+The usual pattern is to wrap the synchronous tensor operations in `tf.tidy`, then `await` outside of it and dispose the resulting tensor manually, for example when reading tensor values with the async `tensor.data()` (prefer it over `dataSync()` which blocks the main thread, freezing the UI in the browser):
+
+```ts
+async function frobeniusNorm(weights: tf.Tensor): Promise<number> {
+  // synchronous part: intermediate tensors are disposed by tf.tidy
+  const squaredTensor = tf.tidy(() => weights.square().sum());
+  try {
+    // asynchronous part: the tensor has to be disposed manually
+    const [squared] = await squaredTensor.data();
+    return Math.sqrt(squared);
+  } finally {
+    squaredTensor.dispose();
+  }
+}
+```
+
+#### Ownership conventions
+
+To know who is responsible for disposing a tensor, we follow these conventions:
+
+1. A function does not dispose its inputs, the caller remains responsible for them.
+2. A function returning tensors (or a `WeightsContainer`) transfers their ownership to the caller, who has to dispose them.
+3. Returned tensors must not alias the inputs (e.g., return `input.clone()` rather than `input`), otherwise disposing one would dispose the other.
