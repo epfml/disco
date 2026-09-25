@@ -97,6 +97,24 @@ jobs:
           path: webapp/cypress/screenshots
           if-no-files-found: ignore
 
+  test-e2e-federated:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/pull-dataset-artifacts
+      - uses: actions/download-artifact@v8
+        with: { name: all-builds }
+      - uses: cypress-io/github-action@v7
+        env:
+          VITE_SERVER_URL: http://localhost:8080
+        with:
+          working-directory: webapp
+          install: false
+          start: pnpm exec vite --mode test --port 1353 --strictPort
+          config-file: cypress.config.federated.ts
+
   test-cli:
     runs-on: ubuntu-latest
     steps:
