@@ -147,7 +147,7 @@ export class PercentileClippingAggregator extends MultiRoundAggregator {
   override makePayloads(
     weights: WeightsContainer,
   ): Map<NodeID, WeightsContainer> {
-    return this.nodes.toMap().map(() => weights);
+    return this.nodes.toMap().map(() => weights.clone());
   }
 }
 
