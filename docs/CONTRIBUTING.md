@@ -300,6 +300,6 @@ git push
 
 Depending on what you will be working on you may be interested in different documentation. Have a look at the markdown guides in `docs` and the table of content in [DEV.md](../DEV.md). Notably:
 
-- Understanding [Disco.js inner workings](./DISCOJS.md) is key if you are planning to add a new machine learning feature or work in `discojs`
+- Understanding [Disco.js inner workings](./DISCOJS.md) is key if you are planning to add a new machine learning feature or work in `discojs`. If you manipulate tensors, make sure to read the section on [TensorFlow.js memory management](./DISCOJS.md#tensorflowjs-memory-management) to avoid memory leaks.
 - The [Vue.js architecture guide](./VUEJS.md) explains how the browser client is implemented with Vue.js.
 - Regarding cryptography and privacy, this [document](./PRIVACY.md) explains the measures DISCO takes to ensure privacy and confidentiality.
