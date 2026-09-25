@@ -36,6 +36,12 @@ describe("computeStandardizationStats", () => {
     });
   });
 
+  it("throws on empty rows", async () => {
+    await expect(
+      computeStandardizationStats(new Dataset([]), ["a"]),
+    ).rejects.toThrow(/no rows/);
+  });
+
   it("throws on missing value", async () => {
     await expect(
       computeStandardizationStats(new Dataset([{ a: "1" }, { a: "" }]), ["a"]),

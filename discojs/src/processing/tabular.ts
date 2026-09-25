@@ -76,6 +76,8 @@ export function indexInList(
  *
  * Rows are streamed in a single pass (Welford's algorithm)
  * so that the dataset doesn't need to fit in memory.
+ *
+ * @throws if there is no row or a value is missing
  */
 export async function computeStandardizationStats(
   rows: AsyncIterable<Partial<Record<string, string>>>,
@@ -109,6 +111,10 @@ export async function computeStandardizationStats(
         (squaredDiffSums[col] ?? 0) + delta * (value - updatedMean);
     }
   }
+
+  // mean and std are undefined without any row
+  if (count === 0)
+    throw new Error("unable to compute standardization statistics: no rows");
 
   const stds: Record<string, number> = {};
   for (const col of columns)
