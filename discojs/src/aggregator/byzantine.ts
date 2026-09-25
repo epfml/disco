@@ -1,9 +1,8 @@
 import { Map } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 
-import type { WeightsContainer } from "#weights/index";
 import type { NodeID } from "#client/types";
-import { avg } from "#weights/index";
+import { avg, WeightsContainer } from "#weights/index";
 
 import { AggregationStep } from "#aggregator/aggregator";
 import type { ThresholdType } from "#aggregator/multiround";
@@ -98,10 +97,16 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
       nodeId,
     );
 
+    // Replacing a contribution of the current round, free the previous one
+    const previous = this.contributions.getIn([0, nodeId]) as
+      | WeightsContainer
+      | undefined;
+    previous?.dispose();
+
     const prevMomentum = this.historyMomentums.get(nodeId);
     const newMomentum = prevMomentum
       ? contribution.mapWith(prevMomentum, (g, m) =>
-          g.mul(1 - this.beta).add(m.mul(this.beta)),
+          tf.tidy(() => g.mul(1 - this.beta).add(m.mul(this.beta))),
         )
       : contribution.map((g) => g.mul(1 - this.beta));
 
@@ -125,53 +130,50 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
     }
 
     // Step 1: Initialize v using previous aggregate or mean of contributions
-    let v: WeightsContainer;
-    if (this.prevAggregate) {
-      v = this.prevAggregate.map((t) => tf.clone(t)); // Clone to avoid in-place modifications
-    } else {
-      v = avg(currentContributions.values());
-    }
-
-    const eps = tf.scalar(1e-12);
-    const one = tf.scalar(1);
-    const radius = tf.scalar(this.clippingRadius);
+    // Clone to avoid in-place modifications of the stored aggregate
+    let v = this.prevAggregate?.clone() ?? avg(currentContributions.values());
 
     // Step 2: Iterative Centered Clipping
     for (let l = 0; l < this.maxIterations; l++) {
+      // Clip one contribution at a time so that the unclipped diff is freed
+      // right away rather than keeping all of them alive until the end
       const clippedDiffs = Array.from(currentContributions.values()).map(
-        (m) => {
-          const diff = m.sub(v);
-
-          const norm = euclideanNorm(diff);
-
-          const safeNorm = tf.maximum(norm, eps);
-
-          const scale = tf.minimum(one, tf.div(radius, safeNorm));
-
-          const clipped = diff.mul(scale);
-
-          norm.dispose();
-          safeNorm.dispose();
-          scale.dispose();
-
-          return clipped;
-        },
+        (m) =>
+          new WeightsContainer(
+            tf.tidy(() => {
+              const diff = m.sub(v);
+              const safeNorm = tf.maximum(euclideanNorm(diff), 1e-12);
+              const scale = tf.minimum(
+                1,
+                tf.div(this.clippingRadius, safeNorm),
+              );
+              return diff.mul(scale).weights;
+            }),
+          ),
       );
 
       const avgClip = avg(clippedDiffs);
-      const newV = v.add(avgClip);
-
       clippedDiffs.forEach((d) => d.dispose());
+      const newV = v.add(avgClip);
+      avgClip.dispose();
 
-      const oldV = v;
+      v.dispose();
       v = newV;
-      oldV.dispose();
     }
 
-    tf.dispose([eps, one, radius]);
     // Step 3: Update history
-    this.prevAggregate = v;
+    // Keep our own copy, the returned aggregate is owned (and disposed) by the caller
+    this.prevAggregate?.dispose();
+    this.prevAggregate = v.clone();
     return v;
+  }
+
+  override dispose(): void {
+    this.historyMomentums.forEach((momentum) => momentum.dispose());
+    this.historyMomentums = Map();
+    this.prevAggregate?.dispose();
+    this.prevAggregate = null;
+    super.dispose();
   }
 
   override makePayloads(
