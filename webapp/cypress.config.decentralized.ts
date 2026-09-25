@@ -7,6 +7,7 @@ import { defineConfig } from "cypress";
 
 const RUN_TIMEOUT_MS = 270_000;
 const HARNESS_READY_TIMEOUT_MS = 60_000;
+const STOP_RUN_TIMEOUT_MS = 15_000;
 
 interface TrainingPeerResult {
   readonly rounds: number;
@@ -25,6 +26,8 @@ interface HarnessRun {
   readonly ready: Deferred<void>;
   training?: Deferred<TrainingPeerResult[]>;
   runTimeout?: NodeJS.Timeout;
+  stopping?: Deferred<void>;
+  stopPromise?: Promise<void>;
 }
 
 let harness: HarnessRun | undefined;
@@ -65,6 +68,8 @@ async function startHarness(projectRoot: string): Promise<void> {
     } else if (line.startsWith("DISCO_E2E_RUN_ERROR ")) {
       const error = new Error(line.slice("DISCO_E2E_RUN_ERROR ".length));
       running.training?.reject(error);
+    } else if (line === "DISCO_E2E_RUN_STOPPED") {
+      running.stopping?.resolve();
     } else {
       console.log(`[decentralized harness] ${line}`);
     }
@@ -72,6 +77,7 @@ async function startHarness(projectRoot: string): Promise<void> {
   child.once("error", (error) => {
     ready.reject(error);
     running.training?.reject(error);
+    running.stopping?.reject(error);
   });
   child.once("exit", (code, signal) => {
     const error = new Error(
@@ -79,6 +85,7 @@ async function startHarness(projectRoot: string): Promise<void> {
     );
     ready.reject(error);
     running.training?.reject(error);
+    running.stopping?.reject(error);
   });
 
   let timeout: NodeJS.Timeout | undefined;
@@ -127,7 +134,7 @@ function startRunTimeout(): void {
       `the decentralized training run did not finish within ${RUN_TIMEOUT_MS / 1000}s`,
     );
     harness?.training?.reject(error);
-    harness?.child.stdin.write('{"type":"stop-run"}\n');
+    void stopRun();
   }, RUN_TIMEOUT_MS);
 }
 
@@ -137,13 +144,34 @@ async function awaitTraining(): Promise<TrainingPeerResult[]> {
   return await harness.training.promise;
 }
 
-function stopRun(): null {
-  if (harness === undefined) return null;
-  if (harness.runTimeout !== undefined) clearTimeout(harness.runTimeout);
-  harness.runTimeout = undefined;
-  harness.training = undefined;
-  harness.child.stdin.write('{"type":"stop-run"}\n');
-  return null;
+async function stopRun(): Promise<void> {
+  const running = harness;
+  if (running === undefined) return;
+  if (running.stopPromise !== undefined) return await running.stopPromise;
+
+  if (running.runTimeout !== undefined) clearTimeout(running.runTimeout);
+  running.runTimeout = undefined;
+  running.training = undefined;
+  const stopping = deferred<void>();
+  running.stopping = stopping;
+  const stopPromise = Promise.race([
+    stopping.promise,
+    new Promise<never>((_, reject) => {
+      setTimeout(
+        () =>
+          reject(new Error("the decentralized training peers did not stop")),
+        STOP_RUN_TIMEOUT_MS,
+      );
+    }),
+  ]).finally(() => {
+    if (running.stopPromise === stopPromise) {
+      running.stopPromise = undefined;
+      running.stopping = undefined;
+    }
+  });
+  running.stopPromise = stopPromise;
+  running.child.stdin.write('{"type":"stop-run"}\n');
+  await stopPromise;
 }
 
 async function stopHarness(): Promise<void> {
@@ -177,9 +205,7 @@ export default defineConfig({
     specPattern: "cypress/collaborative/decentralized.cy.ts",
     setupNodeEvents(on, config) {
       on("before:run", async () => await startHarness(config.projectRoot));
-      on("after:spec", () => {
-        stopRun();
-      });
+      on("after:spec", stopRun);
       on("after:run", stopHarness);
       on("task", {
         readdir: async (directory: string) =>
