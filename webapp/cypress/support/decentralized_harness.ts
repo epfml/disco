@@ -20,9 +20,10 @@ let server: http.Server | undefined;
 let serverUrl: URL | undefined;
 const sockets = new Set<net.Socket>();
 let activePeers: ClosablePeer[] = [];
+let stopPromise: Promise<void> | undefined;
 
 async function startTraining(datasetPath: string): Promise<void> {
-  if (activePeers.length > 0)
+  if (activePeers.length > 0 || stopPromise !== undefined)
     throw new Error("a decentralized harness run is already active");
   if (serverUrl === undefined)
     throw new Error("the decentralized test server is not running");
@@ -61,9 +62,15 @@ async function closePeer(peer: ClosablePeer): Promise<void> {
 }
 
 async function stopRun(): Promise<void> {
+  if (stopPromise !== undefined) return await stopPromise;
   const peers = activePeers;
   activePeers = [];
-  await Promise.allSettled(peers.map(closePeer));
+  stopPromise = Promise.allSettled(peers.map(closePeer)).then(() => undefined);
+  try {
+    await stopPromise;
+  } finally {
+    stopPromise = undefined;
+  }
 }
 
 async function stop(): Promise<void> {
@@ -87,18 +94,22 @@ server.on("connection", (socket) => {
 });
 console.log("DISCO_E2E_SERVER_READY");
 
-const lines = createInterface({ input: process.stdin });
-lines.on("line", (line) => {
+async function handleCommand(line: string): Promise<void> {
   const command = JSON.parse(line) as
     | { readonly type: "start-training"; readonly datasetPath: string }
     | { readonly type: "stop-run" };
 
-  let run: Promise<void>;
   if (command.type === "start-training")
-    run = startTraining(command.datasetPath);
-  else run = stopRun();
+    await startTraining(command.datasetPath);
+  else {
+    await stopRun();
+    console.log("DISCO_E2E_RUN_STOPPED");
+  }
+}
 
-  void run.catch((error: unknown) => {
+const lines = createInterface({ input: process.stdin });
+lines.on("line", (line) => {
+  void handleCommand(line).catch((error: unknown) => {
     console.log(
       `DISCO_E2E_RUN_ERROR ${error instanceof Error ? error.stack : String(error)}`,
     );
