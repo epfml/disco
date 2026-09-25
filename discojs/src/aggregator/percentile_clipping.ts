@@ -79,14 +79,9 @@ export class PercentileClippingAggregator extends MultiRoundAggregator {
     this.log(AggregationStep.AGGREGATE);
 
     // Step 1: Get the centering reference (previous aggregation or initial avg vector)
-    let centerReference: WeightsContainer;
-    if (this.prevAggregate) {
-      centerReference = this.prevAggregate.map((t) => tf.clone(t));
-    } else {
-      centerReference = avg(currentContributions.values()).map((t) =>
-        tf.clone(t),
-      );
-    }
+    // Clone to avoid in-place modifications of the stored aggregate
+    const centerReference =
+      this.prevAggregate?.clone() ?? avg(currentContributions.values());
 
     // Step 2: Center the weights with respect to the reference
     const centeredWeights = Array.from(currentContributions.values()).map((w) =>
@@ -120,8 +115,16 @@ export class PercentileClippingAggregator extends MultiRoundAggregator {
     clippedAvg.dispose();
 
     // Step 7: Store result for next round
-    this.prevAggregate = result;
+    // Keep our own copy, the returned aggregate is owned (and disposed) by the caller
+    this.prevAggregate?.dispose();
+    this.prevAggregate = result.clone();
     return result;
+  }
+
+  override dispose(): void {
+    this.prevAggregate?.dispose();
+    this.prevAggregate = null;
+    super.dispose();
   }
 
   private computePercentile(array: number[], percentile: number): number {
