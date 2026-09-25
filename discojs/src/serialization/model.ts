@@ -75,7 +75,7 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
         // TODO totally unsafe casting
         rawModel as tf.io.ModelArtifacts,
         // metadata for tabular task standardization
-        rawMetadata as ModelMetadata,
+        rawMetadata === null ? undefined : (rawMetadata as ModelMetadata),
       ]);
     }
     case Type.GPT: {

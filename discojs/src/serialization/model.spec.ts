@@ -47,6 +47,35 @@ describe("serialization", () => {
     );
   });
 
+  it("keeps TFJS model metadata", async () => {
+    const rawModel = tf.sequential({
+      layers: [tf.layers.dense({ inputShape: [2], units: 1 })],
+    });
+    rawModel.compile({ optimizer: "sgd", loss: "meanSquaredError" });
+    const metadata = {
+      tabularStandardization: {
+        means: { a: 1, b: 2 },
+        stds: { a: 0.5, b: 3 },
+      },
+    };
+    const model = new TFJS("tabular", rawModel, metadata);
+
+    const decoded = await decode(await encode(model));
+
+    expect(decoded.metadata).to.deep.equal(metadata);
+  });
+
+  it("decodes a TFJS model without metadata as undefined", async () => {
+    const rawModel = tf.sequential({
+      layers: [tf.layers.dense({ inputShape: [2], units: 1 })],
+    });
+    rawModel.compile({ optimizer: "sgd", loss: "meanSquaredError" });
+
+    const decoded = await decode(await encode(new TFJS("tabular", rawModel)));
+
+    expect(decoded.metadata).to.be.undefined;
+  });
+
   it("can encode & decode a gpt-tfjs model", { timeout: 20_000 }, async () => {
     const config: GPTConfig = {
       modelType: "gpt-nano",

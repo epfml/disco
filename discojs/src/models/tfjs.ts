@@ -216,7 +216,10 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
       },
     );
 
-    return [this.datatype, await ret];
+    // omit metadata when absent, msgpack would encode an undefined entry as null
+    return this.metadata !== undefined
+      ? [this.datatype, await ret, this.metadata]
+      : [this.datatype, await ret];
   }
 
   dispose(): void {
