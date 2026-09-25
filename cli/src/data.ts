@@ -143,7 +143,11 @@ export async function getTaskData<D extends DataType>(
       ) as Dataset<DataFormat.Raw[D]>;
       return titanicData.filter((_, i) => i % totalClient === userIdx);
     case "cifar10":
-      return loadData("cifar10-agent", userIdx) as Dataset<DataFormat.Raw[D]>;
+      return (
+        await loadImagesInDir(
+          datasetPath ?? path.join("..", "datasets", "CIFAR10"),
+        )
+      ).zip(Repeat("cat")) as Dataset<DataFormat.Raw[D]>;
     case "cifar10_federated_simple_model":
     case "cifar10_simple_model":
       return loadData("cifar10_ext", userIdx) as Dataset<DataFormat.Raw[D]>;
