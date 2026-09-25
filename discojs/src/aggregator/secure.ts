@@ -95,7 +95,7 @@ export class SecureAggregator extends Aggregator {
       }
       // Send our partial sum to every other nodes
       case 1:
-        return this.nodes.toMap().map(() => weights);
+        return this.nodes.toMap().map(() => weights.clone());
       default:
         throw new Error("communication round is out of bounds");
     }
@@ -112,7 +112,10 @@ export class SecureAggregator extends Aggregator {
       .toList();
 
     // The last share completes the sum
-    return shares.push(secret.sub(sum(shares)));
+    const sharesSum = sum(shares);
+    const lastShare = secret.sub(sharesSum);
+    sharesSum.dispose();
+    return shares.push(lastShare);
   }
 
   /**

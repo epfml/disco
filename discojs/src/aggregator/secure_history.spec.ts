@@ -159,4 +159,37 @@ describe("Secure history aggregator", function () {
         expect(secureHistory).to.be.closeTo(secure, 0.001),
       );
   });
+
+  it("aggregation leaves no dangling tensors", async () => {
+    const baseline = tf.memory().numTensors;
+
+    const aggregator = new SecureHistoryAggregator(100, 0.8);
+    const ids = ["a", "b"];
+    aggregator.setNodes(Set(ids));
+
+    // three aggregation rounds, the last two apply momentum smoothing
+    for (let round = 0; round < 3; round++) {
+      // communication round 0 sums the shares, round 1 averages the partial sums
+      for (
+        let communicationRound = 0;
+        communicationRound < 2;
+        communicationRound++
+      ) {
+        const contributions = ids.map((_, i) =>
+          WeightsContainer.of([i, round]),
+        );
+        const p = aggregator.getPromiseForAggregation();
+        ids.forEach((id, i) =>
+          aggregator.add(id, contributions[i], round, communicationRound),
+        );
+        // the caller owns the aggregate, disposing it must not break the next round
+        (await p).dispose();
+        contributions.forEach((c) => c.dispose());
+      }
+    }
+
+    // the aggregator only keeps the previous aggregate
+    aggregator.dispose();
+    expect(tf.memory().numTensors).to.equal(baseline);
+  });
 });

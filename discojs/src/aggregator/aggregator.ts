@@ -264,6 +264,7 @@ export abstract class Aggregator extends EventEmitter<{
 
   /**
    * Constructs the payloads sent to other nodes as contribution.
+   * The payloads are owned by the caller, who has to dispose them.
    * @param base Object from which the payload is computed
    */
   abstract makePayloads(base: WeightsContainer): Map<NodeID, WeightsContainer>;
