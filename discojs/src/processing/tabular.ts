@@ -73,25 +73,46 @@ export function indexInList(
 
 /**
  * Return the mean, std value of each column
+ *
+ * Rows are streamed in a single pass (Welford's algorithm)
+ * so that the dataset doesn't need to fit in memory.
  */
-export function computeStandardizationStats(
-  rows: Array<Partial<Record<string, string>>>,
+export async function computeStandardizationStats(
+  rows: AsyncIterable<Partial<Record<string, string>>>,
   columns: Array<string>,
-): StandardizationStats {
+): Promise<StandardizationStats> {
+  // running mean of each column
   const means: Record<string, number> = {};
-  const stds: Record<string, number> = {};
-
+  // running sum of squared differences from the mean of each column
+  const squaredDiffSums: Record<string, number> = {};
   for (const col of columns) {
-    const values = rows.map((row) => convertToNumber(extractValue(row, col)));
-    const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    const variance =
-      values.reduce((acc, val) => acc + (val - mean) ** 2, 0) / values.length;
-
-    const std = Math.sqrt(variance);
-
-    means[col] = mean;
-    stds[col] = std;
+    means[col] = 0;
+    squaredDiffSums[col] = 0;
   }
+
+  let count = 0;
+  for await (const row of rows) {
+    count++;
+
+    for (const col of columns) {
+      const value = convertToNumber(extractValue(row, col));
+      const mean = means[col] ?? 0;
+      // m_n = m_{n-1} + (x_n - m_{n-1}) / n
+      // each value moves the mean towards itself by 1/n of the gap
+      const delta = value - mean;
+      const updatedMean = mean + delta / count;
+
+      means[col] = updatedMean;
+      // gap to the previous mean times gap to the updated mean,
+      // summed over the rows it equals the sum of (x - final mean)²
+      squaredDiffSums[col] =
+        (squaredDiffSums[col] ?? 0) + delta * (value - updatedMean);
+    }
+  }
+
+  const stds: Record<string, number> = {};
+  for (const col of columns)
+    stds[col] = Math.sqrt((squaredDiffSums[col] ?? 0) / count);
 
   return { means, stds };
 }

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { Dataset } from "#dataset/index";
+
 import {
   computeStandardizationStats,
   encodeTabularRow,
@@ -19,12 +21,12 @@ describe("isMissingValue", () => {
 });
 
 describe("computeStandardizationStats", () => {
-  it("computes mean and std of each column", () => {
-    const stats = computeStandardizationStats(
-      [
+  it("computes mean and std of each column", async () => {
+    const stats = await computeStandardizationStats(
+      new Dataset([
         { a: "1", b: "5" },
         { a: "3", b: "5" },
-      ],
+      ]),
       ["a", "b"],
     );
 
@@ -34,10 +36,10 @@ describe("computeStandardizationStats", () => {
     });
   });
 
-  it("throws on missing value", () => {
-    expect(() =>
-      computeStandardizationStats([{ a: "1" }, { a: "" }], ["a"]),
-    ).to.throw(/missing value in column "a"/);
+  it("throws on missing value", async () => {
+    await expect(
+      computeStandardizationStats(new Dataset([{ a: "1" }, { a: "" }]), ["a"]),
+    ).rejects.toThrow(/missing value in column "a"/);
   });
 });
 

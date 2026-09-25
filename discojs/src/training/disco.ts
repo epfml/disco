@@ -446,13 +446,9 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
       (column) => !categorical.has(column),
     );
 
-    const rows = await arrayFromAsync(
-      trainingDataset as Dataset<DataFormat.Raw["tabular"]>,
-    );
-
     return {
-      tabularStandardization: computeStandardizationStats(
-        rows,
+      tabularStandardization: await computeStandardizationStats(
+        trainingDataset as Dataset<DataFormat.Raw["tabular"]>,
         numericalColumns,
       ),
     };
