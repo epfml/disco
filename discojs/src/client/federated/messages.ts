@@ -7,6 +7,7 @@ import type {
   WaitingForMoreParticipants,
   EnoughParticipants,
   ParticipantsUpdate,
+  MissingConnection,
 } from "#client/mtype";
 
 // See ../messages.ts for doc
@@ -17,7 +18,8 @@ export type MessageFederated =
   | ReceiveServerPayload
   | WaitingForMoreParticipants
   | EnoughParticipants
-  | ParticipantsUpdate;
+  | ParticipantsUpdate
+  | MissingConnection;
 
 export interface NewFederatedNodeInfo {
   type: MType.NewFederatedNodeInfo;
@@ -53,6 +55,7 @@ export function isMessageFederated(raw: unknown): raw is MessageFederated {
     case MType.WaitingForMoreParticipants:
     case MType.EnoughParticipants:
     case MType.ParticipantsUpdate:
+    case MType.MissingConnection:
       return true;
   }
 

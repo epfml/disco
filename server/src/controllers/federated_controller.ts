@@ -156,6 +156,26 @@ export class FederatedController<D extends DataType> extends TrainingController<
         return; // TODO send back error
       }
 
+      // If the client has not yet established a connection
+      // and the message is not a ClientConnected message,
+      // we consider it as coming from an unconnected client
+      // and respond with a MissingConnection message.
+      if (
+        !this.connections.has(clientId) &&
+        msg.type !== MessageTypes.ClientConnected
+      ) {
+        debug(
+          "Received message from an unconnected client [%s], sending MissingConnection message",
+          shortId,
+        );
+        ws.send(
+          msgpack.encode({
+            type: MessageTypes.MissingConnection,
+          }),
+        );
+        return;
+      }
+
       // Currently expect two types of message:
       // - the client connects to the task
       // - the client sends a weight update
@@ -217,17 +237,6 @@ export class FederatedController<D extends DataType> extends TrainingController<
             // and have no way to be ahead of the server's current round
             // We may want to notify the client that it is contributing to a future
             // round for it to recalibrate its local state
-          } else if (!this.connections.has(clientId)) {
-            debug(
-              "Received contribution from an unconnected client [%s]",
-              shortId,
-            );
-            // Ignore contributions from unconnected clients for now
-            // TODO: We may want to notify the client that it is not connected
-            // Or do the same procedure as if we received a ClientConnected message
-            // A registered websocket but not connected stopps any progress
-            // Or register the client from handle() to the ClientConnected case
-            // as the relative threashold of 1 cannot be reached
           } else if (this.#aggregator.isValidContribution(clientId, round)) {
             debug(
               "Received valid contribution from client [%s] for round %d (participants=%d)",

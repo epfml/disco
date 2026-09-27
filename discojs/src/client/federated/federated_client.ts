@@ -188,7 +188,9 @@ export class FederatedClient extends Client<"federated"> {
       payload: payloadFromServer,
       round: serverRound,
       nbOfParticipants,
-    } = await waitMessage(this.server, MType.ReceiveServerPayload); // Wait indefinitely for the server update
+    } = await this.orClientCrash(
+      waitMessage(this.server, MType.ReceiveServerPayload),
+    );
     this.nbOfParticipants = nbOfParticipants; // Save the current participants
     const serverResult = weightsDecode(payloadFromServer);
     this.aggregator.setRound(serverRound);

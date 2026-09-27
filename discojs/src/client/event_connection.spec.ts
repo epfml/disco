@@ -93,12 +93,13 @@ describe("sendAndWaitWithRetry tests", () => {
   it("Waits for a whole retry delay before resending", async () => {
     const connection = new FakeConnection();
 
-    sendAndWaitWithRetry(
+    // Not awaiting on purpose for the timer
+    void sendAndWaitWithRetry(
       connection,
       CLIENT_CONNECTED,
       MType.NewFederatedNodeInfo,
       { retryDelayMs: RETRY_DELAY_MS },
-    );
+    ).catch(() => {});
 
     await vi.advanceTimersByTimeAsync(RETRY_DELAY_MS - 1);
     expect(connection.sent).toHaveLength(1);

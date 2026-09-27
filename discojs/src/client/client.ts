@@ -38,6 +38,10 @@ export abstract class Client<N extends Network> extends EventEmitter<{
    * until the server signals that the training can resume
    */
   protected promiseForMoreParticipants: Promise<void> | undefined = undefined;
+  /**
+   * Promise that will be rejected when the client gets a critical error.
+   */
+  protected clientCrash: Promise<never> | undefined = undefined;
 
   /**
    * When the server notifies the client that they can resume training
@@ -167,6 +171,24 @@ export abstract class Client<N extends Network> extends EventEmitter<{
         this.nbOfParticipants = event.nbOfParticipants;
       }
     });
+
+    // The server notifies the client if the connection is lost.
+    // For now we simply throw an error when the connection is lost
+    // This process should never occur in a normal execution
+    // Here to add robustness
+    this.clientCrash = new Promise<never>((_, reject) => {
+      this.server.on(MType.MissingConnection, (_event) => {
+        debug(
+          `[${shortenId(this._ownId ?? "?")}] server reports no registration for us`,
+        );
+        reject(
+          new Error(
+            "server has no registration for this client (missing handshake)",
+          ),
+        );
+      });
+    });
+    this.clientCrash.catch(() => {}); // prevent unhandled promise rejection
   }
 
   /**
@@ -218,6 +240,18 @@ export abstract class Client<N extends Network> extends EventEmitter<{
       await this.promiseForMoreParticipants;
     }
   }
+
+  /**
+   * Races the given work against the server fault, if any.
+   * @param work The promise representing the work to be done.
+   * @returns The result of the work if it completes before a client crash occurs,
+   * otherwise the promise will reject with the client crash error.
+   */
+  protected async orClientCrash<T>(work: Promise<T>): Promise<T> {
+    if (this.clientCrash === undefined) return await work;
+    return await Promise.race([work, this.clientCrash]);
+  }
+
   /**
    * Fetches the latest model available on the network's server, for the adequate task.
    * @returns The latest model

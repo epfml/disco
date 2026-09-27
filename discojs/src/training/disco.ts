@@ -241,59 +241,66 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
       this.trainer.train(trainingDataset, validationDataset_),
     )) {
       yield async function* (this: Disco<D, N>) {
-        const [roundGen, roundLogsPromise] = split(round);
-        const epochResults: Array<{ epochNum: number; epochLogs: EpochLogs }> =
-          [];
+        try {
+          const [roundGen, roundLogsPromise] = split(round);
+          const epochResults: Array<{
+            epochNum: number;
+            epochLogs: EpochLogs;
+          }> = [];
 
-        for await (const [epochNum, epoch] of enumerate(roundGen)) {
-          const [epochGen, epochLogsPromise] = split(epoch);
+          for await (const [epochNum, epoch] of enumerate(roundGen)) {
+            const [epochGen, epochLogsPromise] = split(epoch);
 
-          yield epochGen;
-          const epochLogs = await epochLogsPromise;
+            yield epochGen;
+            const epochLogs = await epochLogsPromise;
 
-          epochResults.push({ epochNum, epochLogs });
-        }
+            epochResults.push({ epochNum, epochLogs });
+          }
 
-        const roundLogs = await roundLogsPromise;
-        this.#logger.success(
-          [
-            `Round: ${roundNum}`,
-            `Initial round loss: ${roundLogs.preRoundValidation?.loss}`,
-            `Initial round accuracy: ${roundLogs.preRoundValidation?.accuracy}`,
-          ].join("\n"),
-        );
-
-        for (const { epochNum, epochLogs } of epochResults) {
+          const roundLogs = await roundLogsPromise;
           this.#logger.success(
             [
               `Round: ${roundNum}`,
-              `  Epoch: ${epochNum}`,
-              `    Training loss: ${epochLogs.training.loss}`,
-              `    Training accuracy: ${epochLogs.training.accuracy}`,
-              `    Peak memory: ${epochLogs.peakMemory}`,
-              epochLogs.validation !== undefined
-                ? `    Pre-aggregation validation loss: ${epochLogs.validation.loss}`
+              `Initial round loss: ${roundLogs.preRoundValidation?.loss}`,
+              `Initial round accuracy: ${roundLogs.preRoundValidation?.accuracy}`,
+            ].join("\n"),
+          );
+
+          for (const { epochNum, epochLogs } of epochResults) {
+            this.#logger.success(
+              [
+                `Round: ${roundNum}`,
+                `  Epoch: ${epochNum}`,
+                `    Training loss: ${epochLogs.training.loss}`,
+                `    Training accuracy: ${epochLogs.training.accuracy}`,
+                `    Peak memory: ${epochLogs.peakMemory}`,
+                epochLogs.validation !== undefined
+                  ? `    Pre-aggregation validation loss: ${epochLogs.validation.loss}`
+                  : "",
+                epochLogs.validation !== undefined
+                  ? `    Pre-aggregation validation accuracy: ${epochLogs.validation.accuracy}`
+                  : "",
+              ].join("\n"),
+            );
+          }
+
+          this.#logger.success(
+            [
+              `Round: ${roundNum}`,
+              roundLogs.postAggregationValidation !== undefined
+                ? `Post-aggregation loss: ${roundLogs.postAggregationValidation.loss}`
                 : "",
-              epochLogs.validation !== undefined
-                ? `    Pre-aggregation validation accuracy: ${epochLogs.validation.accuracy}`
+              roundLogs.postAggregationValidation
+                ? `Post-aggregation accuracy: ${roundLogs.postAggregationValidation.accuracy}`
                 : "",
             ].join("\n"),
           );
+
+          return roundLogs;
+        } catch (error) {
+          await this.close(); // Closing the client in case of error and propagating the error
+          throw error;
         }
-
-        this.#logger.success(
-          [
-            `Round: ${roundNum}`,
-            roundLogs.postAggregationValidation !== undefined
-              ? `Post-aggregation loss: ${roundLogs.postAggregationValidation.loss}`
-              : "",
-            roundLogs.postAggregationValidation
-              ? `Post-aggregation accuracy: ${roundLogs.postAggregationValidation.accuracy}`
-              : "",
-          ].join("\n"),
-        );
-
-        return roundLogs;
       }.bind(this)();
     }
     this.#logger.success("Training finished");
