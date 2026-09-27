@@ -51,6 +51,55 @@ export async function waitMessageWithTimeout<T extends MType>(
   ]);
 }
 
+/**
+ * Send message and wait for a specific response,
+ * resending until a response or until timeout.
+ * The global timeout is `retryDelayMs * maxAttempts`.
+ */
+export async function sendAndWaitWithRetry<T extends MType>(
+  connection: EventConnection,
+  request: Message,
+  responseType: T,
+  { retryDelayMs = 5_000, maxAttempts = 5 } = {},
+): Promise<NarrowMessage<T>> {
+  // Create the response promise before sending the request
+  // to avoid missing the response
+  const response = waitMessage(connection, responseType);
+  const RETRY = Symbol("retry"); // Symbol used to indicate a retry attempt
+
+  let timer: ReturnType<typeof setTimeout> | undefined; // Register the timer once
+  try {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      connection.send(request);
+
+      const received = await Promise.race([
+        response,
+        new Promise<typeof RETRY>((resolve) => {
+          timer = setTimeout(() => resolve(RETRY), retryDelayMs);
+        }),
+      ]);
+      clearTimeout(timer); // Clear the timer after each attempt
+
+      if (received !== RETRY) return received; // Return the received message if it's not a retry signal
+
+      debug(
+        "no %o after %dms, re-sending %o (%d/%d)",
+        responseType,
+        retryDelayMs,
+        request.type,
+        attempt,
+        maxAttempts,
+      );
+    }
+  } finally {
+    clearTimeout(timer);
+  }
+
+  throw new Error(
+    `no ${responseType} received after ${maxAttempts} ${request.type}`,
+  );
+}
+
 export class PeerConnection
   extends EventEmitter<{ [K in MType]: NarrowMessage<K> }>
   implements EventConnection
