@@ -6,7 +6,11 @@ import type { WeightsContainer } from "#weights/index";
 import { weightsEncode, weightsDecode } from "#serialization/index";
 import { Client } from "#client/client";
 import { MType, type ClientConnected } from "#client/mtype";
-import { waitMessage, WebSocketServer } from "#client/event_connection";
+import {
+  sendAndWaitWithRetry,
+  waitMessage,
+  WebSocketServer,
+} from "#client/event_connection";
 import * as messages from "#client/federated/messages";
 import { shortenId } from "#client/utils";
 
@@ -64,10 +68,8 @@ export class FederatedClient extends Client<"federated"> {
     const msg: ClientConnected = {
       type: MType.ClientConnected,
     };
-    this.server.send(msg);
-
     const { id, waitForMoreParticipants, payload, round, nbOfParticipants } =
-      await waitMessage(this.server, MType.NewFederatedNodeInfo);
+      await sendAndWaitWithRetry(this.server, msg, MType.NewFederatedNodeInfo);
 
     // This should come right after receiving the message to make sure
     // we don't miss a subsequent message from the server

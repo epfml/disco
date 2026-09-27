@@ -211,6 +211,104 @@ describe("Join handshake", () => {
 });
 
 /**
+ * A client that never got its NewFederatedNodeInfo resends ClientConnected.
+ * The server has to answer again without treating it as a new participant.
+ */
+describe("Join handshake retry", () => {
+  it("answers a resent ClientConnected without counting a new participant", async () => {
+    const controller = await makeController(2);
+    const ws = makeFederatedFakeWebSocket();
+
+    connect(controller, ws);
+    ws.emitMessage({ type: MessageTypes.ClientConnected });
+
+    const nodeInfos = messagesOfType(ws, MessageTypes.NewFederatedNodeInfo);
+    expect(nodeInfos).toHaveLength(2);
+    // Same websocket, so same participant: same id and still alone
+    expect(nodeInfos[1].id).toEqual(nodeInfos[0].id);
+    expect(nodeInfos[1].nbOfParticipants).toBe(1);
+    expect(nodeInfos[1].waitForMoreParticipants).toBe(true);
+  });
+
+  it("does not tell the other participants that someone joined again", async () => {
+    const controller = await makeController(2);
+    const ws1 = makeFederatedFakeWebSocket();
+    const ws2 = makeFederatedFakeWebSocket();
+
+    connect(controller, ws1);
+    connect(controller, ws2);
+
+    // ws1 was told once that training can start, and never that someone joined
+    expect(messagesOfType(ws1, MessageTypes.EnoughParticipants)).toHaveLength(
+      1,
+    );
+    expect(messagesOfType(ws1, MessageTypes.ParticipantsUpdate)).toHaveLength(
+      0,
+    );
+
+    ws2.emitMessage({ type: MessageTypes.ClientConnected });
+
+    // The retry only concerns ws2, ws1 must not hear about it
+    expect(messagesOfType(ws1, MessageTypes.EnoughParticipants)).toHaveLength(
+      1,
+    );
+    expect(messagesOfType(ws1, MessageTypes.ParticipantsUpdate)).toHaveLength(
+      0,
+    );
+    expect(messagesOfType(ws2, MessageTypes.NewFederatedNodeInfo)).toHaveLength(
+      2,
+    );
+  });
+
+  it("answers a retry with the current round and weights", async () => {
+    const controller = await makeController(2);
+    const ws1 = makeFederatedFakeWebSocket();
+    const ws2 = makeFederatedFakeWebSocket();
+
+    connect(controller, ws1);
+    connect(controller, ws2);
+
+    // Complete a round so that the server moves past its initial state
+    await contribute(ws1, DUMMY_WEIGHTS_1, 0);
+    await contribute(ws2, DUMMY_WEIGHTS_2, 0);
+    await wait(100);
+
+    ws2.emitMessage({ type: MessageTypes.ClientConnected });
+
+    // A client retrying mid-training needs where we are now, not round 0
+    const nodeInfo = lastMessageOfType(ws2, MessageTypes.NewFederatedNodeInfo);
+    expect(nodeInfo?.round).toBe(1);
+    expect(nodeInfo?.payload).not.toBeNull();
+    expect(weightsDecode(nodeInfo!.payload!).equals(MEAN_WEIGHTS_12)).toBe(
+      true,
+    );
+  });
+
+  it("keeps the participant contributing after a retry", async () => {
+    const controller = await makeController(2);
+    const ws1 = makeFederatedFakeWebSocket();
+    const ws2 = makeFederatedFakeWebSocket();
+
+    connect(controller, ws1);
+    connect(controller, ws2);
+    ws2.emitMessage({ type: MessageTypes.ClientConnected });
+
+    await contribute(ws1, DUMMY_WEIGHTS_1, 0);
+    await contribute(ws2, DUMMY_WEIGHTS_2, 0);
+    await wait(100);
+
+    // The duplicate registration must not have broken aggregation
+    for (const ws of [ws1, ws2]) {
+      const payload = lastMessageOfType(ws, MessageTypes.ReceiveServerPayload);
+      expect(payload).toBeDefined();
+      expect(weightsDecode(payload!.payload).equals(MEAN_WEIGHTS_12)).toBe(
+        true,
+      );
+    }
+  });
+});
+
+/**
  * Tests the aggregation behavior of the federated controller.
  */
 describe("Aggregation", () => {
