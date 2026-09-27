@@ -154,16 +154,18 @@ async function stopRun(): Promise<void> {
   running.training = undefined;
   const stopping = deferred<void>();
   running.stopping = stopping;
+  let timeout: NodeJS.Timeout | undefined;
   const stopPromise = Promise.race([
     stopping.promise,
     new Promise<never>((_, reject) => {
-      setTimeout(
+      timeout = setTimeout(
         () =>
           reject(new Error("the decentralized training peers did not stop")),
         STOP_RUN_TIMEOUT_MS,
       );
     }),
   ]).finally(() => {
+    if (timeout !== undefined) clearTimeout(timeout);
     if (running.stopPromise === stopPromise) {
       running.stopPromise = undefined;
       running.stopping = undefined;
@@ -215,7 +217,10 @@ export default defineConfig({
         startDecentralizedTrainingPeers: () =>
           startTraining(config.projectRoot),
         awaitDecentralizedTrainingPeers: awaitTraining,
-        stopDecentralizedTrainingPeers: stopRun,
+        stopDecentralizedTrainingPeers: async () => {
+          await stopRun();
+          return null;
+        },
       });
     },
   },
