@@ -38,6 +38,10 @@ export class FederatedController<D extends DataType> extends TrainingController<
    * or staled participants
    */
   #latestGlobalWeights: Encoded;
+  /**
+   * Complete list of client ids that have conected their websocket
+   */
+  #clientIds = new Set<NodeID>();
 
   constructor(
     task: Task<D, "federated">,
@@ -134,9 +138,10 @@ export class FederatedController<D extends DataType> extends TrainingController<
       this.task.trainingInformation.minNbOfParticipants;
     // Try generating a new Client id until there no collision with existing ones
     let clientId = randomUUID();
-    while (!this.#aggregator.registerNode(clientId)) {
+    while (this.#clientIds.has(clientId)) {
       clientId = randomUUID();
     }
+    this.#clientIds.add(clientId);
     const shortId = clientId.slice(0, 4);
 
     ws.on("error", (err) => {
@@ -159,9 +164,20 @@ export class FederatedController<D extends DataType> extends TrainingController<
          * A new participant joins the task
          */
         case MessageTypes.ClientConnected: {
-          debug(`client [%s] joined ${this.task.id}`, shortId);
-          this.connections = this.connections.set(clientId, ws); // add the new client
+          // Verify if this is a new client connection
+          const isNewClient = !this.connections.has(clientId);
+          if (!isNewClient) {
+            debug(
+              `Duplicate client connection detected for client [%s]`,
+              shortId,
+            );
+          } else {
+            debug(`New client connection for client [%s]`, shortId);
+            // Connect the new client to both the connections map and the aggregator
+            this.connectClient(clientId, ws);
+          }
 
+          // Send the new federated node info to the client in both cases (new or duplicate connection)
           const msg: federatedMessages.NewFederatedNodeInfo = {
             type: MessageTypes.NewFederatedNodeInfo,
             id: clientId,
@@ -175,9 +191,11 @@ export class FederatedController<D extends DataType> extends TrainingController<
             nbOfParticipants: this.connections.size,
           };
           ws.send(msgpack.encode(msg));
+
           // Send an update to participants if we can start/resume training,
           // which already carries the number of participants
-          if (!this.sendEnoughParticipantsMsgIfNeeded(clientId))
+          // Only for new clients, as they would receive it twice otherwise
+          if (isNewClient && !this.sendEnoughParticipantsMsgIfNeeded(clientId))
             // otherwise just tell them that someone joined
             this.sendParticipantsUpdateMsg(clientId);
           break;
@@ -262,9 +280,8 @@ export class FederatedController<D extends DataType> extends TrainingController<
     // Setup callback for client leaving the session
     ws.on("close", () => {
       // Remove the participant when the websocket is closed
-      this.connections = this.connections.delete(clientId);
-      this.#pendingUpdateRecipients.delete(clientId);
-      this.#aggregator.removeNode(clientId);
+      this.disconnectClient(clientId);
+
       debug("client [%s] left", shortId);
 
       // Reset the training session when all participants left
@@ -304,5 +321,24 @@ export class FederatedController<D extends DataType> extends TrainingController<
     this.#aggregator = this.#makeAggregator();
 
     this.#latestGlobalWeights = this.initialWeights;
+  }
+
+  /**
+   * Connects a new client to both the connections map and the aggregator.
+   * Ensures consistency between the connections map and the aggregator.
+   */
+  private connectClient(clientId: string, ws: WebSocket): void {
+    this.connections = this.connections.set(clientId, ws);
+    this.#aggregator.registerNode(clientId);
+  }
+
+  /**
+   * Disconnects a client from the connections map, the aggregator, and the pending update recipients set.
+   * Ensures consistency between the sets
+   */
+  private disconnectClient(clientId: string): void {
+    this.connections = this.connections.delete(clientId);
+    this.#aggregator.removeNode(clientId);
+    this.#pendingUpdateRecipients.delete(clientId);
   }
 }

@@ -463,7 +463,6 @@ describe("Aggregation", () => {
     }
   });
 
-  /**
   it("a participant that is not conected should not block the training", async () => {
     const controller = await makeController(2);
     const ws1 = makeFederatedFakeWebSocket();
@@ -484,13 +483,10 @@ describe("Aggregation", () => {
       ws1,
       MessageTypes.ReceiveServerPayload,
     );
-    const aggregatedWeights1 = weightsDecode(
-      aggregatedWeightsMsg1!.payload,
-    );
+    const aggregatedWeights1 = weightsDecode(aggregatedWeightsMsg1!.payload);
     expect(aggregatedWeights1.equals(MEAN_WEIGHTS_12)).toBe(true); // Should be the aggregated weights
     expect(aggregatedWeightsMsg1!.round).toBe(1);
   });
-  */
 });
 
 describe("leaving and reset", () => {
