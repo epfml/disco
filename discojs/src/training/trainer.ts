@@ -110,6 +110,17 @@ export class Trainer<D extends DataType, N extends Network> {
       );
   }
 
+  /**
+   * Hand the model over to the caller without disposing of the tensor
+   *
+   * @returns the model, undefined if it has not been set
+   */
+  releaseModel(): Model<D> | undefined {
+    const model = this.#model;
+    this.#model = undefined;
+    return model;
+  }
+
   async stopTraining(): Promise<void> {
     await this.#training?.return();
   }

@@ -30,6 +30,8 @@ export function split<T, U>(
 ): [AsyncGenerator<T, U>, Promise<U>] {
   const [returnPromise, returnResolve, returnReject] =
     PromiseWithResolvers<U>();
+  // ignore errors for promises that are not awaited
+  returnPromise.catch(() => {});
 
   return [
     (async function* () {
