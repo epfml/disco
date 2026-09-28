@@ -439,11 +439,14 @@ export class Trainer<D extends DataType, N extends Network> {
 
       const networkWeights =
         await this.#client.onRoundEndCommunication(roundWeights);
-      this.model.weights = networkWeights;
-      // Currently only does something for decentralized clients
-      // Save weights and cleanup state
-      this.#client.finishRound(networkWeights);
-      networkWeights.dispose();
+      try {
+        this.model.weights = networkWeights;
+        // Currently only does something for decentralized clients
+        // Save weights and cleanup state
+        this.#client.finishRound(networkWeights);
+      } finally {
+        networkWeights.dispose();
+      }
 
       return validationDataset !== undefined
         ? await this.model.evaluate(validationDataset)
@@ -488,10 +491,6 @@ async function applyOptimalPrivacy(
       dpDefaultRadius,
     );
 
-    const previousEpochWeights =
-      previous ?? current.map((w) => tf.zerosLike(w));
-    const weightsProgress = current.sub(previousEpochWeights);
-
     /** Need to use tighter clipping radius for noise calibration */
     const effectiveRadius =
       "byzantineFaultTolerance" in options
@@ -513,17 +512,26 @@ async function applyOptimalPrivacy(
       sigmaMax: Math.max(...sigmas),
     });
 
-    const noisyProgress = await privacy.addOptimalNoise(
-      weightsProgress,
-      epsilon,
-      delta,
-      effectiveRadius,
-    );
+    const previousEpochWeights =
+      previous ?? current.map((w) => tf.zerosLike(w));
     try {
-      ret = previousEpochWeights.add(noisyProgress);
+      const weightsProgress = current.sub(previousEpochWeights);
+      try {
+        const noisyProgress = await privacy.addOptimalNoise(
+          weightsProgress,
+          epsilon,
+          delta,
+          effectiveRadius,
+        );
+        try {
+          ret = previousEpochWeights.add(noisyProgress);
+        } finally {
+          noisyProgress.dispose();
+        }
+      } finally {
+        weightsProgress.dispose();
+      }
     } finally {
-      weightsProgress.dispose();
-      noisyProgress.dispose();
       if (previous === undefined) previousEpochWeights.dispose();
     }
   }
@@ -532,18 +540,24 @@ async function applyOptimalPrivacy(
     // might need to change the variable name
     const previousRoundWeights =
       previous ?? current.map((w) => tf.zerosLike(w));
-    const weightsProgress = current.sub(previousRoundWeights);
-    const clippedProgress = await privacy.clipNorm(
-      weightsProgress,
-      Repeat(options.byzantineFaultTolerance.clippingRadius)
-        .take(weightsProgress.weights.length)
-        .toArray(),
-    );
     try {
-      ret = previousRoundWeights.add(clippedProgress);
+      const weightsProgress = current.sub(previousRoundWeights);
+      try {
+        const clippedProgress = await privacy.clipNorm(
+          weightsProgress,
+          Repeat(options.byzantineFaultTolerance.clippingRadius)
+            .take(weightsProgress.weights.length)
+            .toArray(),
+        );
+        try {
+          ret = previousRoundWeights.add(clippedProgress);
+        } finally {
+          clippedProgress.dispose();
+        }
+      } finally {
+        weightsProgress.dispose();
+      }
     } finally {
-      weightsProgress.dispose();
-      clippedProgress.dispose();
       if (previous === undefined) previousRoundWeights.dispose();
     }
   }

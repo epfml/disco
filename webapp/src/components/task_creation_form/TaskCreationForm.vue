@@ -1144,11 +1144,18 @@ async function onSubmit(form: unknown): Promise<void> {
       case "image":
       case "tabular": {
         const loaded = await tf.loadLayersModel(tf.io.browserFiles([topology]));
-        loaded.compile({
-          loss,
-          optimizer: tf.train[optimizer.name](optimizer.learningRate),
-        });
-        model = new TFJS(task.dataType, loaded);
+        try {
+          loaded.compile({
+            loss,
+            optimizer: tf.train[optimizer.name](optimizer.learningRate),
+          });
+          model = new TFJS(task.dataType, loaded);
+        } catch (e) {
+          // compile or TFJS rejected the model, don't leak the loaded weights
+          loaded.dispose();
+          loaded.optimizer?.dispose();
+          throw e;
+        }
         break;
       }
       case "text":

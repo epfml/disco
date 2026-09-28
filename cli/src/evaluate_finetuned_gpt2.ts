@@ -93,6 +93,7 @@ function predictTokenLogits(
 ): tf.Tensor3D {
   const logits = tfModel.predict(inputTensor);
   if (Array.isArray(logits)) {
+    tf.dispose(logits);
     throw new Error("Expected GPT model to return a single logits tensor");
   }
   if (logits.rank !== 3) {
@@ -244,12 +245,6 @@ async function scoreContinuations(
     ...Array(maxInputLength - truncatedInputTokens.length).fill(0),
   ]);
 
-  const inputTensor = tf.tensor2d(
-    paddedInputs,
-    [paddedInputs.length, maxInputLength],
-    "int32",
-  );
-
   const targetIndexes: number[][] = [];
   const targetTokenIds: number[] = [];
   const targetOwners: number[] = [];
@@ -275,7 +270,6 @@ async function scoreContinuations(
   });
 
   if (targetIndexes.length === 0) {
-    inputTensor.dispose();
     return scoredInputs.map((scoredInput) => ({
       score: Number.NEGATIVE_INFINITY,
       promptTokens: promptTokens.length,
@@ -284,8 +278,13 @@ async function scoreContinuations(
     }));
   }
 
-  const logits = predictTokenLogits(tfModel, inputTensor);
   const targetLogProbs = tf.tidy(() => {
+    const inputTensor = tf.tensor2d(
+      paddedInputs,
+      [paddedInputs.length, maxInputLength],
+      "int32",
+    );
+    const logits = predictTokenLogits(tfModel, inputTensor);
     const targetIndexTensor = tf.tensor2d(
       targetIndexes,
       [targetIndexes.length, 2],
@@ -301,7 +300,12 @@ async function scoreContinuations(
     return tf.gatherND(logProbs, targetTokenIndexTensor);
   });
 
-  const targetScores = (await targetLogProbs.array()) as number[];
+  let targetScores: number[];
+  try {
+    targetScores = (await targetLogProbs.array()) as number[];
+  } finally {
+    targetLogProbs.dispose();
+  }
   const scoreSums = Array(scoredInputs.length).fill(0) as number[];
   const scoreCounts = Array(scoredInputs.length).fill(0) as number[];
 
@@ -320,10 +324,6 @@ async function scoreContinuations(
     continuationTokens: scoredInput.continuationTokens,
     usedInputTokens: scoredInput.truncatedInputTokens.length,
   }));
-
-  inputTensor.dispose();
-  logits.dispose();
-  targetLogProbs.dispose();
 
   return results;
 }
