@@ -84,8 +84,12 @@ export class WeightsContainer {
     return new WeightsContainer(this._weights.map(fn));
   }
 
+  /**
+   * Folds the weights with the given binary operator.
+   * Intermediate accumulators are disposed, only the final one is kept.
+   */
   reduce(fn: (acc: tf.Tensor, t: tf.Tensor) => tf.Tensor): tf.Tensor {
-    return this._weights.reduce(fn);
+    return tf.tidy(() => this._weights.reduce(fn));
   }
 
   /**
@@ -101,13 +105,34 @@ export class WeightsContainer {
     return WeightsContainer.of(...this.weights, ...other.weights);
   }
 
-  equals(other: WeightsContainer, margin = 0): boolean {
-    return this._weights
-      .zip(other._weights)
-      .every(
-        ([w1, w2]) =>
-          w1.sub(w2).abs().lessEqual(margin).all().dataSync()[0] === 1,
-      );
+  /**
+   * Checks that both containers hold weights of the same shapes, entry-wise
+   * equal up to the given margin.
+   */
+  async equals(other: WeightsContainer, margin = 0): Promise<boolean> {
+    if (this._weights.size !== other._weights.size) return false;
+    const pairs = this._weights.zip(other._weights) as List<
+      [tf.Tensor, tf.Tensor]
+    >;
+    // otherwise sub would broadcast
+    if (!pairs.every(([w1, w2]) => tf.util.arraysEqual(w1.shape, w2.shape)))
+      return false;
+    if (pairs.isEmpty()) return true;
+
+    const allClose = tf.tidy(() =>
+      tf
+        .stack(
+          pairs
+            .map(([w1, w2]) => w1.sub(w2).abs().lessEqual(margin).all())
+            .toArray(),
+        )
+        .all(),
+    );
+    try {
+      return (await allClose.data())[0] === 1;
+    } finally {
+      allClose.dispose();
+    }
   }
 
   dispose(): void {

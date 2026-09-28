@@ -35,18 +35,19 @@ describe("secret shares test", () => {
       .toList();
   }
 
-  it("recover secrets from shares", () => {
+  it("recover secrets from shares", async () => {
     const recovered = buildShares().map((shares) => sum(shares));
-    assert.isTrue(
+    const equalities = await Promise.all(
       (
         recovered.zip(secrets) as List<[WeightsContainer, WeightsContainer]>
-      ).every(([actual, expected]) => actual.equals(expected, epsilon)),
+      ).map(([actual, expected]) => actual.equals(expected, epsilon)),
     );
+    assert.isTrue(equalities.every((equal) => equal));
   });
 
-  it("derive aggregation result from partial sums", () => {
+  it("derive aggregation result from partial sums", async () => {
     const actual = avg(buildPartialSums(buildShares()));
-    assert.isTrue(actual.equals(expected, epsilon));
+    assert.isTrue(await actual.equals(expected, epsilon));
   });
 });
 
