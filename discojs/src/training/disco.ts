@@ -310,6 +310,9 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
 
   /**
    * Completely stops the ongoing training instance.
+   * Disposes all tensors including the model,
+   * call disco.trainer.releaseModel() if you need the model
+   * after closing disco
    */
   async close(): Promise<void> {
     // Dispose the model tensor and the aggregator's buffered tensors
