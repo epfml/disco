@@ -38,7 +38,7 @@ async function main(): Promise<void> {
     await disco.trainFully(dataset);
 
     // Get the model and save the trained model
-    model = disco.trainer.model as GPT;
+    model = disco.trainer.releaseModel() as GPT;
     await saveModelToDisk(model, modelFolder, modelFileName);
     await disco.close();
   } else {
