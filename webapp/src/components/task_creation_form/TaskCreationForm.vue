@@ -1169,6 +1169,9 @@ async function onSubmit(form: unknown): Promise<void> {
       toaster.error("This identifier is already taken");
     else toaster.error("An error occured server-side");
     return;
+  } finally {
+    // the server keeps its own copy
+    model.dispose();
   }
 
   if (typeof tasks.value === "string")
