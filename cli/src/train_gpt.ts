@@ -27,7 +27,7 @@ async function main(): Promise<void> {
     .repeat()
     .batch(8);
 
-  const model = new GPT(config);
+  using model = new GPT(config);
   for await (const logs of model.train(tokenDataset, undefined)) {
     console.log(logs);
   }

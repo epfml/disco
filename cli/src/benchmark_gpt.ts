@@ -130,7 +130,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
       .batch(batchSize);
 
     // Init and train the model
-    const model = new GPT(config);
+    using model = new GPT(config);
     console.log(
       `\tmodel type ${modelType} \n\tbatch size ${batchSize} \n\tcontext length ${contextLength}`,
     );
@@ -151,7 +151,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
      * Inference benchmark
      */
   } else {
-    const model = await loadModelFromDisk(modelPath);
+    using model = await loadModelFromDisk(modelPath);
     if (!(model instanceof GPT)) {
       throw new Error("Loaded model isn't a GPT model");
     }

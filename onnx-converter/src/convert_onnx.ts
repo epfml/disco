@@ -33,7 +33,7 @@ async function main() {
   console.log("ONNX model loaded successfully");
 
   // Init empty TF.js model
-  const gptModel = new GPT({
+  using gptModel = new GPT({
     modelType: "gpt2",
     contextLength: GPT2_CONTEXT_LENGTH,
   });
@@ -62,7 +62,7 @@ async function main() {
       throw new Error(`Undefined layer dimensions for ${tensor.name}`);
     const dims = tensor.dims.map((d) => Number(d));
     const flatData = parseTensorData(tensor);
-    let tfTensor = tf.tensor(flatData).reshape(dims);
+    let tfTensor = tf.tensor(flatData, dims);
     if (tensor.name === "transformer.wpe.weight") {
       if (dims.length !== 2)
         throw new Error(
@@ -72,7 +72,9 @@ async function main() {
         throw new Error(
           `ONNX positional embeddings only support context length ${dims[0]}, requested ${GPT2_CONTEXT_LENGTH}.`,
         );
-      tfTensor = tfTensor.slice([0, 0], [GPT2_CONTEXT_LENGTH, dims[1]]);
+      const full = tfTensor;
+      tfTensor = full.slice([0, 0], [GPT2_CONTEXT_LENGTH, dims[1]]);
+      full.dispose();
     }
     preTrainedWeights = preTrainedWeights.set(tfjsName, tfTensor);
   }
@@ -95,6 +97,8 @@ async function main() {
   });
 
   gptLayersModel.setWeights(finalWeights); // shape or transpose mismatch will throw here
+  // the model's variables now hold their own reference to the data
+  preTrainedWeights.forEach((t) => t.dispose());
 
   const encoded = await modelEncode(gptModel);
   await fsPromise.writeFile(OUTPUT_FILENAME, encoded);

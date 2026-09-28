@@ -343,7 +343,7 @@ async function main() {
   const tokenizer = await Tokenizer.from_pretrained("Xenova/gpt2");
 
   console.log("Loading model...");
-  const loadedModel = await loadModelFromDisk(args.modelPath);
+  using loadedModel = await loadModelFromDisk(args.modelPath);
   if (!(loadedModel instanceof GPT)) {
     throw new Error("modelPath must point to a Disco GPT model");
   }
