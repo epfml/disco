@@ -98,7 +98,7 @@ export class CausalSelfAttention extends tf.layers.Layer {
   private readonly attnDrop: number;
   private readonly residDrop: number;
   private readonly seed: number;
-  private readonly mask: tf.Tensor2D;
+  private mask?: tf.Tensor2D;
   cAttnWeight?: tf.LayerVariable;
   cAttnBias?: tf.LayerVariable;
   cProjWeight?: tf.LayerVariable;
@@ -117,18 +117,20 @@ export class CausalSelfAttention extends tf.layers.Layer {
     this.attnDrop = config.attnDrop;
     this.residDrop = config.residDrop;
     this.seed = config.seed;
-
-    // mask is a lower triangular matrix filled with 1
-    // calling bandPart zero out the upper triangular part of the all-ones matrix
-    // from the doc: tf.linalg.band_part(input, -1, 0) ==> Lower triangular part
-    this.mask = tf.linalg.bandPart(
-      tf.ones([config.contextLength, config.contextLength]),
-      -1,
-      0,
-    );
   }
 
   override build(): void {
+    // mask is a lower triangular matrix filled with 1
+    // calling bandPart zero out the upper triangular part of the all-ones matrix
+    // from the doc: tf.linalg.band_part(input, -1, 0) ==> Lower triangular part
+    // it is owned by the layer, keep it from any enclosing tf.tidy
+    const { contextLength } = this.config;
+    this.mask = tf.keep(
+      tf.tidy(() =>
+        tf.linalg.bandPart(tf.ones([contextLength, contextLength]), -1, 0),
+      ),
+    );
+
     // key, query, value projections for all heads, but in a batch
     this.cAttnWeight = this.addWeight(
       "c_attn/kernel",
@@ -169,6 +171,13 @@ export class CausalSelfAttention extends tf.layers.Layer {
       "float32",
       tf.initializers.zeros(),
     );
+  }
+
+  // called by tfjs once the layer isn't referenced anymore
+  protected override disposeWeights(): number {
+    this.mask?.dispose();
+    this.mask = undefined;
+    return super.disposeWeights();
   }
 
   override computeOutputShape(
@@ -264,6 +273,8 @@ export class CausalSelfAttention extends tf.layers.Layer {
   }
 
   public applyCausalMask(att: tf.Tensor, T: number): tf.Tensor {
+    if (this.mask === undefined)
+      throw new Error("Model not built, mask is undefined");
     // mask is lower triangular matrix filled with 1
     const mask = this.mask.slice([0, 0], [T, T]);
     // 1 - mask                   => upper triangular matrix filled with 1
@@ -496,6 +507,18 @@ export class LMEmbedding extends tf.layers.Layer {
         seed: this.seed,
       }),
     );
+  }
+
+  /**
+   * tfjs counts one reference per application of the layer, and this layer is
+   * applied twice (token embedding and language modeling head). As the model
+   * disposes each of its layers only once, the shared embedding would never be
+   * freed. It is never used outside of its model, so release every reference.
+   */
+  override dispose(): ReturnType<tf.layers.Layer["dispose"]> {
+    let result = super.dispose();
+    while (result.refCountAfterDispose > 0) result = super.dispose();
+    return result;
   }
 
   override computeOutputShape(
