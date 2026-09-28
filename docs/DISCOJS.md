@@ -54,9 +54,9 @@ If enabled, a differential privacy mechanism is applied to the model's weights b
 
 ## Client
 
-The `Client` class mostly handles sending and receiving weights from the current client to the server (or other peers in decentralized learning). `Client` is an abstract class that requires the methods such as `onRoundBeginCommunication` and `onRoundEndCommunication` to be implemented. Currently, the three classes implementing `Client` are the `FederatedClient`, the `DecentralizedClient` and the `LocalClient`. For simplicity, we explain here how the `FederatedClient` works.
+The `Client` class mostly handles sending and receiving weights from the current client to the server (or other peers in decentralized learning). `Client` is an abstract class that requires the methods such as `onRoundBeginCommunication` and `onRoundEndCommunication` to be implemented. Currently, the three classes implementing `Client` are the `FederatedClient`, the `DecentralizedClient` and the `LocalClient`.
 
-In the federated case, pushing the new weights to the "aggregator" will let the `Trainer` use these weights in the next round without aggregating anything. The main aggregation is done by the server.
+In the federated case, the client iteratively trains on its local data, sends the updated weights to the server and waits for the aggregated weights to be sent back. The main aggregation is done by the server. The `DecentralizedClient` communicates directly with its neighbors to exchange the weight updates. The aggregation mechanism is handled locally by each client. Finally the `LocalClient` simply trains on its local data without any communication to other nodes or server.
 
 ### Aggregators
 
@@ -122,7 +122,7 @@ flowchart LR
 
 ### Memory
 
-As mentioned in various guides, `discojs` is platform-agnostic and only what endpoints the memory storage should offer. The actual implementation is in `discojs-web` used by the browser UI and implements the memory via IndexedDB, a browser storage. `discojs` also implements a dummy memory, used by the CLI for example, to benchmark performance metrics without saving any models.
+As mentioned in various guides, `discojs` is platform-agnostic and only exposes what endpoints the memory storage should offer. The actual implementation is in `discojs-web` used by the browser UI and implements the memory via IndexedDB, a browser storage. `discojs` also implements a dummy memory, used by the CLI for example, to benchmark performance metrics without saving any models.
 
 ### TensorFlow.js memory management
 
