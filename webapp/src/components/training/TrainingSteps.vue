@@ -30,7 +30,7 @@
       v-show="trainingStore.step === 3"
       :task
       :dataset="unnamedDataset"
-      @model="(m) => (trainedModel = m)"
+      @model="onModel"
     />
 
     <TrainingFinished
@@ -44,7 +44,15 @@
 
 <script lang="ts" setup>
 import { storeToRefs } from "pinia";
-import { computed, onMounted, ref, toRaw, watch } from "vue";
+import {
+  computed,
+  onMounted,
+  onUnmounted,
+  ref,
+  shallowRef,
+  toRaw,
+  watch,
+} from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { VueSpinner } from "vue3-spinners";
 
@@ -147,5 +155,12 @@ const unnamedDataset = computed<Dataset<DataFormat.Raw[DataType]> | undefined>(
     }
   },
 );
-const trainedModel = ref<Model<DataType>>();
+const trainedModel = shallowRef<Model<DataType>>();
+
+// free the model when replaced or when leaving
+function onModel(model: Model<DataType>): void {
+  trainedModel.value?.dispose();
+  trainedModel.value = model;
+}
+onUnmounted(() => trainedModel.value?.dispose());
 </script>
