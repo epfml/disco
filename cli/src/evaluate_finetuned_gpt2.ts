@@ -493,7 +493,7 @@ async function main() {
   const tokenizer = await Tokenizer.from_pretrained("Xenova/gpt2");
 
   console.log("Loading model...");
-  const model = await loadModelFromDisk(args.modelPath);
+  using model = await loadModelFromDisk(args.modelPath);
 
   if (!(model instanceof GPT)) {
     throw new Error("Model must be GPT");

@@ -115,7 +115,11 @@ async function main(): Promise<void> {
       model = (await modelDecode(encodedModel)) as GPT;
       break;
   }
-  await evaluateModel(model, args.numDataPoints);
+  try {
+    await evaluateModel(model, args.numDataPoints);
+  } finally {
+    model.dispose();
+  }
 
   console.log("Benchmark completed!");
 }
