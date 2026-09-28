@@ -140,17 +140,20 @@ export class GPT extends Model<"text"> {
     const tfBatch = this.#batchToTF(batch);
 
     let logs: tf.Logs | undefined;
-    await this.model.fitDataset(tf.data.array([tfBatch]), {
-      epochs: 1,
-      iterationOffset: iterationNumber - 1,
-      verbose: 0, // don't pollute
-      callbacks: {
-        onEpochEnd: (_, cur) => {
-          logs = cur;
+    try {
+      await this.model.fitDataset(tf.data.array([tfBatch]), {
+        epochs: 1,
+        iterationOffset: iterationNumber - 1,
+        verbose: 0, // don't pollute
+        callbacks: {
+          onEpochEnd: (_, cur) => {
+            logs = cur;
+          },
         },
-      },
-    });
-    tf.dispose(tfBatch);
+      });
+    } finally {
+      tf.dispose(tfBatch);
+    }
     if (logs === undefined) throw new Error("batch didn't gave any logs");
 
     const { loss, acc: accuracy } = logs;
@@ -230,18 +233,16 @@ export class GPT extends Model<"text"> {
     // slice input tokens if longer than context length
     tokens = tokens.slice(-this.#contextLength);
 
-    const input = tf.tidy(() =>
-      tf.tensor1d(tokens.toArray(), "int32").expandDims<tf.Tensor2D>(0),
-    );
-
     const logits = tf.tidy(() => {
+      const input = tf
+        .tensor1d(tokens.toArray(), "int32")
+        .expandDims<tf.Tensor2D>(0);
       const output = this.model.predict(input);
       if (Array.isArray(output))
         throw new Error("The model outputs too multiple values");
       if (output.rank !== 3) throw new Error("The model outputs wrong shape");
       return output.squeeze<tf.Tensor2D>([0]);
     });
-    input.dispose();
 
     const probs = tf.tidy(() =>
       logits
@@ -281,9 +282,11 @@ export class GPT extends Model<"text"> {
     });
     probs.dispose();
 
-    const ret = await next.array();
-    next.dispose();
-    return ret;
+    try {
+      return await next.array();
+    } finally {
+      next.dispose();
+    }
   }
 
   get config(): Required<GPTConfig> {

@@ -187,17 +187,11 @@ async function sampleGenerateGPT2(
 
   for (let i = 0; i < maxNewTokens; i++) {
     const modelInput = generated.slice(-maxContextLength);
-    const input = tf.tensor2d([modelInput], [1, modelInput.length], "int32");
-
-    const logits = tf.tidy(() => {
-      const output = tfModel.predict(input);
-      if (Array.isArray(output)) {
-        return output[0];
-      }
-      return output;
-    });
-
     const nextTokenTensor = tf.tidy(() => {
+      const input = tf.tensor2d([modelInput], [1, modelInput.length], "int32");
+      const output = tfModel.predict(input);
+      const logits = Array.isArray(output) ? output[0] : output;
+
       const last = logits.slice([0, modelInput.length - 1, 0], [1, 1, -1]);
       const scaled = last.squeeze<tf.Tensor1D>().div(temperature);
       const { values: topKLogits, indices: topKTokens } = tf.topk(scaled, topK);
@@ -213,12 +207,12 @@ async function sampleGenerateGPT2(
       return topKTokens.gather(sampledIndex).squeeze<tf.Scalar>();
     });
 
-    const nextTokenData = await nextTokenTensor.data();
-    const nextToken = nextTokenData[0];
-
-    input.dispose();
-    logits.dispose();
-    nextTokenTensor.dispose();
+    let nextToken: number;
+    try {
+      nextToken = (await nextTokenTensor.data())[0];
+    } finally {
+      nextTokenTensor.dispose();
+    }
 
     generated.push(nextToken);
   }
