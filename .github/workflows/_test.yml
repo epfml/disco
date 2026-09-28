@@ -110,8 +110,11 @@ jobs:
         with:
           working-directory: webapp
           install: false
-          start: pnpm exec vite --mode test --port 1353 --strictPort
-          config-file: cypress.config.federated.ts
+          start: >-
+            pnpm run test:e2e:federated:peer,
+            pnpm exec vite --mode test --port 1351 --strictPort
+          wait-on: "http://localhost:8080, http://localhost:1351"
+          config: specPattern=cypress/collaborative/federated.cy.ts
 
   test-cli:
     runs-on: ubuntu-latest
