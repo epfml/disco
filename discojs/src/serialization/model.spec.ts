@@ -6,7 +6,12 @@ import type { Model, GPTConfig } from "#models/index";
 import { GPT, TFJS } from "#models/index";
 
 import { encode, decode } from "#serialization/model";
-import { isEncoded } from "#serialization/coder";
+import type { Encoded } from "#serialization/coder";
+import {
+  decode as decodeGeneric,
+  encode as encodeGeneric,
+  isEncoded,
+} from "#serialization/coder";
 
 async function getRawWeights(
   model: Model<DataType>,
@@ -18,6 +23,26 @@ async function getRawWeights(
       )
     ).entries(),
   );
+}
+
+type Encodable = Parameters<typeof encodeGeneric>[0];
+
+/** Encode a TFJS model with arbitrary metadata, bypassing `TFJS.serialize` */
+async function encodeTFJSWithMetadata(
+  datatype: "image" | "tabular",
+  metadata: Encodable,
+): Promise<Encoded> {
+  const rawModel = tf.sequential({
+    layers: [tf.layers.dense({ inputShape: [2], units: 1 })],
+  });
+  rawModel.compile({ optimizer: "sgd", loss: "meanSquaredError" });
+
+  // reuse a valid encoding and only replace its metadata
+  const encoded = decodeGeneric(await encode(new TFJS(datatype, rawModel)));
+  if (!Array.isArray(encoded)) throw new Error("expected an encoded array");
+  const [type, encodedDatatype, artifacts] = encoded as Encodable[];
+
+  return encodeGeneric([type, encodedDatatype, artifacts, metadata]);
 }
 
 describe("serialization", () => {
@@ -74,6 +99,40 @@ describe("serialization", () => {
     const decoded = await decode(await encode(new TFJS("tabular", rawModel)));
 
     expect(decoded.metadata).to.be.undefined;
+  });
+
+  describe("rejects malformed TFJS model metadata", () => {
+    const cases: Record<string, Encodable> = {
+      "non object": "metadata",
+      "non object standardization": { tabularStandardization: 1 },
+      "missing stds": { tabularStandardization: { means: { a: 0 } } },
+      "non number mean": {
+        tabularStandardization: { means: { a: "0" }, stds: { a: 1 } },
+      },
+      "negative std": {
+        tabularStandardization: { means: { a: 0 }, stds: { a: -1 } },
+      },
+      "different columns": {
+        tabularStandardization: { means: { a: 0 }, stds: { b: 1 } },
+      },
+    };
+
+    for (const [name, metadata] of Object.entries(cases))
+      it(name, async () => {
+        await expect(
+          decode(await encodeTFJSWithMetadata("tabular", metadata)),
+        ).rejects.toThrow(/invalid metadata/);
+      });
+  });
+
+  it("rejects metadata on a non-tabular TFJS model", async () => {
+    const metadata = {
+      tabularStandardization: { means: { a: 0 }, stds: { a: 1 } },
+    };
+
+    await expect(
+      decode(await encodeTFJSWithMetadata("image", metadata)),
+    ).rejects.toThrow(/only supported for tabular models/);
   });
 
   it("can encode & decode a gpt-tfjs model", { timeout: 20_000 }, async () => {

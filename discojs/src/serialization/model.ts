@@ -1,4 +1,5 @@
 import type tf from "@tensorflow/tfjs";
+import { z } from "zod";
 
 import { encode as w_encode, decode as w_decode } from "#serialization/weights";
 import { GPT } from "#models/implementations/index";
@@ -18,6 +19,54 @@ const Type = {
   TFJS: 0,
   GPT: 1,
 } as const;
+
+// numbers are finite as zod rejects NaN and Infinity
+const standardizationStatsSchema = z
+  .object({
+    means: z.record(z.string(), z.number()),
+    stds: z.record(z.string(), z.number().nonnegative()),
+  })
+  .refine(
+    ({ means, stds }) => {
+      const meanColumns = Object.keys(means);
+      const stdColumns = new Set(Object.keys(stds));
+      return (
+        meanColumns.length === stdColumns.size &&
+        meanColumns.every((column) => stdColumns.has(column))
+      );
+    },
+    { message: "means and stds should be defined for the same columns" },
+  );
+
+const metadataSchema = z.object({
+  tabularStandardization: standardizationStatsSchema.optional(),
+}) satisfies z.ZodType<ModelMetadata>;
+
+/**
+ * Parse the metadata of a TFJS model
+ *
+ * @throws if malformed or given for a non-tabular model
+ */
+function decodeMetadata(
+  raw: unknown,
+  datatype: "image" | "tabular",
+): ModelMetadata | undefined {
+  // msgpack decodes an undefined array entry as null
+  if (raw === undefined || raw === null) return undefined;
+
+  // metadata only holds tabular standardization
+  if (datatype !== "tabular")
+    throw new Error(
+      `invalid TFJS model encoding: metadata is only supported for tabular models, got ${datatype}`,
+    );
+
+  const parsed = metadataSchema.safeParse(raw);
+  if (!parsed.success)
+    throw new Error(
+      `invalid TFJS model encoding: invalid metadata: ${z.prettifyError(parsed.error)}`,
+    );
+  return parsed.data;
+}
 
 export async function encode(model: Model<DataType>): Promise<Encoded> {
   switch (true) {
@@ -75,7 +124,7 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
         // TODO totally unsafe casting
         rawModel as tf.io.ModelArtifacts,
         // metadata for tabular task standardization
-        rawMetadata === null ? undefined : (rawMetadata as ModelMetadata),
+        decodeMetadata(rawMetadata, datatype),
       ]);
     }
     case Type.GPT: {
