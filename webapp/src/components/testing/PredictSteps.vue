@@ -100,7 +100,7 @@
 import * as d3 from "d3";
 import createDebug from "debug";
 import { List } from "immutable";
-import { computed, ref, toRaw } from "vue";
+import { computed, onUnmounted, ref, toRaw } from "vue";
 
 import type {
   DataFormat,
@@ -262,6 +262,9 @@ async function startTabularInference(
     generator.value = undefined;
   }
 }
+
+// the model may be disposed once we're gone, don't keep inferring with it
+onUnmounted(() => void stopInference());
 
 async function stopInference(): Promise<void> {
   const g = generator.value;

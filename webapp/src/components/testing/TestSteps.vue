@@ -152,7 +152,7 @@
 import * as d3 from "d3";
 import createDebug from "debug";
 import { List, Map } from "immutable";
-import { computed, ref, toRaw } from "vue";
+import { computed, onUnmounted, ref, toRaw } from "vue";
 
 import type { DataType, Image, Model, Network, Task } from "@epfml/discojs";
 import { Validator } from "@epfml/discojs";
@@ -346,9 +346,9 @@ async function startImageTest(
   const validator = new Validator(task, model);
   let results: Tested["image"] = List();
 
+  // stopTest clears controller, keep our own signal
+  const { signal } = (controller.value = new AbortController());
   try {
-    controller.value = new AbortController();
-
     for await (const [
       { filename, image, label },
       { predicted, truth },
@@ -376,10 +376,10 @@ async function startImageTest(
 
       tested.value = results as Tested[D];
 
-      if (controller.value.signal.aborted) break;
+      if (signal.aborted) break;
     }
   } finally {
-    controller.value = undefined;
+    if (controller.value?.signal === signal) controller.value = undefined;
   }
 }
 
@@ -401,9 +401,9 @@ async function startTabularTest(
   const validator = new Validator(task, model);
 
   let results: Tested["tabular"]["results"] = List();
+  // stopTest clears controller, keep our own signal
+  const { signal } = (controller.value = new AbortController());
   try {
-    controller.value = new AbortController();
-
     for await (const [row, { predicted, truth }] of dataset.zip(
       validator.test(dataset),
     )) {
@@ -428,10 +428,10 @@ async function startTabularTest(
 
       tested.value = { labels, results } as Tested[D];
 
-      if (controller.value.signal.aborted) break;
+      if (signal.aborted) break;
     }
   } finally {
-    controller.value = undefined;
+    if (controller.value?.signal === signal) controller.value = undefined;
   }
 }
 
@@ -443,24 +443,28 @@ async function startTextTest(
   const validator = new Validator(task, model);
   let results: Tested["text"] = List();
 
+  // stopTest clears controller, keep our own signal
+  const { signal } = (controller.value = new AbortController());
   try {
-    controller.value = new AbortController();
-
     for await (const { predicted, truth } of validator.test(dataset)) {
       results = results.push({ output: { correct: predicted === truth } });
       tested.value = results as Tested[D];
 
-      if (controller.value.signal.aborted) break;
+      if (signal.aborted) break;
 
       // TODO processing can hog the browser when big enough
       // this allow other computations to run
       // will be fixed by using WebWorker
       await new Promise<void>((resolve) => setTimeout(() => resolve(), 100));
+      if (signal.aborted) break;
     }
   } finally {
-    controller.value = undefined;
+    if (controller.value?.signal === signal) controller.value = undefined;
   }
 }
+
+// the model may be disposed once we're gone, don't keep testing it
+onUnmounted(() => stopTest());
 
 function stopTest(): void {
   const c = controller.value;
