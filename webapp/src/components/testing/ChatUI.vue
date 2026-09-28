@@ -338,8 +338,10 @@
 <script lang="ts" setup>
 import createDebug from "debug";
 import {
-  onMounted,
+  onActivated,
   onBeforeUnmount,
+  onDeactivated,
+  onMounted,
   computed,
   nextTick,
   ref,
@@ -466,6 +468,8 @@ async function generate(isRegenerating: boolean = false) {
     isGenerating.value = false;
     shouldStopGeneration.value = false;
     inputText.value = "";
+    // the model was released while generating
+    if (llm.value !== llmModel) llmModel.dispose();
   }
 }
 
@@ -535,8 +539,30 @@ watch(
   },
 );
 
+// incremented on every load and when releasing the model, so that a load
+// finishing late knows its model isn't wanted anymore
+let loadID = 0;
+let loading = false;
+
+// free the model, the page stays cached when left
+function releaseModel(): void {
+  loadID++;
+  loading = false;
+
+  const model = llm.value;
+  llm.value = undefined;
+  // a running generation disposes it once done
+  if (isGenerating.value) stopGeneration();
+  else model?.dispose();
+}
+
 onMounted(async () => loadModel());
-onBeforeUnmount(() => llm.value?.dispose());
+// also called right after mounting, while the first load is running
+onActivated(async () => {
+  if (llm.value === undefined && !loading) await loadModel();
+});
+onDeactivated(releaseModel);
+onBeforeUnmount(releaseModel);
 
 watch(
   () => selectedModelType.value,
@@ -548,26 +574,46 @@ async function loadModel() {
     toaster.error("Stop generation before changing model");
     return;
   }
+  const id = ++loadID;
+  loading = true;
+
+  // drop the previous model first so that nothing uses it once disposed
+  const previous = llm.value;
+  llm.value = undefined;
+  previous?.dispose();
+
   toaster.info("Loading the model...");
+  let model: LLMModel | undefined;
   try {
-    llm.value?.dispose();
     switch (selectedModelType.value) {
       case "tfjs-gpt2":
         if (modelID) {
-          llm.value = (await modelsStore.get(modelID)) as LLMModel;
+          model = (await modelsStore.get(modelID)) as LLMModel;
           break;
         }
       case "onnx-gpt2":
-        llm.value = await ONNXModel.init_pretrained("Xenova/gpt2");
+        model = await ONNXModel.init_pretrained("Xenova/gpt2");
         break;
       default:
         const _: never = selectedModelType.value;
     }
-    if (!llm.value) throw new Error("model is undefined");
-    toaster.success("Model loaded!");
+    if (!model) throw new Error("model is undefined");
   } catch (error) {
-    toaster.error("An error occurred");
+    if (id === loadID) {
+      loading = false;
+      toaster.error("An error occurred");
+    }
     debug("Error during model init:", error);
+    return;
   }
+
+  // a newer load started or the model was released in the meantime
+  if (id !== loadID) {
+    model.dispose();
+    return;
+  }
+  loading = false;
+  llm.value = model;
+  toaster.success("Model loaded!");
 }
 </script>
