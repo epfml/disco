@@ -233,10 +233,12 @@ export class DecentralizedClient extends Client<"decentralized"> {
 
       const latestModel = await this.receiveModel(providerConn);
 
+      // keep the decoded model, listeners only borrow it
+      // emitting a clone would be very hard to dispose safely
       this.#latestModel?.dispose();
-      this.#latestModel = this.cloneWeights(latestModel);
+      this.#latestModel = latestModel;
 
-      this.emit("modelSynced", this.cloneWeights(latestModel));
+      this.emit("modelSynced", latestModel);
       this.#modelSyncNeeded = false;
     }
 

@@ -69,6 +69,11 @@ function buildSummaryLog(
 export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   status: RoundStatus;
   participants: number;
+  /**
+   * The model was synced to the latest global model.
+   * The weights are lent to the listeners for the duration of the call,
+   * clone them to keep them longer.
+   */
   modelSynced: WeightsContainer | undefined;
 }> {
   public readonly trainer: Trainer<D, N>;
