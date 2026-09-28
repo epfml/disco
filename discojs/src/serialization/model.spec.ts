@@ -158,4 +158,15 @@ describe("serialization", () => {
     );
     assert.deepEqual(model.config, decoded.config);
   });
+
+  it("decoding a gpt-tfjs model leaves no dangling tensors", async () => {
+    const model = new GPT({ modelType: "gpt-nano", contextLength: 8 });
+    const encoded = await encode(model);
+    model.dispose();
+
+    const baseline = tf.memory().numTensors;
+    const decoded = await decode(encoded);
+    decoded.dispose();
+    expect(tf.memory().numTensors).to.equal(baseline);
+  });
 });
