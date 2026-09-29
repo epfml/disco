@@ -87,8 +87,6 @@ jobs:
           working-directory: webapp
           install: false
           start: pnpm exec vite --mode test --port 1351
-          wait-on: http://localhost:1351
-          browser: electron
           spec: cypress/e2e/local_training/${{ matrix.task }}.cy.ts
       - uses: actions/upload-artifact@v7
         if: failure()

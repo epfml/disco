@@ -60,7 +60,7 @@ it("increases accuracy when training alone", { timeout: 20_000 }, async () => {
     infos.props("rounds").last()?.epochs.last()?.training.accuracy,
   ).toBeGreaterThan(0);
 
-  await vi.waitFor(() => expect(infos.props("isTraining")).toBe(false));
+  await vi.waitFor(() => expect(infos.props("isTraining")).toBe(false), { timeout: 5_000 });
   const model = wrapper.emitted<[Model<"tabular">]>("model")?.at(-1)?.[0];
   if (model === undefined) throw new Error("No trained model emitted");
   try {

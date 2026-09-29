@@ -2,21 +2,19 @@ import { defaultTasks } from "@epfml/discojs";
 
 import { setupServerWith } from "../../support/e2e";
 import {
+  assertNoErrorToast,
   goToTaskOverview,
   trainLocallyAndSave,
   withTrainingConfig,
 } from "../../support/training";
 
-it("completes local LUS COVID training and saves the model", () => {
-  setupServerWith(
-    withTrainingConfig(defaultTasks.lusCovid, {
-      epochs: 4,
-      roundDuration: 4,
-    }),
-  );
-  goToTaskOverview();
-  cy.contains("button", "next").click();
+const numEpochs = 4;
+const lusCovidTask = withTrainingConfig(defaultTasks.lusCovid, {
+  epochs: numEpochs,
+  roundDuration: 4,
+});
 
+function uploadLusCovidDataset(): void {
   for (const [directory, label] of [
     ["COVID+", "COVID-Positive"],
     ["COVID-", "COVID-Negative"],
@@ -34,6 +32,40 @@ it("completes local LUS COVID training and saves the model", () => {
       },
     );
   }
+}
 
-  trainLocallyAndSave("Lung Ultrasound Image Classification", 4, 300_000);
+function goToLusCovidDataset(): void {
+  goToTaskOverview();
+  cy.contains("button", "next").click();
+  uploadLusCovidDataset();
+}
+
+it("completes local LUS COVID training and saves the model", () => {
+  setupServerWith(lusCovidTask);
+  goToLusCovidDataset();
+  trainLocallyAndSave(
+    "Lung Ultrasound Image Classification",
+    numEpochs,
+    300_000,
+  );
+});
+
+it("can stop local LUS COVID training", () => {
+  setupServerWith(lusCovidTask);
+
+  // Stopping training raises this expected exception from the generator.
+  cy.on("uncaught:exception", (e) => !e.message.includes("stop training"));
+
+  goToLusCovidDataset();
+  cy.contains("button", "next").click();
+  cy.contains("button", "locally").click();
+  cy.contains("button", "Start training").click();
+  assertNoErrorToast();
+  cy.contains("h6", "current batch")
+    .next({ timeout: 40_000 })
+    .should("have.text", "2");
+  assertNoErrorToast();
+
+  cy.contains("button", "stop training").click();
+  assertNoErrorToast();
 });
