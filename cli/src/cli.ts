@@ -240,4 +240,7 @@ async function main<D extends DataType, N extends Network>(
   }
 }
 
-main(args.provider, args.numberOfUsers).catch(console.error);
+main(args.provider, args.numberOfUsers).catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
