@@ -13,6 +13,7 @@ export {
   MeanAggregator,
   SecureAggregator,
   getAggregator,
+  getFederatedServerAggregator,
 } from "./aggregator/index.js";
 
 export {

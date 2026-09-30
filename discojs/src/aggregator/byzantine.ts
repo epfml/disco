@@ -168,6 +168,12 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
     return v;
   }
 
+  override removeNode(nodeId: NodeID): void {
+    super.removeNode(nodeId);
+    this.historyMomentums.get(nodeId)?.dispose();
+    this.historyMomentums = this.historyMomentums.delete(nodeId);
+  }
+
   override dispose(): void {
     this.historyMomentums.forEach((momentum) => momentum.dispose());
     this.historyMomentums = Map();
