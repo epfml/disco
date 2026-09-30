@@ -1,4 +1,4 @@
-import type { Model } from "#models/index";
+import type { Model, ModelMetadata } from "#models/index";
 import type { DataType, DataFormat, Network } from "#types/index";
 import type { Task } from "#task/index";
 import type { Batched } from "#dataset/index";
@@ -14,7 +14,7 @@ import { enumerate, split } from "#utils/async_iterator";
 import { EventEmitter } from "#utils/event_emitter";
 
 import * as clients from "#client/index";
-import * as processing from "#processing/index";
+import { preprocess, computeStandardizationStats } from "#processing/index";
 import * as async_iterator from "#utils/async_iterator";
 import type { GoldfishLossConfig } from "#models/implementations/gpt/config";
 import type { RoundLogs } from "#training/trainer";
@@ -224,7 +224,8 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   > {
     this.#logger.success("Training started");
 
-    const [trainingDataset, validationDataset_] =
+    // If a val dataset is not specified, split a ratio of the dataset for validation
+    const [trainingDataset, validationDataset_, tabularMetadata] =
       validationDataset !== undefined
         ? await this.#preprocessDatasets(dataset, validationDataset)
         : await this.#preprocessSplitAndBatch(dataset);
@@ -236,6 +237,9 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     this.#setModelDebugLabel(this.trainer.model);
     this.#setModelTrainingOptions(this.trainer.model);
     debug("Initial model fetched successfully");
+
+    if (tabularMetadata !== undefined)
+      this.trainer.model.metadata = tabularMetadata;
 
     for await (const [roundNum, round] of enumerate(
       this.trainer.train(trainingDataset, validationDataset_),
@@ -355,59 +359,99 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     [
       Dataset<Batched<DataFormat.ModelEncoded[D]>>,
       Dataset<Batched<DataFormat.ModelEncoded[D]>> | undefined,
+      ModelMetadata | undefined,
     ]
   > {
     const { batchSize, validationSplit } = this.#task.trainingInformation;
 
-    let preprocessed = processing.preprocess(this.#task, dataset);
+    // split raw tabular rows so that standardization stats
+    // are fitted on the training part only
+    if (this.#task.dataType === "tabular") {
+      if (validationSplit === 0) return this.#preprocessDatasets(dataset);
+
+      const [training, validation] = dataset.split(validationSplit);
+      return this.#preprocessDatasets(training, validation);
+    }
+
+    let preprocessed = preprocess(this.#task, dataset);
 
     preprocessed = this.#preprocessOnce
       ? new Dataset(await arrayFromAsync(preprocessed))
       : preprocessed;
     if (validationSplit === 0)
-      return [preprocessed.batch(batchSize).cached(), undefined];
+      return [preprocessed.batch(batchSize).cached(), undefined, undefined];
 
     const [training, validation] = preprocessed.split(validationSplit);
 
     return [
       training.batch(batchSize).cached(),
       validation.batch(batchSize).cached(),
+      undefined,
     ];
   }
 
   async #preprocessDatasets(
     trainingDataset: Dataset<DataFormat.Raw[D]>,
-    validationDataset: Dataset<DataFormat.Raw[D]>,
+    validationDataset?: Dataset<DataFormat.Raw[D]>,
   ): Promise<
     [
       Dataset<Batched<DataFormat.ModelEncoded[D]>>,
       Dataset<Batched<DataFormat.ModelEncoded[D]>> | undefined,
+      ModelMetadata | undefined,
     ]
   > {
     const { batchSize } = this.#task.trainingInformation;
+    const tabularMetadata = await this.#fitTabularMetadata(trainingDataset);
 
-    let preprocessedTraining = processing.preprocess(
+    let preprocessedTraining = preprocess(
       this.#task,
       trainingDataset,
+      tabularMetadata,
     );
-    let preprocessedValidation = processing.preprocess(
-      this.#task,
-      validationDataset,
-    );
+    let preprocessedValidation =
+      validationDataset !== undefined
+        ? preprocess(this.#task, validationDataset, tabularMetadata)
+        : undefined;
 
     if (this.#preprocessOnce) {
       preprocessedTraining = new Dataset(
         await arrayFromAsync(preprocessedTraining),
       );
-      preprocessedValidation = new Dataset(
-        await arrayFromAsync(preprocessedValidation),
-      );
+      if (preprocessedValidation !== undefined)
+        preprocessedValidation = new Dataset(
+          await arrayFromAsync(preprocessedValidation),
+        );
     }
 
     return [
       preprocessedTraining.batch(batchSize).cached(),
-      preprocessedValidation.batch(batchSize).cached(),
+      preprocessedValidation?.batch(batchSize).cached(),
+      tabularMetadata,
     ];
+  }
+
+  /**
+   * Fit standardization stats of the numerical columns on the training rows
+   *
+   * @returns the model metadata, undefined for non-tabular tasks
+   */
+  async #fitTabularMetadata(
+    trainingDataset: Dataset<DataFormat.Raw[D]>,
+  ): Promise<ModelMetadata | undefined> {
+    if (this.#task.dataType !== "tabular") return undefined;
+
+    const { inputColumns, categoricalColumns } = this.#task.trainingInformation;
+    const categorical = new Set(Object.keys(categoricalColumns ?? {}));
+    const numericalColumns = inputColumns.filter(
+      (column) => !categorical.has(column),
+    );
+
+    return {
+      tabularStandardization: await computeStandardizationStats(
+        trainingDataset as Dataset<DataFormat.Raw["tabular"]>,
+        numericalColumns,
+      ),
+    };
   }
 }
 

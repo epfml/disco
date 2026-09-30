@@ -1,19 +1,22 @@
 import { List } from "immutable";
 
 import type { Task } from "#task/index";
-import type { Dataset, Tabular } from "#dataset/index";
+import type { Dataset } from "#dataset/index";
 import type { DataType, DataFormat, Network } from "#types/index";
+import type { ModelMetadata } from "#models/model";
 
 import { normalize, removeAlpha, resize } from "#processing/image";
 import {
   indexInList,
-  extractColumn,
+  extractValue,
   convertToNumber,
+  encodeTabularRow,
 } from "#processing/tabular";
 
 export function preprocess<D extends DataType, N extends Network>(
   task: Task<D, N>,
   dataset: Dataset<DataFormat.Raw[D]>,
+  metadata?: ModelMetadata,
 ): Dataset<DataFormat.ModelEncoded[D]> {
   switch (task.dataType) {
     case "image": {
@@ -29,16 +32,16 @@ export function preprocess<D extends DataType, N extends Network>(
     case "tabular": {
       // cast as typescript doesn't reduce generic type
       const d = dataset as Dataset<DataFormat.Raw["tabular"]>;
-      const { inputColumns, outputColumn } = task.trainingInformation;
+      const { inputColumns, outputColumn, categoricalColumns } =
+        task.trainingInformation;
+      const stats = metadata?.tabularStandardization;
 
       return d.map((row) => {
-        const output = extractColumn(row, outputColumn);
+        const inputs = List(
+          encodeTabularRow(row, inputColumns, categoricalColumns, stats),
+        );
 
-        return [
-          extractToNumbers(inputColumns, row),
-          // TODO sanitization doesn't care about column distribution
-          output !== "" ? convertToNumber(output) : 0,
-        ];
+        return [inputs, convertToNumber(extractValue(row, outputColumn))];
       }) as Dataset<DataFormat.ModelEncoded[D]>;
     }
     case "text": {
@@ -62,6 +65,7 @@ export function preprocess<D extends DataType, N extends Network>(
 export function preprocessWithoutLabel<D extends DataType>(
   task: Task<D, Network>,
   dataset: Dataset<DataFormat.RawWithoutLabel[D]>,
+  metadata?: ModelMetadata,
 ): Dataset<DataFormat.ModelEncoded[D][0]> {
   switch (task.dataType) {
     case "image": {
@@ -76,9 +80,12 @@ export function preprocessWithoutLabel<D extends DataType>(
     case "tabular": {
       // cast as typescript doesn't reduce generic type
       const d = dataset as Dataset<DataFormat.Raw["tabular"]>;
-      const { inputColumns } = task.trainingInformation;
+      const { inputColumns, categoricalColumns } = task.trainingInformation;
+      const stats = metadata?.tabularStandardization;
 
-      return d.map((row) => extractToNumbers(inputColumns, row));
+      return d.map((row) =>
+        List(encodeTabularRow(row, inputColumns, categoricalColumns, stats)),
+      );
     }
     case "text": {
       // cast as typescript doesn't reduce generic type
@@ -115,14 +122,4 @@ export function postprocess<D extends DataType>(
       ]) as DataFormat.Inferred[D];
     }
   }
-}
-
-function extractToNumbers(columns: Iterable<string>, row: Tabular) {
-  return (
-    List(columns)
-      .map((column) => extractColumn(row, column))
-      // TODO sanitization doesn't care about column distribution
-      .map((v) => (v !== "" ? v : "0"))
-      .map(convertToNumber)
-  );
 }

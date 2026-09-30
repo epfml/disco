@@ -1,5 +1,9 @@
 /** Dataset shapers, convenient to map with */
-export { extractColumn } from "./tabular.js";
+export {
+  extractColumn,
+  computeStandardizationStats,
+  isMissingValue,
+} from "./tabular.js";
 export {
   preprocess,
   preprocessWithoutLabel,

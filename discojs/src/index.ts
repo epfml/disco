@@ -54,6 +54,8 @@ export {
   DefaultGenerationConfig,
 } from "./models/index.js";
 export type {
+  ValidationMetrics,
+  ModelMetadata,
   GPTConfig,
   HellaSwagExample,
   GoldfishLossConfig,
@@ -77,7 +79,7 @@ export type { TaskProvider } from "./task/index.js";
 export type { DataType, Network, DataFormat } from "./types/index.js";
 export { dataTypeValues, isDataType } from "./types/index.js";
 
-export { extractColumn } from "./processing/index.js";
+export { extractColumn, isMissingValue } from "./processing/index.js";
 
 // eslint-disable-next-line no-restricted-syntax -- namespace re-export acceptable here
 export * as defaultTasks from "./default_tasks/index.js";
