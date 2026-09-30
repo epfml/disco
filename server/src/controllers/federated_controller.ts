@@ -9,7 +9,7 @@ import {
   federatedMessages,
   weightsEncode,
   weightsDecode,
-  MeanAggregator,
+  getFederatedServerAggregator,
 } from "@epfml/discojs";
 
 import { TrainingController } from "./training_controller.js";
@@ -49,8 +49,8 @@ export class FederatedController<D extends DataType> extends TrainingController<
    */
   #pendingUpdateRecipients = new Map<NodeID, WebSocket>();
   /**
-   * Aggregators for each hosted task.
-    By default the server waits for 100% of the nodes to send their contributions before aggregating the updates
+   * Aggregator of the hosted task, built from the task's aggregation strategy.
+   * By default the server waits for 100% of the nodes to send their contributions before aggregating the updates
    */
   #aggregator = this.#makeAggregator();
   /**
@@ -90,8 +90,8 @@ export class FederatedController<D extends DataType> extends TrainingController<
    * Creates an aggregator and registers the handler that caches and broadcasts
    * the global weights produced at the end of each aggregation round.
    */
-  #makeAggregator(): MeanAggregator {
-    const aggregator = new MeanAggregator(0, 1, "relative");
+  #makeAggregator() {
+    const aggregator = getFederatedServerAggregator(this.task);
 
     // Set the minimum number of participants required for aggregation
     // In case we recreate the aggregator after a reset
