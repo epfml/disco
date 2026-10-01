@@ -163,7 +163,9 @@ jobs:
       - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v8
         with: { name: all-builds }
-      - run: pnpm -F webapp run test:e2e:browser-collaboration
+      # All three Cypress processes share one virtual display. Without it they
+      # race to start their own Xvfb server on display :99.
+      - run: xvfb-run --auto-servernum pnpm -F webapp run test:e2e:browser-collaboration
 
   test-cli:
     runs-on: ubuntu-latest
