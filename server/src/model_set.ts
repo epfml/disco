@@ -82,8 +82,13 @@ export class ModelSet extends EventEmitter<{
 
     let encodedModel: EncodedModel;
     if (!Array.isArray(newModel)) {
+      // the model is only built to be encoded, the server keeps the encoding
       const model = await newModel.getModel();
-      encodedModel = await modelEncode(model);
+      try {
+        encodedModel = await modelEncode(model);
+      } finally {
+        model.dispose();
+      }
     } else {
       const model = newModel[1];
       if (isEncoded(model)) {

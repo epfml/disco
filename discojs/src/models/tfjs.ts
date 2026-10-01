@@ -104,17 +104,21 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
         }.bind(this),
       ),
     );
-    const metricToValue = Map(
-      List(this.model.metricsNames).zip(
-        Array.isArray(evaluation)
-          ? List(await Promise.all(evaluation.map((t) => t.data())))
-          : List.of(await evaluation.data()),
-      ),
-    ).map((values) => {
-      if (values.length !== 1) throw new Error("more than one metric value");
-      return values[0];
-    });
-    tf.dispose(evaluation);
+    let metricToValue: Map<string, number>;
+    try {
+      metricToValue = Map(
+        List(this.model.metricsNames).zip(
+          Array.isArray(evaluation)
+            ? List(await Promise.all(evaluation.map((t) => t.data())))
+            : List.of(await evaluation.data()),
+        ),
+      ).map((values) => {
+        if (values.length !== 1) throw new Error("more than one metric value");
+        return values[0];
+      });
+    } finally {
+      tf.dispose(evaluation);
+    }
 
     const [accuracy, loss] = [
       metricToValue.get("acc"),
@@ -130,53 +134,52 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     batch: Batched<DataFormat.ModelEncoded[D][0]>,
   ): Promise<Batched<DataFormat.ModelEncoded[D][1]>> {
     async function cleanupPredicted(y: tf.Tensor1D): Promise<number> {
-      if (y.shape[0] === 1) {
-        // Binary classification
-        const threshold = tf.scalar(0.5);
-        const binaryTensor = y.greaterEqual(threshold);
-
-        const binaryArray = await binaryTensor.data();
-        tf.dispose([y, binaryTensor, threshold]);
-
-        return binaryArray[0];
-      }
-
-      // Multi-class classification
-      const indexTensor = y.argMax();
-
-      const indexArray = await indexTensor.data();
-      tf.dispose([y, indexTensor]);
-
-      return indexArray[0];
-
+      // Binary classification if single output, multi-class otherwise
       // Multi-label classification is not supported
+      const predicted = tf.tidy(() =>
+        y.shape[0] === 1 ? y.greaterEqual(tf.scalar(0.5)) : y.argMax(),
+      );
+      try {
+        return (await predicted.data())[0];
+      } finally {
+        predicted.dispose();
+      }
     }
 
     const xs = this.#batchWithoutLabelToTF(batch);
+    let prediction: tf.Tensor | tf.Tensor[];
+    try {
+      prediction = this.model.predict(xs);
+    } finally {
+      tf.dispose(xs);
+    }
 
-    const prediction = this.model.predict(xs);
-    if (Array.isArray(prediction))
-      throw new Error(
-        "prediction yield many Tensors but should have only returned one",
-      );
-    tf.dispose(xs);
+    try {
+      if (Array.isArray(prediction))
+        throw new Error(
+          "prediction yield many Tensors but should have only returned one",
+        );
+      if (prediction.rank !== 2)
+        throw new Error("unexpected batched prediction shape");
 
-    if (prediction.rank !== 2)
-      throw new Error("unexpected batched prediction shape");
-
-    const ret = List(
-      await Promise.all(
-        tf.unstack(prediction).map((y) =>
-          cleanupPredicted(
-            // cast as unstack reduce by one the rank
-            y as tf.Tensor1D,
+      const ys = tf.unstack(prediction);
+      try {
+        return List(
+          await Promise.all(
+            ys.map((y) =>
+              cleanupPredicted(
+                // cast as unstack reduce by one the rank
+                y as tf.Tensor1D,
+              ),
+            ),
           ),
-        ),
-      ),
-    );
-    prediction.dispose();
-
-    return ret;
+        );
+      } finally {
+        tf.dispose(ys);
+      }
+    } finally {
+      tf.dispose(prediction);
+    }
   }
 
   static async deserialize<D extends "image" | "tabular">([
@@ -184,13 +187,17 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     artifacts,
     metadata,
   ]: Serialized<D>): Promise<TFJS<D>> {
-    return new this(
-      datatype,
-      await tf.loadLayersModel({
-        load: () => Promise.resolve(artifacts),
-      }),
-      metadata,
-    );
+    const model = await tf.loadLayersModel({
+      load: () => Promise.resolve(artifacts),
+    });
+    try {
+      return new this(datatype, model, metadata);
+    } catch (e) {
+      // constructor validation failed, don't leak the loaded weights
+      model.dispose();
+      model.optimizer?.dispose();
+      throw e;
+    }
   }
 
   async serialize(): Promise<Serialized<D>> {

@@ -4,7 +4,7 @@ import { WeightsContainer } from "#weights/weights_container";
 import { avg, sum, diff } from "#weights/aggregation";
 
 describe("weights aggregation", () => {
-  it("avg of weights with two operands", () => {
+  it("avg of weights with two operands", async () => {
     const actual = avg([
       WeightsContainer.of([1, 2, 3, -1], [-5, 6]),
       WeightsContainer.of([2, 3, 7, 1], [-10, 5]),
@@ -12,7 +12,7 @@ describe("weights aggregation", () => {
     ]);
     const expected = WeightsContainer.of([2, 2, 5, 1], [-10, 10]);
 
-    assert.isTrue(actual.equals(expected));
+    assert.isTrue(await actual.equals(expected));
   });
 
   it("avg does not leak intermediate tensors", () => {
@@ -65,17 +65,17 @@ describe("weights aggregation", () => {
     result.dispose();
   });
 
-  it("sum of weights with two operands", () => {
+  it("sum of weights with two operands", async () => {
     const actual = sum([
       [[3, -4], [9]],
       [[2, 13], [0]],
     ]);
     const expected = WeightsContainer.of([5, 9], [9]);
 
-    assert.isTrue(actual.equals(expected));
+    assert.isTrue(await actual.equals(expected));
   });
 
-  it("diff of weights with two operands", () => {
+  it("diff of weights with two operands", async () => {
     const actual = diff([
       [
         [3, -4, 5],
@@ -88,6 +88,6 @@ describe("weights aggregation", () => {
     ]);
     const expected = WeightsContainer.of([1, -17, 1], [9, 0]);
 
-    assert.isTrue(actual.equals(expected));
+    assert.isTrue(await actual.equals(expected));
   });
 });

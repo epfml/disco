@@ -141,12 +141,7 @@ export class GPTModel extends tf.LayersModel {
       while (next.done !== true && iteration <= this.config.maxIter) {
         const reportedIteration = iterationOffset + iteration;
         let weightUpdateTime = performance.now();
-        await callbacks.onEpochBegin?.(epoch);
         const { xs, ys } = next.value as { xs: tf.Tensor2D; ys: tf.Tensor3D };
-
-        let preprocessingTime = performance.now();
-        await Promise.all([xs.data(), ys.data()]);
-        preprocessingTime = performance.now() - preprocessingTime;
 
         // TODO include as a tensor inside the model
         // const accTensor = tf.tidy(() => {
@@ -167,40 +162,58 @@ export class GPTModel extends tf.LayersModel {
         // tf.dispose([accTensor])
         accuracyFraction = [Number.NaN, Number.NaN];
 
-        const goldfishLoss = this.#goldfishLoss;
-        const goldfishMask =
-          goldfishLoss === undefined
-            ? undefined
-            : this.#buildGoldfishMask(xs, goldfishLoss);
+        let preprocessingTime: number;
+        let loss: number;
+        try {
+          await callbacks.onEpochBegin?.(epoch);
 
-        const lossTensor = tf.tidy(() => {
-          const { grads, value: lossTensor } = this.optimizer.computeGradients(
-            () => {
-              const logits = this.apply(xs);
-              if (Array.isArray(logits))
-                throw new Error("model outputs too many tensor");
-              if (logits instanceof tf.SymbolicTensor)
-                throw new Error("model outputs symbolic tensor");
-              return goldfishMask === undefined || goldfishLoss === undefined
-                ? tf.losses.softmaxCrossEntropy(ys, logits)
-                : this.#goldfishLossTensor(
-                    ys,
-                    logits,
-                    goldfishMask,
-                    goldfishLoss,
-                  );
-            },
-          );
-          const gradsClipped = clipByGlobalNormObj(grads, 1);
-          this.optimizer.applyGradients(gradsClipped);
-          tf.dispose(Object.values(gradsClipped));
-          return lossTensor;
-        });
-        goldfishMask?.dispose();
+          preprocessingTime = performance.now();
+          await Promise.all([xs.data(), ys.data()]);
+          preprocessingTime = performance.now() - preprocessingTime;
 
-        const loss = await lossTensor.array();
-        lossTensor.dispose();
-        tf.dispose([xs, ys]);
+          const goldfishLoss = this.#goldfishLoss;
+          const goldfishMask =
+            goldfishLoss === undefined
+              ? undefined
+              : this.#buildGoldfishMask(xs, goldfishLoss);
+
+          let lossTensor: tf.Scalar;
+          try {
+            lossTensor = tf.tidy(() => {
+              const { grads, value: lossTensor } =
+                this.optimizer.computeGradients(() => {
+                  const logits = this.apply(xs);
+                  if (Array.isArray(logits))
+                    throw new Error("model outputs too many tensor");
+                  if (logits instanceof tf.SymbolicTensor)
+                    throw new Error("model outputs symbolic tensor");
+                  return goldfishMask === undefined ||
+                    goldfishLoss === undefined
+                    ? tf.losses.softmaxCrossEntropy(ys, logits)
+                    : this.#goldfishLossTensor(
+                        ys,
+                        logits,
+                        goldfishMask,
+                        goldfishLoss,
+                      );
+                });
+              const gradsClipped = clipByGlobalNormObj(grads, 1);
+              this.optimizer.applyGradients(gradsClipped);
+              tf.dispose(Object.values(gradsClipped));
+              return lossTensor;
+            });
+          } finally {
+            goldfishMask?.dispose();
+          }
+
+          try {
+            loss = await lossTensor.array();
+          } finally {
+            lossTensor.dispose();
+          }
+        } finally {
+          tf.dispose([xs, ys]);
+        }
         averageLoss += loss;
         weightUpdateTime = performance.now() - weightUpdateTime;
 

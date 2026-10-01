@@ -20,6 +20,13 @@ export async function getModel() {
     name: "modelModified",
   });
 
+  // free the weights of the original classification head (conv_preds, ...)
+  // which are not part of the new model
+  const kept = new Set(model.layers);
+  mobilenet.layers
+    .filter((layer) => !kept.has(layer))
+    .forEach((layer) => layer.dispose());
+
   model.compile({
     optimizer: "sgd",
     loss: "categoricalCrossentropy",

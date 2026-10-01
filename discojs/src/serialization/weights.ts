@@ -19,10 +19,19 @@ function isSerialized(raw: unknown): raw is Serialized {
   const { shape, data }: Partial<Record<"shape" | "data", unknown>> = raw;
 
   if (
-    !(Array.isArray(shape) && shape.every((e) => typeof e === "number")) ||
+    !(
+      Array.isArray(shape) &&
+      shape.every(
+        (e): e is number =>
+          typeof e === "number" && Number.isSafeInteger(e) && e >= 0,
+      )
+    ) ||
     !(data instanceof Float32Array)
   )
     return false;
+
+  // tf.tensor throws if the shape doesn't match the data
+  if (shape.reduce((acc, e) => acc * e, 1) !== data.length) return false;
 
   const _: Serialized = { shape, data };
 
@@ -46,5 +55,9 @@ export function decode(encoded: Encoded): WeightsContainer {
   if (!(Array.isArray(raw) && raw.every(isSerialized)))
     throw new Error("expected to decode an array of serialized weights");
 
-  return new WeightsContainer(raw.map((w) => tf.tensor(w.data, w.shape)));
+  // payloads can come from untrusted peers, so free the already built tensors
+  // if any of them fails
+  return new WeightsContainer(
+    tf.tidy(() => raw.map((w) => tf.tensor(w.data, w.shape))),
+  );
 }

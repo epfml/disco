@@ -28,13 +28,14 @@ describe("Secure history aggregator", function () {
     });
   }
 
-  it("recovers secrets from shares", () => {
+  it("recovers secrets from shares", async () => {
     const recovered = buildShares().map((shares) => sum(shares));
-    assert.isTrue(
+    const equalities = await Promise.all(
       (
         recovered.zip(secrets) as List<[WeightsContainer, WeightsContainer]>
-      ).every(([actual, expected]) => actual.equals(expected, epsilon)),
+      ).map(([actual, expected]) => actual.equals(expected, epsilon)),
     );
+    assert.isTrue(equalities.every((equal) => equal));
   });
 
   it("aggregates partial sums with momentum smoothing", async () => {
@@ -67,7 +68,7 @@ describe("Secure history aggregator", function () {
     const expectedSum = sum(
       sharesRound0.flatMap((x) => x), // flatten to List<WeightsContainer>
     );
-    expect(sumRound0.equals(expectedSum, epsilon)).to.be.true;
+    expect(await sumRound0.equals(expectedSum, epsilon)).to.be.true;
 
     // simulate second communication round partial sums
     const aggregationPromise2 = aggregator.getPromiseForAggregation();
@@ -80,7 +81,7 @@ describe("Secure history aggregator", function () {
 
     // First aggregation with momentum - no previous momentum, so just average
     const avgPartialSum = avg(partialSums);
-    expect(sumRound1.equals(avgPartialSum, epsilon)).to.be.true;
+    expect(await sumRound1.equals(avgPartialSum, epsilon)).to.be.true;
 
     // Now we simulate a second round of aggregation with momentum smoothing
     const dummyPromise = aggregator.getPromiseForAggregation();
@@ -110,7 +111,7 @@ describe("Secure history aggregator", function () {
     );
 
     // Compare the actual result to the expected smoothed result using momentum
-    expect(sumRound2.equals(expectedSumRound2, 1e-3)).to.be.true;
+    expect(await sumRound2.equals(expectedSumRound2, 1e-3)).to.be.true;
   });
 
   it("behaves similar to SecureAggregator without momentum (beta=0)", async () => {
@@ -158,5 +159,38 @@ describe("Secure history aggregator", function () {
       .forEach(([secureHistory, secure]) =>
         expect(secureHistory).to.be.closeTo(secure, 0.001),
       );
+  });
+
+  it("aggregation leaves no dangling tensors", async () => {
+    const baseline = tf.memory().numTensors;
+
+    const aggregator = new SecureHistoryAggregator(100, 0.8);
+    const ids = ["a", "b"];
+    aggregator.setNodes(Set(ids));
+
+    // three aggregation rounds, the last two apply momentum smoothing
+    for (let round = 0; round < 3; round++) {
+      // communication round 0 sums the shares, round 1 averages the partial sums
+      for (
+        let communicationRound = 0;
+        communicationRound < 2;
+        communicationRound++
+      ) {
+        const contributions = ids.map((_, i) =>
+          WeightsContainer.of([i, round]),
+        );
+        const p = aggregator.getPromiseForAggregation();
+        ids.forEach((id, i) =>
+          aggregator.add(id, contributions[i], round, communicationRound),
+        );
+        // the caller owns the aggregate, disposing it must not break the next round
+        (await p).dispose();
+        contributions.forEach((c) => c.dispose());
+      }
+    }
+
+    // the aggregator only keeps the previous aggregate
+    aggregator.dispose();
+    expect(tf.memory().numTensors).to.equal(baseline);
   });
 });

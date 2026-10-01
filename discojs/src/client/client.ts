@@ -24,6 +24,11 @@ const debug = createDebug("discojs:client");
 export abstract class Client<N extends Network> extends EventEmitter<{
   status: RoundStatus;
   participants: number;
+  /**
+   * The latest global model received from another node.
+   * The weights are lent to the listeners for the duration of the call,
+   * clone them to keep them longer.
+   */
   modelSynced: WeightsContainer;
 }> {
   // Own ID provided by the network's server.
