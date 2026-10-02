@@ -4,4 +4,5 @@ export { MNISTClassifier } from "./MNISTClassifier.js";
 export { DogClassifier } from "./dogClassifier.js";
 export { TitanicClassifier } from "./titanicClassifier.js";
 export { Wikitext } from "./wikitextClassifier.js";
+export { Shakespeare } from "./shakespeare.js";
 export { Goldfish } from "./goldfishClassifier.js";
