@@ -7,17 +7,19 @@ import type {
   WaitingForMoreParticipants,
   EnoughParticipants,
   ParticipantsUpdate,
+  MissingConnection,
 } from "#client/mtype";
 
 // See ../messages.ts for doc
-export type MessageFederated =
-  | ClientConnected
+export type MessageFromServer =
   | NewFederatedNodeInfo
-  | SendPayload
   | ReceiveServerPayload
   | WaitingForMoreParticipants
   | EnoughParticipants
-  | ParticipantsUpdate;
+  | ParticipantsUpdate
+  | MissingConnection;
+
+export type MessageToServer = ClientConnected | SendPayload;
 
 export interface NewFederatedNodeInfo {
   type: MType.NewFederatedNodeInfo;
@@ -40,19 +42,32 @@ export interface ReceiveServerPayload {
   nbOfParticipants: number; // number of peers contributing to a federated training
 }
 
-export function isMessageFederated(raw: unknown): raw is MessageFederated {
+export function isMessageFromServer(raw: unknown): raw is MessageFromServer {
+  if (!hasMessageType(raw)) {
+    return false;
+  }
+
+  switch (raw.type) {
+    case MType.NewFederatedNodeInfo:
+    case MType.ReceiveServerPayload:
+    case MType.WaitingForMoreParticipants:
+    case MType.EnoughParticipants:
+    case MType.ParticipantsUpdate:
+    case MType.MissingConnection:
+      return true;
+  }
+
+  return false;
+}
+
+export function isMessageToServer(raw: unknown): raw is MessageToServer {
   if (!hasMessageType(raw)) {
     return false;
   }
 
   switch (raw.type) {
     case MType.ClientConnected:
-    case MType.NewFederatedNodeInfo:
     case MType.SendPayload:
-    case MType.ReceiveServerPayload:
-    case MType.WaitingForMoreParticipants:
-    case MType.EnoughParticipants:
-    case MType.ParticipantsUpdate:
       return true;
   }
 

@@ -58,6 +58,7 @@ export enum MType {
   // clients don't have to wait for the end of the round to learn about it.
   // Kept last as the enum values are what goes over the wire.
   ParticipantsUpdate,
+  MissingConnection,
 }
 
 export function hasMessageType(
@@ -90,4 +91,8 @@ export interface WaitingForMoreParticipants {
 export interface ParticipantsUpdate {
   type: MType.ParticipantsUpdate;
   nbOfParticipants: number;
+}
+
+export interface MissingConnection {
+  type: MType.MissingConnection;
 }

@@ -78,6 +78,13 @@ export abstract class Aggregator extends EventEmitter<{
     );
   }
 
+  private disposeContributionsOf(nodeId: NodeID): void {
+    this.contributions = this.contributions.map((roundContributions) => {
+      roundContributions.get(nodeId)?.dispose();
+      return roundContributions.delete(nodeId);
+    });
+  }
+
   private disposeContributions(): void {
     this.contributions.forEach((roundContributions) => {
       roundContributions.forEach((contribution) => {
@@ -118,20 +125,24 @@ export abstract class Aggregator extends EventEmitter<{
     // If the aggregator has enough contributions then aggregate the weights
     // and emit the 'aggregation' event
     if (this.isFull()) {
-      const aggregatedWeights = this.aggregate();
-      // On each aggregation, increment the communication round
-      // If all communication rounds were performed, proceed to the next aggregation round
-      // and empty the past contributions.
-      this._communicationRound++;
-      if (this.communicationRound === this.communicationRounds) {
-        this._communicationRound = 0;
-        this._round++;
-
-        this.disposeContributions();
-      }
-      // Emitting the 'aggregation' communicates the weights to subscribers
-      this.emit("aggregation", aggregatedWeights);
+      this.aggregateAndEmit();
     }
+  }
+
+  private aggregateAndEmit(): void {
+    const aggregatedWeights = this.aggregate();
+    // On each aggregation, increment the communication round
+    // If all communication rounds were performed, proceed to the next aggregation round
+    // and empty the past contributions.
+    this._communicationRound++;
+    if (this.communicationRound === this.communicationRounds) {
+      this._communicationRound = 0;
+      this._round++;
+
+      this.disposeContributions();
+    }
+    // Emitting the 'aggregation' communicates the weights to subscribers
+    this.emit("aggregation", aggregatedWeights);
   }
 
   // Abstract method to be implemented by subclasses
@@ -232,6 +243,15 @@ export abstract class Aggregator extends EventEmitter<{
    */
   removeNode(nodeId: NodeID): void {
     this._nodes = this._nodes.delete(nodeId);
+    // Also remove any contributions from this node
+    this.disposeContributionsOf(nodeId);
+    // Check if the removal of this node affects the aggregator's state
+    if (
+      (this.contributions.get(this.communicationRound)?.size ?? 0) > 0 && // Avoid aggregating when there are no contributions
+      this.isFull()
+    ) {
+      this.aggregateAndEmit();
+    }
   }
 
   /**
