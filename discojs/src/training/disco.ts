@@ -78,6 +78,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   readonly #preprocessOnce: boolean;
   // Forwarded to compatible models to identify this client in debug output.
   readonly #debugLabel?: string;
+  #closed: boolean;
 
   /**
    * Connect to the given task and get ready to train.
@@ -135,6 +136,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
       this.trainer.model.weights = latestWeights;
       this.emit("modelSynced", latestWeights);
     });
+    this.#closed = false;
   }
 
   /** Train on dataset, yielding logs of every round. */
@@ -241,66 +243,61 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
       this.trainer.train(trainingDataset, validationDataset_),
     )) {
       yield async function* (this: Disco<D, N>) {
-        try {
-          const [roundGen, roundLogsPromise] = split(round);
-          const epochResults: Array<{
-            epochNum: number;
-            epochLogs: EpochLogs;
-          }> = [];
+        const [roundGen, roundLogsPromise] = split(round);
+        const epochResults: Array<{
+          epochNum: number;
+          epochLogs: EpochLogs;
+        }> = [];
 
-          for await (const [epochNum, epoch] of enumerate(roundGen)) {
-            const [epochGen, epochLogsPromise] = split(epoch);
+        for await (const [epochNum, epoch] of enumerate(roundGen)) {
+          const [epochGen, epochLogsPromise] = split(epoch);
 
-            yield epochGen;
-            const epochLogs = await epochLogsPromise;
+          yield epochGen;
+          const epochLogs = await epochLogsPromise;
 
-            epochResults.push({ epochNum, epochLogs });
-          }
-
-          const roundLogs = await roundLogsPromise;
-          this.#logger.success(
-            [
-              `Round: ${roundNum}`,
-              `Initial round loss: ${roundLogs.preRoundValidation?.loss}`,
-              `Initial round accuracy: ${roundLogs.preRoundValidation?.accuracy}`,
-            ].join("\n"),
-          );
-
-          for (const { epochNum, epochLogs } of epochResults) {
-            this.#logger.success(
-              [
-                `Round: ${roundNum}`,
-                `  Epoch: ${epochNum}`,
-                `    Training loss: ${epochLogs.training.loss}`,
-                `    Training accuracy: ${epochLogs.training.accuracy}`,
-                `    Peak memory: ${epochLogs.peakMemory}`,
-                epochLogs.validation !== undefined
-                  ? `    Pre-aggregation validation loss: ${epochLogs.validation.loss}`
-                  : "",
-                epochLogs.validation !== undefined
-                  ? `    Pre-aggregation validation accuracy: ${epochLogs.validation.accuracy}`
-                  : "",
-              ].join("\n"),
-            );
-          }
-
-          this.#logger.success(
-            [
-              `Round: ${roundNum}`,
-              roundLogs.postAggregationValidation !== undefined
-                ? `Post-aggregation loss: ${roundLogs.postAggregationValidation.loss}`
-                : "",
-              roundLogs.postAggregationValidation
-                ? `Post-aggregation accuracy: ${roundLogs.postAggregationValidation.accuracy}`
-                : "",
-            ].join("\n"),
-          );
-
-          return roundLogs;
-        } catch (error) {
-          await this.close(); // Closing the client in case of error and propagating the error
-          throw error;
+          epochResults.push({ epochNum, epochLogs });
         }
+
+        const roundLogs = await roundLogsPromise;
+        this.#logger.success(
+          [
+            `Round: ${roundNum}`,
+            `Initial round loss: ${roundLogs.preRoundValidation?.loss}`,
+            `Initial round accuracy: ${roundLogs.preRoundValidation?.accuracy}`,
+          ].join("\n"),
+        );
+
+        for (const { epochNum, epochLogs } of epochResults) {
+          this.#logger.success(
+            [
+              `Round: ${roundNum}`,
+              `  Epoch: ${epochNum}`,
+              `    Training loss: ${epochLogs.training.loss}`,
+              `    Training accuracy: ${epochLogs.training.accuracy}`,
+              `    Peak memory: ${epochLogs.peakMemory}`,
+              epochLogs.validation !== undefined
+                ? `    Pre-aggregation validation loss: ${epochLogs.validation.loss}`
+                : "",
+              epochLogs.validation !== undefined
+                ? `    Pre-aggregation validation accuracy: ${epochLogs.validation.accuracy}`
+                : "",
+            ].join("\n"),
+          );
+        }
+
+        this.#logger.success(
+          [
+            `Round: ${roundNum}`,
+            roundLogs.postAggregationValidation !== undefined
+              ? `Post-aggregation loss: ${roundLogs.postAggregationValidation.loss}`
+              : "",
+            roundLogs.postAggregationValidation
+              ? `Post-aggregation accuracy: ${roundLogs.postAggregationValidation.accuracy}`
+              : "",
+          ].join("\n"),
+        );
+
+        return roundLogs;
       }.bind(this)();
     }
     this.#logger.success("Training finished");
@@ -310,6 +307,9 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
    * Completely stops the ongoing training instance.
    */
   async close(): Promise<void> {
+    if (this.#closed) return;
+    this.#closed = true;
+
     // Dispose the model tensor
     try {
       await this.#client.disconnect();
