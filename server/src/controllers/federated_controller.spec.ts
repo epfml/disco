@@ -11,7 +11,6 @@ import { FederatedController } from "../../src/controllers/federated_controller.
 import type { FederatedFakeWebSocket } from "../../tests/fake_websocket.js";
 import {
   expectLastMessageOfType,
-  lastMessageOfType,
   makeFederatedFakeWebSocket,
   messagesOfType,
 } from "../../tests/fake_websocket.js";

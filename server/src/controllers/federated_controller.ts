@@ -18,6 +18,27 @@ import MessageTypes = mtype.MType;
 
 const debug = createDebug("server:controllers:federated");
 
+/**
+ * Federated training server for a single task.
+ *
+ * Four variables track participants at different stages.
+ *
+ * - `#clientIds`: connection between an ID and an open WebSocket.
+ *   It is only used to guarantee ids don't collide.
+ * - `connections` (inherited): map between the ids of clients
+ *   that completed the connection handshake and their socket.
+ *   This is the set of active participants in the current round.
+ * - `#aggregator.nodes`: the group of nodes that the aggregator expects
+ *   contributions from. It decides when a round is completed
+ *   (`threshold * nodes.size`) and whether a contribution is valid.
+ * - `#pendingUpdateRecipients`: the clients whose contribution was accepted for
+ *   the current round, reset after each aggregation.
+ *   It is a subset of `connections` that participated in the current round.
+ *
+ * Lifetime asymmetry: `reset()` clears `connections` and rebuilds the
+ * aggregator, but deliberately leaves `#clientIds` intact. Those sockets may
+ * still be open, and their ids must stay reserved to avoid collisions.
+ */
 export class FederatedController<D extends DataType> extends TrainingController<
   D,
   "federated"
@@ -39,7 +60,8 @@ export class FederatedController<D extends DataType> extends TrainingController<
    */
   #latestGlobalWeights: Encoded;
   /**
-   * Complete list of client ids that have conected their websocket
+   * Complete list of client ids that have connected their websocket
+   * Make sure two clients don't share the same ID.
    */
   #clientIds = new Set<NodeID>();
 
@@ -151,7 +173,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
     // Setup callbacks triggered upon receiving the different client messages
     ws.on("message", (data: Buffer) => {
       const msg: unknown = msgpack.decode(data);
-      if (!federatedMessages.isMessageFederated(msg)) {
+      if (!federatedMessages.isMessageToServer(msg)) {
         debug("invalid federated message received on WebSocket: %o", msg);
         return; // TODO send back error
       }
@@ -194,7 +216,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
           } else {
             debug(`New client connection for client [%s]`, shortId);
             // Connect the new client to both the connections map and the aggregator
-            this.connectClient(clientId, ws);
+            this.#connectClient(clientId, ws);
           }
 
           // Send the new federated node info to the client in both cases (new or duplicate connection)
@@ -225,6 +247,10 @@ export class FederatedController<D extends DataType> extends TrainingController<
          */
         case MessageTypes.SendPayload: {
           const { payload, round } = msg;
+          // This case should generally not happen under normal operation,
+          // as clients should only contribute to the current round
+          // and have no way to be ahead of the server's current round
+          // We notify the client to crash in this case
           if (this.#aggregator.round < round) {
             debug(
               "Received contribution from client [%s] for future round %d (current round=%d)",
@@ -232,11 +258,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
               round,
               this.#aggregator.round,
             );
-            // This case should generally not happen under normal operation,
-            // as clients should only contribute to the current round
-            // and have no way to be ahead of the server's current round
-            // We may want to notify the client that it is contributing to a future
-            // round for it to recalibrate its local state
+            // Send a notification to crash to the client
           } else if (this.#aggregator.isValidContribution(clientId, round)) {
             debug(
               "Received valid contribution from client [%s] for round %d (participants=%d)",
@@ -289,7 +311,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
     // Setup callback for client leaving the session
     ws.on("close", () => {
       // Remove the participant when the websocket is closed
-      this.disconnectClient(clientId);
+      this.#disconnectClient(clientId);
 
       debug("client [%s] left", shortId);
 
@@ -308,12 +330,6 @@ export class FederatedController<D extends DataType> extends TrainingController<
         // tell the remaining participants that one of them left
         this.sendParticipantsUpdateMsg();
         return;
-      }
-
-      // Check if we now validate the absolute threshold
-      if (this.connections.size >= minNbOfParticipants) {
-        debug("Absolute threshold validated");
-        // We should
       }
 
       // tell remaining participants to wait until more participants join,
@@ -336,7 +352,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
    * Connects a new client to both the connections map and the aggregator.
    * Ensures consistency between the connections map and the aggregator.
    */
-  private connectClient(clientId: string, ws: WebSocket): void {
+  #connectClient(clientId: string, ws: WebSocket): void {
     this.connections = this.connections.set(clientId, ws);
     this.#aggregator.registerNode(clientId);
   }
@@ -345,9 +361,10 @@ export class FederatedController<D extends DataType> extends TrainingController<
    * Disconnects a client from the connections map, the aggregator, and the pending update recipients set.
    * Ensures consistency between the sets
    */
-  private disconnectClient(clientId: string): void {
+  #disconnectClient(clientId: string): void {
     this.connections = this.connections.delete(clientId);
     this.#aggregator.removeNode(clientId);
     this.#pendingUpdateRecipients.delete(clientId);
+    this.#clientIds.delete(clientId);
   }
 }
