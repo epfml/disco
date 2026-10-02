@@ -55,8 +55,8 @@ export class FederatedClient extends Client<"federated"> {
     // Opens a new WebSocket connection with the server and listens to new messages over the channel
     this._server = await WebSocketServer.connect(
       serverURL,
-      messages.isMessageFederated, // can only receive federated message types from the server
-      messages.isMessageFederated, // idem for messages that the client can send
+      messages.isMessageFromServer, // can only receive federated message types from the server
+      messages.isMessageToServer, // idem for messages that the client can send
     );
 
     // c.f. setupServerCallbacks doc for explanation
