@@ -131,13 +131,18 @@ jobs:
       - uses: cypress-io/github-action@v7
         env:
           DEBUG: server:controllers:decentralized,discojs:client:decentralized
+          DISCO_COLLABORATIVE_E2E: "1"
           VITE_SERVER_URL: http://localhost:8081
         with:
           working-directory: webapp
           install: false
           browser: chrome
-          start: pnpm exec vite --mode test --port 1354 --strictPort
-          config-file: cypress.config.decentralized.ts
+          start: >-
+            pnpm run test:e2e:decentralized:server,
+            pnpm exec vite --mode test --port 1354 --strictPort
+          wait-on: "http://localhost:8081, http://localhost:1354"
+          config: baseUrl=http://localhost:1354
+          spec: cypress/e2e/training/decentralized/node_peers.cy.ts
 
   test-cli:
     runs-on: ubuntu-latest
