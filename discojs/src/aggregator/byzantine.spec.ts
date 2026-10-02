@@ -90,30 +90,63 @@ describe("ByzantineRobustAggregator", () => {
     );
   });
 
-  it("uses momentum when beta > 0", async () => {
+  it("uses momentum on model updates when beta > 0", async () => {
     const agg = new ByzantineRobustAggregator(0, 2, "absolute", 1e6, 1, 0.5);
     const [c1, c2] = ["c1", "c2"];
     agg.setNodes(Set.of(c1, c2));
 
-    // Round 1
+    // Round 1: no previous model, aggregate the weights directly
     const p1 = agg.getPromiseForAggregation();
     agg.add(c1, WeightsContainer.of([2]), 0);
     agg.add(c2, WeightsContainer.of([2]), 0);
-    const out1 = await p1;
-    const arr1 = await WSIntoArrays(out1);
+    expect((await WSIntoArrays(await p1))[0][0]).to.be.closeTo(2, 1e-6);
 
-    // m₀ = (1 - β) * g = 1
-    expect(arr1[0][0]).to.be.closeTo(1, 1e-6);
-
-    // Round 2
+    // Round 2: g = 4 - 2 = 2, first momentum m = g = 2 → 2 + 2 = 4
     const p2 = agg.getPromiseForAggregation();
     agg.add(c1, WeightsContainer.of([4]), 1);
     agg.add(c2, WeightsContainer.of([4]), 1);
-    const out2 = await p2;
-    const arr2 = await WSIntoArrays(out2);
+    expect((await WSIntoArrays(await p2))[0][0]).to.be.closeTo(4, 1e-6);
 
-    // m₁ = 0.5*4 + 0.5*1 = 2.5 → avg = 2.5
-    expect(arr2[0][0]).to.be.closeTo(2.5, 1e-6);
+    // Round 3: g = 5 - 4 = 1, m = 0.5 * 1 + 0.5 * 2 = 1.5 → 4 + 1.5 = 5.5
+    const p3 = agg.getPromiseForAggregation();
+    agg.add(c1, WeightsContainer.of([5]), 2);
+    agg.add(c2, WeightsContainer.of([5]), 2);
+    expect((await WSIntoArrays(await p3))[0][0]).to.be.closeTo(5.5, 1e-6);
+  });
+
+  it("does not shrink the model when using momentum", async () => {
+    const agg = new ByzantineRobustAggregator(0, 2, "absolute", 1.0, 1, 0.9);
+    agg.setNodes(Set.of("c1", "c2"));
+
+    for (let round = 0; round < 5; round++) {
+      const p = agg.getPromiseForAggregation();
+      agg.add("c1", WeightsContainer.of([10, -10]), round);
+      agg.add("c2", WeightsContainer.of([10, -10]), round);
+      expect((await WSIntoArrays(await p))[0]).to.deep.equal([10, -10]);
+    }
+  });
+
+  it("does not leak tensors across rounds", async () => {
+    const before = tf.memory().numTensors;
+    const agg = new ByzantineRobustAggregator(0, 2, "absolute", 1.0, 3, 0.9);
+    agg.setNodes(Set.of("c1", "c2"));
+
+    const counts: number[] = [];
+    for (let round = 0; round < 4; round++) {
+      const p = agg.getPromiseForAggregation();
+      const [w1, w2] = [WeightsContainer.of([round]), WeightsContainer.of([1])];
+      agg.add("c1", w1, round);
+      agg.add("c2", w2, round);
+      w1.dispose();
+      w2.dispose();
+      (await p).dispose();
+      counts.push(tf.memory().numTensors);
+    }
+    // stable once every history (momentums, previous aggregates) is initialized
+    expect(counts.slice(1)).to.deep.equal([counts[1], counts[1], counts[1]]);
+
+    agg.dispose();
+    expect(tf.memory().numTensors).to.equal(before);
   });
 
   it("respects roundCutoff — ignores old contributions", async () => {
@@ -358,8 +391,8 @@ describe("ByzantineRobustAggregator", () => {
     agg.add("a", WeightsContainer.of([1]), 1);
     agg.add("b", WeightsContainer.of([1]), 1);
     const out = await p2;
-    // m = 0.5 * 1 + 0.5 * 0.5
-    expect((await WSIntoArrays(out))[0][0]).to.be.closeTo(0.75, 1e-6);
+    // g = 1 - 1 = 0, m = g = 0 → 1 + 0 = 1
+    expect((await WSIntoArrays(out))[0][0]).to.be.closeTo(1, 1e-6);
     out.dispose();
     agg.dispose();
   });

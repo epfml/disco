@@ -161,7 +161,7 @@ describe("end-to-end federated", () => {
             byzantineFaultTolerance: {
               clippingRadius: 10,
               maxIterations: 1,
-              beta: 0,
+              beta: 0.9,
             },
           },
         },
