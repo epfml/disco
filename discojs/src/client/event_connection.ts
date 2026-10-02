@@ -55,12 +55,14 @@ export async function waitMessageWithTimeout<T extends MType>(
  * Send message and wait for a specific response,
  * resending until a response or until timeout.
  * The global timeout is `retryDelayMs * maxAttempts`.
+ * @param retryDelayMs - Delay between retry attempts in milliseconds (default: 60_000)
+ * @param maxAttempts - Maximum number of retry attempts (default: 3)
  */
 export async function sendAndWaitWithRetry<T extends MType>(
   connection: EventConnection,
   request: Message,
   responseType: T,
-  { retryDelayMs = 5_000, maxAttempts = 5 } = {},
+  { retryDelayMs = 60_000, maxAttempts = 3 } = {},
 ): Promise<NarrowMessage<T>> {
   // Create the response promise before sending the request
   // to avoid missing the response

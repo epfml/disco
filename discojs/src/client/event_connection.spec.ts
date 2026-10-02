@@ -43,7 +43,7 @@ function newNodeInfo(id = "node-id"): federatedMessages.NewFederatedNodeInfo {
   };
 }
 
-describe("sendAndWaitWithRetry tests", () => {
+describe("sendAndWaitWithRetry", () => {
   afterEach(() => {
     vi.useRealTimers();
   });
@@ -51,7 +51,7 @@ describe("sendAndWaitWithRetry tests", () => {
     vi.useFakeTimers();
   });
 
-  it("Resolves with server answer immediately", async () => {
+  it("resolves with server answer immediately", async () => {
     const connection = new FakeConnection();
 
     const received = sendAndWaitWithRetry(
@@ -68,7 +68,7 @@ describe("sendAndWaitWithRetry tests", () => {
     expect(connection.sent).toEqual([CLIENT_CONNECTED]);
   });
 
-  it("Resends until the server answers", async () => {
+  it("resends until the server answers", async () => {
     const connection = new FakeConnection();
 
     const received = sendAndWaitWithRetry(
@@ -90,7 +90,7 @@ describe("sendAndWaitWithRetry tests", () => {
     expect(connection.sent).toHaveLength(3);
   });
 
-  it("Waits for a whole retry delay before resending", async () => {
+  it("waits for a whole retry delay before resending", async () => {
     const connection = new FakeConnection();
 
     // Not awaiting on purpose for the timer
@@ -108,7 +108,7 @@ describe("sendAndWaitWithRetry tests", () => {
     expect(connection.sent).toHaveLength(2);
   });
 
-  it("Throws after all attempts", async () => {
+  it("throws after all attempts", async () => {
     const connection = new FakeConnection();
 
     const received = sendAndWaitWithRetry(
@@ -125,7 +125,7 @@ describe("sendAndWaitWithRetry tests", () => {
     expect(connection.sent).toHaveLength(3);
   });
 
-  it("Keeps only the first answer", async () => {
+  it("keeps only the first answer", async () => {
     const connection = new FakeConnection();
 
     const received = sendAndWaitWithRetry(
@@ -144,7 +144,7 @@ describe("sendAndWaitWithRetry tests", () => {
     expect((await received).id).toBe("first");
   });
 
-  it("Verifies that no timers are left behind", async () => {
+  it("lets no timers are left behind", async () => {
     const connection = new FakeConnection();
 
     const received = sendAndWaitWithRetry(
