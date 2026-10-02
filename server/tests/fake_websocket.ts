@@ -5,7 +5,7 @@ import type {
 } from "@epfml/discojs";
 import * as msgpack from "@msgpack/msgpack";
 import { EventEmitter } from "node:events";
-import { vi } from "vitest";
+import { assert, vi } from "vitest";
 import type WebSocket from "ws";
 
 type AnyMessage = { type: mtype.MType };
@@ -57,6 +57,23 @@ export function lastMessageOfType<
   return messagesOfType(ws, type).at(-1);
 }
 
+/**
+ * Get the last message of a specific type sent by the fake WebSocket,
+ * failing the test if no such message was sent.
+ *
+ * Contrary to `lastMessageOfType`, the returned message is never undefined,
+ * which spares callers a non-null assertion on every field they check.
+ */
+export function expectLastMessageOfType<
+  Sent extends AnyMessage,
+  Received extends AnyMessage,
+  T extends Sent["type"],
+>(ws: FakeWebSocket<Sent, Received>, type: T): Extract<Sent, { type: T }> {
+  const message = lastMessageOfType(ws, type);
+  assert.exists(message, `no message of type ${String(type)} was sent`);
+  return message;
+}
+
 /** Get all messages of a specific type sent by the fake WebSocket */
 export function messagesOfType<
   Sent extends AnyMessage,
@@ -81,23 +98,15 @@ export const makeDecentralizedFakeWebSocket = (): DecentralizedFakeWebSocket =>
     decentralizedMessages.MessageToServer
   >();
 
-/** Type for a message sent from the server to the client in the federated protocol */
-type FederatedFromServer =
-  | federatedMessages.NewFederatedNodeInfo
-  | federatedMessages.ReceiveServerPayload
-  | mtype.WaitingForMoreParticipants
-  | mtype.EnoughParticipants
-  | mtype.ParticipantsUpdate;
-
-/** Type for a message sent from the client to the server in the federated protocol */
-type FederatedToServer = mtype.ClientConnected | federatedMessages.SendPayload;
-
 /** Type for a fake WebSocket that can send and receive messages of the federated protocol */
 export type FederatedFakeWebSocket = FakeWebSocket<
-  FederatedFromServer,
-  FederatedToServer
+  federatedMessages.MessageFromServer,
+  federatedMessages.MessageToServer
 >;
 
 /** Create a fake WebSocket that can send and receive messages of the federated protocol */
 export const makeFederatedFakeWebSocket = (): FederatedFakeWebSocket =>
-  makeFakeWebSocket<FederatedFromServer, FederatedToServer>();
+  makeFakeWebSocket<
+    federatedMessages.MessageFromServer,
+    federatedMessages.MessageToServer
+  >();

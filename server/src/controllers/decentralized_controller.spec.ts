@@ -2,12 +2,12 @@ import type { Task } from "@epfml/discojs";
 import { defaultTasks, mtype } from "@epfml/discojs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DecentralizedController } from "../../src/controllers/decentralized_controller.js";
-import type { DecentralizedFakeWebSocket } from "./fake_websocket.js";
+import type { DecentralizedFakeWebSocket } from "../../tests/fake_websocket.js";
 import {
   lastMessageOfType,
   makeDecentralizedFakeWebSocket,
   messagesOfType,
-} from "./fake_websocket.js";
+} from "../../tests/fake_websocket.js";
 
 import MessageTypes = mtype.MType;
 
@@ -133,7 +133,7 @@ describe("DecentralizedController peer connection retry", () => {
       });
     }
 
-    // Reached retreis threshold, so the peer that never
+    // Reached retries threshold, so the peer that never
     // sent ConnectionsReady should receive ConnectionFail.
     ws1.emitMessage({
       type: MessageTypes.ConnectionsReady,
