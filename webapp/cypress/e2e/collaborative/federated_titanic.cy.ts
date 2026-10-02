@@ -1,3 +1,5 @@
+import { assertNoErrorToast } from "../../support/training";
+
 function goToTitanicTraining(): void {
   cy.visit("/");
   cy.contains("a", "Start training").click();
@@ -16,6 +18,7 @@ describe("federated webapp training", () => {
 
     cy.contains("button", "collaboratively").click();
     cy.contains("button", "Start training").click();
+    assertNoErrorToast();
 
     cy.contains("h6", "number of participants")
       .next({ timeout: 240_000 })
@@ -26,6 +29,7 @@ describe("federated webapp training", () => {
     cy.contains("h6", "Collaborative model sharing")
       .next()
       .should("have.text", "5");
-    cy.contains("Training successfully completed");
+    cy.contains("Training successfully completed", { timeout: 240_000 });
+    assertNoErrorToast();
   });
 });

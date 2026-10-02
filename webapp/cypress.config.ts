@@ -6,6 +6,10 @@ export default defineConfig({
   e2e: {
     baseUrl: "http://localhost:1351/",
     projectId: "aps8et", // to get recordings on Cypress Cloud
+    excludeSpecPattern:
+      process.env.DISCO_COLLABORATIVE_E2E === "1"
+        ? []
+        : ["cypress/e2e/collaborative/**/*.cy.ts"],
     setupNodeEvents(on) {
       on("task", {
         readdir: async (p: string) =>
