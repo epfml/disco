@@ -129,6 +129,31 @@ jobs:
           path: webapp/cypress/screenshots
           if-no-files-found: ignore
 
+  test-e2e-decentralized:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/pull-dataset-artifacts
+      - uses: actions/download-artifact@v8
+        with: { name: all-builds }
+      - uses: cypress-io/github-action@v7
+        env:
+          DEBUG: server:controllers:decentralized,discojs:client:decentralized
+          DISCO_COLLABORATIVE_E2E: "1"
+          VITE_SERVER_URL: http://localhost:8081
+        with:
+          working-directory: webapp
+          install: false
+          browser: chrome
+          start: >-
+            pnpm run test:e2e:decentralized:server,
+            pnpm exec vite --mode test --port 1354 --strictPort
+          wait-on: "http://localhost:8081, http://localhost:1354"
+          config: baseUrl=http://localhost:1354
+          spec: cypress/e2e/training/decentralized/node_peers.cy.ts
+
   test-cli:
     runs-on: ubuntu-latest
     steps:

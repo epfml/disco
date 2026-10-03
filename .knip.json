@@ -6,6 +6,7 @@
     },
     "webapp": {
       "entry": [
+        "cypress/e2e/training/decentralized/node_peers.cy.ts",
         "cypress/e2e/training/federated/*.cy.ts",
         "cypress/support/federated_peer.ts"
       ],
