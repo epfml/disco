@@ -1,80 +1,100 @@
 # WebGPU integration research
 
-**Date:** 2 October 2026  
-**Related issue:** [#575: look if we can benefit from WebGPU support](https://github.com/epfml/disco/issues/575)
+Experiments: 2 October 2026. Evidence reviewed: 3 October 2026.
+Related: [#575](https://github.com/epfml/disco/issues/575), [Shakespeare task #1244](https://github.com/epfml/disco/pull/1244).
 
-## Conclusion
+## Takeaway
 
-WebGPU can run DISCO's browser training code with the current TensorFlow.js (TFJS) version. On an AMD Radeon 860M integrated GPU, all six built-in model families completed short browser training and inference runs on both WebGL and WebGPU. In three benchmark runs, warmed WebGPU steps ranged from **1.08 to 3.24 times faster**, depending on the model. The largest gain was GPT nano at the Wikitext task's configured batch and context dimensions.
+- **WebGPU can run DISCO training.** Add `@tensorflow/tfjs-backend-webgpu@4.22.0` to the web app and explicitly initialize it before model operations. This matches DISCO's existing TFJS pin; no TFJS upgrade is needed for a trial.
+- **GPT is the strongest performance result:** 3.24× faster warmed synthetic training steps, and about 2.02× faster completion of a decentralized Tiny Shakespeare round with Firefox and Chrome.
+- **The speedup was not universal.** All six model families had faster pooled warmed medians, but individual runs sometimes regressed, and the small Titanic federated round was slower on WebGPU.
+- **Correctness remains unresolved.** We reproduced a shader failure and a GPT prediction-shape mismatch. Training completed, but we did not establish convergence, validation quality, or numerical equivalence.
+- **Keep WebGPU opt-in, with WebGL as the default.** The tested Linux browsers needed configuration, and collaborative runs required temporary fixes for two existing DISCO transport problems.
 
-This supports an **opt-in browser prototype**, followed by numerical and cross-browser compatibility testing. It does not support changing the default backend yet: the pinned WebGPU backend has a reproducible shader correctness bug, GPT greedy inference returned a differently shaped value on WebGPU, TFJS describes training support as incomplete, and an ordinary Chrome launch on the tested Linux machine did not expose a WebGPU adapter. A complete two-client federated round also required a temporary workaround for an existing browser WebSocket constructor error unrelated to WebGPU.
+All measurements used one AMD Radeon 860M integrated GPU. They establish feasibility on that laptop, not a performance ceiling or an expected speedup on a discrete GPU. These were browser WebGPU/WebGL measurements, not CUDA benchmarks.
 
-## Current DISCO and TFJS versions
+## Integration requirements
 
-| Component       | Current state                                                                                                                                                                                                          |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| TFJS            | `@tensorflow/tfjs@4.22.0` and `@tensorflow/tfjs-node@4.22.0` are pinned in [`pnpm-workspace.yaml`](../pnpm-workspace.yaml).                                                                                            |
-| WebGPU backend  | `@tensorflow/tfjs-backend-webgpu` is absent from the manifest and lockfile.                                                                                                                                            |
-| Web app startup | [`webapp/src/main.ts`](../webapp/src/main.ts) calls `tf.ready()` without selecting or awaiting a backend before mounting Vue.                                                                                          |
-| GPT workload    | [`wikitext.ts`](../discojs/src/default_tasks/wikitext.ts) configures batch size 8 and context length 64; [`gpt/config.ts`](../discojs/src/models/implementations/gpt/config.ts) defaults to a 50,257-token vocabulary. |
+DISCO pins `@tensorflow/tfjs` and `@tensorflow/tfjs-node` to 4.22.0 in [`pnpm-workspace.yaml`](../pnpm-workspace.yaml). The WebGPU package is absent from the manifest and lockfile. Its [4.22.0 package](https://github.com/tensorflow/tfjs/blob/tfjs-v4.22.0/tfjs-backend-webgpu/package.json) requires the matching TFJS core version, and its [setup instructions](https://github.com/tensorflow/tfjs/blob/tfjs-v4.22.0/tfjs-backend-webgpu/README.md) show backend registration and selection.
 
-The server and Node participants use the separate native `tfjs-node` backend. Browser WebGPU does not replace it. The Wikitext task's descriptive text mentions older batch and context dimensions, so its configuration is the source of truth for the experiment below.
+Load the package on opt-in, await `tf.setBackend('webgpu')`, and verify the selected backend before constructing models. An unconditional import can change the default: WebGPU registers with [priority 3](https://github.com/tensorflow/tfjs/blob/tfjs-v4.22.0/tfjs-backend-webgpu/src/base.ts), above [WebGL's priority 2](https://github.com/tensorflow/tfjs/blob/tfjs-v4.22.0/tfjs-backend-webgl/src/base.ts). Initialization failures should select WebGL explicitly. Runtime failures should stop the affected training round; continuing with suspect weights is unsafe.
 
-The [WebGPU package at 4.22.0](https://github.com/tensorflow/tfjs/blob/tfjs-v4.22.0/tfjs-backend-webgpu/package.json) has an exact `@tensorflow/tfjs-core@4.22.0` peer dependency. It matches DISCO's pin; a TFJS upgrade is not required for a trial. Its [setup instructions](https://github.com/tensorflow/tfjs/blob/tfjs-v4.22.0/tfjs-backend-webgpu/README.md) register the backend through an import and select it with `await tf.setBackend('webgpu')`.
+The choice is global to the page. DISCO's `tensorBackend` field distinguishes GPT and regular TFJS model implementations, so device selection needs a separate browser preference. The Node server and Node participants continue using `tfjs-node`.
 
-Import behavior matters: the [WebGPU registration](https://github.com/tensorflow/tfjs/blob/tfjs-v4.22.0/tfjs-backend-webgpu/src/base.ts) has priority 3, above [WebGL's priority 2](https://github.com/tensorflow/tfjs/blob/tfjs-v4.22.0/tfjs-backend-webgl/src/base.ts). Adding an unconditional startup import could cause TFJS to select WebGPU automatically on supported browsers. An opt-in implementation should load the package only when the user selects it, or explicitly establish WebGL first.
+## Performance evidence
 
-## Browser and device support
+### Short model probes
 
-The tested laptop has an AMD Radeon 860M integrated GPU using the `amdgpu` driver. Chrome for Testing 154 selected an **AMD RDNA 3** WebGPU adapter when launched with WebGPU and Vulkan enabled. WebGL's renderer also identified the Radeon 860M through Vulkan. An integrated GPU is therefore sufficient for this workload; a discrete GPU is not a prerequisite.
+Chrome for Testing 154, hardware AMD adapter verified, three runs per model/backend with a fresh page and model. Inputs were synthetic. Each run trained five steps, except CIFAR, which trained three. Timings include awaited loss readback; they exclude model construction, tokenization and communication. Warmed medians pool steps after the first across all three runs. [The CSV](WEBGPU_BENCHMARK_TIMINGS.csv) contains these synthetic step timings only.
 
-In the same environment, a default headful Chrome launch returned **no WebGPU adapter**. A default headless launch selected Google's SwiftShader software adapter. The hardware measurements below used `--enable-unsafe-webgpu`, `--use-angle=vulkan`, `--enable-features=Vulkan`, and `--disable-software-rasterizer`, and verified the AMD adapter before training. These flags are a test setup, not a deployment requirement that DISCO can assume users will meet. [Chrome's WebGPU overview](https://developer.chrome.com/docs/web-platform/webgpu/overview) documents platform-specific availability; [MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API) documents the secure-context requirement. A real deployment must check `navigator.gpu`, request an adapter, and retain a supported alternative.
+| Model           | Input per step                             | Warmed WebGL / WebGPU | Speedup |
+| --------------- | ------------------------------------------ | --------------------: | ------: |
+| Titanic         | 30 rows × 11 features                      |          8.9 / 6.5 ms |   1.38× |
+| MNIST           | 64 images, 28 × 28 × 3                     |        25.0 / 23.2 ms |   1.08× |
+| LUS             | 5 images, 100 × 100 × 3                    |        22.9 / 15.4 ms |   1.49× |
+| Dog             | 8 images, 64 × 64 × 3                      |        30.5 / 19.0 ms |   1.61× |
+| CIFAR MobileNet | 1 image, 224 × 224 × 3                     |        64.4 / 53.1 ms |   1.21× |
+| GPT nano        | 8 sequences × 64 tokens, vocabulary 50,257 |      889.0 / 274.1 ms |   3.24× |
 
-## Built-in model benchmark
+GPT was faster in all three runs. This does not hold for every model: MNIST's first-run warmed median was slower on WebGPU, as was LUS's second run. Warmup also sometimes cost more on WebGPU. CIFAR used batch size 1 instead of the task's configured 10, so its result does not describe the full task workload.
 
-The benchmark imported DISCO's own model implementations into the web app's Vite environment and temporarily installed `@tensorflow/tfjs-backend-webgpu@4.22.0`. It ran Chrome for Testing 154 on the Radeon 860M with the hardware adapter verified before each run. Each model and backend combination used a fresh page and model. There were three independent runs per combination; each trained for five steps, except CIFAR MobileNet, which trained for three. `performance.now()` measured each awaited training step, including loss readback. Model construction and page loading were outside the timed steps. The first step includes warmup and shader compilation; the "warmed" figure pools steps 2–5 (2–3 for CIFAR) across the three runs. All inputs were synthetic but matched the models' expected shapes.
+### Decentralized Tiny Shakespeare experiment
 
-| Model | Input per step | First step WebGL / WebGPU | Warmed step WebGL / WebGPU | WebGPU speedup |
-| --- | --- | ---: | ---: | ---: |
-| Titanic classifier | 30 rows × 11 features | 287.8 / 174.6 ms | 8.9 / 6.5 ms | 1.38× |
-| MNIST classifier | 64 images, 28 × 28 × 3 | 276.2 / 298.1 ms | 25.0 / 23.2 ms | 1.08× |
-| LUS classifier | 5 images, 100 × 100 × 3 | 183.2 / 208.1 ms | 22.9 / 15.4 ms | 1.49× |
-| Dog classifier | 8 images, 64 × 64 × 3 | 236.1 / 295.3 ms | 30.5 / 19.0 ms | 1.61× |
-| CIFAR MobileNet | 1 image, 224 × 224 × 3 | 755.5 / 345.7 ms | 64.4 / 53.1 ms | 1.21× |
-| GPT nano | 8 sequences × 64 tokens, vocabulary 50,257 | 1,486.6 / 696.6 ms | 889.0 / 274.1 ms | 3.24× |
+Firefox 155.0.1 and Chrome for Testing 154 ran concurrently on the same laptop, using the same backend in each experiment. The first 8,000 lines of Tiny Shakespeare were split into two contiguous 4,000-line shards: 61 batches for Firefox and 66 for Chrome. Both used DISCO's GPT-2 tokenizer, batch size 8, context length 64, model seed 42, one epoch/round, and no validation. Run order was WebGPU, WebGL, WebGL, WebGPU, with fresh browser processes.
 
-The first-step figures are medians of three first steps; warmed figures are medians of 12 steps per backend, or six for CIFAR. Each speedup is the WebGL warmed median divided by the WebGPU warmed median. CIFAR used one image rather than its configured batch of ten to bound GPU use in this local probe; that result must not be extrapolated to the full task. GPT used seed 42 and Adam. Its five losses decreased from **10.839 to 10.513 on WebGL** and from **10.839 to 10.447 on WebGPU** in each run. All other models returned finite losses and a prediction in all three runs on both backends. Titanic, MNIST, LUS, and Dog serialized successfully in all runs; GPT and CIFAR serialization were not exercised. The other model initializations were not seeded alike, so their losses and predictions are not suitable for numerical comparison across backends.
+| Measure                                       |    WebGPU runs |       WebGL runs |        Median WebGPU / WebGL |
+| --------------------------------------------- | -------------: | ---------------: | ---------------------------: |
+| Firefox local epoch                           | 39.18, 61.27 s |  97.63, 102.94 s |             50.23 / 100.29 s |
+| Chrome local epoch                            | 30.38, 55.05 s | 103.21, 107.68 s |             42.71 / 105.44 s |
+| Slower client, page setup through aggregation | 42.76, 66.03 s | 107.43, 111.89 s | **54.39 / 109.66 s (2.02×)** |
 
-The earlier two-run GPT-only probe measured warmed medians of about 1.02 s on WebGL and 0.38 s on WebGPU (2.65×). The broader three-run suite above used the same machine and batch shape but a different harness and yielded 3.24×. This variation reinforces that the precise speedup is workload and measurement dependent. TFJS reported about 1.62 GB of GPU allocations for GPT on WebGL and 1.64 GB on WebGPU; these are cumulative backend allocation counters, **not measured peak GPU memory**. Neither the step benchmark nor these counters include dataset download, tokenization, user interface work, or network communication. [Per-run step timings](WEBGPU_BENCHMARK_TIMINGS.csv) are included for audit.
+Both clients completed a round in all four runs, with matching final weight sums within each run. Equal sums are a limited aggregation check, not proof of elementwise weight equality or correct learning. These timings include setup, training and peer exchange, but exclude browser process launch. Both participants shared one GPU; this was not a measurement across two physical devices.
 
-## Federated round probe
+**Task status:** this experiment predates #1244 and used an adapted Wikitext task with Shakespeare text. The new [`shakespeare` task](../discojs/src/default_tasks/shakespeare.ts) now supplies a dedicated definition and dataset download through `datasets/populate`. Rebasing this research onto that branch did not rerun the benchmark. Neither the new task nor the full 40,000-line corpus has been benchmarked here.
 
-Two browser clients completed a full one-epoch Titanic federated round against DISCO's Node server, once each with WebGL/WebGL, WebGPU/WebGPU, and WebGL/WebGPU. The server and clients used the actual DISCO training and aggregation code, a two-participant mean aggregation, 60 synthetic Titanic rows per client, batch size 30, and a local loopback connection. In three repeated runs per backend pair, both clients reported two participants, finite losses, and **identical final aggregate weight sums within each run**. The following are medians of the slower participant's end-to-end round time, from starting `trainByRound` to its completion:
+The successful runs required a browser WebSocket shim and a temporary 48 KiB peer chunk cap. The unmodified client failed before these workarounds; they are not part of this PR.
 
-| Client backends | Median round time | Three observed times |
-| --- | ---: | ---: |
-| WebGL + WebGL | 328 ms | 318, 328, 319 ms |
-| WebGPU + WebGPU | 360 ms | 362, 360, 353 ms |
-| WebGL + WebGPU | 446 ms | 451, 437, 446 ms |
+### Small federated comparison
 
-These round times include local training, WebSocket communication, and aggregation. They are dominated by orchestration for this small tabular model; they do not show a round-level WebGPU speedup. They are local loopback measurements, not estimates for an internet deployment.
+Two browser clients also completed synthetic Titanic federated rounds through the Node server: 60 rows per client, batch size 30, three runs per backend pair. The recorded slower-client times were 318/328/319 ms for WebGL+WebGL, 362/360/353 ms for WebGPU+WebGPU, and 451/437/446 ms for mixed backends. Their medians are **319, 360 and 446 ms**, respectively. This small workload showed no round-level WebGPU speedup. The earlier report incorrectly listed the WebGL median as 328 ms.
 
-**The unmodified browser client could not start this round.** [`event_connection.ts`](../discojs/src/client/event_connection.ts) passes an options object as the browser `WebSocket` constructor's second argument; browsers interpret that argument as a subprotocol and throw `SyntaxError: subprotocol '[object Object]' is invalid`. The probe used a temporary, browser-only constructor shim that ignores this object. No shim or WebSocket fix is part of this research PR. The round proves the training and aggregation path can use WebGPU after that connection issue is bypassed; production browser federated training still needs the constructor fixed and retested without the shim.
+## What was reproduced, and what was not validated
 
-## Compatibility and correctness risks
+The following symptoms are present in the original experiment execution records; they were not merely inferred from upstream reports.
 
-1. **Training coverage is model-specific.** The [4.22.0 WebGPU kernel registry](https://github.com/tensorflow/tfjs/blob/tfjs-v4.22.0/tfjs-backend-webgpu/src/register_all_kernels.ts) includes the main convolution, pooling, matrix multiplication, and related gradient kernels, and the six model probes exercised their training paths. TFJS's [WebGPU documentation](https://github.com/tensorflow/tfjs/blob/tfjs-v4.22.0/tfjs-backend-webgpu/README.md) still says training support is incomplete. A missing kernel on the selected backend raises an error; the [TFJS engine](https://github.com/tensorflow/tfjs/blob/tfjs-v4.22.0/tfjs-core/src/engine.ts) does not automatically retry that operation on WebGL.
-2. **A shader can produce bad output without stopping training.** With the same TFJS 4.22.0 package in Chrome 154, a large `int32` transpose emitted WGSL type errors and returned zeros. A small transpose succeeded because the backend can execute small inputs on the CPU. This matches [tensorflow/tfjs#8638](https://github.com/tensorflow/tfjs/issues/8638), reported for Chrome 141 and later. The issue was closed without a confirmed package fix. The GPT batch above succeeded, but this separate failure blocks a claim that arbitrary DISCO models are safe on WebGPU.
-3. **GPT inference needs numerical and shape checks.** With sampling disabled after the same five training steps, both backends chose token 64, but WebGL returned `64` and WebGPU returned `[64]` as the per-example prediction. Default sampled predictions also differed. The greedy result's different shape needs investigation before claiming GPT inference compatibility; sampled tokens can differ even without a bug.
-4. **Availability varies by browser and GPU.** `navigator.gpu` alone is insufficient: an adapter may still be unavailable. Initialization must check the result of `tf.setBackend('webgpu')` and handle failure. A lost device or a runtime shader error also needs a visible failure path. Switching to WebGL after training has started should restart the affected model or round, rather than silently continue with potentially bad weights.
-5. **Backend choice is global to the page.** TFJS has one active backend at a time. DISCO's `trainingInformation.tensorBackend` currently distinguishes the GPT and regular TFJS model families; it is not a device-backend setting. WebGPU selection should be a separate browser preference and should happen before loading or constructing the model.
+| Finding                          | Direct observation                                                                                                                                | Remaining uncertainty                                                                                                                                              |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Integer transpose shader failure | TFJS 4.22.0 on Chrome 154 emitted a WGSL `expected f32, got i32` error and returned zeros for a large `int32` transpose; a small input succeeded. | Matches [TFJS #8638](https://github.com/tensorflow/tfjs/issues/8638), but was a separate operator probe, not a demonstrated cause of the GPT training differences. |
+| GPT prediction shape             | Greedy prediction after five steps returned `[64]` on WebGL and `[[64]]` on WebGPU for the prediction batch.                                      | Observed mismatch; root cause and impact on DISCO inference remain unisolated. Sampled token differences alone are not evidence of a bug.                          |
+| Browser WebSocket constructor    | Browser threw `The subprotocol '[object Object]' is invalid` from `event_connection.ts`, including with WebGL.                                    | Existing DISCO transport issue, not specific to WebGPU; successful runs bypassed it with a shim.                                                                   |
+| WebRTC message size              | The initial Firefox/Chrome decentralized attempt threw `Trying to send message larger than max-message-size` at weight exchange.                  | Successful runs capped peer chunks at 48 KiB; a general transport fix still needs testing.                                                                         |
 
-## Proposed integration path
+The TFJS 4.22.0 README warns that training kernel coverage is incomplete. We exercised six model families, but did not reproduce a missing-gradient-kernel error in them. Device-loss recovery and runtime fallback were not tested.
 
-1. Add `@tensorflow/tfjs-backend-webgpu@4.22.0` to the web app only. Keep all TFJS packages on 4.22.0 and keep the Node runtime on `tfjs-node`.
-2. Centralize and await browser TFJS initialization before app model operations. Keep the existing WebGL behavior as the default. For explicit WebGPU opt-in, import the backend, request an adapter, call `await tf.setBackend('webgpu')`, and verify that the selected backend is `webgpu`. On initialization failure, select WebGL explicitly, with CPU as the final supported fallback.
-3. Report the selected backend and initialization failure in the training UI or diagnostics. Do not change backend during an active training round. Treat a runtime kernel or shader failure as a failed round; recover through a fresh model/backend setup instead of reusing suspect weights.
-4. Extend the synthetic model and federated probes to real datasets and unmodified browser clients. Fix the WebSocket constructor, then repeat a full round without the shim. Exercise model save/load for GPT and CIFAR, a complete local round, and weight exchange on several browsers. Compare numerical outputs with WebGL within an explicit tolerance, including integer tensor paths and GPT prediction shape. Cover Chrome, Firefox, and Safari where WebGPU is available, plus a browser with no adapter.
-5. Repeat cold and warmed step and full-round benchmarks on several devices and real datasets; measure peak GPU memory with an appropriate profiler. Record browser version, OS, adapter, batch size, model, and whether a software adapter was used. Keep WebGPU opt-in until correctness and fallback behavior pass these checks.
+**Training quality was not established.** The saved synthetic GPT losses decrease over five steps: 10.839 → 10.513 on WebGL and 10.839 → 10.447 on WebGPU. For Shakespeare, the retained outputs contain epoch-average losses, not per-batch curves: approximately 9.69 on WebGL versus 8.83 on WebGPU. Final aggregate weight sums also differed substantially across backends despite using seed 42. The cause is unresolved; a lower training loss does not establish correctness. There was no held-out validation, convergence study, or tolerance-based comparison of logits, gradients and weights.
 
-**Decision:** The current stack supports a useful WebGPU prototype, and GPT training on the tested integrated GPU showed a substantial local speedup. Browser availability, correctness findings, and the existing browser WebSocket failure make an automatic rollout premature.
+Titanic, MNIST, LUS and Dog were serialized in the short probes. GPT/CIFAR serialization and complete save/load round trips were not validated. Reported GPU allocation counters were not measured peak memory.
+
+## Browser configuration used
+
+On this Linux laptop, an ordinary headful Chrome launch exposed no adapter; a default headless launch selected SwiftShader. The hardware Chrome runs used these GPU flags:
+
+```text
+--enable-unsafe-webgpu
+--use-angle=vulkan
+--enable-features=Vulkan
+--disable-software-rasterizer
+```
+
+The headless Firefox harness set these preferences:
+
+```text
+dom.webgpu.enabled = true
+gfx.webrender.all = true
+```
+
+The Firefox probe exposed an adapter with `dom.webgpu.enabled=true` and none with it false; it did not isolate whether `gfx.webrender.all` was necessary. Firefox redacted the adapter vendor/architecture, while Chrome identified AMD RDNA 3. These are the tested settings, not a universal browser setup prescription. Deployment should check adapter availability in a secure context; [browser/platform support varies](https://developer.chrome.com/docs/web-platform/webgpu/overview).
+
+## Next step
+
+Implement explicit opt-in with WebGL fallback at initialization. Before widening support, fix the transport failures and run the dedicated Shakespeare task without workarounds, recording training and validation curves and comparing backend outputs within defined tolerances. Repeat measurements on other GPUs and browsers before making broader performance claims.
