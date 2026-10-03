@@ -6,9 +6,11 @@
     },
     "webapp": {
       "entry": [
+        "cypress/e2e/training/decentralized/browser_peers.cy.ts",
         "cypress/e2e/training/decentralized/node_peers.cy.ts",
         "cypress/e2e/training/federated/*.cy.ts",
-        "cypress/support/federated_peer.ts"
+        "cypress/support/federated_peer.ts",
+        "cypress/support/run_browser_collaboration.ts"
       ],
       "ignoreDependencies": ["buffer"]
     },
