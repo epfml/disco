@@ -41,7 +41,7 @@ const results = browsers.map((browser, index) => {
       "--browser",
       browser,
       "--spec",
-      "cypress/e2e/collaborative/browser_collaboration.cy.ts",
+      "cypress/e2e/training/decentralized/browser_peers.cy.ts",
       "--config",
       `baseUrl=http://localhost:1355,screenshotsFolder=cypress/screenshots/${label}`,
       "--env",
