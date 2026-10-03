@@ -66,7 +66,7 @@ jobs:
           working-directory: webapp
           install: false
           start: pnpm exec vite --mode test --port 1351
-          config: '{"excludeSpecPattern":["cypress/e2e/local_training/**/*.cy.ts","cypress/e2e/collaborative/**/*.cy.ts"]}'
+          config: '{"excludeSpecPattern":["cypress/e2e/training/local/**/*.cy.ts","cypress/e2e/training/federated/**/*.cy.ts","cypress/e2e/training/decentralized/**/*.cy.ts"]}'
 
   test-local-training:
     name: local training (${{ matrix.task }})
@@ -87,7 +87,7 @@ jobs:
           working-directory: webapp
           install: false
           start: pnpm exec vite --mode test --port 1351
-          spec: cypress/e2e/local_training/${{ matrix.task }}.cy.ts
+          spec: cypress/e2e/training/local/${{ matrix.task }}.cy.ts
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
@@ -118,10 +118,10 @@ jobs:
           working-directory: webapp
           install: false
           start: >-
-            pnpm run test:e2e:federated:peer,
+            node --experimental-strip-types cypress/support/federated_peer.ts,
             pnpm exec vite --mode test --port 1351 --strictPort
           wait-on: "http://localhost:8080, http://localhost:1351"
-          spec: cypress/e2e/collaborative/federated_${{ matrix.task }}.cy.ts
+          spec: cypress/e2e/training/federated/${{ matrix.task }}.cy.ts
       - uses: actions/upload-artifact@v7
         if: failure()
         with:

@@ -9,7 +9,10 @@ export default defineConfig({
     excludeSpecPattern:
       process.env.DISCO_COLLABORATIVE_E2E === "1"
         ? []
-        : ["cypress/e2e/collaborative/**/*.cy.ts"],
+        : [
+            "cypress/e2e/training/federated/**/*.cy.ts",
+            "cypress/e2e/training/decentralized/**/*.cy.ts",
+          ],
     setupNodeEvents(on) {
       on("task", {
         readdir: async (p: string) =>

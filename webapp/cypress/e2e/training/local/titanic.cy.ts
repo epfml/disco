@@ -1,7 +1,10 @@
 import { defaultTasks } from "@epfml/discojs";
 
-import { setupServerWith } from "../../support/e2e";
-import { goToTaskOverview, trainLocallyAndSave } from "../../support/training";
+import { setupServerWith } from "../../../support/e2e";
+import {
+  goToTaskOverview,
+  trainLocallyAndSave,
+} from "../../../support/training";
 
 it("completes local Titanic training and saves the model", () => {
   const titanicTask = defaultTasks.titanic;

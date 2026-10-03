@@ -1,5 +1,5 @@
 // Serves the selected task and trains on it as a Node participant so that the
-// browser driven by cypress/e2e/collaborative has a federated peer.
+// browser driven by cypress/e2e/training/federated has a federated peer.
 // Started next to vite by the test runner, which kills it once Cypress is done.
 
 import "@tensorflow/tfjs-node";

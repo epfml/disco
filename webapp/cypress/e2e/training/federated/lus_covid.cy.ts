@@ -1,4 +1,4 @@
-import { assertNoErrorToast } from "../../support/training";
+import { assertNoErrorToast } from "../../../support/training";
 
 function uploadLusCovidDataset(): void {
   for (const [directory, label] of [
