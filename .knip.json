@@ -7,7 +7,7 @@
     "webapp": {
       "entry": [
         "cypress/e2e/training/federated/*.cy.ts",
-        "cypress/support/federated_peer.ts"
+        "cypress/support/federated.ts"
       ],
       "ignoreDependencies": ["buffer"]
     },
