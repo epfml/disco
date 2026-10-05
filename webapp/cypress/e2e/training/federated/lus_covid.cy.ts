@@ -31,7 +31,7 @@ it("trains LUS COVID with a Node participant through a real server", () => {
   cy.get(".driver-popover-close-btn").click();
   cy.get("#lus_covid").contains("button", "participate").click();
   cy.contains("button", "next").click();
-  uploadLusCovidDataset();
+  selectLusCovidDataset();
   cy.contains("button", "next").click();
   cy.contains("button", "collaboratively").click();
   cy.contains("button", "Start training").click();
