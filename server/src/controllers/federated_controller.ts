@@ -181,20 +181,20 @@ export class FederatedController<D extends DataType> extends TrainingController<
       // If the client has not yet established a connection
       // and the message is not a ClientConnected message,
       // we consider it as coming from an unconnected client
-      // and respond with a MissingConnection message.
+      // and respond with a CrashClient message.
       if (
         !this.connections.has(clientId) &&
         msg.type !== MessageTypes.ClientConnected
       ) {
         debug(
-          "Received message from an unconnected client [%s], sending MissingConnection message",
+          "Received message from an unconnected client [%s], sending CrashClient message",
           shortId,
         );
-        ws.send(
-          msgpack.encode({
-            type: MessageTypes.MissingConnection,
-          }),
-        );
+        const msg: mtype.CrashClient = {
+          type: MessageTypes.CrashClient,
+          reason: "No ClientConnected message received",
+        };
+        ws.send(msgpack.encode(msg));
         return;
       }
 
@@ -259,6 +259,11 @@ export class FederatedController<D extends DataType> extends TrainingController<
               this.#aggregator.round,
             );
             // Send a notification to crash to the client
+            const msg: mtype.CrashClient = {
+              type: MessageTypes.CrashClient,
+              reason: `Received contribution for future round ${round} (current round=${this.#aggregator.round})`,
+            };
+            ws.send(msgpack.encode(msg));
           } else if (this.#aggregator.isValidContribution(clientId, round)) {
             debug(
               "Received valid contribution from client [%s] for round %d (participants=%d)",

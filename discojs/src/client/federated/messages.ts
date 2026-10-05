@@ -7,7 +7,7 @@ import type {
   WaitingForMoreParticipants,
   EnoughParticipants,
   ParticipantsUpdate,
-  MissingConnection,
+  CrashClient,
 } from "#client/mtype";
 
 // See ../messages.ts for doc
@@ -17,7 +17,7 @@ export type MessageFromServer =
   | WaitingForMoreParticipants
   | EnoughParticipants
   | ParticipantsUpdate
-  | MissingConnection;
+  | CrashClient;
 
 export type MessageToServer = ClientConnected | SendPayload;
 
@@ -53,7 +53,7 @@ export function isMessageFromServer(raw: unknown): raw is MessageFromServer {
     case MType.WaitingForMoreParticipants:
     case MType.EnoughParticipants:
     case MType.ParticipantsUpdate:
-    case MType.MissingConnection:
+    case MType.CrashClient:
       return true;
   }
 

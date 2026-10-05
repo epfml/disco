@@ -13,7 +13,8 @@ import { modelDecode } from "#serialization/index";
 import type { EventConnection } from "#client/event_connection";
 import type { NodeID } from "#client/types";
 import { MType } from "#client/mtype";
-import { shortenId } from "#client/utils";
+import { abortable, shortenId } from "#client/utils";
+import { ClientCrashError } from "#root/errors";
 
 const debug = createDebug("discojs:client");
 
@@ -38,10 +39,6 @@ export abstract class Client<N extends Network> extends EventEmitter<{
    * until the server signals that the training can resume
    */
   protected promiseForMoreParticipants: Promise<void> | undefined = undefined;
-  /**
-   * Promise that will be rejected when the client gets a critical error.
-   */
-  protected clientCrash: Promise<never> | undefined = undefined;
 
   /**
    * When the server notifies the client that they can resume training
@@ -58,6 +55,10 @@ export abstract class Client<N extends Network> extends EventEmitter<{
    * one carried by the message answering our join request.
    */
   #nbOfParticipantsUpdatedSinceJoining = false;
+  /**
+   * AbortController used to signal a client crash.
+   */
+  #crashController = new AbortController();
 
   constructor(
     public readonly url: URL, // The network server's URL to connect to
@@ -129,6 +130,7 @@ export abstract class Client<N extends Network> extends EventEmitter<{
    */
   protected setupServerCallbacks(setMessageInversionFlag: () => void) {
     this.#nbOfParticipantsUpdatedSinceJoining = false;
+    this.#crashController = new AbortController();
 
     // Setup an event callback if the server signals that we should
     // wait for more participants
@@ -172,23 +174,15 @@ export abstract class Client<N extends Network> extends EventEmitter<{
       }
     });
 
-    // The server notifies the client if the connection is lost.
-    // For now we simply throw an error when the connection is lost
-    // This process should never occur in a normal execution
-    // Here to add robustness
-    this.clientCrash = new Promise<never>((_, reject) => {
-      this.server.on(MType.MissingConnection, (_event) => {
-        debug(
-          `[${shortenId(this._ownId ?? "?")}] server reports no registration for us`,
-        );
-        reject(
-          new Error(
-            "server has no registration for this client (missing handshake)",
-          ),
-        );
-      });
+    // The server notifies the client if there is a fatal error affecting this client
+    // In this case, the client will be informed via a CrashClient message
+    // The client will handle this error by aborting its current operation with a ClientCrashError.
+    this.server.on(MType.CrashClient, ({ reason }) => {
+      debug(
+        `[${shortenId(this._ownId ?? "?")}] server reports a fatal error affecting this client with reason ${reason}`,
+      );
+      this.#crashController.abort(new ClientCrashError(reason));
     });
-    this.clientCrash.catch(() => {}); // prevent unhandled promise rejection
   }
 
   /**
@@ -237,19 +231,11 @@ export abstract class Client<N extends Network> extends EventEmitter<{
         `[${shortenId(this.ownId)}] is awaiting the promise for more participants`,
       );
       this.emit("status", "not enough participants");
-      await this.promiseForMoreParticipants;
-    }
-  }
 
-  /**
-   * Races the given work against the server fault, if any.
-   * @param work The promise representing the work to be done.
-   * @returns The result of the work if it completes before a client crash occurs,
-   * otherwise the promise will reject with the client crash error.
-   */
-  protected async orClientCrash<T>(work: Promise<T>): Promise<T> {
-    if (this.clientCrash === undefined) return await work;
-    return await Promise.race([work, this.clientCrash]);
+      // Await the promise for more participants if it exists
+      if (this.promiseForMoreParticipants !== undefined)
+        await abortable(this.promiseForMoreParticipants, this.crashSignal);
+    }
   }
 
   /**
@@ -311,5 +297,12 @@ export abstract class Client<N extends Network> extends EventEmitter<{
    */
   get waitingForMoreParticipants(): boolean {
     return this.promiseForMoreParticipants !== undefined;
+  }
+
+  /**
+   * Returns the AbortSignal associated with the client's crash.
+   */
+  get crashSignal(): AbortSignal {
+    return this.#crashController.signal;
   }
 }

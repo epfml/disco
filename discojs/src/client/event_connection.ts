@@ -7,7 +7,7 @@ import type { NodeID } from "#client/types";
 import * as decentralizedMessages from "#client/decentralized/messages";
 import { MType } from "#client/mtype";
 import { type NarrowMessage, type Message } from "#client/messages";
-import { timeout } from "#client/utils";
+import { abortable, timeout } from "#client/utils";
 import { shortenId } from "#client/utils";
 
 import { EventEmitter } from "#utils/event_emitter";
@@ -27,16 +27,29 @@ export interface EventConnection {
   disconnect: () => Promise<void>;
 }
 
+/**
+ * Waits for a specific type of message from the event connection.
+ * This function will resolve once a message of the specified type is received,
+ * or reject if the abort signal is triggered.
+ * @param connection The event connection to listen on
+ * @param type The type of message to wait for
+ * @param signal An optional AbortSignal to control the abortion
+ * @returns A promise that resolves with the received message of the specified type
+ */
 export async function waitMessage<T extends MType>(
   connection: EventConnection,
   type: T,
+  signal?: AbortSignal,
 ): Promise<NarrowMessage<T>> {
-  return await new Promise((resolve) => {
+  return await abortable(
+    new Promise((resolve) => {
     // "once" is important because we can't resolve the same promise multiple times
     connection.once(type, (event) => {
       resolve(event);
     });
-  });
+    }),
+    signal,
+  );
 }
 
 export async function waitMessageWithTimeout<T extends MType>(
@@ -57,16 +70,21 @@ export async function waitMessageWithTimeout<T extends MType>(
  * The global timeout is `retryDelayMs * maxAttempts`.
  * @param retryDelayMs - Delay between retry attempts in milliseconds (default: 60_000)
  * @param maxAttempts - Maximum number of retry attempts (default: 3)
+ * @param signal An optional AbortSignal to control the abortion of the wait for the response
  */
 export async function sendAndWaitWithRetry<T extends MType>(
   connection: EventConnection,
   request: Message,
   responseType: T,
-  { retryDelayMs = 60_000, maxAttempts = 3 } = {},
+  {
+    retryDelayMs = 60_000,
+    maxAttempts = 3,
+    signal,
+  }: { retryDelayMs?: number; maxAttempts?: number; signal?: AbortSignal } = {},
 ): Promise<NarrowMessage<T>> {
   // Create the response promise before sending the request
   // to avoid missing the response
-  const response = waitMessage(connection, responseType);
+  const response = waitMessage(connection, responseType, signal);
   const RETRY = Symbol("retry"); // Symbol used to indicate a retry attempt
 
   let timer: ReturnType<typeof setTimeout> | undefined; // Register the timer once

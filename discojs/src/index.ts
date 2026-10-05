@@ -82,3 +82,4 @@ export { extractColumn } from "./processing/index.js";
 // eslint-disable-next-line no-restricted-syntax -- namespace re-export acceptable here
 export * as defaultTasks from "./default_tasks/index.js";
 export { cards as defaultModels } from "./models/index.js";
+export { ClientCrashError } from "./errors.js";
