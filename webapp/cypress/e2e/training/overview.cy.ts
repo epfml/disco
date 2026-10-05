@@ -1,7 +1,7 @@
 import { defaultTasks } from "@epfml/discojs";
 
-import { setupServerWith } from "../support/e2e";
-import { goToTaskOverview } from "../support/training";
+import { setupServerWith } from "../../support/e2e";
+import { goToTaskOverview } from "../../support/training";
 
 describe("training page", () => {
   it("is navigable", () => {
