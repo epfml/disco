@@ -47,6 +47,7 @@ async function train<D extends DataType>(
   }
 }
 
+// The Node client trains on images with odd indexes
 async function nodeHalfOfImages(directory: string) {
   const filenames = (await fs.readdir(directory))
     .filter((filename) => /\.(png|jpe?g)$/i.test(filename))
