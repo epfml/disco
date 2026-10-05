@@ -23,3 +23,7 @@ rm wikitext.zip
 curl 'https://storage.googleapis.com/deai-313515.appspot.com/tinder_dog.zip' > tinder_dog.zip
 unzip -u tinder_dog.zip
 rm tinder_dog.zip
+
+# tiny shakespeare
+mkdir -p shakespeare
+curl -fL 'https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt' -o shakespeare/input.txt
