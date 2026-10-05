@@ -113,6 +113,7 @@ export class FederatedClient extends Client<"federated"> {
     await this.server.disconnect();
     this._server = undefined;
     this._ownId = undefined;
+    this.promiseForMoreParticipants = undefined;
 
     this.aggregator.setNodes(this.aggregator.nodes.delete(SERVER_NODE_ID));
   }
