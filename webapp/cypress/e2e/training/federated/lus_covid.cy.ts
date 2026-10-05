@@ -8,6 +8,7 @@ function uploadLusCovidDataset(): void {
     cy.task<string[]>("readdir", `../datasets/lus_covid/${directory}/`).then(
       (files) => {
         // The browser and Node peer use disjoint halves of the full dataset.
+        // The browser keeps images with even indexes
         const imageFiles = files
           .filter((p) => /\.(png|jpe?g)$/i.test(p))
           .sort()
