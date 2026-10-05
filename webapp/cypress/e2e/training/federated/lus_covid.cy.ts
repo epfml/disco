@@ -1,6 +1,6 @@
 import { assertNoErrorToast } from "../../../support/training";
 
-function uploadLusCovidDataset(): void {
+function selectLusCovidDataset(): void {
   for (const [directory, label] of [
     ["COVID+", "COVID-Positive"],
     ["COVID-", "COVID-Negative"],
