@@ -130,6 +130,24 @@ jobs:
           path: webapp/cypress/screenshots
           if-no-files-found: ignore
 
+  test-e2e-decentralized:
+    name: decentralized webapp (mnist)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/pull-dataset-artifacts
+      - uses: actions/download-artifact@v8
+        with: { name: all-builds }
+      - run: xvfb-run --auto-servernum pnpm -F webapp run test:e2e:decentralized
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: decentralized-mnist-screenshots
+          path: webapp/cypress/screenshots
+          if-no-files-found: ignore
+
   test-cli:
     runs-on: ubuntu-latest
     steps:
