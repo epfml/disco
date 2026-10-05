@@ -1,12 +1,12 @@
 import { defaultTasks } from "@epfml/discojs";
 
-import { setupServerWith } from "../../support/e2e";
+import { setupServerWith } from "../../../support/e2e";
 import {
   assertNoErrorToast,
   goToTaskOverview,
   trainLocallyAndSave,
   withTrainingConfig,
-} from "../../support/training";
+} from "../../../support/training";
 
 const numEpochs = 4;
 const lusCovidTask = withTrainingConfig(defaultTasks.lusCovid, {

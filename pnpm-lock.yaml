@@ -602,12 +602,18 @@ importers:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
+      '@epfml/discojs-node':
+        specifier: 'workspace:'
+        version: link:../discojs-node
       '@pinia/testing':
         specifier: 1.0.3
         version: 1.0.3(pinia@3.0.4(typescript@6.0.3)(vue@3.5.34(typescript@6.0.3)))
       '@tailwindcss/vite':
         specifier: 4.3.1
         version: 4.3.1(vite@8.0.16(@types/node@22.19.15)(jiti@2.7.0)(yaml@2.9.0))
+      '@tensorflow/tfjs-node':
+        specifier: 'catalog:'
+        version: 4.22.0(seedrandom@3.0.5)(supports-color@8.1.1)
       '@tsconfig/node20':
         specifier: 20.1.9
         version: 20.1.9
@@ -635,6 +641,9 @@ importers:
       jsdom:
         specifier: 29.0.1
         version: 29.0.1(@noble/hashes@1.8.0)(canvas@3.2.3)
+      server:
+        specifier: 'workspace:'
+        version: link:../server
       start-server-and-test:
         specifier: 3.0.4
         version: 3.0.4(supports-color@8.1.1)
