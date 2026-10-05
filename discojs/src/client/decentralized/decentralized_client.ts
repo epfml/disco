@@ -486,6 +486,9 @@ export class DecentralizedClient extends Client<"decentralized"> {
       if (connections === undefined)
         throw new Error("peer's connections is undefined");
       // Generate our payloads for this communication round and send them to all ready connected peers
+      // Aggregation may complete while payloads are being encoded and sent, so
+      // every contribution in this exchange must retain the same round number.
+      const aggregationRound = this.aggregator.round;
       const payloads = this.aggregator.makePayloads(result);
       await Promise.all(
         payloads
@@ -496,7 +499,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
               this.aggregator.add(
                 this.ownId,
                 payload,
-                this.aggregator.round,
+                aggregationRound,
                 communicationRound,
               );
               return;
@@ -510,7 +513,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
             const msg: messages.PeerMessage = {
               type: MType.Payload,
               peer: id,
-              aggregationRound: this.aggregator.round,
+              aggregationRound,
               communicationRound,
               payload: encoded,
             };
@@ -520,7 +523,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
             debug(
               `[${shortenId(this.ownId)}] send weight update to peer ${shortenId(msg.peer)}` +
                 ` for round (%d, %d)`,
-              this.aggregator.round,
+              aggregationRound,
               communicationRound,
             );
           })

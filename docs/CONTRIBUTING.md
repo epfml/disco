@@ -121,9 +121,10 @@ the workspace with `pnpm -r run build`, and fetch the datasets with
 ```sh
 pnpm -F webapp run test:e2e:local
 pnpm -F webapp run test:e2e:federated
+pnpm -F webapp run test:e2e:decentralized
 ```
 
-Each command runs both Titanic and LUS COVID. The local tests mock the server;
+The local and federated commands run both Titanic and LUS COVID. The local tests mock the server;
 the federated tests start a real server and a Node participant for each task.
 The commands start and stop Vite and any required server processes themselves.
 Ports 1351 and, for federated tests, 8080 must be available.
@@ -135,6 +136,9 @@ DISCO_E2E_FEDERATED_TASK=lus_covid pnpm -F webapp run test:e2e:federated
 ```
 
 CI uses this selector to run the tasks in parallel jobs.
+
+The decentralized command runs Chrome with two Node participants and requires
+Chrome to be installed. It starts its own server and uses ports 8081 and 1354.
 
 #### Cypress and Github Actions
 
