@@ -116,25 +116,18 @@ which should open the Cypress UI and let you choose the browser you wand to use 
 
 Use the Node version in `.nvmrc`, install dependencies with `pnpm ci`, build
 the workspace with `pnpm -r run build`, and fetch the datasets with
-`(cd datasets && ./populate)`. Then run these commands from the repository root:
+`(cd datasets && ./populate)`. Then run the local training tests from the repository root:
 
 ```sh
 pnpm -F webapp run test:e2e:local
-pnpm -F webapp run test:e2e:federated
 ```
 
-Each command runs both Titanic and LUS COVID. The local tests mock the server;
-the federated tests start a real server and a Node participant for each task.
-The commands start and stop Vite and any required server processes themselves.
-Ports 1351 and, for federated tests, 8080 must be available.
+This runs both Titanic and LUS COVID with a mocked server. The command starts
+and stops Vite itself; port 1351 must be available.
 
-To debug one federated task, use the same command with a task selector:
-
-```sh
-DISCO_E2E_FEDERATED_TASK=lus_covid pnpm -F webapp run test:e2e:federated
-```
-
-CI uses this selector to run the tasks in parallel jobs.
+Federated training tests run in separate CI jobs for Titanic and LUS COVID.
+Each job starts a real server and a Node participant configured for its task;
+see `test-e2e-federated` in `.github/workflows/_test.yml` for the setup.
 
 #### Cypress and Github Actions
 
