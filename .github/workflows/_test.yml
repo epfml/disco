@@ -66,7 +66,6 @@ jobs:
           working-directory: webapp
           install: false
           start: pnpm exec vite --mode test --port 1351
-          config: '{"excludeSpecPattern":["cypress/e2e/training/local/**/*.cy.ts","cypress/e2e/training/federated/**/*.cy.ts","cypress/e2e/training/decentralized/**/*.cy.ts"]}'
 
   test-local-training:
     name: local training (${{ matrix.task }})
@@ -83,6 +82,8 @@ jobs:
       - uses: actions/download-artifact@v8
         with: { name: all-builds }
       - uses: cypress-io/github-action@v7
+        env:
+          DISCO_TRAINING_E2E: "1"
         with:
           working-directory: webapp
           install: false
@@ -112,7 +113,7 @@ jobs:
       - uses: cypress-io/github-action@v7
         env:
           VITE_SERVER_URL: http://localhost:8080
-          DISCO_COLLABORATIVE_E2E: "1"
+          DISCO_TRAINING_E2E: "1"
           DISCO_E2E_FEDERATED_TASK: ${{ matrix.task }}
         with:
           working-directory: webapp
