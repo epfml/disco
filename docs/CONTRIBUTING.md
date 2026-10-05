@@ -112,6 +112,30 @@ pnpm run test:e2e-interactive
 
 which should open the Cypress UI and let you choose the browser you wand to use and which tests to run. More information on [the Cypress docs](https://docs.cypress.io/app/get-started/open-the-app).
 
+#### Training end-to-end tests
+
+Use the Node version in `.nvmrc`, install dependencies with `pnpm ci`, build
+the workspace with `pnpm -r run build`, and fetch the datasets with
+`(cd datasets && ./populate)`. Then run these commands from the repository root:
+
+```sh
+pnpm -F webapp run test:e2e:local
+pnpm -F webapp run test:e2e:federated
+```
+
+Each command runs both Titanic and LUS COVID. The local tests mock the server;
+the federated tests start a real server and a Node participant for each task.
+The commands start and stop Vite and any required server processes themselves.
+Ports 1351 and, for federated tests, 8080 must be available.
+
+To debug one federated task, use the same command with a task selector:
+
+```sh
+DISCO_E2E_FEDERATED_TASK=lus_covid pnpm -F webapp run test:e2e:federated
+```
+
+CI uses this selector to run the tasks in parallel jobs.
+
 #### Cypress and Github Actions
 
 It is possible to record the cypress tests ran in the Github Actions CI and visualize them in the [Cypress Cloud](cloud.cypress.io). It is currently used only when needed (because the free plan has a limited number of recordings). The [cypress documentation](https://docs.cypress.io/app/continuous-integration/github-actions) describes how to set up the recordings.
