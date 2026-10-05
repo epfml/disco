@@ -69,6 +69,11 @@ function buildSummaryLog(
 export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   status: RoundStatus;
   participants: number;
+  /**
+   * The model was synced to the latest global model.
+   * The weights are lent to the listeners for the duration of the call,
+   * clone them to keep them longer.
+   */
   modelSynced: WeightsContainer | undefined;
 }> {
   public readonly trainer: Trainer<D, N>;
@@ -305,13 +310,20 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
 
   /**
    * Completely stops the ongoing training instance.
+   * Disposes all tensors including the model,
+   * call disco.trainer.releaseModel() if you need the model
+   * after closing disco
    */
   async close(): Promise<void> {
-    // Dispose the model tensor
+    // Dispose the model tensor and the aggregator's buffered tensors
     try {
       await this.#client.disconnect();
     } finally {
-      this.trainer[Symbol.dispose]();
+      try {
+        this.trainer[Symbol.dispose]();
+      } finally {
+        this.#client.aggregator.dispose();
+      }
     }
   }
 

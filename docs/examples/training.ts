@@ -25,11 +25,13 @@ async function runUser<D extends DataType>(
   // Create Disco object associated with the server url, the training scheme
   const disco = new Disco(task, url, { scheme: "federated" });
 
-  // Run training on the dataset
-  await disco.trainFully(dataset);
-
-  // Disconnect from the remote server
-  await disco.close();
+  try {
+    // Run training on the dataset
+    await disco.trainFully(dataset);
+  } finally {
+    // Disconnect from the remote server and dispose the model
+    await disco.close();
+  }
 }
 
 type TaskAndDataset<D extends DataType> = [

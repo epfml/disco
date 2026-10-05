@@ -1,5 +1,6 @@
 import { List, Map, Range, Set } from "immutable";
 import { assert, describe, expect, it } from "vitest";
+import * as tf from "@tensorflow/tfjs";
 import { communicate, setupNetwork, wsIntoArrays } from "#root/aggregator.spec";
 import { sum, avg, WeightsContainer } from "#weights/index";
 
@@ -34,18 +35,19 @@ describe("secret shares test", () => {
       .toList();
   }
 
-  it("recover secrets from shares", () => {
+  it("recover secrets from shares", async () => {
     const recovered = buildShares().map((shares) => sum(shares));
-    assert.isTrue(
+    const equalities = await Promise.all(
       (
         recovered.zip(secrets) as List<[WeightsContainer, WeightsContainer]>
-      ).every(([actual, expected]) => actual.equals(expected, epsilon)),
+      ).map(([actual, expected]) => actual.equals(expected, epsilon)),
     );
+    assert.isTrue(equalities.every((equal) => equal));
   });
 
-  it("derive aggregation result from partial sums", () => {
+  it("derive aggregation result from partial sums", async () => {
     const actual = avg(buildPartialSums(buildShares()));
-    assert.isTrue(actual.equals(expected, epsilon));
+    assert.isTrue(await actual.equals(expected, epsilon));
   });
 });
 
@@ -86,5 +88,35 @@ describe("secure aggregator", () => {
           .flatMap((x) => x),
       ))
       expect(secure).to.be.closeTo(mean, 0.001);
+  });
+
+  it("generating shares leaves only the shares", () => {
+    const secret = WeightsContainer.of([1, 2, 3], [4]);
+    const aggregator = new SecureAggregator();
+    aggregator.setNodes(Set.of("a", "b", "c"));
+
+    const baseline = tf.memory().numTensors;
+    const shares = aggregator.generateAllShares(secret);
+    shares.forEach((share) => share.dispose());
+    expect(tf.memory().numTensors).to.equal(baseline);
+    secret.dispose();
+  });
+
+  it("aggregation leaves no dangling tensors", async () => {
+    const baseline = tf.memory().numTensors;
+
+    const network = setupNetwork(SecureAggregator);
+    const contributions = network.map((_, id) =>
+      WeightsContainer.of([id.length], [1, 2]),
+    );
+    const results = await communicate(
+      network.map((agg, id) => [agg, contributions.get(id)!]),
+      0,
+    );
+
+    results.forEach((result) => result.dispose());
+    contributions.forEach((contribution) => contribution.dispose());
+    network.forEach((agg) => agg.dispose());
+    expect(tf.memory().numTensors).to.equal(baseline);
   });
 });

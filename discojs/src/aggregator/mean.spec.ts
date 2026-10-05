@@ -20,8 +20,8 @@ describe("mean aggregator", () => {
     expect(aggregator.isValidContribution("client 1", 0)).to.be.true;
     const client1Round0Promise = aggregator.getPromiseForAggregation();
     aggregator.add("client 1", WeightsContainer.of([1]), 0);
-    expect(WeightsContainer.of([1]).equals(await client1Round0Promise)).to.be
-      .true;
+    expect(await WeightsContainer.of([1]).equals(await client1Round0Promise)).to
+      .be.true;
     expect(aggregator.round).to.equal(1);
 
     // round 1
@@ -30,8 +30,8 @@ describe("mean aggregator", () => {
     aggregator.add("client 1", WeightsContainer.of([1]), 1);
     const client2Round0Promise = aggregator.getPromiseForAggregation();
     aggregator.add("client 2", WeightsContainer.of([2]), 0);
-    expect(WeightsContainer.of([1.5]).equals(await client2Round0Promise)).to.be
-      .true;
+    expect(await WeightsContainer.of([1.5]).equals(await client2Round0Promise))
+      .to.be.true;
     expect(aggregator.round).to.equal(2);
 
     // round 2
@@ -42,8 +42,8 @@ describe("mean aggregator", () => {
     aggregator.add("client 2", WeightsContainer.of([1]), 2);
     const client3Round2Promise = aggregator.getPromiseForAggregation();
     aggregator.add("client 3", WeightsContainer.of([4]), 1);
-    expect(WeightsContainer.of([2]).equals(await client3Round2Promise)).to.be
-      .true;
+    expect(await WeightsContainer.of([2]).equals(await client3Round2Promise)).to
+      .be.true;
     expect(aggregator.round).to.equal(3);
   });
 
@@ -61,7 +61,7 @@ describe("mean aggregator", () => {
     aggregator.add(id1, WeightsContainer.of([0], [1]), 0);
     const result2 = aggregator.getPromiseForAggregation();
     aggregator.add(id2, WeightsContainer.of([2], [3]), 0);
-    expect((await result1).equals(await result2)).to.be.true;
+    expect(await (await result1).equals(await result2)).to.be.true;
 
     expect(await WSIntoArrays(await results)).to.deep.equal([[1], [2]]);
   });
@@ -103,7 +103,7 @@ describe("mean aggregator", () => {
     aggregator.registerNode(id2);
     const result2 = aggregator.getPromiseForAggregation();
     aggregator.add(id2, WeightsContainer.of([2], [3]), 0);
-    expect((await result1).equals(await result2)).to.be.true;
+    expect(await (await result1).equals(await result2)).to.be.true;
     expect(aggregator.round).equals(1); // round should be one now
   });
 
@@ -143,7 +143,7 @@ describe("mean aggregator", () => {
     aggregator.registerNode(id2);
     const result2 = aggregator.getPromiseForAggregation();
     aggregator.add(id2, WeightsContainer.of([2], [3]), 0);
-    expect((await result1).equals(await result2)).to.be.true;
+    expect(await (await result1).equals(await result2)).to.be.true;
     expect(aggregator.round).equals(1);
   });
 });

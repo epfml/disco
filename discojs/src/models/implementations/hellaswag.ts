@@ -76,6 +76,7 @@ async function computeLogLikelihood(
     return loss;
   });
   const lossNumber = await lossTensor.array();
+  lossTensor.dispose();
   if (typeof lossNumber !== "number") {
     throw new Error("got multiple loss");
   }
