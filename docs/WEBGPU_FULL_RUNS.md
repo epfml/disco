@@ -103,8 +103,7 @@ Following initial throughput probes, this document records end-to-end full train
 
 ### 4. Federated Training Run: Shakespeare Language Modeling with nanoGPT (3 Participants)
 
-* **Test Harness:** [`webapp/run_federated_experiment.ts`](../webapp/run_federated_experiment.ts)
-* **Results Report:** [`federated_shakespeare_webgpu_report.json`](../federated_shakespeare_webgpu_report.json)
+* **Task Setup:** Federated Shakespeare task with nanoGPT (`scheme: "federated"`, `minNbOfParticipants: 3`).
 * **Participants:**
   - 1 Chrome browser client using WebGPU (`@tensorflow/tfjs-backend-webgpu@4.22.0`).
   - 2 Node CLI clients using `@tensorflow/tfjs-node` (pinned on Node 22).
