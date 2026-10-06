@@ -32,18 +32,31 @@ async function train<D extends DataType>(
   const server = await Server.with([provider.modelCard], [provider]);
   const [, url] = await server.serve(8080);
   const task = await provider.getTask();
-  const disco = new Disco(task, url, {
-    preprocessOnce: true,
-    debugLabel: "cypress-node-peer",
-  });
+  const peerCount = process.env.DISCO_FEDERATED_NODE_PEERS
+    ? parseInt(process.env.DISCO_FEDERATED_NODE_PEERS, 10)
+    : 1;
+  const nodePeers = Array.from({ length: peerCount }, (_, i) =>
+    new Disco(task, url, {
+      preprocessOnce: true,
+      debugLabel: `cypress-node-peer-${i + 1}`,
+    })
+  );
   try {
-    let rounds = 0;
-    for await (const _ of disco.trainByRound(dataset)) rounds++;
-    console.log(`federated ${task.id} peer finished after ${rounds} rounds`);
+    await Promise.all(
+      nodePeers.map(async (disco, i) => {
+        let rounds = 0;
+        for await (const _ of disco.trainByRound(dataset)) rounds++;
+        console.log(`federated ${task.id} peer ${i + 1} finished after ${rounds} rounds`);
+      })
+    );
   } finally {
-    await disco.close().catch((error: unknown) => {
-      console.warn(`could not close ${task.id} peer`, error);
-    });
+    await Promise.all(
+      nodePeers.map((disco, i) =>
+        disco.close().catch((error: unknown) => {
+          console.warn(`could not close ${task.id} peer ${i + 1}`, error);
+        })
+      )
+    );
   }
 }
 
@@ -60,9 +73,19 @@ async function nodeHalfOfImages(directory: string) {
 }
 
 try {
+  const peerCount = process.env.DISCO_FEDERATED_NODE_PEERS
+    ? parseInt(process.env.DISCO_FEDERATED_NODE_PEERS, 10)
+    : 1;
+  const configuredTitanic =
+    peerCount > 1
+      ? withTrainingConfig(defaultTasks.titanic, {
+          minNbOfParticipants: peerCount + 1,
+        })
+      : defaultTasks.titanic;
+
   if (taskName === "titanic") {
     await train(
-      defaultTasks.titanic,
+      configuredTitanic,
       loadCSV(
         path.join(import.meta.dirname, "../../../datasets/titanic_train.csv"),
       ),
