@@ -117,126 +117,132 @@ async function run(): Promise<void> {
     log(`Federated aggregated model weight sum: ${finalWeightSum.toFixed(4)} across ${weightsList.length} tensors`);
 
     // Model Inference & Shape Validation
-    const prompt = "First Citizen: Before we proceed";
+    const primaryPrompt = urlParams.get("prompt") ?? "I am";
+    const secondaryPrompt = "First Citizen:";
     const tokenizer = task.trainingInformation.tokenizer;
-    const promptTokens = tokenizer.tokenize(prompt);
-    log(`Prompt: "${prompt}"`);
-    log(`Prompt token IDs: [${promptTokens.toArray().join(", ")}] (count: ${promptTokens.size})`);
 
-    // 1. Inspect direct LayersModel predict output tensor shape
-    const contextLength = task.trainingInformation.contextLength;
-    const inputSlice = promptTokens.slice(-contextLength);
-    const inputTensor = tf.tidy(() =>
-      tf.tensor1d(inputSlice.toArray(), "int32").expandDims<tf.Tensor2D>(0)
-    );
-    const rawOutputTensor = trainedModel.extract().predict(inputTensor) as tf.Tensor;
-    const rawLayersModelOutputShape = rawOutputTensor.shape;
-    const rawLayersModelOutputRank = rawOutputTensor.rank;
-    log(`LayersModel.predict() input shape: [${inputTensor.shape.join(", ")}], output shape: [${rawLayersModelOutputShape.join(", ")}], rank: ${rawLayersModelOutputRank}`);
+    async function evaluatePrompt(testPrompt: string) {
+      const pTokens = tokenizer.tokenize(testPrompt);
+      log(`--- Evaluating Prompt: "${testPrompt}" ---`);
+      log(`Tokens: [${pTokens.toArray().join(", ")}] (count: ${pTokens.size})`);
 
-    // 2. Inspect logits and argMax behavior on WebGPU
-    const { logitsShape, argMaxShape, argMaxRank, argMaxValue } = tf.tidy(() => {
-      const logits = rawOutputTensor.squeeze<tf.Tensor2D>([0]);
-      const lastTokenLogits = logits.slice([logits.shape[0] - 1]).squeeze<tf.Tensor1D>([0]);
-      const probs = lastTokenLogits.softmax();
-      const argMax = probs.argMax();
-      return {
-        logitsShape: logits.shape,
-        argMaxShape: argMax.shape,
-        argMaxRank: argMax.rank,
-        argMaxValue: argMax.arraySync(),
-      };
-    });
-    log(`Logits shape: [${logitsShape.join(", ")}]`);
-    log(`probs.argMax() tensor shape on ${activeBackend}: [${argMaxShape.join(", ")}], rank: ${argMaxRank}, value: ${JSON.stringify(argMaxValue)}`);
+      // 1. Inspect direct LayersModel predict output tensor shape
+      const contextLength = task.trainingInformation.contextLength;
+      const inputSlice = pTokens.slice(-contextLength);
+      const inputTensor = tf.tidy(() =>
+        tf.tensor1d(inputSlice.toArray(), "int32").expandDims<tf.Tensor2D>(0)
+      );
+      const rawOutputTensor = trainedModel.extract().predict(inputTensor) as tf.Tensor;
+      const rawLayersModelOutputShape = rawOutputTensor.shape;
+      const rawLayersModelOutputRank = rawOutputTensor.rank;
 
-    // 3. Inspect high-level model.predict() with greedy decoding (doSample: false)
-    const greedyBatchResult = await trainedModel.predict(List.of(promptTokens), { doSample: false });
-    const greedyFirst = greedyBatchResult.first();
-    const greedyShapeDescription = Array.isArray(greedyFirst)
-      ? `[[${(greedyFirst as number[]).length}]] (nested array, e.g. [[${greedyFirst[0]}]])`
-      : `[${greedyBatchResult.size}] (scalar token: ${greedyFirst})`;
-    log(`model.predict(greedy) returned: ${JSON.stringify(greedyBatchResult.toArray())}`);
-    log(`model.predict(greedy) structure: ${greedyShapeDescription}`);
-
-    // 4. Inspect high-level model.predict() with sampled decoding (doSample: true)
-    const sampledBatchResult = await trainedModel.predict(List.of(promptTokens), {
-      doSample: true,
-      temperature: 0.8,
-      topk: 40,
-      seed: 42,
-    });
-    const sampledFirst = sampledBatchResult.first();
-    const sampledShapeDescription = Array.isArray(sampledFirst)
-      ? `[[${(sampledFirst as number[]).length}]] (nested array: [[${sampledFirst[0]}]])`
-      : `[${sampledBatchResult.size}] (scalar token: ${sampledFirst})`;
-    log(`model.predict(sampled) returned: ${JSON.stringify(sampledBatchResult.toArray())}`);
-    log(`model.predict(sampled) structure: ${sampledShapeDescription}`);
-
-    // 5. Multi-token generation: Greedy
-    log("Generating 20 tokens with Greedy decoding...");
-    let greedyTokens = promptTokens;
-    const greedyNewTokens: number[] = [];
-    for (let i = 0; i < 20; i++) {
-      const pred = await trainedModel.predict(List.of(greedyTokens), { doSample: false });
-      const raw = pred.first();
-      // Notice: on WebGPU, raw is [tokenId], while on WebGL it is tokenId
-      const tokenId = Array.isArray(raw) ? (raw as number[])[0] : (raw as number);
-      greedyNewTokens.push(tokenId);
-      greedyTokens = greedyTokens.push(tokenId);
-    }
-    const greedyContinuationText = tokenizer.decode(greedyNewTokens);
-    const greedyFullText = tokenizer.decode(greedyTokens.toArray());
-    log(`Greedy generated tokens: [${greedyNewTokens.join(", ")}]`);
-    log(`Greedy continuation: "${greedyContinuationText}"`);
-    log(`Greedy full text:\n${greedyFullText}`);
-
-    // 6. Multi-token generation: Sampled
-    log("Generating 20 tokens with Sampled decoding...");
-    let sampledTokens = promptTokens;
-    const sampledNewTokens: number[] = [];
-    for (let i = 0; i < 20; i++) {
-      const pred = await trainedModel.predict(List.of(sampledTokens), {
-        doSample: true,
-        temperature: 0.8,
-        topk: 40,
-        seed: 42 + i,
+      // 2. Inspect logits, top-5 probabilities, and argMax
+      const { logitsShape, argMaxShape, argMaxRank, argMaxValue, top5Tokens, top5Probs } = tf.tidy(() => {
+        const logits = rawOutputTensor.squeeze<tf.Tensor2D>([0]);
+        const lastTokenLogits = logits.slice([logits.shape[0] - 1]).squeeze<tf.Tensor1D>([0]);
+        const probs = lastTokenLogits.softmax();
+        const argMax = probs.argMax();
+        const { values, indices } = tf.topk(probs, 5);
+        return {
+          logitsShape: logits.shape,
+          argMaxShape: argMax.shape,
+          argMaxRank: argMax.rank,
+          argMaxValue: argMax.arraySync(),
+          top5Tokens: Array.from(indices.dataSync()),
+          top5Probs: Array.from(values.dataSync()),
+        };
       });
-      const raw = pred.first();
-      const tokenId = Array.isArray(raw) ? (raw as number[])[0] : (raw as number);
-      sampledNewTokens.push(tokenId);
-      sampledTokens = sampledTokens.push(tokenId);
+      const top5Details = top5Tokens.map((id, idx) => ({
+        id,
+        token: JSON.stringify(tokenizer.decode([id])),
+        prob: (top5Probs[idx] * 100).toFixed(3) + "%",
+      }));
+      log(`probs.argMax() tensor shape on ${activeBackend}: [${argMaxShape.join(", ")}], rank: ${argMaxRank}`);
+      log(`Top 5 next tokens for "${testPrompt}": ${JSON.stringify(top5Details)}`);
+
+      // 3. Multi-token generation: Greedy (30 tokens)
+      log(`Generating 30 tokens with Greedy decoding for "${testPrompt}"...`);
+      let greedyTokens = pTokens;
+      const greedyNewTokens: number[] = [];
+      for (let i = 0; i < 30; i++) {
+        const pred = await trainedModel.predict(List.of(greedyTokens), { doSample: false });
+        const raw = pred.first();
+        const tokenId = Array.isArray(raw) ? (raw as number[])[0] : (raw as number);
+        greedyNewTokens.push(tokenId);
+        greedyTokens = greedyTokens.push(tokenId);
+      }
+      const greedyContinuationText = tokenizer.decode(greedyNewTokens);
+      const greedyFullText = tokenizer.decode(greedyTokens.toArray());
+      log(`Greedy continuation: "${greedyContinuationText}"`);
+
+      // 4. Multi-token generation: Sampled (30 tokens, temp=0.8, topk=40)
+      log(`Generating 30 tokens with Sampled decoding (temp=0.8, topk=40) for "${testPrompt}"...`);
+      let sampledTokens = pTokens;
+      const sampledNewTokens: number[] = [];
+      for (let i = 0; i < 30; i++) {
+        const pred = await trainedModel.predict(List.of(sampledTokens), {
+          doSample: true,
+          temperature: 0.8,
+          topk: 40,
+          seed: 42 + i,
+        });
+        const raw = pred.first();
+        const tokenId = Array.isArray(raw) ? (raw as number[])[0] : (raw as number);
+        sampledNewTokens.push(tokenId);
+        sampledTokens = sampledTokens.push(tokenId);
+      }
+      const sampledContinuationText = tokenizer.decode(sampledNewTokens);
+      const sampledFullText = tokenizer.decode(sampledTokens.toArray());
+      log(`Sampled continuation: "${sampledContinuationText}"`);
+
+      return {
+        prompt: testPrompt,
+        promptTokens: pTokens.toArray(),
+        rawLayersModelOutputShape,
+        rawLayersModelOutputRank,
+        logitsShape,
+        argMaxShape,
+        argMaxRank,
+        argMaxValue,
+        top5Details,
+        greedyNewTokens,
+        greedyContinuationText,
+        greedyFullText,
+        sampledNewTokens,
+        sampledContinuationText,
+        sampledFullText,
+      };
     }
-    const sampledContinuationText = tokenizer.decode(sampledNewTokens);
-    const sampledFullText = tokenizer.decode(sampledTokens.toArray());
-    log(`Sampled generated tokens: [${sampledNewTokens.join(", ")}]`);
-    log(`Sampled continuation: "${sampledContinuationText}"`);
-    log(`Sampled full text:\n${sampledFullText}`);
+
+    log("Running post-training inference on primary prompt ('I am')...");
+    const primaryEval = await evaluatePrompt(primaryPrompt);
+
+    log("Running post-training inference on secondary prompt ('First Citizen:')...");
+    const secondaryEval = await evaluatePrompt(secondaryPrompt);
 
     const results = {
       success: true,
       backend: activeBackend,
       roundsCompleted: roundNum,
+      totalBatches: totalBatchCount,
       syncEventCount,
       finalWeightSum,
       batchLogs,
-      prompt,
-      promptTokens: promptTokens.toArray(),
-      rawLayersModelOutputShape,
-      rawLayersModelOutputRank,
-      argMaxShape,
-      argMaxRank,
-      argMaxValue,
-      greedyBatchResult: greedyBatchResult.toArray(),
-      greedyShapeDescription,
-      sampledBatchResult: sampledBatchResult.toArray(),
-      sampledShapeDescription,
-      greedyNewTokens,
-      greedyContinuationText,
-      greedyFullText,
-      sampledNewTokens,
-      sampledContinuationText,
-      sampledFullText,
+      prompt: primaryPrompt,
+      promptTokens: primaryEval.promptTokens,
+      rawLayersModelOutputShape: primaryEval.rawLayersModelOutputShape,
+      rawLayersModelOutputRank: primaryEval.rawLayersModelOutputRank,
+      argMaxShape: primaryEval.argMaxShape,
+      argMaxRank: primaryEval.argMaxRank,
+      argMaxValue: primaryEval.argMaxValue,
+      greedyNewTokens: primaryEval.greedyNewTokens,
+      greedyContinuationText: primaryEval.greedyContinuationText,
+      greedyFullText: primaryEval.greedyFullText,
+      sampledNewTokens: primaryEval.sampledNewTokens,
+      sampledContinuationText: primaryEval.sampledContinuationText,
+      sampledFullText: primaryEval.sampledFullText,
+      primaryEval,
+      secondaryEval,
     };
 
     (window as unknown as { __SHAKESPEARE_RESULTS__: typeof results }).__SHAKESPEARE_RESULTS__ = results;

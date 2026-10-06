@@ -4,6 +4,8 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as os from "node:os";
 
+process.env.DEBUG = process.env.DEBUG || "server:controllers:federated";
+
 import { Server } from "server";
 import { defaultModels, defaultTasks, Disco } from "@epfml/discojs";
 import { loadText } from "@epfml/discojs-node";
@@ -13,7 +15,7 @@ const CHROME_PATH =
 const SERVER_PORT = 8080;
 const VITE_PORT = 1351;
 const CDP_PORT = 9223;
-const EPOCHS = 10;
+const EPOCHS = 8;
 const ROUND_DURATION = 1;
 
 async function sleep(ms: number): Promise<void> {
@@ -130,7 +132,7 @@ async function main() {
         const timeout = setTimeout(() => {
           cdpWs.removeEventListener("message", handler);
           reject(new Error(`CDP method ${method} timed out`));
-        }, 300000);
+        }, 600000);
 
         const handler = (event: MessageEvent) => {
           const data = JSON.parse(event.data);
@@ -152,7 +154,7 @@ async function main() {
         const msg = JSON.parse(event.data);
         if (msg.method === "Runtime.consoleAPICalled") {
           const text = msg.params.args.map((a: any) => a.value ?? a.description ?? "").join(" ");
-          if (text.includes("Loss:") || text.includes("Starting Round") || text.includes("Completed Round") || text.includes("modelSynced") || text.includes("structure:") || text.includes("Tokens:") || text.includes("Prompt:")) {
+          if (text.includes("Loss:") || text.includes("Starting Round") || text.includes("Completed Round") || text.includes("modelSynced") || text.includes("structure:") || text.includes("Tokens:") || text.includes("Prompt:") || text.includes("continuation:") || text.includes("Top 5") || text.includes("Evaluating")) {
             console.log(`[Chrome WebGPU] ${text}`);
           }
         }
@@ -239,7 +241,7 @@ async function main() {
     // Poll for WebGPU peer completion
     console.log("Waiting for 3-participant training & inference completion in WebGPU Chrome...");
     let webgpuResults: any = undefined;
-    const maxWait = 300000;
+    const maxWait = 600000;
     const pollStart = Date.now();
 
     while (Date.now() - pollStart < maxWait) {
@@ -313,25 +315,32 @@ async function main() {
 
     console.log("\n3. WebGPU Model Inference & Prediction Shape Validation:");
     console.log(`   - Backend: ${webgpuResults?.backend}`);
-    console.log(`   - Prompt: "${webgpuResults?.prompt}"`);
-    console.log(`   - Prompt token count: ${webgpuResults?.promptTokens?.length}`);
+    console.log(`   - Primary Prompt: "${webgpuResults?.prompt}"`);
     console.log(`   - LayersModel.predict() output tensor shape: [${webgpuResults?.rawLayersModelOutputShape?.join(", ")}] (Rank ${webgpuResults?.rawLayersModelOutputRank})`);
     console.log(`   - probs.argMax() tensor shape on WebGPU: [${webgpuResults?.argMaxShape?.join(", ")}] (Rank ${webgpuResults?.argMaxRank}, Value: ${JSON.stringify(webgpuResults?.argMaxValue)})`);
-    console.log(`   - Greedy model.predict() output: ${JSON.stringify(webgpuResults?.greedyBatchResult)}`);
-    console.log(`     Shape structure: ${webgpuResults?.greedyShapeDescription}`);
-    console.log(`   - Sampled model.predict() output: ${JSON.stringify(webgpuResults?.sampledBatchResult)}`);
-    console.log(`     Shape structure: ${webgpuResults?.sampledShapeDescription}`);
 
-    console.log("\n4. Text Generation Results:");
-    console.log("   [Greedy Decoding (20 tokens)]:");
-    console.log(`     Tokens: [${webgpuResults?.greedyNewTokens?.join(", ")}]`);
-    console.log(`     Continuation representation: ${JSON.stringify(webgpuResults?.greedyContinuationText)}`);
-    console.log(`     Full Decoded Text:\n${webgpuResults?.greedyFullText}`);
+    const pEval = webgpuResults?.primaryEval;
+    const sEval = webgpuResults?.secondaryEval;
 
-    console.log("\n   [Sampled Decoding (20 tokens, temp=0.8, topk=40)]:");
-    console.log(`     Tokens: [${webgpuResults?.sampledNewTokens?.join(", ")}]`);
-    console.log(`     Continuation representation: ${JSON.stringify(webgpuResults?.sampledContinuationText)}`);
-    console.log(`     Full Decoded Text:\n${webgpuResults?.sampledFullText}`);
+    console.log("\n4. Primary Prompt ('" + (pEval?.prompt ?? "I am") + "') Generation Results:");
+    console.log(`   Top 5 Next Tokens: ${JSON.stringify(pEval?.top5Details)}`);
+    console.log("\n   [Greedy Decoding (30 tokens)]:");
+    console.log(`     Continuation: ${JSON.stringify(pEval?.greedyContinuationText)}`);
+    console.log(`     Full Decoded Text:\n${pEval?.greedyFullText}`);
+    console.log("\n   [Sampled Decoding (30 tokens, temp=0.8, topk=40)]:");
+    console.log(`     Continuation: ${JSON.stringify(pEval?.sampledContinuationText)}`);
+    console.log(`     Full Decoded Text:\n${pEval?.sampledFullText}`);
+
+    if (sEval) {
+      console.log("\n5. Secondary Prompt ('" + sEval.prompt + "') Generation Results:");
+      console.log(`   Top 5 Next Tokens: ${JSON.stringify(sEval.top5Details)}`);
+      console.log("\n   [Greedy Decoding (30 tokens)]:");
+      console.log(`     Continuation: ${JSON.stringify(sEval.greedyContinuationText)}`);
+      console.log(`     Full Decoded Text:\n${sEval.greedyFullText}`);
+      console.log("\n   [Sampled Decoding (30 tokens, temp=0.8, topk=40)]:");
+      console.log(`     Continuation: ${JSON.stringify(sEval.sampledContinuationText)}`);
+      console.log(`     Full Decoded Text:\n${sEval.sampledFullText}`);
+    }
 
     // Save full JSON report
     const reportPath = path.resolve(import.meta.dirname, "../federated_shakespeare_webgpu_report.json");

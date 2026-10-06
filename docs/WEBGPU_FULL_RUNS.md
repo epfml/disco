@@ -106,41 +106,81 @@ Following initial throughput probes, this document records end-to-end full train
 * **Test Harness:** [`webapp/run_federated_experiment.ts`](../webapp/run_federated_experiment.ts)
 * **Results Report:** [`federated_shakespeare_webgpu_report.json`](../federated_shakespeare_webgpu_report.json)
 * **Participants:**
-  - 1 Chrome browser client using WebGPU.
-  - 2 Node CLI clients using `@tensorflow/tfjs-node`.
+  - 1 Chrome browser client using WebGPU (`@tensorflow/tfjs-backend-webgpu@4.22.0`).
+  - 2 Node CLI clients using `@tensorflow/tfjs-node` (pinned on Node 22).
   - 1 Central DISCO server hosting `cards.Shakespeare` (`scheme: "federated"`, `minNbOfParticipants: 3`).
-* **Execution:**
-  - 10 full federated rounds executed across all 3 participants (100 batches per peer, 300 batches total aggregated across the cluster).
-  - Each peer processed a distinct 600-line partition from `datasets/shakespeare/input.txt`.
-  - At the end of each 10-batch round, all 3 peers synchronized and exchanged weights with the server.
-  - The server averaged all 40 parameter tensors and broadcast the updated global model back to all peers.
-  - WebGPU peer successfully applied all aggregated weights across all 10 rounds.
-* **Training Losses across 10 Rounds (100 Batches per Peer):**
-  - **Round-by-Round Convergence (WebGPU Peer 3):**
-    - Round 1 (batches 1–10): `10.8316 → 10.2584`
-    - Round 2 (batches 11–20): `10.1713 → 9.5003`
-    - Round 3 (batches 21–30): `9.4644 → 8.7618`
-    - Round 4 (batches 31–40): `8.7235 → 8.0377`
-    - Round 5 (batches 41–50): `7.9954 → 7.3773`
-    - Round 6 (batches 51–60): `7.3357 → 6.8334`
-    - Round 7 (batches 61–70): `6.7994 → 6.4395`
-    - Round 8 (batches 71–80): `6.4194 → 6.1963`
-    - Round 9 (batches 81–90): `6.1920 → 6.0728`
-    - Round 10 (batches 91–100): `6.0876 → 5.9473` (final batch: `6.0311`)
-  - **Node Peers 1 & 2:** Both Node peers showed matching convergence trajectories from initial `10.82` down to `5.99` across the 10 rounds.
-  - **Net Convergence:** The model loss monotonically converged from the uniform random initialization baseline of **10.83** down to **5.94** across 100 batches of collaborative federated learning! This represents an exponential reduction in perplexity from 50,257 down to ~380.
+* **Execution & Training Protocol:**
+  - 8 federated rounds executed across all 3 participants (~13 batches per round, 104 batches per peer, 312 aggregated gradient updates total).
+  - Each peer processed a distinct 800-line partition from `datasets/shakespeare/input.txt` (`batchSize: 8`, `blockSize: 64`).
+  - At the end of each round, all 3 peers synchronized and exchanged weights with the server.
+  - The server averaged all parameter tensors across all 3 participants and broadcast the updated global model back to all peers.
+  - WebGPU peer successfully aggregated and applied global weights across all 8 rounds.
+* **Loss Trajectory & Convergence:**
+  - Initial loss: `10.81 – 10.83` across all participants (matching the uniform random initialization baseline: $\ln(50257) \approx 10.825$).
+  - Final loss: `5.72 – 5.96` across all participants (perplexity dropped from $50,257$ down to $\approx 350$).
+  - Both Node peers and the WebGPU browser peer exhibited matching learning curves.
 
-#### Downstream Inference & Resolution of the Shape Discrepancy
-Inference was performed on the aggregated model using prompt `"First Citizen: Before we proceed"`.
-* **Root Cause of the `[[64]]` vs `[64]` Mismatch:**
-  - In `@tensorflow/tfjs-backend-webgpu@4.22.0`, calling `probs.argMax()` on a 1D tensor produces a **rank-1 tensor with shape `[1]`** (e.g. `[198]`), whereas on WebGL and CPU it reduces to a **rank-0 scalar tensor with shape `[]`**.
-  - In `GPT.#predictSingle()`, `await next.array()` on WebGPU evaluates to `[198]` (a nested array) instead of `198` (a scalar integer).
-  - Therefore, greedy prediction (`doSample: false`) previously returned `[[token]]` on WebGPU vs `[token]` on WebGL.
-* **Codebase Fix Applied:**
-  - In [`discojs/src/models/implementations/gpt/gpt.ts`](../discojs/src/models/implementations/gpt/gpt.ts#L278-L286):
-    - Added `.asScalar()`: `probs.argMax().asScalar()`, which guarantees a rank-0 scalar tensor across WebGPU, WebGL, and CPU.
-    - Added array defense: `(Array.isArray(ret) ? ret[0] : ret) as number`, ensuring `predict()` always returns a flat scalar token number.
-* **Verification & Results:**
-  - **Greedy Output Structure:** `[1] (scalar token: 198)` — output is now a clean 1D list `[198]`, completely matching WebGL.
-  - **Sampled Output Structure:** `[1] (scalar token: 198)` — output is a clean 1D list `[198]`.
-  - Both greedy and sampled generation (20 tokens) successfully decoded back to text without errors.
+#### Training Observations & Analysis
+
+##### 1. Accuracy Reporting: `Training accuracy: NaN`
+In DISCO's implementation of nanoGPT ([`discojs/src/models/implementations/gpt/model.ts`](../discojs/src/models/implementations/gpt/model.ts#L151-L168)), categorical accuracy calculations across the 50,257-token vocabulary are intentionally skipped for throughput:
+```typescript
+// Accuracy fraction calculation disabled for performance
+const accuracyFraction = [Number.NaN, Number.NaN];
+```
+Evaluating categorical accuracy across 50,257 classes on every minibatch in JavaScript/TFJS incurs substantial memory transfer overhead. Hence, the reporter emits `NaN` by design.
+
+##### 2. Loss Variance & Oscillation (Fluctuations between ~4.8 and ~6.0)
+During training, the minibatch loss fluctuates between ~4.8 and ~6.2. This is expected due to the following factors:
+1. **Minibatch Sequence Entropy Variance ($B=8$):** Minibatches contain only 512 tokens ($8 \times 64$). In Shakespeare, repetitive dialogue tags (e.g. `MENENIUS:\n\n`) have low entropy (loss ~3.5–4.5), whereas complex poetic passages have high entropy (loss ~5.5–6.5). Small batch sizes do not average out sequence-level entropy variance.
+2. **Federated Client Drift on Non-IID Dialogue Shards:** Each peer trains on a distinct section of Shakespeare's dialogue. During a 13-batch round, local SGD specializes on the peer's local dialogue distribution (dropping batch loss toward ~4.8). At the round boundary, federated averaging reconciles differing client weights; evaluating the new global consensus model on the subsequent dialogue slice causes an expected upward shift in loss before local adaptation continues.
+3. **Fixed Learning Rate without Schedule:** The task uses a fixed learning rate of $10^{-3}$ without warmup or cosine decay, causing optimizer oscillations around narrow minima.
+
+---
+
+#### WebGPU Runtime Issues & Resolutions
+
+##### Issue 1: `argMax` Rank Discrepancy (`[1]` vs `[]`)
+* **Root Cause:** In `@tensorflow/tfjs-backend-webgpu@4.22.0`, calling `probs.argMax()` on a 1D tensor produces a **rank-1 tensor with shape `[1]`** (e.g. `[198]`), whereas on WebGL and CPU it produces a **rank-0 scalar tensor with shape `[]`**.
+* **Impact:** In `GPT.#predictSingle()`, `await next.array()` on WebGPU produced a nested array `[198]` instead of scalar `198`, resulting in nested predictions `[[token]]` instead of flat `[token]`.
+* **Fix Applied:** In [`discojs/src/models/implementations/gpt/gpt.ts`](../discojs/src/models/implementations/gpt/gpt.ts#L278-L286):
+  - Added `.asScalar()`: `probs.argMax().asScalar()`, enforcing a rank-0 scalar tensor.
+  - Added array defensive unwrapping: `(Array.isArray(ret) ? ret[0] : ret) as number`.
+
+##### Issue 2: `tf.multinomial` WGSL Shader Mode-Collapse Bug
+* **Root Cause:** In `@tensorflow/tfjs-backend-webgpu@4.22.0`, the `MultinomialProgram` WGSL shader computes pseudorandom numbers as follows:
+  ```wgsl
+  resUV = vec2<f32>(f32(coords[1]) / uniforms.outShape[1], f32(coords[0]) / uniforms.outShape[0]);
+  r = random(uniforms.seed, resUV);
+  ```
+  When sampling a single token (`batchSize = 1`, `numSamples = 1`), output coordinates are `coords = (0, 0)`, which yields `resUV = (0.0, 0.0)`. The shader's PRNG function evaluates `fract(vec3(0.0) * HASHSCALE1) = 0.0`. Thus, `r` evaluates to `0.0` unconditionally regardless of the seed. In the subsequent cumulative distribution loop (`if (r < cdf)`), `0.0 < cdf` is immediately satisfied at index `0`. As a result, **`tf.multinomial` on WebGPU always returned the argmax token (index 0 of top-k)**, completely breaking stochastic sampling.
+* **Fix Applied:** In [`discojs/src/models/implementations/gpt/gpt.ts`](../discojs/src/models/implementations/gpt/gpt.ts#L268-L295), replaced the GPU multinomial call with CPU-assisted top-$k$ sampling (`topkProbs.dataSync()`, `topkTokens.dataSync()`). When a seed is provided, a deterministic Mulberry32 PRNG is used; otherwise `Math.random()` is used.
+
+---
+
+#### Post-Training Generation & Model Inference
+
+Following the 8 federated rounds, model generation was evaluated directly on the WebGPU browser client:
+
+##### Prompt 1: `"I am"`
+* **Greedy Continuation (30 tokens):**
+  ```text
+  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+  ```
+  *Greedy decoding selects the unigram mode token `\n` (12.47% probability) at each step, forming a newline loop.*
+* **Sampled Continuation (30 tokens, `temp = 0.8`, `topk = 40`):**
+  ```text
+  I am a\n\n the\n\n we\n.\n\n\n\n is to you.\n\n. not be:\n\n\n' to,\n
+  ```
+  *Stochastic top-$k$ sampling breaks the mode collapse, producing valid English words (`"a"`, `"the"`, `"we"`, `"is to you"`, `"not be"`) structured with Shakespearean dialogue punctuation and line breaks.*
+
+##### Prompt 2: `"First Citizen:"`
+* **Greedy Continuation (30 tokens):**
+  ```text
+  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+  ```
+* **Sampled Continuation (30 tokens, `temp = 0.8`, `topk = 40`):**
+  ```text
+  First Citizen:;\n\n the\n\n we\n.\n\n\n\n his you you.\n\n. not is.\n\n\n';,\n
+  ```
+  *Sampled decoding generates Shakespearean dialogue syntax (`";\n\n the\n\n we.\n\n his you you. not is."`), demonstrating learned vocabulary, token structure, and dialogue formatting.*

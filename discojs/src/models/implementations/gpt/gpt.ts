@@ -265,15 +265,40 @@ export class GPT extends Model<"text"> {
         // sample an index from the top-k probabilities
         // e.g. [[0.1, 0.4, 0.3], [0.1, 0.2, 0.5]] -> [[1], [2]]
         // note: multinomial does not need the input to sum to 1
-        const selectedIndices = tf.multinomial(
-          topkProbs,
-          1,
-          config.seed,
-          false,
-        ); // (B, )
-        // return the corresponding token from the sampled indices (one per sequence in the batch).
-        // if for some reason the probabilities are NaN, selectedIndices will be out of bounds
-        return topkTokens.gather(selectedIndices).squeeze<tf.Scalar>([0]); // (1)
+        // Note: in @tensorflow/tfjs-backend-webgpu, the Multinomial WGSL shader computes:
+        //   resUV = vec2<f32>(f32(coords[1]) / uniforms.outShape[1], f32(coords[0]) / uniforms.outShape[0]);
+        //   r = random(uniforms.seed, resUV);
+        // For a single sample (batch=1, samples=1), coords=(0, 0), so resUV=(0, 0).
+        // The random() function (fract(vec3(0)*HASHSCALE)) always evaluates to 0.0.
+        // As a result, r < cdf is always satisfied on the very first outcome (i = 0),
+        // causing tf.multinomial on WebGPU to degenerate and always return index 0 (top-1 token).
+        // To guarantee robust, unbiased sampling across all backends, sample directly from the top-k distribution:
+        const pArray = Array.from(topkProbs.dataSync());
+        const tArray = Array.from(topkTokens.dataSync());
+        let sum = 0;
+        for (let i = 0; i < pArray.length; i++) sum += pArray[i];
+
+        let randVal: number;
+        if (config.seed !== undefined) {
+          let s = (config.seed ^ 0xdeadbeef) >>> 0;
+          s = (s + 0x6d2b79f5) >>> 0;
+          let t = Math.imul(s ^ (s >>> 15), 1 | s);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          randVal = (((t ^ (t >>> 14)) >>> 0) / 4294967296) * sum;
+        } else {
+          randVal = Math.random() * sum;
+        }
+
+        let selectedToken = tArray[0];
+        let acc = 0;
+        for (let i = 0; i < pArray.length; i++) {
+          acc += pArray[i];
+          if (randVal <= acc) {
+            selectedToken = tArray[i];
+            break;
+          }
+        }
+        return tf.scalar(selectedToken, "int32");
       } else {
         // greedy decoding: return the token with the highest probability.
         // WebGPU argMax returns shape [1] while WebGL/CPU returns shape [],
