@@ -7,7 +7,7 @@ import type {
 
 export function withTrainingConfig<D extends DataType, N extends Network>(
   provider: TaskProvider<D, N>,
-  trainingConfig: Pick<TrainingInformation<D, N>, "epochs" | "roundDuration">,
+  trainingConfig: Partial<TrainingInformation<D, N>>,
 ): TaskProvider<D, N> {
   return {
     modelCard: provider.modelCard,
@@ -24,8 +24,8 @@ export function withTrainingConfig<D extends DataType, N extends Network>(
   };
 }
 
-export function goToTaskOverview(): void {
-  cy.visit("/");
+export function goToTaskOverview(url = "/"): void {
+  cy.visit(url);
   cy.contains("a", "Start training").click();
   cy.get(".driver-popover-close-btn").click();
   cy.contains("button", "participate").click();

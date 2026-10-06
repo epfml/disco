@@ -16,6 +16,22 @@ export default defineConfig({
             "cypress/e2e/training/decentralized/**/*.cy.ts",
           ],
     setupNodeEvents(on) {
+      on("before:browser:launch", (browser, launchOptions) => {
+        launchOptions.args = launchOptions.args.filter((arg) => arg !== "--disable-gpu");
+        if (browser.family === "chromium") {
+          launchOptions.args.push(
+            "--enable-unsafe-webgpu",
+            "--use-angle=vulkan",
+            "--enable-features=Vulkan",
+            "--disable-software-rasterizer",
+          );
+        }
+        if (browser.family === "firefox") {
+          launchOptions.preferences["dom.webgpu.enabled"] = true;
+          launchOptions.preferences["gfx.webrender.all"] = true;
+        }
+        return launchOptions;
+      });
       on("task", {
         readdir: async (p: string) =>
           (await fs.readdir(p)).map((filename) => path.join(p, filename)),
