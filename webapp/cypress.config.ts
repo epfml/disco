@@ -37,21 +37,39 @@ function serveWebSockets(port: number): (script: ServerScript) => void {
 const serverUrl = new URL(
   loadEnv("test", import.meta.dirname).VITE_SERVER_URL ?? "",
 );
+const isFakeServer = serverUrl.hostname === "server"; // Checks if we are using the fake server
 
 export default defineConfig({
-  // Maps the server hostname to the local address for testing
+  // Maps the fake server hostname to the local address for testing
   // Without it, the websocket never connects as "server" does not exist in the DNS
-  hosts: { [serverUrl.hostname]: "127.0.0.1" },
+  hosts: isFakeServer ? { [serverUrl.hostname]: "127.0.0.1" } : {},
   e2e: {
     baseUrl: "http://localhost:1351/",
     projectId: "aps8et", // to get recordings on Cypress Cloud
+    excludeSpecPattern:
+      // Training tests run separately from the regular E2E suite.
+      process.env.DISCO_TRAINING_E2E === "1"
+        ? []
+        : [
+            "cypress/e2e/training/local/**/*.cy.ts",
+            "cypress/e2e/training/federated/**/*.cy.ts",
+            "cypress/e2e/training/decentralized/**/*.cy.ts",
+          ],
     setupNodeEvents(on) {
-      const scriptServer = serveWebSockets(Number(serverUrl.port));
+      // A real server already listens on its port
+      // We script only the fake server
+      const scriptServer = isFakeServer
+        ? serveWebSockets(Number(serverUrl.port))
+        : undefined;
 
       on("task", {
         readdir: async (p: string) =>
           (await fs.readdir(p)).map((filename) => path.join(p, filename)),
         scriptServer: (script: ServerScript) => {
+          if (scriptServer === undefined)
+            throw new Error(
+              `scriptServer needs the fake server, not ${serverUrl.origin}`,
+            );
           scriptServer(script);
           return null; // Cypress tasks must return something
         },

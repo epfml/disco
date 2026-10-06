@@ -5,6 +5,10 @@
       "ignoreDependencies": ["typescript-eslint", "supports-color"]
     },
     "webapp": {
+      "entry": [
+        "cypress/e2e/training/federated/*.cy.ts",
+        "cypress/support/federated.ts"
+      ],
       "ignoreDependencies": ["buffer"]
     },
     "isomorphic-wrtc": {},

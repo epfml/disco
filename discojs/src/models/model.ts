@@ -2,6 +2,11 @@ import type { WeightsContainer } from "#weights/index";
 import type { Dataset, Batched } from "#dataset/index";
 import type { DataFormat, DataType } from "#types/index";
 
+import type { StandardizationStats } from "#processing/tabular";
+
+export type ModelMetadata = {
+  tabularStandardization?: StandardizationStats;
+};
 import type { BatchLogs, EpochLogs, ValidationMetrics } from "#models/logs";
 
 /**
@@ -19,6 +24,9 @@ export abstract class Model<D extends DataType> implements Disposable {
   abstract get weights(): WeightsContainer;
   /** Set training state */
   abstract set weights(ws: WeightsContainer);
+
+  /** Optional metadata for tabular task data standardization */
+  metadata?: ModelMetadata;
 
   /**
    * Improve predictor

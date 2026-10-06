@@ -134,7 +134,7 @@
                   >
                     <FormField
                       :name="`trainingInformation.inputColumns[${i}]`"
-                      placeholder="field_name"
+                      placeholder="feature name"
                       as="input"
                     />
 
@@ -144,6 +144,91 @@
                   </div>
 
                   <CustomButton @click="push('')"> add column </CustomButton>
+                </div>
+              </FieldArray>
+            </FormLabel>
+
+            <FormLabel
+              v-if="dataType === 'tabular'"
+              label="Categorical input columns"
+            >
+              <FieldArray
+                v-slot="{
+                  fields: columns,
+                  push: pushColumn,
+                  remove: removeColumn,
+                }"
+                name="trainingInformation.categoricalColumns"
+              >
+                <div class="flex flex-col elems-gap">
+                  <div
+                    v-for="(columnEntry, i) in columns"
+                    :key="columnEntry.key"
+                    class="flex flex-col elems-gap"
+                  >
+                    <!-- Categorical column name -->
+                    <div class="flex flex-row items-start elems-gap">
+                      <div class="flex w-48 min-w-0 flex-col">
+                        <FormField
+                          :name="`trainingInformation.categoricalColumns[${i}].column`"
+                          placeholder="field_name"
+                          as="input"
+                          class="w-full"
+                        />
+                      </div>
+
+                      <CustomButton
+                        class="self-start shrink-0"
+                        @click="removeColumn(i)"
+                      >
+                        <i class="fa-solid fa-xmark"></i>
+                      </CustomButton>
+                    </div>
+
+                    <!-- Categories belonging to this feature -->
+                    <FieldArray
+                      v-slot="{
+                        fields: categories,
+                        push: pushCategory,
+                        remove: removeCategory,
+                      }"
+                      :name="`trainingInformation.categoricalColumns[${i}].categories`"
+                    >
+                      <div class="flex flex-row flex-wrap elems-gap pl-6">
+                        <div
+                          v-for="(categoryEntry, j) in categories"
+                          :key="categoryEntry.key"
+                          class="flex flex-row elems-gap"
+                        >
+                          <FormField
+                            :name="`trainingInformation.categoricalColumns[${i}].categories[${j}]`"
+                            placeholder="category"
+                            as="input"
+                            class="w-42"
+                          />
+
+                          <CustomButton @click="removeCategory(j)">
+                            <i class="fa-solid fa-xmark"></i>
+                          </CustomButton>
+                        </div>
+
+                        <CustomButton @click="pushCategory('')">
+                          add category
+                        </CustomButton>
+                      </div>
+                    </FieldArray>
+                  </div>
+
+                  <CustomButton
+                    @click="
+                      pushColumn({
+                        column: '',
+                        categories: [''],
+                      })
+                    "
+                  >
+                    add categorical column
+                  </CustomButton>
                 </div>
               </FieldArray>
             </FormLabel>
@@ -719,6 +804,7 @@ watch([dataType, form], ([dataType, form]) => {
       break;
     case "tabular":
       form.setFieldValue("trainingInformation.inputColumns", [""]);
+      form.setFieldValue("trainingInformation.categoricalColumns", []);
       break;
   }
 });
@@ -925,9 +1011,60 @@ const schema = z
       z.object({
         ...Task.dataTypeToSchema.tabular.shape,
         ...TFJSModelSchema,
-        trainingInformation: TrainingInformation.dataTypeToSchema.tabular.and(
-          trainingInformationNetworks,
-        ),
+        trainingInformation: TrainingInformation.dataTypeToSchema.tabular
+          .extend({
+            categoricalColumns: z
+              .array(
+                z.object({
+                  column: z.string().trim().min(1),
+                  categories: z.array(z.string().min(1)).min(1),
+                }),
+              )
+              .default([]),
+          })
+          // checked that there are no duplicate columns
+          .superRefine(({ inputColumns, categoricalColumns }, ctx) => {
+            const seenColumns = new Set<string>();
+
+            categoricalColumns.forEach(({ column, categories }, i) => {
+              if (seenColumns.has(column))
+                ctx.addIssue({
+                  code: "custom",
+                  path: ["categoricalColumns", i, "column"],
+                  message: "Categorical column is already defined",
+                });
+              seenColumns.add(column);
+
+              if (!inputColumns.includes(column))
+                ctx.addIssue({
+                  code: "custom",
+                  path: ["categoricalColumns", i, "column"],
+                  message:
+                    "Categorical columns must also be included in input columns",
+                });
+
+              const seenCategories = new Set<string>();
+              categories.forEach((category, j) => {
+                if (seenCategories.has(category))
+                  ctx.addIssue({
+                    code: "custom",
+                    path: ["categoricalColumns", i, "categories", j],
+                    message: "Category is already defined",
+                  });
+                seenCategories.add(category);
+              });
+            });
+          })
+          .transform(({ categoricalColumns, ...trainingInformation }) => ({
+            ...trainingInformation,
+            categoricalColumns: Object.fromEntries(
+              categoricalColumns.map(({ column, categories }) => [
+                column,
+                categories,
+              ]),
+            ),
+          }))
+          .and(trainingInformationNetworks),
       }),
       z.object({
         ...Task.dataTypeToSchema.text.shape,

@@ -1,10 +1,11 @@
 import type tf from "@tensorflow/tfjs";
+import { z } from "zod";
 
 import { encode as w_encode, decode as w_decode } from "#serialization/weights";
 import { GPT } from "#models/implementations/index";
 import type { GPTConfig } from "#models/implementations/index";
 import { TFJS } from "#models/tfjs";
-import type { Model } from "#models/model";
+import type { Model, ModelMetadata } from "#models/model";
 import type { DataType } from "#types/index";
 
 import type { Encoded } from "#serialization/coder";
@@ -18,6 +19,54 @@ const Type = {
   TFJS: 0,
   GPT: 1,
 } as const;
+
+// numbers are finite as zod rejects NaN and Infinity
+const standardizationStatsSchema = z
+  .object({
+    means: z.record(z.string(), z.number()),
+    stds: z.record(z.string(), z.number().nonnegative()),
+  })
+  .refine(
+    ({ means, stds }) => {
+      const meanColumns = Object.keys(means);
+      const stdColumns = new Set(Object.keys(stds));
+      return (
+        meanColumns.length === stdColumns.size &&
+        meanColumns.every((column) => stdColumns.has(column))
+      );
+    },
+    { message: "means and stds should be defined for the same columns" },
+  );
+
+const metadataSchema = z.object({
+  tabularStandardization: standardizationStatsSchema.optional(),
+}) satisfies z.ZodType<ModelMetadata>;
+
+/**
+ * Parse the metadata of a TFJS model
+ *
+ * @throws if malformed or given for a non-tabular model
+ */
+function decodeMetadata(
+  raw: unknown,
+  datatype: "image" | "tabular",
+): ModelMetadata | undefined {
+  // msgpack decodes an undefined array entry as null
+  if (raw === undefined || raw === null) return undefined;
+
+  // metadata only holds tabular standardization
+  if (datatype !== "tabular")
+    throw new Error(
+      `invalid TFJS model encoding: metadata is only supported for tabular models, got ${datatype}`,
+    );
+
+  const parsed = metadataSchema.safeParse(raw);
+  if (!parsed.success)
+    throw new Error(
+      `invalid TFJS model encoding: invalid metadata: ${z.prettifyError(parsed.error)}`,
+    );
+  return parsed.data;
+}
 
 export async function encode(model: Model<DataType>): Promise<Encoded> {
   switch (true) {
@@ -54,11 +103,11 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
   const rawModel = raw[1] as unknown;
   switch (type) {
     case Type.TFJS: {
-      if (raw.length !== 3)
+      if (raw.length !== 3 && raw.length !== 4)
         throw new Error(
-          "invalid TFJS model encoding: should be an array of length 3",
+          "invalid TFJS model encoding: should be an array of length 3 or 4",
         );
-      const [rawDatatype, rawModel] = raw.slice(1) as unknown[];
+      const [rawDatatype, rawModel, rawMetadata] = raw.slice(1) as unknown[];
 
       let datatype;
       switch (rawDatatype) {
@@ -74,6 +123,8 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
         datatype,
         // TODO totally unsafe casting
         rawModel as tf.io.ModelArtifacts,
+        // metadata for tabular task standardization
+        decodeMetadata(rawMetadata, datatype),
       ]);
     }
     case Type.GPT: {

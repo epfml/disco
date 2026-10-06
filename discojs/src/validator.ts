@@ -22,7 +22,7 @@ export class Validator<D extends DataType> {
   test(
     dataset: Dataset<DataFormat.Raw[D]>,
   ): Dataset<Record<"predicted" | "truth", DataFormat.Inferred[D]>> {
-    const preprocessed = preprocess(this.task, dataset);
+    const preprocessed = preprocess(this.task, dataset, this.#model.metadata);
     const batched = preprocessed.batch(this.task.trainingInformation.batchSize);
 
     const predictionWithTruth = batched
@@ -43,7 +43,11 @@ export class Validator<D extends DataType> {
   async *infer(
     dataset: Dataset<DataFormat.RawWithoutLabel[D]>,
   ): AsyncGenerator<DataFormat.Inferred[D], void> {
-    const modelPredictions = preprocessWithoutLabel(this.task, dataset)
+    const modelPredictions = preprocessWithoutLabel(
+      this.task,
+      dataset,
+      this.#model.metadata,
+    )
       .batch(this.task.trainingInformation.batchSize)
       .map((batch) => this.#model.predict(batch))
       .flatten();

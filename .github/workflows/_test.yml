@@ -67,6 +67,69 @@ jobs:
           install: false
           start: pnpm exec vite --mode test --port 1351
 
+  test-local-training:
+    name: local training (${{ matrix.task }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        task: [titanic, lus_covid]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/pull-dataset-artifacts
+      - uses: actions/download-artifact@v8
+        with: { name: all-builds }
+      - uses: cypress-io/github-action@v7
+        env:
+          DISCO_TRAINING_E2E: "1"
+        with:
+          working-directory: webapp
+          install: false
+          start: pnpm exec vite --mode test --port 1351
+          spec: cypress/e2e/training/local/${{ matrix.task }}.cy.ts
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: local-training-${{ matrix.task }}-screenshots
+          path: webapp/cypress/screenshots
+          if-no-files-found: ignore
+
+  test-e2e-federated:
+    name: federated webapp (${{ matrix.task }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        task: [titanic, lus_covid]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/pull-dataset-artifacts
+      - uses: actions/download-artifact@v8
+        with: { name: all-builds }
+      - uses: cypress-io/github-action@v7
+        env:
+          VITE_SERVER_URL: http://localhost:8080
+          DISCO_TRAINING_E2E: "1"
+          DISCO_E2E_FEDERATED_TASK: ${{ matrix.task }}
+        with:
+          working-directory: webapp
+          install: false
+          start: >-
+            node --experimental-strip-types cypress/support/federated.ts,
+            pnpm exec vite --mode test --port 1351 --strictPort
+          wait-on: "http://localhost:8080, http://localhost:1351"
+          spec: cypress/e2e/training/federated/${{ matrix.task }}.cy.ts
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: federated-${{ matrix.task }}-screenshots
+          path: webapp/cypress/screenshots
+          if-no-files-found: ignore
+
   test-cli:
     runs-on: ubuntu-latest
     steps:
