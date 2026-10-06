@@ -1,0 +1,157 @@
+{
+  "timestamp": "2026-10-06T07:34:15.134Z",
+  "server": {
+    "port": 8080,
+    "scheme": "federated",
+    "minParticipants": 3
+  },
+  "nodePeer1": {
+    "synced": 0,
+    "batches": [
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.828306198120117,
+        "accuracy": null
+      },
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.752897262573242,
+        "accuracy": null
+      },
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.694814682006836,
+        "accuracy": null
+      }
+    ]
+  },
+  "nodePeer2": {
+    "synced": 0,
+    "batches": [
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.81723403930664,
+        "accuracy": null
+      },
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.747386932373047,
+        "accuracy": null
+      },
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.69914436340332,
+        "accuracy": null
+      }
+    ]
+  },
+  "webgpuPeer": {
+    "success": true,
+    "backend": "webgpu",
+    "roundsCompleted": 1,
+    "syncEventCount": 0,
+    "finalWeightSum": -136.75011297734454,
+    "batchLogs": [
+      {
+        "batchNum": 1,
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.825817108154297,
+        "accuracy": null
+      },
+      {
+        "batchNum": 2,
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.71972942352295,
+        "accuracy": null
+      }
+    ],
+    "prompt": "First Citizen: Before we proceed",
+    "promptTokens": [
+      5962,
+      22307,
+      25,
+      7413,
+      356,
+      5120
+    ],
+    "rawLayersModelOutputShape": [
+      1,
+      6,
+      50257
+    ],
+    "rawLayersModelOutputRank": 3,
+    "argMaxShape": [
+      1
+    ],
+    "argMaxRank": 1,
+    "argMaxValue": [
+      198
+    ],
+    "greedyBatchResult": [
+      [
+        198
+      ]
+    ],
+    "greedyShapeDescription": "[[1]] (nested array, e.g. [[198]])",
+    "sampledBatchResult": [
+      198
+    ],
+    "sampledShapeDescription": "[1] (scalar token: 198)",
+    "greedyNewTokens": [
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198
+    ],
+    "greedyContinuationText": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+    "greedyFullText": "First Citizen: Before we proceed\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+    "sampledNewTokens": [
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198,
+      198
+    ],
+    "sampledContinuationText": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+    "sampledFullText": "First Citizen: Before we proceed\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+  }
+}

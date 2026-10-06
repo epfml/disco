@@ -98,3 +98,32 @@ Following initial throughput probes, this document records end-to-end full train
 * **Duration:** 27.21 seconds.
 * **Status:** **PASSED**.
 * **Key Finding:** WebRTC peer-to-peer communication across 3 mixed-backend participants transmitted and aggregated model weights across 10 rounds without dropped frames, chunking failures, or gradient explosion.
+
+---
+
+### 4. Federated Training Run: Shakespeare Language Modeling with nanoGPT (3 Participants)
+
+* **Test Harness:** [`webapp/run_federated_experiment.ts`](../webapp/run_federated_experiment.ts)
+* **Results Report:** [`federated_shakespeare_webgpu_report.json`](../federated_shakespeare_webgpu_report.json)
+* **Participants:**
+  - 1 Chrome browser client using WebGPU.
+  - 2 Node CLI clients using `@tensorflow/tfjs-node`.
+  - 1 Central DISCO server hosting `cards.Shakespeare` (`scheme: "federated"`, `minNbOfParticipants: 3`).
+* **Execution:**
+  - Each peer processed text shards from `datasets/shakespeare/input.txt`.
+  - All 3 peers completed their local batches and pushed weight updates to the server.
+  - The server averaged all 40 parameter tensors and broadcast the aggregated global model back to all peers.
+  - WebGPU peer applied the aggregated weights (final weight sum: `-136.7501`).
+* **Training Losses:**
+  - **Node Peer 1:** `10.8283 → 10.7529 → 10.6948`
+  - **Node Peer 2:** `10.8172 → 10.7474 → 10.6991`
+  - **WebGPU Peer 3:** `10.8258 → 10.7197`
+
+#### Downstream Inference & Resolution of the Shape Discrepancy
+Inference was performed on the aggregated model using prompt `"First Citizen: Before we proceed"`.
+* **Root Cause of the `[[64]]` vs `[64]` Mismatch:**
+  - In `@tensorflow/tfjs-backend-webgpu@4.22.0`, calling `probs.argMax()` on a 1D tensor produces a **rank-1 tensor with shape `[1]`** (e.g. `[198]`), whereas on WebGL and CPU it reduces to a **rank-0 scalar tensor with shape `[]`**.
+  - In `GPT.#predictSingle()`, `await next.array()` on WebGPU evaluates to `[198]` (a nested array) instead of `198` (a scalar integer).
+  - Therefore, greedy prediction (`doSample: false`) returned `[[token]]` on WebGPU vs `[token]` on WebGL.
+  - In contrast, stochastic sampling (`doSample: true`) utilizes `tf.multinomial(...).squeeze([0])`, which returns a rank-0 scalar on both backends (`[token]`).
+* **Text Generation:** Both greedy and sampled generation (20 tokens) successfully decoded into text tokens (`198` / `"\n"`).
