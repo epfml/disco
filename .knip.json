@@ -8,6 +8,7 @@
       "ignoreDependencies": ["buffer"]
     },
     "isomorphic-wrtc": {},
+    "isomorphic-ws": {},
     "cli": {
       "entry": [
         "src/benchmark_gpt.ts",

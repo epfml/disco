@@ -1,5 +1,5 @@
 import createDebug from "debug";
-import WebSocket from "isomorphic-ws";
+import WebSocket from "@epfml/isomorphic-ws";
 import * as msgpack from "@msgpack/msgpack";
 import type { SignalData } from "#client/decentralized/peer";
 import { Peer } from "#client/decentralized/peer";
@@ -13,6 +13,16 @@ import { shortenId } from "#client/utils";
 import { EventEmitter } from "#utils/event_emitter";
 
 const debug = createDebug("discojs:client:connections");
+
+/**
+ * Only the Node.js WebSocket provides detailed error messages.
+ * This function extracts it if available.
+ * @param event The error event from the WebSocket
+ * @returns A string describing the error, if available, or "unknown error" otherwise.
+ */
+function describeError(event: Event): string {
+  return "message" in event ? String(event.message) : "unknown error";
+}
 
 export interface EventConnection {
   on: <K extends MType>(
@@ -43,10 +53,10 @@ export async function waitMessage<T extends MType>(
 ): Promise<NarrowMessage<T>> {
   return await abortable(
     new Promise((resolve) => {
-    // "once" is important because we can't resolve the same promise multiple times
-    connection.once(type, (event) => {
-      resolve(event);
-    });
+      // "once" is important because we can't resolve the same promise multiple times
+      connection.once(type, (event) => {
+        resolve(event);
+      });
     }),
     signal,
   );
@@ -199,7 +209,7 @@ export class WebSocketServer
   implements EventConnection
 {
   private constructor(
-    private readonly socket: WebSocket.WebSocket,
+    private readonly socket: WebSocket,
     private readonly validateSent?: (msg: Message) => boolean,
   ) {
     super();
@@ -210,15 +220,12 @@ export class WebSocketServer
     validateReceived: (msg: unknown) => msg is Message,
     validateSent: (msg: Message) => boolean,
   ): Promise<WebSocketServer> {
-    const ws = new WebSocket(url, {
-      // Federated GPT updates can exceed the default ws payload limit.
-      maxPayload: 1024 * 1024 * 1024,
-    });
+    const ws = new WebSocket(url);
     ws.binaryType = "arraybuffer";
 
     const server: WebSocketServer = new WebSocketServer(ws, validateSent);
 
-    ws.onmessage = (event: WebSocket.MessageEvent) => {
+    ws.onmessage = (event) => {
       if (!(event.data instanceof ArrayBuffer)) {
         throw new Error("server did not send an ArrayBuffer");
       }
@@ -243,9 +250,10 @@ export class WebSocketServer
     };
 
     return await new Promise((resolve, reject) => {
-      ws.onerror = (err: WebSocket.ErrorEvent) => {
-        debug("websocket error while connecting/receiving: %o", err.message);
-        reject(new Error(`Server unreachable: ${err.message}`));
+      ws.onerror = (event) => {
+        const error = describeError(event);
+        debug("websocket error while connecting/receiving: %o", error);
+        reject(new Error(`Server unreachable: ${error}`));
       };
       ws.onopen = () => {
         resolve(server);
@@ -256,7 +264,7 @@ export class WebSocketServer
   disconnect(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.socket.onclose = () => resolve();
-      this.socket.onerror = (e) => reject(new Error(e.message));
+      this.socket.onerror = (event) => reject(new Error(describeError(event)));
       this.socket.close();
     });
   }

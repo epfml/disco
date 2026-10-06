@@ -7,12 +7,14 @@ WORKDIR /disco
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY isomorphic-wrtc/package.json isomorphic-wrtc/
+COPY isomorphic-ws/package.json isomorphic-ws/
 COPY discojs/package.json discojs/
 COPY discojs-node/package.json discojs-node/
 COPY server/package.json server/
 RUN pnpm ci
 
 COPY isomorphic-wrtc/ isomorphic-wrtc/
+COPY isomorphic-ws/ isomorphic-ws/
 # Necessary for syncing workspace injected dependencies
 RUN pnpm ci
 COPY discojs/ discojs/
@@ -32,6 +34,7 @@ RUN npm i -g pnpm@11.11.0
 
 COPY --link --from=builder /disco/package.json /disco/pnpm*.yaml /disco/
 COPY --link --from=builder /disco/isomorphic-wrtc/package.json isomorphic-wrtc/
+COPY --link --from=builder /disco/isomorphic-ws/package.json isomorphic-ws/
 COPY --link --from=builder /disco/discojs/package.json discojs/
 COPY --link --from=builder /disco/discojs-node/package.json discojs-node/
 COPY --link --from=builder /disco/server/package.json server/
@@ -39,6 +42,7 @@ COPY --link --from=builder /disco/server/package.json server/
 RUN pnpm --prod ci
 
 COPY --link --from=builder /disco/isomorphic-wrtc/ isomorphic-wrtc/
+COPY --link --from=builder /disco/isomorphic-ws/ isomorphic-ws/
 COPY --link --from=builder /disco/discojs/dist/ discojs/dist/
 COPY --link --from=builder /disco/discojs-node/dist/ discojs-node/dist/
 COPY --link --from=builder /disco/server/dist/ server/dist/
