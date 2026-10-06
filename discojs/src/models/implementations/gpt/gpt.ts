@@ -275,15 +275,17 @@ export class GPT extends Model<"text"> {
         // if for some reason the probabilities are NaN, selectedIndices will be out of bounds
         return topkTokens.gather(selectedIndices).squeeze<tf.Scalar>([0]); // (1)
       } else {
-        // greedy decoding: return the token with the highest probability
-        return probs.argMax<tf.Scalar>();
+        // greedy decoding: return the token with the highest probability.
+        // WebGPU argMax returns shape [1] while WebGL/CPU returns shape [],
+        // so asScalar() ensures consistent rank-0 scalar tensor across all backends.
+        return probs.argMax().asScalar();
       }
     });
     probs.dispose();
 
     const ret = await next.array();
     next.dispose();
-    return ret;
+    return (Array.isArray(ret) ? ret[0] : ret) as number;
   }
 
   get config(): Required<GPTConfig> {

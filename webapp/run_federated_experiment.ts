@@ -13,6 +13,8 @@ const CHROME_PATH =
 const SERVER_PORT = 8080;
 const VITE_PORT = 1351;
 const CDP_PORT = 9223;
+const EPOCHS = 10;
+const ROUND_DURATION = 1;
 
 async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -34,12 +36,13 @@ async function waitForHttp(url: string, timeoutMs = 30000): Promise<void> {
 
 async function main() {
   console.log("==================================================================");
-  console.log("Starting Federated Shakespeare Training with 3 Participants (WebGPU)");
+  console.log(`Starting Federated Shakespeare Training with 3 Participants (${EPOCHS} rounds)`);
   console.log("==================================================================");
 
   let viteProc: ChildProcess | undefined;
   let chromeProc: ChildProcess | undefined;
   let chromeTempDir: string | undefined;
+  let httpServer: any | undefined;
 
   try {
     // 1. Start DISCO Federated Server
@@ -54,8 +57,8 @@ async function main() {
             ...task.trainingInformation,
             scheme: "federated" as const,
             minNbOfParticipants: 3,
-            epochs: 1,
-            roundDuration: 1,
+            epochs: EPOCHS,
+            roundDuration: ROUND_DURATION,
           },
         };
       },
@@ -64,7 +67,8 @@ async function main() {
       [defaultModels.Shakespeare],
       [federatedShakespeare],
     );
-    const [httpServer, serverUrl] = await serverInstance.serve(SERVER_PORT);
+    const [srv, serverUrl] = await serverInstance.serve(SERVER_PORT);
+    httpServer = srv;
     console.log(`✓ DISCO Server listening on ${serverUrl.toString()}`);
 
     // 2. Start Vite Dev Server
@@ -84,18 +88,18 @@ async function main() {
     await waitForHttp(`http://localhost:${VITE_PORT}/federated_webgpu.html`);
     console.log(`✓ Vite is ready at http://localhost:${VITE_PORT}/`);
 
-    // 3. Launch Chrome for Testing 154 with WebGPU flags
-    console.log(`\n[3/5] Launching Chrome 154 on port ${CDP_PORT}...`);
+    // 3. Launch Chrome with WebGPU flags and CDP
+    console.log(`\n[3/5] Launching Chrome 154 with WebGPU on port ${CDP_PORT}...`);
     chromeTempDir = await fs.mkdtemp(path.join(os.tmpdir(), "chrome-webgpu-"));
-    const isHeadless = process.env.HEADLESS === "1";
     const chromeArgs = [
       "--enable-unsafe-webgpu",
       "--use-angle=vulkan",
       "--enable-features=Vulkan",
       "--disable-software-rasterizer",
       `--remote-debugging-port=${CDP_PORT}`,
+      "--remote-allow-origins=*",
       `--user-data-dir=${chromeTempDir}`,
-      ...(isHeadless ? ["--headless=new"] : []),
+      "--headless=new",
       "--no-sandbox",
       "about:blank",
     ];
@@ -104,7 +108,7 @@ async function main() {
       stdio: ["ignore", "pipe", "pipe"],
     });
 
-    await sleep(2000);
+    await waitForHttp(`http://127.0.0.1:${CDP_PORT}/json/version`, 15000);
     const versionRes = await fetch(`http://127.0.0.1:${CDP_PORT}/json/version`);
     const versionData = await versionRes.json();
     console.log(`✓ Chrome launched: ${versionData.Browser}`);
@@ -126,7 +130,7 @@ async function main() {
         const timeout = setTimeout(() => {
           cdpWs.removeEventListener("message", handler);
           reject(new Error(`CDP method ${method} timed out`));
-        }, 120000);
+        }, 300000);
 
         const handler = (event: MessageEvent) => {
           const data = JSON.parse(event.data);
@@ -142,13 +146,15 @@ async function main() {
       });
     }
 
-    // Capture console output from Chrome
+    // Capture console output from Chrome WebGPU
     cdpWs.addEventListener("message", (event) => {
       try {
         const msg = JSON.parse(event.data);
         if (msg.method === "Runtime.consoleAPICalled") {
           const text = msg.params.args.map((a: any) => a.value ?? a.description ?? "").join(" ");
-          console.log(`[Chrome WebGPU Console] ${text}`);
+          if (text.includes("Loss:") || text.includes("Starting Round") || text.includes("Completed Round") || text.includes("modelSynced") || text.includes("structure:") || text.includes("Tokens:") || text.includes("Prompt:")) {
+            console.log(`[Chrome WebGPU] ${text}`);
+          }
         }
       } catch {}
     });
@@ -156,14 +162,9 @@ async function main() {
     await sendCdp("Runtime.enable");
     await sendCdp("Page.enable");
 
-    // Navigate to the WebGPU federated participant page
-    console.log("\n[4/5] Navigating Chrome to WebGPU federated participant page...");
-    const targetUrl = `http://localhost:${VITE_PORT}/federated_webgpu.html?backend=webgpu&serverUrl=http://localhost:${SERVER_PORT}`;
-    await sendCdp("Page.navigate", { url: targetUrl });
-
     // 4. Start 2 Node Peers
-    console.log("\n[5/5] Connecting 2 Node peers concurrently...");
-    const task = await defaultTasks.shakespeare.getTask();
+    console.log("\n[4/5] Connecting 2 Node peers concurrently...");
+    const task = await federatedShakespeare.getTask();
 
     const nodePeer1 = new Disco(task, serverUrl, {
       preprocessOnce: true,
@@ -205,7 +206,7 @@ async function main() {
             e++;
             for await (const batch of epoch) {
               node1Logs.push({ round: r, epoch: e, loss: batch.loss, accuracy: batch.accuracy });
-              console.log(`[Node Peer 1] Round ${r} Epoch ${e} Loss: ${batch.loss.toFixed(4)}, Acc: ${batch.accuracy.toFixed(4)}`);
+              console.log(`[Node Peer 1] Round ${r} Epoch ${e} Loss: ${batch.loss.toFixed(4)}`);
             }
           }
         }
@@ -221,7 +222,7 @@ async function main() {
             e++;
             for await (const batch of epoch) {
               node2Logs.push({ round: r, epoch: e, loss: batch.loss, accuracy: batch.accuracy });
-              console.log(`[Node Peer 2] Round ${r} Epoch ${e} Loss: ${batch.loss.toFixed(4)}, Acc: ${batch.accuracy.toFixed(4)}`);
+              console.log(`[Node Peer 2] Round ${r} Epoch ${e} Loss: ${batch.loss.toFixed(4)}`);
             }
           }
         }
@@ -230,10 +231,15 @@ async function main() {
       })(),
     ]);
 
+    // 5. Navigate Chrome to WebGPU federated participant page
+    console.log("\n[5/5] Navigating Chrome to WebGPU federated participant page...");
+    const targetUrl = `http://localhost:${VITE_PORT}/federated_webgpu.html?backend=webgpu&serverUrl=http://localhost:${SERVER_PORT}&epochs=${EPOCHS}&roundDuration=${ROUND_DURATION}`;
+    await sendCdp("Page.navigate", { url: targetUrl });
+
     // Poll for WebGPU peer completion
     console.log("Waiting for 3-participant training & inference completion in WebGPU Chrome...");
     let webgpuResults: any = undefined;
-    const maxWait = 240000;
+    const maxWait = 300000;
     const pollStart = Date.now();
 
     while (Date.now() - pollStart < maxWait) {
@@ -267,7 +273,7 @@ async function main() {
     }
 
     // Await Node peers completion
-    const nodeResults = await nodeTrainingPromise;
+    await nodeTrainingPromise;
     console.log("✓ All 3 participants have completed federated training and aggregation!");
 
     // Clean up connections
@@ -281,6 +287,7 @@ async function main() {
     console.log("\n1. 3-Participant Federated Training Summary:");
     console.log(`   - Server scheme: ${task.trainingInformation.scheme}`);
     console.log(`   - Min participants required: ${task.trainingInformation.minNbOfParticipants}`);
+    console.log(`   - Rounds completed: ${EPOCHS}`);
     console.log(`   - Participants:`);
     console.log(`     * Peer 1 (Node tfjs-node): ${node1Logs.length} batches, modelSynced events: ${node1Synced}`);
     console.log(`     * Peer 2 (Node tfjs-node): ${node2Logs.length} batches, modelSynced events: ${node2Synced}`);
@@ -291,16 +298,16 @@ async function main() {
     console.log("\n2. Losses Across Participants & Batches:");
     console.log("   Node Peer 1 batches:");
     for (const b of node1Logs) {
-      console.log(`     Round ${b.round}, Epoch ${b.epoch}: Loss = ${b.loss}, Acc = ${b.accuracy}`);
+      console.log(`     Round ${b.round}, Epoch ${b.epoch}: Loss = ${b.loss.toFixed(4)}`);
     }
     console.log("   Node Peer 2 batches:");
     for (const b of node2Logs) {
-      console.log(`     Round ${b.round}, Epoch ${b.epoch}: Loss = ${b.loss}, Acc = ${b.accuracy}`);
+      console.log(`     Round ${b.round}, Epoch ${b.epoch}: Loss = ${b.loss.toFixed(4)}`);
     }
     console.log("   WebGPU Peer 3 batches:");
     if (webgpuResults?.batchLogs) {
       for (const b of webgpuResults.batchLogs) {
-        console.log(`     Round ${b.round}, Epoch ${b.epoch}: Loss = ${b.loss}, Acc = ${b.accuracy}`);
+        console.log(`     Round ${b.round}, Epoch ${b.epoch}: Loss = ${b.loss.toFixed(4)}`);
       }
     }
 
@@ -351,13 +358,18 @@ async function main() {
     if (viteProc) {
       viteProc.kill("SIGKILL");
     }
+    if (httpServer) {
+      httpServer.close();
+    }
     if (chromeTempDir) {
       await fs.rm(chromeTempDir, { recursive: true, force: true }).catch(() => {});
     }
   }
 }
 
-main().catch((err) => {
-  console.error("Experiment failed with error:", err);
-  process.exit(1);
-});
+  main()
+    .then(() => process.exit(0))
+    .catch((err) => {
+      console.error("Experiment failed with error:", err);
+      process.exit(1);
+    });

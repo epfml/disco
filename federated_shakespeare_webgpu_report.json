@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-06T07:34:15.134Z",
+  "timestamp": "2026-10-06T09:00:15.521Z",
   "server": {
     "port": 8080,
     "scheme": "federated",
@@ -11,19 +11,601 @@
       {
         "round": 1,
         "epoch": 1,
-        "loss": 10.828306198120117,
+        "loss": 10.827747344970703,
         "accuracy": null
       },
       {
         "round": 1,
         "epoch": 1,
-        "loss": 10.752897262573242,
+        "loss": 10.757822036743164,
         "accuracy": null
       },
       {
         "round": 1,
         "epoch": 1,
-        "loss": 10.694814682006836,
+        "loss": 10.658723831176758,
+        "accuracy": null
+      },
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.619367599487305,
+        "accuracy": null
+      },
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.584518432617188,
+        "accuracy": null
+      },
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.52195930480957,
+        "accuracy": null
+      },
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.431732177734375,
+        "accuracy": null
+      },
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.41229248046875,
+        "accuracy": null
+      },
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.384071350097656,
+        "accuracy": null
+      },
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.349138259887695,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 10.16617202758789,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 10.132135391235352,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 10.0296630859375,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.973639488220215,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.937911033630371,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.818195343017578,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.712691307067871,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.674187660217285,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.63161849975586,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.579291343688965,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.47555160522461,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.454046249389648,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.338074684143066,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.269744873046875,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.259037017822266,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.085123062133789,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 8.981683731079102,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 8.939574241638184,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 8.920743942260742,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 8.879631996154785,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.752355575561523,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.752168655395508,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.626089096069336,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.550433158874512,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.573986053466797,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.344771385192871,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.24765396118164,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.20390510559082,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.214244842529297,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.18942642211914,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 8.046167373657227,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 8.071950912475586,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.952567100524902,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.8603901863098145,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.924936294555664,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.6450605392456055,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.559662818908691,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.520317077636719,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.567405700683594,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.56415319442749,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.409736633300781,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.469870090484619,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.336576461791992,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.259250640869141,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.373003959655762,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.048882484436035,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 6.974851131439209,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 6.947566986083984,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.036898136138916,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.0543212890625,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.896639823913574,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.997461795806885,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.863481521606445,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.794256210327148,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.961546421051025,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.594704627990723,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.534030437469482,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.5287322998046875,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.663196563720703,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.69528341293335,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.540093421936035,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.682198524475098,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.544649124145508,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.4883341789245605,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.706947326660156,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.302221298217773,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.246546268463135,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.271297931671143,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.447994232177734,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.483084201812744,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.3339691162109375,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.511136054992676,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.36342191696167,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.325562953948975,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.587823867797852,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.1484503746032715,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.086714744567871,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.150611877441406,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.36350154876709,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.388232707977295,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.242071628570557,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.440524101257324,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.27520227432251,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.264522075653076,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.546011447906494,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.080528259277344,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.006300926208496,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.105855464935303,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.331681251525879,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.351415634155273,
         "accuracy": null
       }
     ]
@@ -34,19 +616,601 @@
       {
         "round": 1,
         "epoch": 1,
-        "loss": 10.81723403930664,
+        "loss": 10.820667266845703,
         "accuracy": null
       },
       {
         "round": 1,
         "epoch": 1,
-        "loss": 10.747386932373047,
+        "loss": 10.715209007263184,
         "accuracy": null
       },
       {
         "round": 1,
         "epoch": 1,
-        "loss": 10.69914436340332,
+        "loss": 10.653203964233398,
+        "accuracy": null
+      },
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.62344741821289,
+        "accuracy": null
+      },
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.57408332824707,
+        "accuracy": null
+      },
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.500505447387695,
+        "accuracy": null
+      },
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.478550910949707,
+        "accuracy": null
+      },
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.396214485168457,
+        "accuracy": null
+      },
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.346806526184082,
+        "accuracy": null
+      },
+      {
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.371244430541992,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 10.185321807861328,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 10.115795135498047,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 10.003368377685547,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.965337753295898,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.913827896118164,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.80436897277832,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.751815795898438,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.665473937988281,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.596242904663086,
+        "accuracy": null
+      },
+      {
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.630827903747559,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.50059700012207,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.41362190246582,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.279767990112305,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.254491806030273,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.207148551940918,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.070405960083008,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.01608943939209,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 8.94137191772461,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 8.875398635864258,
+        "accuracy": null
+      },
+      {
+        "round": 3,
+        "epoch": 1,
+        "loss": 8.976814270019531,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.783679008483887,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.683001518249512,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.534530639648438,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.530945777893066,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.493185997009277,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.330854415893555,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.277717590332031,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.219789505004883,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.160633087158203,
+        "accuracy": null
+      },
+      {
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.336139678955078,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 8.08207893371582,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.974820137023926,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.814845561981201,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.838266372680664,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.814800262451172,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.630502223968506,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.582320213317871,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.549042224884033,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.502511978149414,
+        "accuracy": null
+      },
+      {
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.758988857269287,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.449741840362549,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.342667102813721,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.174900054931641,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.232138156890869,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.2308478355407715,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.0283379554748535,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 6.9928879737854,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 6.987246513366699,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 6.960686683654785,
+        "accuracy": null
+      },
+      {
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.3006744384765625,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.940670490264893,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.840418815612793,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.666416168212891,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.7627973556518555,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.789982795715332,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.572737693786621,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.556081771850586,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.576014041900635,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.574166297912598,
+        "accuracy": null
+      },
+      {
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.993564605712891,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.586727142333984,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.496840476989746,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.312274932861328,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.449436187744141,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.506831169128418,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.2774553298950195,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.282624244689941,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.319147109985352,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.342318534851074,
+        "accuracy": null
+      },
+      {
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.831453323364258,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.380742073059082,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.302064895629883,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.101288795471191,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.276443958282471,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.361092567443848,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.1218109130859375,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.153808116912842,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.195324420928955,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.242950916290283,
+        "accuracy": null
+      },
+      {
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.783427715301514,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.285252571105957,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.21444034576416,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 5.994513988494873,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.202471733093262,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.300612926483154,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.0622758865356445,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.104693412780762,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.149618148803711,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.213136672973633,
+        "accuracy": null
+      },
+      {
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.776647567749023,
         "accuracy": null
       }
     ]
@@ -54,22 +1218,708 @@
   "webgpuPeer": {
     "success": true,
     "backend": "webgpu",
-    "roundsCompleted": 1,
+    "roundsCompleted": 10,
     "syncEventCount": 0,
-    "finalWeightSum": -136.75011297734454,
+    "finalWeightSum": -1137.2486652415246,
     "batchLogs": [
       {
         "batchNum": 1,
         "round": 1,
         "epoch": 1,
-        "loss": 10.825817108154297,
+        "loss": 10.831565856933594,
         "accuracy": null
       },
       {
         "batchNum": 2,
         "round": 1,
         "epoch": 1,
-        "loss": 10.71972942352295,
+        "loss": 10.752488136291504,
+        "accuracy": null
+      },
+      {
+        "batchNum": 3,
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.635944366455078,
+        "accuracy": null
+      },
+      {
+        "batchNum": 4,
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.637450218200684,
+        "accuracy": null
+      },
+      {
+        "batchNum": 5,
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.566202163696289,
+        "accuracy": null
+      },
+      {
+        "batchNum": 6,
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.510260581970215,
+        "accuracy": null
+      },
+      {
+        "batchNum": 7,
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.43067741394043,
+        "accuracy": null
+      },
+      {
+        "batchNum": 8,
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.437443733215332,
+        "accuracy": null
+      },
+      {
+        "batchNum": 9,
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.330222129821777,
+        "accuracy": null
+      },
+      {
+        "batchNum": 10,
+        "round": 1,
+        "epoch": 1,
+        "loss": 10.258435249328613,
+        "accuracy": null
+      },
+      {
+        "batchNum": 11,
+        "round": 2,
+        "epoch": 1,
+        "loss": 10.171273231506348,
+        "accuracy": null
+      },
+      {
+        "batchNum": 12,
+        "round": 2,
+        "epoch": 1,
+        "loss": 10.110822677612305,
+        "accuracy": null
+      },
+      {
+        "batchNum": 13,
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.991138458251953,
+        "accuracy": null
+      },
+      {
+        "batchNum": 14,
+        "round": 2,
+        "epoch": 1,
+        "loss": 10.032331466674805,
+        "accuracy": null
+      },
+      {
+        "batchNum": 15,
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.914397239685059,
+        "accuracy": null
+      },
+      {
+        "batchNum": 16,
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.828965187072754,
+        "accuracy": null
+      },
+      {
+        "batchNum": 17,
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.724058151245117,
+        "accuracy": null
+      },
+      {
+        "batchNum": 18,
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.746086120605469,
+        "accuracy": null
+      },
+      {
+        "batchNum": 19,
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.597078323364258,
+        "accuracy": null
+      },
+      {
+        "batchNum": 20,
+        "round": 2,
+        "epoch": 1,
+        "loss": 9.50026798248291,
+        "accuracy": null
+      },
+      {
+        "batchNum": 21,
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.464407920837402,
+        "accuracy": null
+      },
+      {
+        "batchNum": 22,
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.403678894042969,
+        "accuracy": null
+      },
+      {
+        "batchNum": 23,
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.266412734985352,
+        "accuracy": null
+      },
+      {
+        "batchNum": 24,
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.369903564453125,
+        "accuracy": null
+      },
+      {
+        "batchNum": 25,
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.203866004943848,
+        "accuracy": null
+      },
+      {
+        "batchNum": 26,
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.100236892700195,
+        "accuracy": null
+      },
+      {
+        "batchNum": 27,
+        "round": 3,
+        "epoch": 1,
+        "loss": 8.984506607055664,
+        "accuracy": null
+      },
+      {
+        "batchNum": 28,
+        "round": 3,
+        "epoch": 1,
+        "loss": 9.07225227355957,
+        "accuracy": null
+      },
+      {
+        "batchNum": 29,
+        "round": 3,
+        "epoch": 1,
+        "loss": 8.858735084533691,
+        "accuracy": null
+      },
+      {
+        "batchNum": 30,
+        "round": 3,
+        "epoch": 1,
+        "loss": 8.761838912963867,
+        "accuracy": null
+      },
+      {
+        "batchNum": 31,
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.723514556884766,
+        "accuracy": null
+      },
+      {
+        "batchNum": 32,
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.667559623718262,
+        "accuracy": null
+      },
+      {
+        "batchNum": 33,
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.517572402954102,
+        "accuracy": null
+      },
+      {
+        "batchNum": 34,
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.699724197387695,
+        "accuracy": null
+      },
+      {
+        "batchNum": 35,
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.487010955810547,
+        "accuracy": null
+      },
+      {
+        "batchNum": 36,
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.367515563964844,
+        "accuracy": null
+      },
+      {
+        "batchNum": 37,
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.245298385620117,
+        "accuracy": null
+      },
+      {
+        "batchNum": 38,
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.406837463378906,
+        "accuracy": null
+      },
+      {
+        "batchNum": 39,
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.127798080444336,
+        "accuracy": null
+      },
+      {
+        "batchNum": 40,
+        "round": 4,
+        "epoch": 1,
+        "loss": 8.037690162658691,
+        "accuracy": null
+      },
+      {
+        "batchNum": 41,
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.995404243469238,
+        "accuracy": null
+      },
+      {
+        "batchNum": 42,
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.952294826507568,
+        "accuracy": null
+      },
+      {
+        "batchNum": 43,
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.7930827140808105,
+        "accuracy": null
+      },
+      {
+        "batchNum": 44,
+        "round": 5,
+        "epoch": 1,
+        "loss": 8.060928344726562,
+        "accuracy": null
+      },
+      {
+        "batchNum": 45,
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.805150985717773,
+        "accuracy": null
+      },
+      {
+        "batchNum": 46,
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.675644874572754,
+        "accuracy": null
+      },
+      {
+        "batchNum": 47,
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.5538434982299805,
+        "accuracy": null
+      },
+      {
+        "batchNum": 48,
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.798007011413574,
+        "accuracy": null
+      },
+      {
+        "batchNum": 49,
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.456432342529297,
+        "accuracy": null
+      },
+      {
+        "batchNum": 50,
+        "round": 5,
+        "epoch": 1,
+        "loss": 7.377325057983398,
+        "accuracy": null
+      },
+      {
+        "batchNum": 51,
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.335668563842773,
+        "accuracy": null
+      },
+      {
+        "batchNum": 52,
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.312820911407471,
+        "accuracy": null
+      },
+      {
+        "batchNum": 53,
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.146491527557373,
+        "accuracy": null
+      },
+      {
+        "batchNum": 54,
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.513184070587158,
+        "accuracy": null
+      },
+      {
+        "batchNum": 55,
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.217057228088379,
+        "accuracy": null
+      },
+      {
+        "batchNum": 56,
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.081195831298828,
+        "accuracy": null
+      },
+      {
+        "batchNum": 57,
+        "round": 6,
+        "epoch": 1,
+        "loss": 6.965620994567871,
+        "accuracy": null
+      },
+      {
+        "batchNum": 58,
+        "round": 6,
+        "epoch": 1,
+        "loss": 7.300559043884277,
+        "accuracy": null
+      },
+      {
+        "batchNum": 59,
+        "round": 6,
+        "epoch": 1,
+        "loss": 6.902141094207764,
+        "accuracy": null
+      },
+      {
+        "batchNum": 60,
+        "round": 6,
+        "epoch": 1,
+        "loss": 6.833376884460449,
+        "accuracy": null
+      },
+      {
+        "batchNum": 61,
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.799404144287109,
+        "accuracy": null
+      },
+      {
+        "batchNum": 62,
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.803389549255371,
+        "accuracy": null
+      },
+      {
+        "batchNum": 63,
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.628830909729004,
+        "accuracy": null
+      },
+      {
+        "batchNum": 64,
+        "round": 7,
+        "epoch": 1,
+        "loss": 7.104386329650879,
+        "accuracy": null
+      },
+      {
+        "batchNum": 65,
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.770111560821533,
+        "accuracy": null
+      },
+      {
+        "batchNum": 66,
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.629338264465332,
+        "accuracy": null
+      },
+      {
+        "batchNum": 67,
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.523488998413086,
+        "accuracy": null
+      },
+      {
+        "batchNum": 68,
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.950039863586426,
+        "accuracy": null
+      },
+      {
+        "batchNum": 69,
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.503496170043945,
+        "accuracy": null
+      },
+      {
+        "batchNum": 70,
+        "round": 7,
+        "epoch": 1,
+        "loss": 6.439483165740967,
+        "accuracy": null
+      },
+      {
+        "batchNum": 71,
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.419390678405762,
+        "accuracy": null
+      },
+      {
+        "batchNum": 72,
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.454232215881348,
+        "accuracy": null
+      },
+      {
+        "batchNum": 73,
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.265519618988037,
+        "accuracy": null
+      },
+      {
+        "batchNum": 74,
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.853020191192627,
+        "accuracy": null
+      },
+      {
+        "batchNum": 75,
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.480948448181152,
+        "accuracy": null
+      },
+      {
+        "batchNum": 76,
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.332006454467773,
+        "accuracy": null
+      },
+      {
+        "batchNum": 77,
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.235038757324219,
+        "accuracy": null
+      },
+      {
+        "batchNum": 78,
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.74442195892334,
+        "accuracy": null
+      },
+      {
+        "batchNum": 79,
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.2598724365234375,
+        "accuracy": null
+      },
+      {
+        "batchNum": 80,
+        "round": 8,
+        "epoch": 1,
+        "loss": 6.196264743804932,
+        "accuracy": null
+      },
+      {
+        "batchNum": 81,
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.192002773284912,
+        "accuracy": null
+      },
+      {
+        "batchNum": 82,
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.259467124938965,
+        "accuracy": null
+      },
+      {
+        "batchNum": 83,
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.050293445587158,
+        "accuracy": null
+      },
+      {
+        "batchNum": 84,
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.741391181945801,
+        "accuracy": null
+      },
+      {
+        "batchNum": 85,
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.333932876586914,
+        "accuracy": null
+      },
+      {
+        "batchNum": 86,
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.167752265930176,
+        "accuracy": null
+      },
+      {
+        "batchNum": 87,
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.076757431030273,
+        "accuracy": null
+      },
+      {
+        "batchNum": 88,
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.65617561340332,
+        "accuracy": null
+      },
+      {
+        "batchNum": 89,
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.143773078918457,
+        "accuracy": null
+      },
+      {
+        "batchNum": 90,
+        "round": 9,
+        "epoch": 1,
+        "loss": 6.072758197784424,
+        "accuracy": null
+      },
+      {
+        "batchNum": 91,
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.087649345397949,
+        "accuracy": null
+      },
+      {
+        "batchNum": 92,
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.181880950927734,
+        "accuracy": null
+      },
+      {
+        "batchNum": 93,
+        "round": 10,
+        "epoch": 1,
+        "loss": 5.947287559509277,
+        "accuracy": null
+      },
+      {
+        "batchNum": 94,
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.710719108581543,
+        "accuracy": null
+      },
+      {
+        "batchNum": 95,
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.29984188079834,
+        "accuracy": null
+      },
+      {
+        "batchNum": 96,
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.11144495010376,
+        "accuracy": null
+      },
+      {
+        "batchNum": 97,
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.005732536315918,
+        "accuracy": null
+      },
+      {
+        "batchNum": 98,
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.628590106964111,
+        "accuracy": null
+      },
+      {
+        "batchNum": 99,
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.103870868682861,
+        "accuracy": null
+      },
+      {
+        "batchNum": 100,
+        "round": 10,
+        "epoch": 1,
+        "loss": 6.031111240386963,
         "accuracy": null
       }
     ],
@@ -96,11 +1946,9 @@
       198
     ],
     "greedyBatchResult": [
-      [
-        198
-      ]
+      198
     ],
-    "greedyShapeDescription": "[[1]] (nested array, e.g. [[198]])",
+    "greedyShapeDescription": "[1] (scalar token: 198)",
     "sampledBatchResult": [
       198
     ],

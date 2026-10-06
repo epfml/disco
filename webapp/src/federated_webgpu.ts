@@ -1,7 +1,7 @@
 import "./buffer-polyfill";
 import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-backend-webgpu";
-import { Disco, defaultTasks } from "@epfml/discojs";
+import { Disco, defaultTasks, GPT } from "@epfml/discojs";
 import { loadText } from "@epfml/discojs-web";
 import { List } from "immutable";
 
@@ -51,10 +51,22 @@ async function run(): Promise<void> {
     const dataset = loadText(new Blob([shardText]));
 
     // Initialize task and Disco client
-    const task = await defaultTasks.shakespeare.getTask();
-    log(`Task loaded: ${task.id}, scheme: ${task.trainingInformation.scheme}, minPeers: ${task.trainingInformation.minNbOfParticipants}`);
+    const epochs = Number(urlParams.get("epochs") ?? "10");
+    const roundDuration = Number(urlParams.get("roundDuration") ?? "1");
+    const baseTask = await defaultTasks.shakespeare.getTask();
+    const task = {
+      ...baseTask,
+      trainingInformation: {
+        ...baseTask.trainingInformation,
+        scheme: "federated" as const,
+        minNbOfParticipants: 3,
+        epochs,
+        roundDuration,
+      },
+    };
+    log(`Task loaded: ${task.id}, scheme: ${task.trainingInformation.scheme}, minPeers: ${task.trainingInformation.minNbOfParticipants}, epochs: ${epochs}, roundDuration: ${roundDuration}`);
 
-    const disco = new Disco(task, serverUrl, {
+    const disco = new Disco(task as any, serverUrl, {
       preprocessOnce: true,
       debugLabel: "webgpu-browser-peer",
     });
@@ -99,7 +111,7 @@ async function run(): Promise<void> {
     setStatus("INFERENCE");
 
     // Retrieve trained model after federated aggregation
-    const trainedModel = disco.trainer.model;
+    const trainedModel = disco.trainer.model as GPT;
     const weightsList = trainedModel.weights.weights;
     const finalWeightSum = weightsList.reduce((acc, t) => acc + (t.sum().arraySync() as number), 0);
     log(`Federated aggregated model weight sum: ${finalWeightSum.toFixed(4)} across ${weightsList.length} tensors`);
@@ -230,12 +242,32 @@ async function run(): Promise<void> {
     (window as unknown as { __SHAKESPEARE_RESULTS__: typeof results }).__SHAKESPEARE_RESULTS__ = results;
     setStatus("COMPLETED");
     log("ALL EXPERIMENTS COMPLETED SUCCESSFULLY.");
+
+    const reportUrl = urlParams.get("reportUrl");
+    if (reportUrl) {
+      await fetch(reportUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(results),
+      }).catch((e) => console.error("Failed to POST report:", e));
+    }
   } catch (error: unknown) {
     const err = error as Error;
     console.error("Experiment failed:", err);
     log(`ERROR: ${err.message}\n${err.stack}`);
     setStatus("ERROR: " + err.message);
     (window as unknown as { __SHAKESPEARE_ERROR__: string }).__SHAKESPEARE_ERROR__ = err.message;
+
+    try {
+      const reportUrl = new URLSearchParams(window.location.search).get("reportUrl");
+      if (reportUrl) {
+        await fetch(reportUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ error: err.message, stack: err.stack }),
+        });
+      }
+    } catch {}
   }
 }
 
