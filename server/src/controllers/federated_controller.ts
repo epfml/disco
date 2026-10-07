@@ -64,6 +64,19 @@ export class FederatedController<D extends DataType> extends TrainingController<
    * Make sure two clients don't share the same ID.
    */
   #clientIds = new Set<NodeID>();
+  /**
+   * Number of ClientConnected messages each client's socket sent.
+   * We answer them with the global weights, so a client resending it
+   * could make the server send them over and over.
+   * By limiting the number of times a client can send the ClientConnected message, we prevent some abuse.
+   * Note: It does not prevent a client from connecting with a different websocket and thus clientID.
+   */
+  #clientCounters = new Map<NodeID, number>();
+
+  /**
+   * Maximum number of times a client can try to connect with the same client ID.
+   */
+  static readonly MAX_CLIENT_CONNECTED_PER_SOCKET = 5;
 
   constructor(
     task: Task<D, "federated">,
@@ -219,6 +232,25 @@ export class FederatedController<D extends DataType> extends TrainingController<
             this.#connectClient(clientId, ws);
           }
 
+          // Increase the counter for this client ID
+          const count = (this.#clientCounters.get(clientId) ?? 0) + 1;
+          this.#clientCounters.set(clientId, count);
+
+          // If the limit is reached for this client ID, we tell the client to crash
+          if (count > FederatedController.MAX_CLIENT_CONNECTED_PER_SOCKET) {
+            debug(
+              "Client [%s] exceeded the maximum number of connections (%d), sending CrashClient message",
+              shortId,
+              FederatedController.MAX_CLIENT_CONNECTED_PER_SOCKET,
+            );
+            const crashMsg: mtype.CrashClient = {
+              type: MessageTypes.CrashClient,
+              reason: "Exceeded maximum number of retries to connect",
+            };
+            ws.send(msgpack.encode(crashMsg));
+            return;
+          }
+
           // Send the new federated node info to the client in both cases (new or duplicate connection)
           const msg: federatedMessages.NewFederatedNodeInfo = {
             type: MessageTypes.NewFederatedNodeInfo,
@@ -349,6 +381,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
     // Dispose first before generating a new aggregator
     this.#aggregator.dispose();
     this.#aggregator = this.#makeAggregator();
+    this.#clientCounters.clear();
 
     this.#latestGlobalWeights = this.initialWeights;
   }
@@ -371,5 +404,6 @@ export class FederatedController<D extends DataType> extends TrainingController<
     this.#aggregator.removeNode(clientId);
     this.#pendingUpdateRecipients.delete(clientId);
     this.#clientIds.delete(clientId);
+    this.#clientCounters.delete(clientId);
   }
 }
