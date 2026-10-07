@@ -1,8 +1,8 @@
 import type { federatedMessages } from "@epfml/discojs";
 import { defaultTasks, mtype } from "@epfml/discojs";
 
-import { setupServerWith } from "../../support/e2e";
-import { goToTaskOverview } from "../../support/training";
+import { setupServerWith } from "../../../support/e2e";
+import { goToTaskOverview } from "../../../support/training";
 
 describe("training page", () => {
   it("tells the user when the server make the client crash stops the training", () => {

@@ -7,9 +7,10 @@
     "build": "vue-tsc --build && vite build",
     "test": "pnpm run test:unit && pnpm run test:e2e",
     "test:unit": "vitest --run",
-    "test:e2e": "VITE_SERVER_URL=http://server:8090 start-server-and-test \"vite\" http://localhost:1351 'pnpm exec cypress run --e2e'",
-    "test:e2e:local": "DISCO_TRAINING_E2E=1 VITE_SERVER_URL=http://server:8090 start-server-and-test 'vite --mode test --port 1351 --strictPort' http://localhost:1351 'pnpm exec cypress run --e2e --spec \"cypress/e2e/training/local/*.cy.ts\"'",
-    "test:e2e-interactive": "VITE_SERVER_URL=http://server:8090 start-server-and-test \"pnpm start\" http://localhost:1351 'pnpm exec cypress open --e2e'"
+    "test:e2e": "VITE_SERVER_URL=http://server start-server-and-test \"vite\" http://localhost:1351 'pnpm exec cypress run --e2e'",
+    "test:e2e:local": "DISCO_TRAINING_E2E=1 VITE_SERVER_URL=http://server start-server-and-test 'vite --mode test --port 1351 --strictPort' http://localhost:1351 'pnpm exec cypress run --e2e --spec \"cypress/e2e/training/local/*.cy.ts\"'",
+    "test:e2e:scripted": "DISCO_SCRIPTED_SERVER_E2E=1 VITE_SERVER_URL=http://server:8080 start-server-and-test 'vite --mode test --port 1351 --strictPort' http://localhost:1351 'pnpm exec cypress run --e2e --spec \"cypress/e2e/training/scripted/*.cy.ts\"'",
+    "test:e2e-interactive": "VITE_SERVER_URL=http://server start-server-and-test \"pnpm start\" http://localhost:1351 'pnpm exec cypress open --e2e'"
   },
   "dependencies": {
     "@epfml/discojs": "workspace:",
