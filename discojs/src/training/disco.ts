@@ -78,6 +78,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   readonly #preprocessOnce: boolean;
   // Forwarded to compatible models to identify this client in debug output.
   readonly #debugLabel?: string;
+  #closed: boolean;
 
   /**
    * Connect to the given task and get ready to train.
@@ -135,6 +136,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
       this.trainer.model.weights = latestWeights;
       this.emit("modelSynced", latestWeights);
     });
+    this.#closed = false;
   }
 
   /** Train on dataset, yielding logs of every round. */
@@ -246,8 +248,10 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     )) {
       yield async function* (this: Disco<D, N>) {
         const [roundGen, roundLogsPromise] = split(round);
-        const epochResults: Array<{ epochNum: number; epochLogs: EpochLogs }> =
-          [];
+        const epochResults: Array<{
+          epochNum: number;
+          epochLogs: EpochLogs;
+        }> = [];
 
         for await (const [epochNum, epoch] of enumerate(roundGen)) {
           const [epochGen, epochLogsPromise] = split(epoch);
@@ -307,6 +311,9 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
    * Completely stops the ongoing training instance.
    */
   async close(): Promise<void> {
+    if (this.#closed) return;
+    this.#closed = true;
+
     // Dispose the model tensor
     try {
       await this.#client.disconnect();

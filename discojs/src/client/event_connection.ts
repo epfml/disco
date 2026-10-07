@@ -1,5 +1,5 @@
 import createDebug from "debug";
-import WebSocket from "isomorphic-ws";
+import WebSocket from "@epfml/isomorphic-ws";
 import * as msgpack from "@msgpack/msgpack";
 import type { SignalData } from "#client/decentralized/peer";
 import { Peer } from "#client/decentralized/peer";
@@ -7,12 +7,22 @@ import type { NodeID } from "#client/types";
 import * as decentralizedMessages from "#client/decentralized/messages";
 import { MType } from "#client/mtype";
 import { type NarrowMessage, type Message } from "#client/messages";
-import { timeout } from "#client/utils";
+import { abortable, timeout } from "#client/utils";
 import { shortenId } from "#client/utils";
 
 import { EventEmitter } from "#utils/event_emitter";
 
 const debug = createDebug("discojs:client:connections");
+
+/**
+ * Only the Node.js WebSocket provides detailed error messages.
+ * This function extracts it if available.
+ * @param event The error event from the WebSocket
+ * @returns A string describing the error, if available, or "unknown error" otherwise.
+ */
+function describeError(event: Event): string {
+  return "message" in event ? String(event.message) : "unknown error";
+}
 
 export interface EventConnection {
   on: <K extends MType>(
@@ -27,16 +37,29 @@ export interface EventConnection {
   disconnect: () => Promise<void>;
 }
 
+/**
+ * Waits for a specific type of message from the event connection.
+ * This function will resolve once a message of the specified type is received,
+ * or reject if the abort signal is triggered.
+ * @param connection The event connection to listen on
+ * @param type The type of message to wait for
+ * @param signal An optional AbortSignal to control the abortion
+ * @returns A promise that resolves with the received message of the specified type
+ */
 export async function waitMessage<T extends MType>(
   connection: EventConnection,
   type: T,
+  signal?: AbortSignal,
 ): Promise<NarrowMessage<T>> {
-  return await new Promise((resolve) => {
-    // "once" is important because we can't resolve the same promise multiple times
-    connection.once(type, (event) => {
-      resolve(event);
-    });
-  });
+  return await abortable(
+    new Promise((resolve) => {
+      // "once" is important because we can't resolve the same promise multiple times
+      connection.once(type, (event) => {
+        resolve(event);
+      });
+    }),
+    signal,
+  );
 }
 
 export async function waitMessageWithTimeout<T extends MType>(
@@ -49,6 +72,62 @@ export async function waitMessageWithTimeout<T extends MType>(
     waitMessage(connection, type),
     timeout(timeoutMs, errorMsg),
   ]);
+}
+
+/**
+ * Send message and wait for a specific response,
+ * resending until a response or until timeout.
+ * The global timeout is `retryDelayMs * maxAttempts`.
+ * @param retryDelayMs - Delay between retry attempts in milliseconds (default: 60_000)
+ * @param maxAttempts - Maximum number of retry attempts (default: 3)
+ * @param signal An optional AbortSignal to control the abortion of the wait for the response
+ */
+export async function sendAndWaitWithRetry<T extends MType>(
+  connection: EventConnection,
+  request: Message,
+  responseType: T,
+  {
+    retryDelayMs = 60_000,
+    maxAttempts = 3,
+    signal,
+  }: { retryDelayMs?: number; maxAttempts?: number; signal?: AbortSignal } = {},
+): Promise<NarrowMessage<T>> {
+  // Create the response promise before sending the request
+  // to avoid missing the response
+  const response = waitMessage(connection, responseType, signal);
+  const RETRY = Symbol("retry"); // Symbol used to indicate a retry attempt
+
+  let timer: ReturnType<typeof setTimeout> | undefined; // Register the timer once
+  try {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      connection.send(request);
+
+      const received = await Promise.race([
+        response,
+        new Promise<typeof RETRY>((resolve) => {
+          timer = setTimeout(() => resolve(RETRY), retryDelayMs);
+        }),
+      ]);
+      clearTimeout(timer); // Clear the timer after each attempt
+
+      if (received !== RETRY) return received; // Return the received message if it's not a retry signal
+
+      debug(
+        "no %o after %dms, re-sending %o (%d/%d)",
+        responseType,
+        retryDelayMs,
+        request.type,
+        attempt,
+        maxAttempts,
+      );
+    }
+  } finally {
+    clearTimeout(timer);
+  }
+
+  throw new Error(
+    `no ${responseType} received after ${maxAttempts} ${request.type}`,
+  );
 }
 
 export class PeerConnection
@@ -130,7 +209,7 @@ export class WebSocketServer
   implements EventConnection
 {
   private constructor(
-    private readonly socket: WebSocket.WebSocket,
+    private readonly socket: WebSocket,
     private readonly validateSent?: (msg: Message) => boolean,
   ) {
     super();
@@ -141,22 +220,12 @@ export class WebSocketServer
     validateReceived: (msg: unknown) => msg is Message,
     validateSent: (msg: Message) => boolean,
   ): Promise<WebSocketServer> {
-    // Browsers interpret the second WebSocket constructor argument as a list
-    // of subprotocols. `maxPayload` is an option specific to the Node `ws`
-    // implementation used by isomorphic-ws.
-    const useNativeBrowserWebSocket =
-      (globalThis.WebSocket as unknown) === (WebSocket as unknown);
-    const ws = useNativeBrowserWebSocket
-      ? new WebSocket(url)
-      : new WebSocket(url, {
-          // Federated GPT updates can exceed the default ws payload limit.
-          maxPayload: 1024 * 1024 * 1024,
-        });
+    const ws = new WebSocket(url);
     ws.binaryType = "arraybuffer";
 
     const server: WebSocketServer = new WebSocketServer(ws, validateSent);
 
-    ws.onmessage = (event: WebSocket.MessageEvent) => {
+    ws.onmessage = (event) => {
       if (!(event.data instanceof ArrayBuffer)) {
         throw new Error("server did not send an ArrayBuffer");
       }
@@ -181,9 +250,10 @@ export class WebSocketServer
     };
 
     return await new Promise((resolve, reject) => {
-      ws.onerror = (err: WebSocket.ErrorEvent) => {
-        debug("websocket error while connecting/receiving: %o", err.message);
-        reject(new Error(`Server unreachable: ${err.message}`));
+      ws.onerror = (event) => {
+        const error = describeError(event);
+        debug("websocket error while connecting/receiving: %o", error);
+        reject(new Error(`Server unreachable: ${error}`));
       };
       ws.onopen = () => {
         resolve(server);
@@ -194,7 +264,7 @@ export class WebSocketServer
   disconnect(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.socket.onclose = () => resolve();
-      this.socket.onerror = (e) => reject(new Error(e.message));
+      this.socket.onerror = (event) => reject(new Error(describeError(event)));
       this.socket.close();
     });
   }

@@ -125,7 +125,7 @@ describe("federated client", () => {
 });
 
 type ServerMessage =
-  | federatedMessages.MessageFederated
+  | federatedMessages.MessageFromServer
   | decentralizedMessages.MessageFromServer;
 
 /** Have a client skip fetching the base model, only messages matter here */
