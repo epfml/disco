@@ -262,6 +262,10 @@ export class WebSocketServer
   }
 
   disconnect(): Promise<void> {
+    // the server may have closed the connection already, such as when it
+    // crashes the client
+    if (this.socket.readyState === WebSocket.CLOSED) return Promise.resolve();
+
     return new Promise((resolve, reject) => {
       this.socket.onclose = () => resolve();
       this.socket.onerror = (event) => reject(new Error(describeError(event)));

@@ -16,6 +16,8 @@ export type FakeWebSocket<
   Received extends AnyMessage,
 > = WebSocket & {
   sentMessages: Sent[];
+  /** Number of times the server forcefully closed the connection */
+  nbOfTerminations: number;
   emitMessage: (message: Received) => void;
   emitClose: () => void;
 };
@@ -29,10 +31,20 @@ function makeFakeWebSocket<
 
   ws.sentMessages = [];
 
-  ws.send = vi.fn((data: Buffer | Uint8Array) => {
+  ws.send = vi.fn((data: Buffer | Uint8Array, ...args: unknown[]) => {
     const decoded = msgpack.decode(data) as Sent;
     ws.sentMessages.push(decoded);
-  }); // as unknown as WebSocket["send"]
+    // asynchronously tells when the message is sent,
+    // the callback following the options if any
+    const callback = args.find((arg) => typeof arg === "function");
+    if (callback !== undefined) process.nextTick(callback);
+  }) as WebSocket["send"];
+
+  // asynchronously emits "close" once the connection is destroyed
+  ws.nbOfTerminations = 0;
+  ws.terminate = () => {
+    if (ws.nbOfTerminations++ === 0) process.nextTick(() => ws.emitClose());
+  };
 
   ws.emitMessage = (message: Received) => {
     ws.emit("message", msgpack.encode(message));
