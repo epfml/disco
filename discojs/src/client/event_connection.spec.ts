@@ -117,7 +117,9 @@ describe("sendAndWaitWithRetry", () => {
       MType.NewFederatedNodeInfo,
       { retryDelayMs: RETRY_DELAY_MS, maxAttempts: 3 },
     );
-    const rejects = expect(received).rejects.toThrow();
+    const rejects = expect(received).rejects.toThrow(
+      "no NewFederatedNodeInfo received after sending 3 ClientConnected",
+    );
 
     await vi.advanceTimersByTimeAsync(3 * RETRY_DELAY_MS);
 
