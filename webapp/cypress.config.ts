@@ -6,10 +6,12 @@ import * as msgpack from "@msgpack/msgpack";
 import { loadEnv } from "vite";
 import { WebSocketServer } from "ws";
 
+import type { mtype } from "@epfml/discojs";
+
 /**
  * Messages the server answers with, depending on the type of the message it received.
  */
-type ServerScript = Record<number, unknown[]>;
+type ServerScript = Partial<Record<mtype.MType, unknown[]>>;
 
 /**
  * Serve the WebSockets of the server.
@@ -24,7 +26,7 @@ function serveWebSockets(port: number): (script: ServerScript) => void {
   const handle = http.createServer((_, res) => res.writeHead(404).end());
   new WebSocketServer({ server: handle }).on("connection", (ws) =>
     ws.on("message", (data: Buffer) => {
-      const { type } = msgpack.decode(data) as { type: number };
+      const { type } = msgpack.decode(data) as { type: mtype.MType };
       for (const answer of script[type] ?? []) ws.send(msgpack.encode(answer));
     }),
   );
