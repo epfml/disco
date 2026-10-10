@@ -4,9 +4,9 @@ import { setupServerWith } from "../../../support/e2e";
 import {
   assertNoErrorToast,
   goToTaskOverview,
-  trainLocallyAndSave,
   withTrainingConfig,
 } from "../../../support/training";
+import { trainLocallyAndSave } from "../../../support/training/local";
 
 const numEpochs = 4;
 const lusCovidTask = withTrainingConfig(defaultTasks.lusCovid, {
