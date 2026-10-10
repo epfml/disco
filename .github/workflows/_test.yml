@@ -119,7 +119,7 @@ jobs:
           working-directory: webapp
           install: false
           start: >-
-            node --experimental-strip-types cypress/support/federated.ts,
+            node --experimental-strip-types cypress/support/training/federated/peer.ts,
             pnpm exec vite --mode test --port 1351 --strictPort
           wait-on: "http://localhost:8080, http://localhost:1351"
           spec: cypress/e2e/training/federated/${{ matrix.task }}.cy.ts

@@ -12,7 +12,7 @@ import type { DataFormat, DataType, TaskProvider } from "@epfml/discojs";
 import { loadCSV, loadImage } from "@epfml/discojs-node";
 import { Repeat } from "immutable";
 import { Server } from "server";
-import { withTrainingConfig } from "./training.ts";
+import { withTrainingConfig } from "../index.ts";
 
 const taskName = process.env.DISCO_E2E_FEDERATED_TASK ?? "titanic";
 if (taskName !== "titanic" && taskName !== "lus_covid") {
@@ -64,13 +64,13 @@ try {
     await train(
       defaultTasks.titanic,
       loadCSV(
-        path.join(import.meta.dirname, "../../../datasets/titanic_train.csv"),
+        path.join(import.meta.dirname, "../../../../../datasets/titanic_train.csv"),
       ),
     );
   } else {
     const folder = path.join(
       import.meta.dirname,
-      "../../../datasets/lus_covid",
+      "../../../../../datasets/lus_covid",
     );
     const positive = (await nodeHalfOfImages(path.join(folder, "COVID+"))).zip(
       Repeat("COVID-Positive"),
