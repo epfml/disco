@@ -119,7 +119,7 @@ jobs:
           working-directory: webapp
           install: false
           start: >-
-            node --experimental-strip-types cypress/support/federated.ts,
+            node --experimental-strip-types cypress/support/training/federated/peer.ts,
             pnpm exec vite --mode test --port 1351 --strictPort
           wait-on: "http://localhost:8080, http://localhost:1351"
           spec: cypress/e2e/training/federated/${{ matrix.task }}.cy.ts
@@ -127,6 +127,24 @@ jobs:
         if: failure()
         with:
           name: federated-${{ matrix.task }}-screenshots
+          path: webapp/cypress/screenshots
+          if-no-files-found: ignore
+
+  test-e2e-decentralized:
+    name: decentralized webapp (mnist)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/pull-dataset-artifacts
+      - uses: actions/download-artifact@v8
+        with: { name: all-builds }
+      - run: xvfb-run --auto-servernum pnpm -F webapp run test:e2e:decentralized
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: decentralized-mnist-screenshots
           path: webapp/cypress/screenshots
           if-no-files-found: ignore
 
