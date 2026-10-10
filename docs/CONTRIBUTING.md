@@ -127,7 +127,7 @@ and stops Vite itself; port 1351 must be available.
 
 Federated training tests run in separate CI jobs for Titanic and LUS COVID.
 Each job starts a real server and a Node participant configured for its task;
-see `test-e2e-federated` in `.github/workflows/_test.yml` for the setup.
+see `webapp-federated` in `.github/workflows/_test.yml` for the setup.
 
 #### Cypress and Github Actions
 
