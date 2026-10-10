@@ -9,7 +9,6 @@
         "cypress/e2e/training/federated/*.cy.ts",
         "cypress/support/federated.ts",
         "cypress/e2e/training/decentralized/*.cy.ts",
-        "cypress/support/decentralized.ts",
         "cypress/support/run_browser_collaboration.ts"
       ],
       "ignoreDependencies": ["buffer"]
