@@ -25,7 +25,7 @@ on:
         default: true
 
 jobs:
-  test-discojs:
+  discojs:
     if: inputs.discojs
     runs-on: ubuntu-latest
     steps:
@@ -36,7 +36,7 @@ jobs:
         with: { name: all-builds }
       - run: pnpm exec vitest --run --project=discojs
 
-  test-discojs-node:
+  discojs-node:
     if: inputs.discojs_node
     runs-on: ubuntu-latest
     steps:
@@ -47,7 +47,7 @@ jobs:
         with: { name: all-builds }
       - run: pnpm exec vitest --run --project=discojs-node
 
-  test-discojs-web:
+  discojs-web:
     if: inputs.discojs_web
     runs-on: ubuntu-latest
     steps:
@@ -58,7 +58,7 @@ jobs:
         with: { name: all-builds }
       - run: pnpm exec vitest --run --project=discojs-web
 
-  test-server:
+  server:
     if: inputs.server
     runs-on: ubuntu-latest
     steps:
@@ -69,7 +69,7 @@ jobs:
         with: { name: all-builds }
       - run: pnpm exec vitest --run --project=server
 
-  test-webapp:
+  webapp-unit:
     if: inputs.webapp
     runs-on: ubuntu-latest
     steps:
@@ -80,7 +80,7 @@ jobs:
         with: { name: all-builds }
       - run: pnpm -F webapp run test:unit
 
-  test-e2e:
+  webapp-e2e:
     if: inputs.webapp
     runs-on: ubuntu-latest
     steps:
@@ -95,15 +95,19 @@ jobs:
           install: false
           start: pnpm exec vite --mode test --port 1351
 
-  test-local-training:
+  webapp-local:
     if: inputs.webapp
-    name: local training (${{ matrix.task }})
+    name: webapp-local-${{ matrix.slug }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        task: [titanic, lus_covid]
+        include:
+          - task: titanic
+            slug: titanic
+          - task: lus_covid
+            slug: lus-covid
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node
@@ -125,15 +129,19 @@ jobs:
           path: webapp/cypress/screenshots
           if-no-files-found: ignore
 
-  test-e2e-federated:
+  webapp-federated:
     if: inputs.webapp
-    name: federated webapp (${{ matrix.task }})
+    name: webapp-federated-${{ matrix.slug }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     strategy:
       fail-fast: false
       matrix:
-        task: [titanic, lus_covid]
+        include:
+          - task: titanic
+            slug: titanic
+          - task: lus_covid
+            slug: lus-covid
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node
@@ -160,7 +168,7 @@ jobs:
           path: webapp/cypress/screenshots
           if-no-files-found: ignore
 
-  test-cli:
+  cli:
     if: inputs.cli
     runs-on: ubuntu-latest
     steps:
@@ -188,7 +196,7 @@ jobs:
           done
           pnpm -F cli start -t cifar10 -u 3 -e 1 -r 1 -i ci-cifar10
 
-  test-docs-examples:
+  docs-examples:
     if: inputs.docs_examples
     runs-on: ubuntu-latest
     steps:
