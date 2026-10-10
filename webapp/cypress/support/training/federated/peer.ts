@@ -64,7 +64,10 @@ try {
     await train(
       defaultTasks.titanic,
       loadCSV(
-        path.join(import.meta.dirname, "../../../../../datasets/titanic_train.csv"),
+        path.join(
+          import.meta.dirname,
+          "../../../../../datasets/titanic_train.csv",
+        ),
       ),
     );
   } else {
