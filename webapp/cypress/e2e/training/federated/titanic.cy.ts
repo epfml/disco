@@ -4,7 +4,7 @@ function goToTitanicTraining(): void {
   cy.visit("/");
   cy.contains("a", "Start training").click();
   cy.get(".driver-popover-close-btn").click();
-  cy.contains("button", "participate").click();
+  cy.get("#titanic").contains("button", "participate").click();
   cy.contains("button", "next").click();
   cy.get('[data-testid="select-tabular-button"]')
     .first()
