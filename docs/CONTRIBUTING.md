@@ -126,7 +126,8 @@ pnpm -F webapp run test:e2e:decentralized
 
 The local command runs both Titanic and LUS COVID with a mocked server.
 The federated command runs both tasks with a real server and a separate Node
-participant for each task.
+participant for each task. It uses Firefox, which must be installed locally;
+headless Electron can stall on the image task without WebGL support.
 The decentralized command runs MNIST across Chrome and Firefox participants with a real server; install Chrome and Firefox (plus `xvfb` and `xauth` on headless Linux).
 All three commands start and stop their servers and Vite automatically.
 
