@@ -120,16 +120,20 @@ the workspace with `pnpm -r run build`, and fetch the datasets with
 
 ```sh
 pnpm -F webapp run test:e2e:local
+pnpm -F webapp run test:e2e:federated
 pnpm -F webapp run test:e2e:decentralized
 ```
 
 The local command runs both Titanic and LUS COVID with a mocked server.
+The federated command runs both tasks with a real server and a separate Node
+participant for each task.
 The decentralized command runs MNIST across Chrome, Edge and Firefox participants with a real server; install Chrome, Edge and Firefox (plus `xvfb` and `xauth` on headless Linux).
-Both commands start and stop their servers and Vite automatically.
+All three commands start and stop their servers and Vite automatically.
 
 Federated training tests run in separate CI jobs for Titanic and LUS COVID.
-Each job starts a real server and a Node participant configured for its task;
-see `test-e2e-federated` in `.github/workflows/_test.yml` for the setup.
+Each job starts a real server and a Node participant configured for its task,
+while the package command runs both tasks together; see `test-e2e-federated`
+in `.github/workflows/_test.yml` for the CI setup.
 
 #### Cypress and Github Actions
 
