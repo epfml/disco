@@ -3,6 +3,10 @@ import * as path from "node:path";
 import * as fs from "node:fs/promises";
 
 export default defineConfig({
+  // Cypress.env() is deprecated throw; use cy.env() for sensitive values
+  // and Cypress.expose() otherwise
+  // allowCypressEnv will be removed in v16.0 so delete this line at that point
+  allowCypressEnv: false,
   e2e: {
     baseUrl: "http://localhost:1351/",
     projectId: "aps8et", // to get recordings on Cypress Cloud
