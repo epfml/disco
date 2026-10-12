@@ -2,29 +2,94 @@ name: verify
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - "**/*.md"
   pull_request:
-    paths-ignore:
-      - "**/*.md"
+  merge_group:
+    types: [checks_requested]
+    branches: [main]
 
 permissions:
   contents: read
 
 jobs:
+  affected:
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.select.outputs.build }}
+      docker: ${{ steps.select.outputs.docker }}
+      any_tests: ${{ steps.select.outputs.any_tests }}
+      discojs: ${{ steps.select.outputs.discojs }}
+      discojs_node: ${{ steps.select.outputs.discojs_node }}
+      discojs_web: ${{ steps.select.outputs.discojs_web }}
+      server: ${{ steps.select.outputs.server }}
+      webapp: ${{ steps.select.outputs.webapp }}
+      cli: ${{ steps.select.outputs.cli }}
+      docs_examples: ${{ steps.select.outputs.docs_examples }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # PR checkouts use a synthetic merge commit; depth 2 includes its base parent.
+          fetch-depth: 2
+      - run: node .github/scripts/affected-ci.test.mjs
+      - id: select
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.sha }}
+        run: node .github/scripts/affected-ci.mjs
+
   download-datasets:
+    needs: affected
+    if: needs.affected.outputs.build == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/download-datasets
 
   static-analysis:
+    needs: affected
+    if: needs.affected.outputs.build == 'true'
     uses: ./.github/workflows/_static-analysis.yml
 
   build:
-    needs: [download-datasets, static-analysis]
+    needs: [affected, download-datasets, static-analysis]
+    if: needs.affected.outputs.build == 'true'
     uses: ./.github/workflows/_build.yml
+    with:
+      docker: ${{ needs.affected.outputs.docker == 'true' }}
 
   test:
-    needs: [build]
+    needs: [affected, build]
+    if: needs.affected.outputs.any_tests == 'true'
     uses: ./.github/workflows/_test.yml
+    with:
+      discojs: ${{ needs.affected.outputs.discojs == 'true' }}
+      discojs_node: ${{ needs.affected.outputs.discojs_node == 'true' }}
+      discojs_web: ${{ needs.affected.outputs.discojs_web == 'true' }}
+      server: ${{ needs.affected.outputs.server == 'true' }}
+      webapp: ${{ needs.affected.outputs.webapp == 'true' }}
+      cli: ${{ needs.affected.outputs.cli == 'true' }}
+      docs_examples: ${{ needs.affected.outputs.docs_examples == 'true' }}
+
+  complete:
+    if: always()
+    needs: [affected, download-datasets, static-analysis, build, test]
+    runs-on: ubuntu-latest
+    env:
+      AFFECTED: ${{ needs.affected.result }}
+      RUN_BUILD: ${{ needs.affected.outputs.build }}
+      RUN_TESTS: ${{ needs.affected.outputs.any_tests }}
+      DATASETS: ${{ needs.download-datasets.result }}
+      STATIC: ${{ needs.static-analysis.result }}
+      BUILD: ${{ needs.build.result }}
+      TEST: ${{ needs.test.result }}
+    steps:
+      - name: Check required jobs
+        run: |
+          test "$AFFECTED" = success
+          if [ "$RUN_BUILD" = true ]; then
+            test "$DATASETS" = success
+            test "$STATIC" = success
+            test "$BUILD" = success
+          fi
+          if [ "$RUN_TESTS" = true ]; then
+            test "$TEST" = success
+          fi

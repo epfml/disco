@@ -17,6 +17,7 @@ export default defineConfigWithVueTs(
         projectService: {
           allowDefaultProject: [
             "eslint.config.js",
+            ".github/scripts/*.mjs",
             "isomorphic-wrtc/{{browser,node}.js,types.d.ts}",
             "testSetupImportTFJSNode.ts",
             "vitest.config.ts",

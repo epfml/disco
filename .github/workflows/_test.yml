@@ -1,9 +1,32 @@
 name: test
 on:
   workflow_call:
+    inputs:
+      discojs:
+        type: boolean
+        default: true
+      discojs_node:
+        type: boolean
+        default: true
+      discojs_web:
+        type: boolean
+        default: true
+      server:
+        type: boolean
+        default: true
+      webapp:
+        type: boolean
+        default: true
+      cli:
+        type: boolean
+        default: true
+      docs_examples:
+        type: boolean
+        default: true
 
 jobs:
   test-discojs:
+    if: inputs.discojs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -14,6 +37,7 @@ jobs:
       - run: pnpm exec vitest --run --project=discojs
 
   test-discojs-node:
+    if: inputs.discojs_node
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -24,6 +48,7 @@ jobs:
       - run: pnpm exec vitest --run --project=discojs-node
 
   test-discojs-web:
+    if: inputs.discojs_web
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -34,6 +59,7 @@ jobs:
       - run: pnpm exec vitest --run --project=discojs-web
 
   test-server:
+    if: inputs.server
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -44,6 +70,7 @@ jobs:
       - run: pnpm exec vitest --run --project=server
 
   test-webapp:
+    if: inputs.webapp
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -54,6 +81,7 @@ jobs:
       - run: pnpm -F webapp run test:unit
 
   test-e2e:
+    if: inputs.webapp
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -68,6 +96,7 @@ jobs:
           start: pnpm exec vite --mode test --port 1351
 
   test-local-training:
+    if: inputs.webapp
     name: local training (${{ matrix.task }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -97,6 +126,7 @@ jobs:
           if-no-files-found: ignore
 
   test-e2e-federated:
+    if: inputs.webapp
     name: federated webapp (${{ matrix.task }})
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -131,6 +161,7 @@ jobs:
           if-no-files-found: ignore
 
   test-cli:
+    if: inputs.cli
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -158,6 +189,7 @@ jobs:
           pnpm -F cli start -t cifar10 -u 3 -e 1 -r 1 -i ci-cifar10
 
   test-docs-examples:
+    if: inputs.docs_examples
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
