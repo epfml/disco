@@ -464,7 +464,7 @@ describe("end-to-end federated", () => {
           differentialPrivacy: {
             epsilon: 50,
             delta: 1e-5,
-            clippingRadius: 10,
+            clippingRadius: 0.1,
           },
         },
       };
