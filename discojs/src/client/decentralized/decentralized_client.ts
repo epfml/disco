@@ -21,6 +21,9 @@ import type { NarrowMessage } from "#client/messages";
 
 const debug = createDebug("discojs:client:decentralized");
 
+// How long to wait for a peer's contribution to a communication round
+const MAX_PAYLOAD_WAIT = 60_000;
+
 /**
  * Represents a decentralized client in a network of peers. Peers coordinate each other with the
  * help of the network's server, yet only exchange payloads between each other. Communication
@@ -412,7 +415,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
           const message = await waitMessageWithTimeout(
             connection,
             MType.Payload,
-            60_000,
+            MAX_PAYLOAD_WAIT,
             "Timeout waiting for a contribution from peer " + peerId,
           );
           const decoded = weightsDecode(message.payload);
@@ -531,22 +534,23 @@ export class DecentralizedClient extends Client<"decentralized"> {
       );
       // Wait for aggregation before proceeding to the next communication round.
       // The current result will be used as payload for the eventual next communication round.
+      // By the timeout, every contribution has been received or given up on,
+      // so a missing one would never come and we keep our local weights.
       try {
         result = await Promise.race([
           this.aggregationResult,
           timeout(
-            undefined,
+            MAX_PAYLOAD_WAIT,
             "Timeout waiting on the aggregation result promise to resolve",
           ),
         ]);
       } catch (e) {
-        if (this.isDisconnected) return weights.clone();
-
-        debug(
-          `[${shortenId(this.ownId)}] while waiting for aggregation: %o`,
-          e,
-        );
-        break;
+        if (!this.isDisconnected)
+          debug(
+            `[${shortenId(this.ownId)}] while waiting for aggregation: %o`,
+            e,
+          );
+        return weights.clone();
       }
 
       // There is at least one communication round remaining
