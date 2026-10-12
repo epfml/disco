@@ -1,4 +1,4 @@
-import { List, Map, Range, Seq } from "immutable";
+import { List, Map, Range, Seq, Set } from "immutable";
 import wrtc from "@epfml/isomorphic-wrtc";
 import SimplePeer from "simple-peer";
 
@@ -13,8 +13,15 @@ const FIRST_HEADER_SIZE = 2 + 1 + 1;
 // message id + chunk counter
 const HEADER_SIZE = 2 + 1;
 
+// chunk counter of an acknowledgement, unused by messages
+// as they have at most 0xff chunks, numbered from 0
+const ACK_CHUNK_ID = 0xff;
+
 // at which interval to poll
 const TICK = 10;
+
+// how long to wait for sent messages to be received before giving up
+const MAX_DRAIN_TIME = 10_000;
 
 // we can't use the definition in DOM as we're platform independent
 export type SignalData =
@@ -43,6 +50,10 @@ interface Events {
 // with a message id and chunk counter. The first chunk
 // (chunk counter == 0), also add the total number of chunk.
 //
+// Once a message is fully received, its id is sent back
+// with ACK_CHUNK_ID as chunk counter, so that the sender
+// knows when it can close the connection without losing it.
+//
 // see feross/simple-peer#393 for more info
 export class Peer {
   private readonly peer: SimplePeer.Instance;
@@ -51,6 +62,7 @@ export class Peer {
 
   private sendCounter: MessageID = 0;
   private sendQueue = List<Buffer>();
+  private unacknowledged = Set<MessageID>();
 
   private receiving = Map<
     MessageID,
@@ -65,11 +77,30 @@ export class Peer {
     initiator: boolean = false,
   ) {
     this.peer = new SimplePeer({ wrtc, initiator });
+
+    this.peer.on("data", (data: unknown) => {
+      if (
+        Buffer.isBuffer(data) &&
+        data.length === HEADER_SIZE &&
+        data.readUInt8(2) === ACK_CHUNK_ID
+      )
+        this.unacknowledged = this.unacknowledged.delete(data.readUInt16BE());
+    });
   }
 
   send(msg: Buffer): void {
+    const messageID = this.sendCounter;
     const chunks = this.chunk(msg);
+    this.unacknowledged = this.unacknowledged.add(messageID);
     this.sendQueue = this.sendQueue.concat(chunks);
+    this.flush();
+  }
+
+  private acknowledge(messageID: MessageID): void {
+    const ack = Buffer.alloc(HEADER_SIZE);
+    ack.writeUint16BE(messageID);
+    ack.writeUint8(ACK_CHUNK_ID, 2);
+    this.sendQueue = this.sendQueue.push(ack);
     this.flush();
   }
 
@@ -161,6 +192,19 @@ export class Peer {
     );
   }
 
+  // Resolves once every message sent so far has been received,
+  // as destroying the peer drops whatever is still in transit.
+  // Gives up after a while in case the other peer is gone.
+  async drain(): Promise<void> {
+    const deadline = Date.now() + MAX_DRAIN_TIME;
+    while (
+      !this.peer.destroyed &&
+      !this.unacknowledged.isEmpty() &&
+      Date.now() < deadline
+    )
+      await new Promise((resolve) => setTimeout(resolve, TICK));
+  }
+
   async destroy(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.peer.once("error", reject);
@@ -209,6 +253,7 @@ export class Peer {
       }
       const messageID: MessageID = data.readUInt16BE(); //readUint16BE (case sensitive) fails at runtime
       const chunkID: ChunkID = data.readUInt8(2); // same for readUint8
+      if (chunkID === ACK_CHUNK_ID) return; // handled in the constructor
 
       const received = this.receiving.get(messageID, {
         total: undefined,
@@ -263,7 +308,8 @@ export class Peer {
         .map((chunks) => Buffer.concat(chunks.map(([_, b]) => b).toArray()));
       this.receiving = this.receiving.deleteAll(readyMessages.keys());
 
-      readyMessages.forEach((message) => {
+      readyMessages.forEach((message, messageID) => {
+        this.acknowledge(messageID);
         // TODO debug
         dataListener(message);
       });

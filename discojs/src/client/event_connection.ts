@@ -120,6 +120,11 @@ export class PeerConnection
     this.#peer.send(Buffer.from(msgpack.encode(msg)));
   }
 
+  // Resolves once the messages sent so far have left the connection
+  async drain(): Promise<void> {
+    await this.#peer.drain();
+  }
+
   async disconnect(): Promise<void> {
     await this.#peer.destroy();
   }
