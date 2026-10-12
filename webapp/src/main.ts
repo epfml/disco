@@ -26,9 +26,24 @@ if (redirect) {
   sessionStorage.pendingRoute = redirect;
 }
 
-tf.ready()
+import "@tensorflow/tfjs-backend-webgpu";
+
+const urlParams = new URLSearchParams(window.location.search);
+const requestedBackend = urlParams.get("backend") ?? "webgl";
+
+try {
+  await tf.setBackend(requestedBackend);
+} catch (e) {
+  debug(`Failed to set backend to ${requestedBackend}, falling back to webgl: %o`, e);
+  await tf.setBackend("webgl").catch(() => {});
+}
+
+await tf.ready()
   .then(() => debug(`loaded TFJS' ${tf.getBackend()} backend`))
   .catch((e) => debug("while loading TFJS's backend: %o", e));
+
+Object.assign(window, { tf });
+
 
 // create vue app
 const app = createApp(App);
