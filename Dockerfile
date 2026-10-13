@@ -1,11 +1,11 @@
 # TODO freeze to 22 until tfjs#8425 is merged
 FROM node:22 AS builder
 
-RUN npm i -g pnpm@11.11.0
-
 WORKDIR /disco
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN npm i -g "$(node -p 'require("./package.json").packageManager')"
+
 COPY isomorphic-wrtc/package.json isomorphic-wrtc/
 COPY isomorphic-ws/package.json isomorphic-ws/
 COPY discojs/package.json discojs/
@@ -30,9 +30,8 @@ FROM node:22-slim AS runner
 
 WORKDIR /disco
 
-RUN npm i -g pnpm@11.11.0
-
 COPY --link --from=builder /disco/package.json /disco/pnpm*.yaml /disco/
+RUN npm i -g "$(node -p 'require("./package.json").packageManager')"
 COPY --link --from=builder /disco/isomorphic-wrtc/package.json isomorphic-wrtc/
 COPY --link --from=builder /disco/isomorphic-ws/package.json isomorphic-ws/
 COPY --link --from=builder /disco/discojs/package.json discojs/
