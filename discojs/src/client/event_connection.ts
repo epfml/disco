@@ -113,7 +113,7 @@ export async function sendAndWaitWithRetry<T extends MType>(
       if (received !== RETRY) return received; // Return the received message if it's not a retry signal
 
       debug(
-        "no %o after %dms, re-sending %o (%d/%d)",
+        "no %s after %dms, re-sending %s (%d/%d)",
         responseType,
         retryDelayMs,
         request.type,
@@ -126,7 +126,7 @@ export async function sendAndWaitWithRetry<T extends MType>(
   }
 
   throw new Error(
-    `no ${responseType} received after ${maxAttempts} ${request.type}`,
+    `no ${responseType} received after sending ${maxAttempts} ${request.type}`,
   );
 }
 
