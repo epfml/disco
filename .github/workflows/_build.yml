@@ -1,9 +1,14 @@
 name: build
 on:
   workflow_call:
+    inputs:
+      docker:
+        type: boolean
+        default: true
 
 jobs:
   build-server-docker:
+    if: inputs.docker
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

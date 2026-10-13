@@ -1,0 +1,30 @@
+name: verify-webapp
+on:
+  pull_request:
+    paths:
+      - "webapp/**"
+
+permissions:
+  contents: read
+
+jobs:
+  download-datasets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/download-datasets
+
+  static-analysis:
+    uses: ./.github/workflows/_static-analysis.yml
+
+  build:
+    needs: [download-datasets, static-analysis]
+    uses: ./.github/workflows/_build.yml
+    with:
+      docker: false
+
+  test:
+    needs: [build]
+    uses: ./.github/workflows/_test.yml
+    with:
+      webapp_only: true

@@ -2,11 +2,13 @@ name: verify
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - "**/*.md"
+  merge_group:
+    types: [checks_requested]
+    branches: [main]
   pull_request:
     paths-ignore:
       - "**/*.md"
+      - "webapp/**"
 
 permissions:
   contents: read

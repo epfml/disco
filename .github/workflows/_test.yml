@@ -1,9 +1,14 @@
 name: test
 on:
   workflow_call:
+    inputs:
+      webapp_only:
+        type: boolean
+        default: false
 
 jobs:
   test-discojs:
+    if: ${{ !inputs.webapp_only }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -14,6 +19,7 @@ jobs:
       - run: pnpm exec vitest --run --project=discojs
 
   test-discojs-node:
+    if: ${{ !inputs.webapp_only }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -24,6 +30,7 @@ jobs:
       - run: pnpm exec vitest --run --project=discojs-node
 
   test-discojs-web:
+    if: ${{ !inputs.webapp_only }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -34,6 +41,7 @@ jobs:
       - run: pnpm exec vitest --run --project=discojs-web
 
   test-server:
+    if: ${{ !inputs.webapp_only }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -157,6 +165,7 @@ jobs:
           if-no-files-found: ignore
 
   test-cli:
+    if: ${{ !inputs.webapp_only }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -184,6 +193,7 @@ jobs:
           pnpm -F cli start -t cifar10 -u 3 -e 1 -r 1 -i ci-cifar10
 
   test-docs-examples:
+    if: ${{ !inputs.webapp_only }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
