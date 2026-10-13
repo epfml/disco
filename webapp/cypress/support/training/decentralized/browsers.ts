@@ -1,7 +1,7 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { createInterface } from "node:readline";
 
-const browsers = process.env.DISCO_E2E_BROWSERS?.split(",") ?? [
+const browsers = [
   "chrome",
   "edge",
   "firefox",
