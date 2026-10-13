@@ -1,7 +1,7 @@
 import { assertNoErrorToast } from "../../../support/training";
 
 describe("decentralized webapp training", () => {
-  it("trains MNIST across Chrome and Firefox participants", () => {
+  it("trains MNIST across Chrome, Edge, and Firefox participants", () => {
     cy.env(["expectedBrowser"])
       .its("expectedBrowser")
       .should("equal", Cypress.browser.name);

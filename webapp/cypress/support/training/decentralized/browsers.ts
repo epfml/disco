@@ -3,7 +3,7 @@ import { createInterface } from "node:readline";
 
 const browsers = process.env.DISCO_E2E_BROWSERS?.split(",") ?? [
   "chrome",
-  "chrome",
+  "edge",
   "firefox",
   "firefox",
 ];
