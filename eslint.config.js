@@ -17,10 +17,11 @@ export default defineConfigWithVueTs(
         projectService: {
           allowDefaultProject: [
             "eslint.config.js",
-            "isomorphic-wrtc/{{browser,node}.js,types.d.ts}",
+            "isomorphic-{wrtc,ws}/{{browser,node}.js,types.d.ts}",
             "testSetupImportTFJSNode.ts",
             "vitest.config.ts",
           ],
+          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 9, // Increased from 8 for more default project files (isomorphic-ws)
         },
       },
     },

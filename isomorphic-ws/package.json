@@ -1,0 +1,19 @@
+{
+  "name": "@epfml/isomorphic-ws",
+  "version": "1.0.0",
+  "description": "Isomorphic implementation of WebSocket",
+  "type": "module",
+  "main": "node.js",
+  "browser": "browser.js",
+  "types": "types.d.ts",
+  "author": "",
+  "license": "MIT",
+  "scripts": {
+    "build": ": nothing",
+    "lint": ": nothing",
+    "test": ": nothing"
+  },
+  "dependencies": {
+    "ws": "8.21.0"
+  }
+}

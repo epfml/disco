@@ -30,7 +30,7 @@ export default defineConfig({
       },
       {
         extends: true,
-        test: { name: "server", include: ["server/tests/**/*.spec.ts"] },
+        test: { name: "server", include: ["server/{src,tests}/**/*.spec.ts"] },
       },
     ],
   },

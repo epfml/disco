@@ -122,7 +122,7 @@ import type {
   Task,
   Network,
 } from "@epfml/discojs";
-import { split, Disco } from "@epfml/discojs";
+import { split, ClientCrashError, Disco } from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster";
 import TrainingInformation from "@/components/training/TrainingInformation.vue";
@@ -262,6 +262,10 @@ async function startTraining(): Promise<void> {
     if (e === stopper) {
       toaster.info("Training stopped");
       return;
+    } else if (e instanceof ClientCrashError) {
+      toaster.error(
+        "The server has disconnected you due to an unexpected event.<br/> Feel free to rejoin the training.",
+      );
     } else if (
       e instanceof Error &&
       e.message.includes("greater than WebGL maximum on this browser")

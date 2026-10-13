@@ -13,7 +13,8 @@ import { modelDecode } from "#serialization/index";
 import type { EventConnection } from "#client/event_connection";
 import type { NodeID } from "#client/types";
 import { MType } from "#client/mtype";
-import { shortenId } from "#client/utils";
+import { abortable, shortenId } from "#client/utils";
+import { ClientCrashError } from "#root/errors";
 
 const debug = createDebug("discojs:client");
 
@@ -54,6 +55,10 @@ export abstract class Client<N extends Network> extends EventEmitter<{
    * one carried by the message answering our join request.
    */
   #nbOfParticipantsUpdatedSinceJoining = false;
+  /**
+   * AbortController used to signal a client crash.
+   */
+  #crashController = new AbortController();
 
   constructor(
     public readonly url: URL, // The network server's URL to connect to
@@ -125,6 +130,7 @@ export abstract class Client<N extends Network> extends EventEmitter<{
    */
   protected setupServerCallbacks(setMessageInversionFlag: () => void) {
     this.#nbOfParticipantsUpdatedSinceJoining = false;
+    this.#crashController = new AbortController();
 
     // Setup an event callback if the server signals that we should
     // wait for more participants
@@ -166,6 +172,16 @@ export abstract class Client<N extends Network> extends EventEmitter<{
         this.#nbOfParticipantsUpdatedSinceJoining = true;
         this.nbOfParticipants = event.nbOfParticipants;
       }
+    });
+
+    // The server notifies the client if there is a fatal error affecting this client
+    // In this case, the client will be informed via a CrashClient message
+    // The client will handle this error by aborting its current operation with a ClientCrashError.
+    this.server.on(MType.CrashClient, ({ reason }) => {
+      debug(
+        `[${shortenId(this._ownId ?? "?")}] server reports a fatal error affecting this client with reason ${reason}`,
+      );
+      this.#crashController.abort(new ClientCrashError(reason));
     });
   }
 
@@ -215,9 +231,13 @@ export abstract class Client<N extends Network> extends EventEmitter<{
         `[${shortenId(this.ownId)}] is awaiting the promise for more participants`,
       );
       this.emit("status", "not enough participants");
-      await this.promiseForMoreParticipants;
+
+      // Await the promise for more participants if it exists
+      if (this.promiseForMoreParticipants !== undefined)
+        await abortable(this.promiseForMoreParticipants, this.crashSignal);
     }
   }
+
   /**
    * Fetches the latest model available on the network's server, for the adequate task.
    * @returns The latest model
@@ -277,5 +297,12 @@ export abstract class Client<N extends Network> extends EventEmitter<{
    */
   get waitingForMoreParticipants(): boolean {
     return this.promiseForMoreParticipants !== undefined;
+  }
+
+  /**
+   * Returns the AbortSignal associated with the client's crash.
+   */
+  get crashSignal(): AbortSignal {
+    return this.#crashController.signal;
   }
 }
