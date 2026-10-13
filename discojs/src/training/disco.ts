@@ -78,6 +78,8 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
   readonly #preprocessOnce: boolean;
   // Forwarded to compatible models to identify this client in debug output.
   readonly #debugLabel?: string;
+  // Indicates the status of the Disco instance
+  // Used to avoid closing an already closed Disco instance
   #closed: boolean;
 
   /**
@@ -312,13 +314,13 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
    */
   async close(): Promise<void> {
     if (this.#closed) return;
-    this.#closed = true;
 
     // Dispose the model tensor
     try {
       await this.#client.disconnect();
     } finally {
       this.trainer[Symbol.dispose]();
+      this.#closed = true;
     }
   }
 

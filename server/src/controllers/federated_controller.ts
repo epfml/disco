@@ -76,7 +76,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
   /**
    * Maximum number of times a client can try to connect with the same client ID.
    */
-  static readonly MAX_CLIENT_CONNECTED_PER_SOCKET = 5;
+  static readonly MAX_CLIENT_CONNECTION_RETRY = 5;
 
   constructor(
     task: Task<D, "federated">,
@@ -237,11 +237,11 @@ export class FederatedController<D extends DataType> extends TrainingController<
           this.#clientCounters.set(clientId, count);
 
           // If the limit is reached for this client ID, we tell the client to crash
-          if (count > FederatedController.MAX_CLIENT_CONNECTED_PER_SOCKET) {
+          if (count > FederatedController.MAX_CLIENT_CONNECTION_RETRY) {
             debug(
               "Client [%s] exceeded the maximum number of connections (%d), sending CrashClient message",
               shortId,
-              FederatedController.MAX_CLIENT_CONNECTED_PER_SOCKET,
+              FederatedController.MAX_CLIENT_CONNECTION_RETRY,
             );
             const crashMsg: mtype.CrashClient = {
               type: MessageTypes.CrashClient,
@@ -259,7 +259,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
               this.connections.size < minNbOfParticipants,
             payload:
               this.#aggregator.round === 0
-                ? undefined // Optimization: no needs to send the initial weights, the client already has them
+                ? undefined // Optimization: no need to send the initial weights, the client already has them
                 : this.#latestGlobalWeights,
             round: this.#aggregator.round,
             nbOfParticipants: this.connections.size,

@@ -58,6 +58,7 @@ export enum MType {
   // clients don't have to wait for the end of the round to learn about it.
   // Kept last as the enum values are what goes over the wire.
   ParticipantsUpdate,
+  // Message sent by the server to notify a client that it should crash
   CrashClient,
 }
 

@@ -264,7 +264,7 @@ async function startTraining(): Promise<void> {
       return;
     } else if (e instanceof ClientCrashError) {
       toaster.error(
-        "The server stopped your training.<br/>Please rejoin the training by refreshing the page.",
+        "The server has disconnected you due to an unexpected event.<br/> Feel free to rejoin the training.",
       );
     } else if (
       e instanceof Error &&

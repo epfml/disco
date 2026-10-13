@@ -5,7 +5,7 @@ import { setupServerWith } from "../../../support/e2e";
 import { goToTaskOverview } from "../../../support/training";
 
 describe("training page", () => {
-  it("tells the user when the server make the client crash stops the training", () => {
+  it("tells the user when the server crashes the client", () => {
     setupServerWith(defaultTasks.titanic);
 
     // Create the server responses for joining and crashing the client
@@ -39,7 +39,7 @@ describe("training page", () => {
 
     cy.contains("button", "collaboratively").click();
     cy.contains("button", "Start training").click();
-    cy.contains(".v-toast__item--error", "The server stopped your training.", {
+    cy.contains(".v-toast__item--error", "The server has disconnected you", {
       timeout: 40_000,
     });
   });
