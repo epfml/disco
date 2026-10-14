@@ -1,6 +1,6 @@
 import * as http from "node:http";
 import * as msgpack from "@msgpack/msgpack";
-import { WebSocketServer } from "ws";
+import { WebSocket, WebSocketServer } from "ws";
 import type {
   DataType,
   Model,
@@ -19,7 +19,7 @@ import {
   defaultTasks,
   defaultModels,
 } from "@epfml/discojs";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Server } from "../src/index.js";
 
 describe("decentralized client", () => {
@@ -108,6 +108,45 @@ describe("federated client", () => {
     );
 
     await client.connect();
+    await client.disconnect();
+  });
+
+  it("is disconnected by the server crashing it", async () => {
+    const url = await startServer(
+      [defaultModels.TitanicClassifier],
+      [defaultTasks.titanic],
+    );
+
+    const client = new FederatedClient(
+      url,
+      await defaultTasks.titanic.getTask(),
+      new MeanAggregator(),
+    );
+    await client.connect();
+    const crashed = new Promise((resolve) =>
+      client.crashSignal.addEventListener("abort", resolve, { once: true }),
+    );
+
+    // contributing to a round the server didn't reach yet makes it crash us
+    const connection = (
+      client as unknown as {
+        _server: {
+          send: (msg: federatedMessages.SendPayload) => void;
+          socket: { readyState: number };
+        };
+      }
+    )._server;
+    connection.send({
+      type: mtype.MType.SendPayload,
+      payload: new Uint8Array(),
+      round: 10,
+    });
+
+    await crashed;
+    // the server closes the connection itself
+    await vi.waitFor(() => {
+      expect(connection.socket.readyState).to.equal(WebSocket.CLOSED);
+    });
     await client.disconnect();
   });
 
