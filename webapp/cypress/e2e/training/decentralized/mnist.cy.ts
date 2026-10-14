@@ -31,15 +31,15 @@ describe("decentralized webapp training", () => {
     const expectedParticipants = Cypress.env("numberOfParticipants") ?? 4;
 
     cy.contains("h6", "number of participants")
-      .next({ timeout: 270_000 })
+      .next({ timeout: 120_000 })
       .should("have.text", `${expectedParticipants}`);
     cy.contains("h6", "epochs")
       .next({ timeout: 270_000 })
       .should("have.text", "20 / 20");
     cy.contains("h6", "Collaborative model sharing")
-      .next({ timeout: 270_000 })
+      .next({ timeout: 60_000 })
       .should("have.text", "10");
-    cy.contains("Training successfully completed", { timeout: 270_000 });
+    cy.contains("Training successfully completed", { timeout: 30_000 });
     assertNoErrorToast();
   });
 });
