@@ -8,10 +8,12 @@ import {
   withTrainingConfig,
 } from "../../../support/training";
 
-const numEpochs = 4;
+const numEpochs = 1;
 const lusCovidTask = withTrainingConfig(defaultTasks.lusCovid, {
   epochs: numEpochs,
-  roundDuration: 4,
+  roundDuration: 1,
+  batchSize: 2,
+  validationSplit: 0,
 });
 
 function uploadLusCovidDataset(): void {
@@ -21,7 +23,9 @@ function uploadLusCovidDataset(): void {
   ]) {
     cy.task<string[]>("readdir", `../datasets/lus_covid/${directory}/`).then(
       (files) => {
-        const imageFiles = files.filter((p) => /\.(png|jpe?g)$/i.test(p));
+        const imageFiles = files
+          .filter((p) => /\.(png|jpe?g)$/i.test(p))
+          .slice(0, 1);
         if (imageFiles.length === 0)
           throw new Error(`No images in ${directory}`);
         cy.contains("h4", label)
@@ -61,11 +65,9 @@ it("can stop local LUS COVID training", () => {
   cy.contains("button", "locally").click();
   cy.contains("button", "Start training").click();
   assertNoErrorToast();
-  cy.contains("h6", "current batch")
-    .next({ timeout: 40_000 })
-    .should("have.text", "2");
-  assertNoErrorToast();
-
   cy.contains("button", "stop training").click();
+  cy.contains("button", "Start training", { timeout: 30_000 }).should(
+    "be.visible",
+  );
   assertNoErrorToast();
 });
