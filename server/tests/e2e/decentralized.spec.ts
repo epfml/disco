@@ -689,6 +689,9 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
       const url = await startServer(defaultModels.LUSClassifier, taskProvider);
       const dataset = await datasets.loadLusCOVID();
 
+      // the server and dataset are initialized, but not the clients
+      const memoryBeforeClients = tensorMemorySnapshot();
+
       const discoUser1 = new Disco(task, url, { preprocessOnce: true });
       const discoUser2 = new Disco(task, url, { preprocessOnce: true });
       const discoUser3 = new Disco(task, url, { preprocessOnce: true });
@@ -721,7 +724,8 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
         const waitForModelSynced = Promise.race([
           new Promise<WeightsContainer>((resolve) => {
             discoUser3.on("modelSynced", (weights) => {
-              if (weights !== undefined) resolve(weights);
+              // the event only lends the weights
+              if (weights !== undefined) resolve(weights.clone());
             });
           }),
           new Promise<never>((_, reject) =>
@@ -769,12 +773,22 @@ describe("end-to-end decentralized", { timeout: 50_000 }, () => {
         expect(user3Round.done).to.be.false;
 
         boundaryAfterLastRound.forEach((model) => model.dispose());
+        syncedWeights.dispose();
       } finally {
+        // release the recorded models, they are not part of what we measure
+        modelsUser1.dispose();
+        modelsUser2.dispose();
         // Close clients if not already done
         await discoUser1.close().catch(() => {});
         await discoUser2.close().catch(() => {});
         await discoUser3.close().catch(() => {});
       }
+
+      // the model received by the newcomer must be released with the clients
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(tensorMemorySnapshot().numTensors).to.be.at.most(
+        memoryBeforeClients.numTensors,
+      );
     },
   );
 

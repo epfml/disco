@@ -144,7 +144,12 @@ export async function decode(encoded: Encoded): Promise<Model<DataType>> {
           "invalid encoding, gpt-tfjs model weights should be an encoding of its weights",
         );
       const weights = w_decode(rawModel);
-      return GPT.deserialize({ weights, config });
+      // the model's variables take their own reference, free the decoded ones
+      try {
+        return GPT.deserialize({ weights, config });
+      } finally {
+        weights.dispose();
+      }
     }
     default:
       throw new Error("invalid encoding, model type unrecognized");

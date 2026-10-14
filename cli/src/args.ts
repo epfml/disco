@@ -445,21 +445,26 @@ export const args: BenchmarkArguments = {
       async getModel() {
         const model = await provider.modelCard.getModel();
 
-        if (unsafeArgs.learningRate !== undefined) {
-          if (!(model instanceof GPT))
-            throw new Error(
-              "learningRate override is only supported for GPT models",
-            );
-          if (
-            !Number.isFinite(unsafeArgs.learningRate) ||
-            unsafeArgs.learningRate <= 0
-          )
-            throw new Error("learningRate must be a positive finite number");
+        try {
+          if (unsafeArgs.learningRate !== undefined) {
+            if (!(model instanceof GPT))
+              throw new Error(
+                "learningRate override is only supported for GPT models",
+              );
+            if (
+              !Number.isFinite(unsafeArgs.learningRate) ||
+              unsafeArgs.learningRate <= 0
+            )
+              throw new Error("learningRate must be a positive finite number");
 
-          model.setLearningRate(unsafeArgs.learningRate);
-          console.log(
-            `Overriding GPT learning rate to ${unsafeArgs.learningRate}`,
-          );
+            model.setLearningRate(unsafeArgs.learningRate);
+            console.log(
+              `Overriding GPT learning rate to ${unsafeArgs.learningRate}`,
+            );
+          }
+        } catch (e) {
+          model.dispose();
+          throw e;
         }
 
         return model;
