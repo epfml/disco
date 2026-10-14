@@ -18,6 +18,7 @@ export {
 
 export {
   LocalClient,
+  Client,
   getClient,
   DecentralizedClient,
   FederatedClient,
@@ -25,7 +26,7 @@ export {
   federatedMessages,
   decentralizedMessages,
 } from "./client/index.js";
-export type { Client, NodeID } from "./client/index.js";
+export type { NodeID } from "./client/index.js";
 
 export { WeightsContainer, avg } from "./weights/index.js";
 
