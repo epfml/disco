@@ -8,6 +8,7 @@ import type {
   WaitingForMoreParticipants,
   EnoughParticipants,
   ParticipantsUpdate,
+  CrashClient,
 } from "#client/mtype";
 
 /// Phase 0 communication (between server and peers)
@@ -116,7 +117,8 @@ export type MessageFromServer =
   | RetryPeerConnections
   | ConnectionFail
   | ModelProviderInfo
-  | ProvideModelToPeer;
+  | ProvideModelToPeer
+  | CrashClient;
 
 export type MessageToServer =
   | ClientConnected
@@ -151,6 +153,7 @@ export function isMessageFromServer(o: unknown): o is MessageFromServer {
     case MType.ConnectionFail:
     case MType.ModelProviderInfo:
     case MType.ProvideModelToPeer:
+    case MType.CrashClient:
       return true;
   }
 

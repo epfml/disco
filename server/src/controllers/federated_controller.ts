@@ -1,6 +1,5 @@
 import createDebug from "debug";
 import type WebSocket from "ws";
-import { v4 as randomUUID } from "uuid";
 import * as msgpack from "@msgpack/msgpack";
 
 import type { DataType, Task, Encoded, NodeID } from "@epfml/discojs";
@@ -23,21 +22,16 @@ const debug = createDebug("server:controllers:federated");
  *
  * Four variables track participants at different stages.
  *
- * - `#clientIds`: connection between an ID and an open WebSocket.
+ * - `clientIds` (inherited): connection between an ID and an open WebSocket.
  *   It is only used to guarantee ids don't collide.
  * - `connections` (inherited): map between the ids of clients
  *   that completed the connection handshake and their socket.
- *   This is the set of active participants in the current round.
  * - `#aggregator.nodes`: the group of nodes that the aggregator expects
  *   contributions from. It decides when a round is completed
  *   (`threshold * nodes.size`) and whether a contribution is valid.
  * - `#pendingUpdateRecipients`: the clients whose contribution was accepted for
  *   the current round, reset after each aggregation.
  *   It is a subset of `connections` that participated in the current round.
- *
- * Lifetime asymmetry: `reset()` clears `connections` and rebuilds the
- * aggregator, but deliberately leaves `#clientIds` intact. Those sockets may
- * still be open, and their ids must stay reserved to avoid collisions.
  */
 export class FederatedController<D extends DataType> extends TrainingController<
   D,
@@ -59,24 +53,6 @@ export class FederatedController<D extends DataType> extends TrainingController<
    * or staled participants
    */
   #latestGlobalWeights: Encoded;
-  /**
-   * Complete list of client ids that have connected their websocket
-   * Make sure two clients don't share the same ID.
-   */
-  #clientIds = new Set<NodeID>();
-  /**
-   * Number of ClientConnected messages each client's socket sent.
-   * We answer them with the global weights, so a client resending it
-   * could make the server send them over and over.
-   * By limiting the number of times a client can send the ClientConnected message, we prevent some abuse.
-   * Note: It does not prevent a client from connecting with a different websocket and thus clientID.
-   */
-  #clientCounters = new Map<NodeID, number>();
-
-  /**
-   * Maximum number of times a client can try to connect with the same client ID.
-   */
-  static readonly MAX_CLIENT_CONNECTION_RETRY = 5;
 
   constructor(
     task: Task<D, "federated">,
@@ -128,7 +104,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
             aggregator.round,
             recipientId.slice(0, 4),
           );
-          this.#send(recipientWs, recipientId, encodedMsg);
+          this.send(recipientWs, recipientId, encodedMsg);
         });
       } catch (err) {
         debug(
@@ -157,16 +133,13 @@ export class FederatedController<D extends DataType> extends TrainingController<
   handle(ws: WebSocket): void {
     const minNbOfParticipants =
       this.task.trainingInformation.minNbOfParticipants;
-    // Try generating a new Client id until there no collision with existing ones
-    let clientId = randomUUID();
-    while (this.#clientIds.has(clientId)) {
-      clientId = randomUUID();
-    }
-    this.#clientIds.add(clientId);
+
+    // Generate a new unique client ID for the participant
+    const clientId = this.newClientId();
     const shortId = clientId.slice(0, 4);
 
     ws.on("error", (err) => {
-      this.#disconnect(ws, clientId, err);
+      this.disconnect(ws, clientId, err);
     });
 
     // Setup callbacks triggered upon receiving the different client messages
@@ -175,7 +148,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
         const msg: unknown = msgpack.decode(data);
         if (!federatedMessages.isMessageToServer(msg)) {
           debug("invalid federated message received on WebSocket: %o", msg);
-          this.#crashClient(ws, clientId, "Invalid federated message");
+          this.crashClient(ws, clientId, "Invalid federated message");
           return;
         }
 
@@ -191,11 +164,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
             "Received message from an unconnected client [%s], sending CrashClient message",
             shortId,
           );
-          this.#crashClient(
-            ws,
-            clientId,
-            "No ClientConnected message received",
-          );
+          this.crashClient(ws, clientId, "No ClientConnected message received");
           return;
         }
 
@@ -217,21 +186,18 @@ export class FederatedController<D extends DataType> extends TrainingController<
             } else {
               debug(`New client connection for client [%s]`, shortId);
               // Connect the new client to both the connections map and the aggregator
-              this.#connectClient(clientId, ws);
+              this.connectClient(clientId, ws);
             }
 
-            // Increase the counter for this client ID
-            const count = (this.#clientCounters.get(clientId) ?? 0) + 1;
-            this.#clientCounters.set(clientId, count);
-
-            // If the limit is reached for this client ID, we tell the client to crash
-            if (count > FederatedController.MAX_CLIENT_CONNECTION_RETRY) {
+            // Count the client's join attempt
+            // Crash the client if it exceeded the maximum number of connection attempts
+            if (!this.countJoinAttempt(clientId)) {
               debug(
                 "Client [%s] exceeded the maximum number of connections (%d), sending CrashClient message",
                 shortId,
-                FederatedController.MAX_CLIENT_CONNECTION_RETRY,
+                TrainingController.MAX_CLIENT_CONNECTION_RETRY,
               );
-              this.#crashClient(
+              this.crashClient(
                 ws,
                 clientId,
                 "Exceeded maximum number of retries to connect",
@@ -252,7 +218,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
               round: this.#aggregator.round,
               nbOfParticipants: this.connections.size,
             };
-            this.#send(ws, clientId, msgpack.encode(msg));
+            this.send(ws, clientId, msgpack.encode(msg));
 
             // Send an update to participants if we can start/resume training,
             // which already carries the number of participants
@@ -282,7 +248,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
                 this.#aggregator.round,
               );
               // Send a notification to crash to the client
-              this.#crashClient(
+              this.crashClient(
                 ws,
                 clientId,
                 `Received contribution for future round ${round} (current round=${this.#aggregator.round})`,
@@ -329,7 +295,7 @@ export class FederatedController<D extends DataType> extends TrainingController<
                 payload: this.#latestGlobalWeights,
                 nbOfParticipants: this.connections.size,
               };
-              this.#send(ws, clientId, msgpack.encode(msg));
+              this.send(ws, clientId, msgpack.encode(msg));
             }
             break;
           }
@@ -337,14 +303,14 @@ export class FederatedController<D extends DataType> extends TrainingController<
       } catch (err) {
         // The client is in an unknown state, drop it rather than waiting for it
         debug("failed to handle message of client [%s]: %o", shortId, err);
-        this.#crashClient(ws, clientId, "Server failed to handle a message");
+        this.crashClient(ws, clientId, "Server failed to handle a message");
       }
     });
 
     // Setup callback for client leaving the session
     ws.on("close", () => {
       // Remove the participant when the websocket is closed
-      this.#disconnectClient(clientId);
+      this.disconnectClient(clientId);
 
       debug("client [%s] left", shortId);
 
@@ -371,13 +337,12 @@ export class FederatedController<D extends DataType> extends TrainingController<
     });
   }
 
-  reset(): void {
-    this.resetConnectionState();
+  protected override reset(): void {
+    super.reset();
+
     this.#pendingUpdateRecipients.clear();
-    // Dispose first before generating a new aggregator
-    this.#aggregator.dispose();
+    this.#aggregator.dispose(); // Dispose first before generating a new aggregator
     this.#aggregator = this.#makeAggregator();
-    this.#clientCounters.clear();
 
     this.#latestGlobalWeights = this.initialWeights;
   }
@@ -386,8 +351,8 @@ export class FederatedController<D extends DataType> extends TrainingController<
    * Connects a new client to both the connections map and the aggregator.
    * Ensures consistency between the connections map and the aggregator.
    */
-  #connectClient(clientId: string, ws: WebSocket): void {
-    this.connections = this.connections.set(clientId, ws);
+  protected override connectClient(clientId: string, ws: WebSocket): void {
+    super.connectClient(clientId, ws);
     this.#aggregator.registerNode(clientId);
   }
 
@@ -395,51 +360,9 @@ export class FederatedController<D extends DataType> extends TrainingController<
    * Disconnects a client from the connections map, the aggregator, and the pending update recipients set.
    * Ensures consistency between the sets
    */
-  #disconnectClient(clientId: string): void {
-    this.connections = this.connections.delete(clientId);
+  protected override disconnectClient(clientId: string): void {
+    super.disconnectClient(clientId);
     this.#aggregator.removeNode(clientId);
     this.#pendingUpdateRecipients.delete(clientId);
-    this.#clientIds.delete(clientId);
-    this.#clientCounters.delete(clientId);
-  }
-
-  /**
-   * Sends a message to a client, disconnecting it if the message can't be delivered
-   */
-  #send(ws: WebSocket, clientId: NodeID, data: Uint8Array): void {
-    try {
-      ws.send(data, (err) => {
-        if (err !== undefined && err !== null)
-          this.#disconnect(ws, clientId, err);
-      });
-    } catch (err) {
-      this.#disconnect(ws, clientId, err);
-    }
-  }
-
-  /**
-   * Tells a client to crash, then disconnects it once the message is sent.
-   * The server doesn't rely on the client to disconnect itself, which it may
-   * never do if it is faulty, while it keeps counting as a participant.
-   */
-  #crashClient(ws: WebSocket, clientId: NodeID, reason: string): void {
-    debug("crashing client [%s]: %s", clientId.slice(0, 4), reason);
-    const msg: mtype.CrashClient = { type: MessageTypes.CrashClient, reason };
-    try {
-      // disconnect whether the message was delivered or not
-      ws.send(msgpack.encode(msg), () => ws.terminate());
-    } catch (err) {
-      this.#disconnect(ws, clientId, err);
-    }
-  }
-
-  /**
-   * Forcefully disconnects a client.
-   * Its websocket "close" handler then removes it from the session, so that
-   * the remaining participants don't wait for it.
-   */
-  #disconnect(ws: WebSocket, clientId: NodeID, reason: unknown): void {
-    debug("disconnecting client [%s]: %o", clientId.slice(0, 4), reason);
-    ws.terminate();
   }
 }
