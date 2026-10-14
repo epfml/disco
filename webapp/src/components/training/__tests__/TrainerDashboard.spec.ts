@@ -1,7 +1,7 @@
+import * as fs from "node:fs/promises";
 import * as tf from "@tensorflow/tfjs";
 import { CONFIG } from "@/config";
 import {
-  Dataset,
   DecentralizedClient,
   WeightsContainer,
   defaultTasks,
@@ -10,6 +10,8 @@ import {
   weightsDecode,
   type Model,
 } from "@epfml/discojs";
+import { loadCSV } from "@epfml/discojs-web";
+import { defineWebWorkers } from "@vitest/web-worker/pure";
 import { createTestingPinia } from "@pinia/testing";
 import { mount } from "@vue/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
@@ -38,10 +40,11 @@ class FakeWorker {
   }
 }
 
-async function setupForTask(scheme?: "decentralized") {
+async function setupForTask(scheme?: "decentralized", realTraining = false) {
   await tf.setBackend("cpu");
   const provider = defaultTasks.titanic;
-  vi.stubGlobal("Worker", FakeWorker);
+  if (realTraining) defineWebWorkers({ clone: "native" });
+  else vi.stubGlobal("Worker", FakeWorker);
   vi.stubGlobal("fetch", async (url: string | URL) => {
     if (
       url.toString() ===
@@ -64,10 +67,12 @@ async function setupForTask(scheme?: "decentralized") {
     },
     props: {
       task,
-      dataset: new Dataset([
-        { Age: "22", Survived: "0" },
-        { Age: "38", Survived: "1" },
-      ]),
+      dataset: loadCSV(
+        new File(
+          [new Uint8Array(await fs.readFile("../datasets/titanic_train.csv"))],
+          "titanic_train.csv",
+        ),
+      ),
     },
   });
 }
@@ -76,6 +81,40 @@ afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
   workers.length = 0;
+});
+
+// jsdom cannot load browser WASM URLs. Keep actual training and model code,
+// using the CPU backend as in the original component test.
+vi.mock("../worker_backend", () => ({
+  initializeTrainingBackend: () => tf.setBackend("cpu"),
+}));
+
+it("increases accuracy when training alone", { timeout: 20_000 }, async () => {
+  const wrapper = await setupForTask(undefined, true);
+  let model: Model<"tabular"> | undefined;
+  try {
+    await wrapper.get("#train-locally-bttn").trigger("click");
+    await wrapper.get("#start-training-bttn").trigger("click");
+    const infos = wrapper.getComponent(TrainingInformation);
+    await vi.waitFor(
+      () => expect(infos.props("rounds").isEmpty()).toBe(false),
+      {
+        timeout: 15_000,
+      },
+    );
+    expect(
+      infos.props("rounds").last()?.epochs.last()?.training.accuracy,
+    ).toBeGreaterThan(0);
+    await vi.waitFor(() => expect(infos.props("isTraining")).toBe(false), {
+      timeout: 5_000,
+    });
+    model = wrapper.emitted<[Model<"tabular">]>("model")?.at(-1)?.[0];
+    if (model === undefined) throw new Error("No trained model emitted");
+    expect((await modelEncode(model)).length).toBeGreaterThan(0);
+  } finally {
+    model?.dispose();
+    wrapper.unmount();
+  }
 });
 
 it("bridges decentralized connection, model sync, and round weights to the page", async () => {
@@ -195,12 +234,15 @@ it("streams data and progress through the worker and receives a savable model", 
     expect(worker.messages[1]).toMatchObject({
       type: "data",
       requestId: 1,
-      done: true,
-      samples: [
-        { Age: "22", Survived: "0" },
-        { Age: "38", Survived: "1" },
-      ],
+      done: false,
+      samples: expect.arrayContaining([
+        expect.objectContaining({ Age: "22.0", Survived: "0", Pclass: "3" }),
+      ]),
     });
+
+    expect(
+      worker.messages[1].type === "data" && worker.messages[1].samples,
+    ).toHaveLength(16);
 
     const batch = { accuracy: 0.75, loss: 0.5, memoryUsage: 0.1 };
     worker.receive({ type: "batch", log: batch });

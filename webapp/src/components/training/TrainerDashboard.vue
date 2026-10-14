@@ -303,7 +303,7 @@ function startTraining(): void {
   };
   const start: ToWorker = {
     type: "start",
-    task: serializeTaskToJSON(props.task),
+    task: serializeTaskToJSON(toRaw(props.task) as Task<DataType, Network>),
     serverUrl: CONFIG.serverUrl.toString(),
     scheme,
   };

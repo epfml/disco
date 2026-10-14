@@ -1,9 +1,5 @@
 import "@/buffer-polyfill";
-import * as tf from "@tensorflow/tfjs";
-import { setWasmPaths } from "@tensorflow/tfjs-backend-wasm";
-import wasmUrl from "@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm?url";
-import simdUrl from "@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-simd.wasm?url";
-import threadedSimdUrl from "@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-threaded-simd.wasm?url";
+import { initializeTrainingBackend } from "./worker_backend";
 import {
   Dataset,
   Client,
@@ -149,21 +145,7 @@ async function train(
       DataType,
       Network
     >;
-    // WASM provides SIMD for tabular training. Its backend does not implement
-    // the Conv2D gradients used by image models, so use worker WebGL where
-    // OffscreenCanvas supports it, then fall back to CPU.
-    if (task.dataType === "tabular") {
-      setWasmPaths({
-        "tfjs-backend-wasm.wasm": wasmUrl,
-        "tfjs-backend-wasm-simd.wasm": simdUrl,
-        "tfjs-backend-wasm-threaded-simd.wasm": threadedSimdUrl,
-      });
-      if (!(await tf.setBackend("wasm"))) await tf.setBackend("cpu");
-    } else {
-      const webglReady = await tf.setBackend("webgl").catch(() => false);
-      if (!webglReady) await tf.setBackend("cpu");
-    }
-    await tf.ready();
+    await initializeTrainingBackend(task.dataType);
     if (message.scheme === "decentralized") {
       pageClient = new PageClient(
         new URL(message.serverUrl),
