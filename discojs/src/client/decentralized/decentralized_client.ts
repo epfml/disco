@@ -14,6 +14,7 @@ import {
   waitMessage,
   type PeerConnection,
   waitMessageWithTimeout,
+  sendAndWaitWithRetry,
 } from "#client/event_connection";
 import { PeerPool } from "#client/decentralized/peer_pool";
 import * as messages from "#client/decentralized/messages";
@@ -146,10 +147,15 @@ export class DecentralizedClient extends Client<"decentralized"> {
     const msg: ClientConnected = {
       type: MType.ClientConnected,
     };
-    this.server.send(msg);
-
     const { id, waitForMoreParticipants, nbOfParticipants, joinedMidTraining } =
-      await waitMessage(this.server, MType.NewDecentralizedNodeInfo);
+      await sendAndWaitWithRetry(
+        this.server,
+        msg,
+        MType.NewDecentralizedNodeInfo,
+        {
+          signal: this.crashSignal,
+        },
+      );
 
     this.#modelSyncNeeded = joinedMidTraining;
     this.setNbOfParticipantsUponJoining(nbOfParticipants);
@@ -184,13 +190,12 @@ export class DecentralizedClient extends Client<"decentralized"> {
       const peers = this.#connections.keySeq().toSet();
       this.aggregator.setNodes(this.aggregator.nodes.subtract(peers));
     }
-    // Disconnect from server
-    await this.server?.disconnect();
-    this._server = undefined;
-    this._ownId = undefined;
 
     this.#latestModel?.dispose();
     this.#latestModel = undefined;
+
+    // At the end in case there is a throw while disconnecting the server
+    await super.disconnect();
 
     return Promise.resolve();
   }
@@ -206,6 +211,9 @@ export class DecentralizedClient extends Client<"decentralized"> {
    * model syncing happens first to get the latest global model from another peer.
    */
   override async onRoundBeginCommunication(): Promise<void> {
+    // Check if the crash signal has been triggered and throw if so
+    this.crashSignal.throwIfAborted();
+
     if (this.#modelSyncNeeded) {
       // 1. If model sync is needed, send server a request
       this.server.send({ type: MType.ModelSyncRequest });
@@ -287,9 +295,9 @@ export class DecentralizedClient extends Client<"decentralized"> {
       // Therefore, unsolved listeners may accumulate across rounds.
       // We can add listener resolving if this becomes a problem later.
       const msg = await Promise.race([
-        waitMessage(this.server, MType.StartWeightSharing),
-        waitMessage(this.server, MType.RetryPeerConnections),
-        waitMessage(this.server, MType.ConnectionFail),
+        waitMessage(this.server, MType.StartWeightSharing, this.crashSignal),
+        waitMessage(this.server, MType.RetryPeerConnections, this.crashSignal),
+        waitMessage(this.server, MType.ConnectionFail, this.crashSignal),
       ]);
 
       if (msg.type === MType.StartWeightSharing) {
@@ -353,6 +361,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
       const receivedMessage = await waitMessage(
         this.server,
         MType.PeersForRound,
+        this.crashSignal,
       );
       // every peer is ready to share weights, we can now connect to them
       this.saveAndEmit("connecting to peers");
@@ -398,6 +407,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
       // still part of the session: leave the number of participants alone
       this.aggregator.setNodes(Set([this.ownId]));
       this.#connections = Map();
+      this.crashSignal.throwIfAborted(); // Do not swallow if it is a signal error
     }
   }
 
