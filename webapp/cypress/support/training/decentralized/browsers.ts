@@ -1,7 +1,7 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { createInterface } from "node:readline";
 
-const browsers = ["chrome", "edge", "firefox", "firefox"];
+const browsers = ["chrome", "chrome", "edge", "firefox"];
 
 const children: ChildProcessWithoutNullStreams[] = [];
 
