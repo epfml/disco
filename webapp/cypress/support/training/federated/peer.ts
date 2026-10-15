@@ -1,5 +1,5 @@
-// Serves the selected task and trains on it as a Node participant so that the
-// browser driven by cypress/e2e/training/federated has a federated peer.
+// Serves the selected task(s) and trains on each as a Node participant so that
+// the browser driven by cypress/e2e/training/federated has a federated peer.
 // Started next to vite by the test runner, which kills it once Cypress is done.
 
 import "@tensorflow/tfjs-node";
@@ -15,7 +15,7 @@ import { Server } from "server";
 import { withTrainingConfig } from "../index.ts";
 
 const taskName = process.env.DISCO_E2E_FEDERATED_TASK ?? "titanic";
-if (taskName !== "titanic" && taskName !== "lus_covid") {
+if (taskName !== "titanic" && taskName !== "lus_covid" && taskName !== "all") {
   throw new Error(`Unknown federated E2E task: ${taskName}`);
 }
 
@@ -28,9 +28,8 @@ const reducedLusCovidTask = withTrainingConfig(defaultTasks.lusCovid, {
 async function train<D extends DataType>(
   provider: TaskProvider<D, "federated">,
   dataset: Dataset<DataFormat.Raw[D]>,
+  url: URL,
 ): Promise<void> {
-  const server = await Server.with([provider.modelCard], [provider]);
-  const [, url] = await server.serve(8080);
   const task = await provider.getTask();
   const disco = new Disco(task, url, {
     preprocessOnce: true,
@@ -60,17 +59,34 @@ async function nodeHalfOfImages(directory: string) {
 }
 
 try {
-  if (taskName === "titanic") {
-    await train(
-      defaultTasks.titanic,
-      loadCSV(
-        path.join(
-          import.meta.dirname,
-          "../../../../../datasets/titanic_train.csv",
+  const providers =
+    taskName === "all"
+      ? [defaultTasks.titanic, reducedLusCovidTask]
+      : taskName === "titanic"
+        ? [defaultTasks.titanic]
+        : [reducedLusCovidTask];
+  const server = await Server.with(
+    providers.map((provider) => provider.modelCard),
+    providers,
+  );
+  const [, url] = await server.serve(8080);
+
+  const training: Promise<void>[] = [];
+  if (taskName === "titanic" || taskName === "all") {
+    training.push(
+      train(
+        defaultTasks.titanic,
+        loadCSV(
+          path.join(
+            import.meta.dirname,
+            "../../../../../datasets/titanic_train.csv",
+          ),
         ),
+        url,
       ),
     );
-  } else {
+  }
+  if (taskName === "lus_covid" || taskName === "all") {
     const folder = path.join(
       import.meta.dirname,
       "../../../../../datasets/lus_covid",
@@ -81,8 +97,9 @@ try {
     const negative = (await nodeHalfOfImages(path.join(folder, "COVID-"))).zip(
       Repeat("COVID-Negative"),
     );
-    await train(reducedLusCovidTask, positive.chain(negative));
+    training.push(train(reducedLusCovidTask, positive.chain(negative), url));
   }
+  await Promise.all(training);
 } catch (error) {
   // Take the server down so that the browser fails instead of waiting forever.
   console.error("federated peer failed", error);
