@@ -17,11 +17,12 @@ export default defineConfigWithVueTs(
         projectService: {
           allowDefaultProject: [
             "eslint.config.js",
+            ".github/scripts/*.mjs",
             "isomorphic-{wrtc,ws}/{{browser,node}.js,types.d.ts}",
             "testSetupImportTFJSNode.ts",
             "vitest.config.ts",
           ],
-          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 9, // Increased from 8 for more default project files (isomorphic-ws)
+          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 11, // Increased from 9 for workflow scripts (.github/scripts/*.mjs)
         },
       },
     },
