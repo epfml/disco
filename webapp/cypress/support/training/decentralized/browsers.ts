@@ -1,12 +1,7 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { createInterface } from "node:readline";
 
-const browsers = [
-  "chrome",
-  "edge",
-  "firefox",
-  "firefox",
-];
+const browsers = ["chrome", "edge", "firefox", "firefox"];
 
 const children: ChildProcessWithoutNullStreams[] = [];
 
@@ -14,7 +9,7 @@ function stopChildren(): void {
   for (const child of children) {
     if (child.pid === undefined || child.exitCode !== null) continue;
     try {
-      process.kill(-child.pid, "SIGTERM");
+      process.kill(-child.pid, "SIGTERM"); // minus sign means kill both cypress and its browser
     } catch (error) {
       if (
         !(error instanceof Error && "code" in error && error.code === "ESRCH")
@@ -29,6 +24,8 @@ for (const signal of ["SIGINT", "SIGTERM"])
     stopChildren();
     process.exitCode = 1;
   });
+
+let firstFailedBrowser: string | undefined;
 
 const results = browsers.map((browser, index) => {
   const label = `${browser}-${index + 1}`;
@@ -66,6 +63,7 @@ const results = browsers.map((browser, index) => {
 
   return new Promise<boolean>((resolve) => {
     child.once("error", (error) => {
+      firstFailedBrowser ??= label;
       console.error(`[${label}] ${error}`);
       stopChildren();
       resolve(false);
@@ -73,6 +71,7 @@ const results = browsers.map((browser, index) => {
     child.once("exit", (code, signal) => {
       const passed = code === 0;
       if (!passed) {
+        firstFailedBrowser ??= label;
         console.error(`[${label}] exited with ${code ?? signal}`);
         stopChildren();
       }
@@ -81,5 +80,8 @@ const results = browsers.map((browser, index) => {
   });
 });
 
-if ((await Promise.all(results)).some((passed) => !passed))
+if ((await Promise.all(results)).some((passed) => !passed)) {
+  if (firstFailedBrowser !== undefined)
+    console.error(`First browser to fail: ${firstFailedBrowser}`);
   process.exitCode = 1;
+}

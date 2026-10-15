@@ -24,11 +24,17 @@ export function withTrainingConfig<D extends DataType, N extends Network>(
   };
 }
 
-export function goToTaskOverview(): void {
+export function goToTaskOverview(taskId?: string): void {
   cy.visit("/");
   cy.contains("a", "Start training").click();
   cy.get(".driver-popover-close-btn").click();
-  cy.contains("button", "participate").click();
+  if (taskId !== undefined) {
+    cy.get(`#${taskId}`, { timeout: 30_000 })
+      .contains("button", "participate")
+      .click();
+  } else {
+    cy.contains("button", "participate").click();
+  }
 }
 
 export function assertNoErrorToast(): void {

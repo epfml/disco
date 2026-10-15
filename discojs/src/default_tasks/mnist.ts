@@ -43,7 +43,7 @@ export const mnist: TaskProvider<"image", "decentralized"> = {
             beta: 0.9,
           },
         },
-        minNbOfParticipants: 3,
+        minNbOfParticipants: 4,
         maxShareValue: 100,
         tensorBackend: "tfjs",
         maxConnectionRetry: 3,
