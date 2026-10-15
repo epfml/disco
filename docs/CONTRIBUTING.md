@@ -120,10 +120,12 @@ the workspace with `pnpm -r run build`, and fetch the datasets with
 
 ```sh
 pnpm -F webapp run test:e2e:local
+pnpm -F webapp run test:e2e:decentralized
 ```
 
-This runs both Titanic and LUS COVID with a mocked server. The command starts
-and stops Vite itself; port 1351 must be available.
+The local command runs both Titanic and LUS COVID with a mocked server.
+The decentralized command runs MNIST across Chrome and Firefox participants with a real server; install Chrome and Firefox (plus `xvfb` and `xauth` on headless Linux).
+Both commands start and stop their servers and Vite automatically.
 
 Federated training tests run in separate CI jobs for Titanic and LUS COVID.
 Each job starts a real server and a Node participant configured for its task;

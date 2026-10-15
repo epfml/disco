@@ -7,7 +7,9 @@
     "webapp": {
       "entry": [
         "cypress/e2e/training/federated/*.cy.ts",
-        "cypress/support/federated.ts"
+        "cypress/support/training/federated/peer.ts",
+        "cypress/e2e/training/decentralized/*.cy.ts",
+        "cypress/support/training/decentralized/browsers.ts"
       ],
       "ignoreDependencies": ["buffer"]
     },
