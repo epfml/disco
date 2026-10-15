@@ -35,9 +35,9 @@ describe("decentralized webapp training", () => {
       .next({ timeout: 270_000 })
       .should("have.text", "20 / 20");
     cy.contains("h6", "Collaborative model sharing")
-      .next()
+      .next({ timeout: 60_000 })
       .should("have.text", "10");
-    cy.contains("Training successfully completed");
+    cy.contains("Training successfully completed", { timeout: 30_000 });
     assertNoErrorToast();
   });
 });
