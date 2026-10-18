@@ -135,13 +135,16 @@
 
   <div v-if="selection !== undefined">
     <div v-if="validationStore.step !== 0">
+      <!-- remount on a new selection, stopping what ran on the previous model -->
       <TestSteps
         v-if="selection.mode === 'test'"
+        :key="selection.modelID"
         :task="selection.task"
         :model="selection.model"
       />
       <PredictSteps
         v-if="selection.mode === 'predict'"
+        :key="selection.modelID"
         :task="selection.task"
         :model="selection.model"
       />
@@ -155,7 +158,7 @@
 import createDebug from "debug";
 import { List } from "immutable";
 import { storeToRefs } from "pinia";
-import { computed, ref, onActivated } from "vue";
+import { computed, nextTick, ref, onActivated, onUnmounted } from "vue";
 import { RouterLink } from "vue-router";
 import { VueSpinner } from "vue3-spinners";
 
@@ -188,6 +191,7 @@ const toaster = useToaster();
 const router = useRouter();
 
 type Selection<D extends DataType> = {
+  modelID: ModelID;
   mode: "predict" | "test";
   task: Task<D, Network>;
   // same as in validation store but not undef
@@ -242,11 +246,24 @@ function formatByteSize(size: number): string {
   }).format(size);
 }
 
+// incremented on every selection and on unmount, so that a selection
+// finishing late knows its model isn't wanted anymore
+let selectionID = 0;
+
+onUnmounted(() => {
+  selectionID++;
+  selection.value?.model.dispose();
+  selection.value = undefined;
+});
+
 onActivated(() => {
   // handle test after training or from library
   // TODO encode model ID inside the URL instead of relying on store
-  if (validationStore.modelID !== undefined)
-    void selectModel(validationStore.modelID, "test");
+  const { modelID } = validationStore;
+  // keep the current selection, a test or an inference may still be running
+  // on it since the page was left
+  if (modelID !== undefined && modelID !== selection.value?.modelID)
+    void selectModel(modelID, "test");
 });
 
 async function downloadModel(task: Task<DataType, Network>): Promise<void> {
@@ -265,8 +282,12 @@ async function downloadModel(task: Task<DataType, Network>): Promise<void> {
       getAggregator(task),
     );
     const model = await client.getLatestModel();
-
-    await models.add(task.id, model);
+    // the store keeps an encoded copy
+    try {
+      await models.add(task.id, model);
+    } finally {
+      model.dispose();
+    }
   } catch (e) {
     debug("while downloading model: %o", e);
     toaster.error("Something went wrong, please try again later.");
@@ -288,8 +309,15 @@ async function selectModel(
   modelID: ModelID,
   mode: "predict" | "test",
 ): Promise<void> {
+  const id = ++selectionID;
+  // decoded for us, so it's ours to dispose
   const model = await models.get(modelID);
   if (model === undefined) throw new Error("model ID not present in store");
+  // a newer selection started or the page was unmounted in the meantime
+  if (id !== selectionID) {
+    model.dispose();
+    return;
+  }
 
   const taskID = models.infos.get(modelID)?.taskID;
   if (taskID === undefined) throw new Error("task ID for model ID not found");
@@ -298,10 +326,14 @@ async function selectModel(
   const task = tasks.value.get(taskID);
   if (task === undefined) throw new Error("task not found");
 
-  selection.value = { mode, model, task };
+  const previous = selection.value;
+  selection.value = { modelID, mode, model, task };
   validationStore.mode = mode;
   validationStore.modelID = modelID;
   validationStore.step = 1;
+  // once re-rendered, the steps using the previous model are unmounted
+  await nextTick();
+  previous?.model.dispose();
 }
 
 function removeModel(modelID: ModelID): void {

@@ -68,12 +68,15 @@ export class WeightsContainer {
     fn: (a: tf.Tensor, b: tf.Tensor) => tf.Tensor,
   ): WeightsContainer {
     return new WeightsContainer(
-      this._weights
-        .zip(other._weights)
-        .map(([w1, w2]) => fn(w1, w2 as tf.Tensor<tf.Rank>)),
+      this._weights.zip(other._weights).map(([w1, w2]) => {
+        const mapped = fn(w1, w2 as tf.Tensor<tf.Rank>);
+        // `fn` may return one of its inputs, in which case we clone it
+        return mapped === w1 || mapped === w2 ? mapped.clone() : mapped;
+      }),
     );
   }
 
+  // The result never aliases the container's weights.
   map(fn: (t: tf.Tensor, i: number) => tf.Tensor): WeightsContainer;
   map(fn: (t: tf.Tensor) => tf.Tensor): WeightsContainer;
   map(
@@ -81,11 +84,26 @@ export class WeightsContainer {
       | ((t: tf.Tensor) => tf.Tensor)
       | ((t: tf.Tensor, i: number) => tf.Tensor),
   ): WeightsContainer {
-    return new WeightsContainer(this._weights.map(fn));
+    return new WeightsContainer(
+      this._weights.map((t, i) => {
+        const mapped = fn(t, i);
+        // `fn` may return its input (e.g. `map((t) => t)`) in which case we clone it
+        return mapped === t ? t.clone() : mapped;
+      }),
+    );
   }
 
+  /**
+   * Folds the weights with the given binary operator.
+   * Intermediate accumulators are disposed, only the final one is kept.
+   * The result never aliases the container's weights.
+   */
   reduce(fn: (acc: tf.Tensor, t: tf.Tensor) => tf.Tensor): tf.Tensor {
-    return this._weights.reduce(fn);
+    return tf.tidy(() => {
+      const reduced = this._weights.reduce(fn);
+      // a single weight is returned as is by `List.reduce`, and `fn` may return one of its inputs
+      return this._weights.includes(reduced) ? reduced.clone() : reduced;
+    });
   }
 
   /**
@@ -97,17 +115,44 @@ export class WeightsContainer {
     return this._weights.get(index);
   }
 
+  /**
+   * Concatenates this weights container with another one.
+   * @returns A new weights container holding clones of both containers' weights
+   */
   concat(other: WeightsContainer): WeightsContainer {
-    return WeightsContainer.of(...this.weights, ...other.weights);
+    return new WeightsContainer(
+      this._weights.concat(other._weights).map((t) => t.clone()),
+    );
   }
 
-  equals(other: WeightsContainer, margin = 0): boolean {
-    return this._weights
-      .zip(other._weights)
-      .every(
-        ([w1, w2]) =>
-          w1.sub(w2).abs().lessEqual(margin).all().dataSync()[0] === 1,
-      );
+  /**
+   * Checks that both containers hold weights of the same shapes, entry-wise
+   * equal up to the given margin.
+   */
+  async equals(other: WeightsContainer, margin = 0): Promise<boolean> {
+    if (this._weights.size !== other._weights.size) return false;
+    const pairs = this._weights.zip(other._weights) as List<
+      [tf.Tensor, tf.Tensor]
+    >;
+    // otherwise sub would broadcast
+    if (!pairs.every(([w1, w2]) => tf.util.arraysEqual(w1.shape, w2.shape)))
+      return false;
+    if (pairs.isEmpty()) return true;
+
+    const allClose = tf.tidy(() =>
+      tf
+        .stack(
+          pairs
+            .map(([w1, w2]) => w1.sub(w2).abs().lessEqual(margin).all())
+            .toArray(),
+        )
+        .all(),
+    );
+    try {
+      return (await allClose.data())[0] === 1;
+    } finally {
+      allClose.dispose();
+    }
   }
 
   dispose(): void {

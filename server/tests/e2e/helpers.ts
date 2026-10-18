@@ -158,7 +158,8 @@ export class Participant<D extends DataType, N extends Network> {
     );
     this.#syncedModel = new Promise((resolve) =>
       this.disco.on("modelSynced", (weights) => {
-        if (weights !== undefined) resolve(weights);
+        // the event only lends the weights
+        if (weights !== undefined) resolve(weights.clone());
       }),
     );
 
@@ -232,6 +233,7 @@ export class Participant<D extends DataType, N extends Network> {
       await this.disco.close();
     } finally {
       this.modelsAtRoundBoundary.dispose();
+      void this.#syncedModel.then((weights) => weights.dispose());
     }
   }
 }

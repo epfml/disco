@@ -1,4 +1,5 @@
 import { List } from "immutable";
+import * as tf from "@tensorflow/tfjs";
 import { describe, expect, it } from "vitest";
 
 import type { DataFormat } from "#types/index";
@@ -44,5 +45,15 @@ describe("gpt-tfjs", () => {
     const output = tokenizer.decode([outputToken]);
 
     expect(input + output).equal(data); // Assert that the model completes 'Lorem ipsum dolor' with 'sit'
+  });
+
+  it("frees all its tensors on dispose", () => {
+    const baseline = tf.memory().numTensors;
+
+    const model = new GPT({ modelType: "gpt-nano", contextLength: 8 });
+    // the shared token embedding and the attention masks must be freed too
+    model.dispose();
+
+    expect(tf.memory().numTensors).to.equal(baseline);
   });
 });
