@@ -124,7 +124,7 @@ pnpm -F webapp run test:e2e:decentralized
 ```
 
 The local command runs both Titanic and LUS COVID with a mocked server.
-The decentralized command runs MNIST across Chrome and Firefox participants with a real server; install Chrome and Firefox (plus `xvfb` and `xauth` on headless Linux).
+The decentralized command runs MNIST across Chrome, Edge and Firefox participants with a real server; install Chrome, Edge and Firefox (plus `xvfb` and `xauth` on headless Linux).
 Both commands start and stop their servers and Vite automatically.
 
 Federated training tests run in separate CI jobs for Titanic and LUS COVID.

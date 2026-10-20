@@ -159,7 +159,7 @@ jobs:
   test-e2e-decentralized:
     name: decentralized webapp (mnist)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node

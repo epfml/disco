@@ -13,6 +13,7 @@ describe("decentralized webapp training", () => {
     cy.contains("button", "next").click();
 
     cy.contains("button", "group").click();
+    // Train on dummy images from CIFAR10, this test doesn't care about actual performance
     cy.task<string[]>("readdir", "../datasets/CIFAR10").then((files) =>
       cy
         .contains("h4", "Group label: 0") // dummy labels for now

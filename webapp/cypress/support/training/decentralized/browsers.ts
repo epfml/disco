@@ -48,10 +48,7 @@ const results = browsers.map((browser, index) => {
     {
       detached: true,
       stdio: "pipe",
-      env: {
-        ...process.env,
-        DISCO_TRAINING_E2E: "1",
-      },
+      env: process.env,
     },
   );
   child.stdin.end();
