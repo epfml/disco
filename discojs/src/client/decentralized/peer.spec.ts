@@ -64,7 +64,7 @@ describe("peer", () => {
     assert.deepStrictEqual(receiveds.toArray(), messages.toArray());
   });
 
-  it("drains once the other peer received the message", async () => {
+  it("waits for acks once the other peer received the message", async () => {
     // big enough to be split into chunks and still in transit
     // after leaving the data channel's buffer
     const message = Buffer.alloc(4 * 1024 * 1024);
@@ -74,7 +74,7 @@ describe("peer", () => {
     });
 
     peer1.send(message);
-    await peer1.drain();
+    await peer1.waitAcks();
 
     assert.isTrue(received);
   });
@@ -93,7 +93,7 @@ describe("peer", () => {
     });
 
     peer1.send(message);
-    await peer1.drain();
+    await peer1.waitAcks();
     const received = await receivedPromise;
 
     assert.strictEqual(received.length, message.length);
@@ -116,7 +116,7 @@ describe("peer", () => {
     });
 
     peer1.send(message);
-    await peer1.drain();
+    await peer1.waitAcks();
     const received = await receivedPromise;
 
     assert.strictEqual(received.length, message.length);
