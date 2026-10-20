@@ -23,6 +23,7 @@ jobs:
       - run: pnpm -F webapp run test:unit
       - uses: cypress-io/github-action@v7
         with:
+          browser: chrome
           working-directory: webapp
           install: false
           start: pnpm start
