@@ -51,6 +51,8 @@ if (
   );
 
 export default defineConfig({
+  defaultBrowser: process.env.DISCO_E2E_BROWSER,
+
   // Cypress.env() is deprecated throw; use cy.env() for sensitive values
   // and Cypress.expose() otherwise
   // allowCypressEnv will be removed in v16.0 so delete this line at that point
