@@ -250,7 +250,7 @@ export class Peer extends EventEmitter<EventPayloads> {
     }
   }
 
-  get maxChunkSize(): number {
+  private get maxChunkSize(): number {
     return this.pc.sctp?.maxMessageSize || SAFE_MAX_MESSAGE_SIZE;
   }
 
@@ -299,7 +299,7 @@ export class Peer extends EventEmitter<EventPayloads> {
   // Resolves once every message sent so far has been received,
   // as destroying the peer drops whatever is still in transit.
   // Gives up after a while in case the other peer is gone.
-  async waitAcks(): Promise<void> {
+  public async drain(): Promise<void> {
     const deadline = Date.now() + MAX_DRAIN_TIME;
     while (
       !this.isDestroyed &&
