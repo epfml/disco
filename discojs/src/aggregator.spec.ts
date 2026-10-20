@@ -4,13 +4,20 @@ import {
   type Aggregator,
   MeanAggregator,
   SecureAggregator,
+  ByzantineRobustAggregator,
+  PercentileClippingAggregator,
 } from "#aggregator/index";
 import type { NodeID } from "#client/index";
 import { WeightsContainer } from "#weights/index";
 
 const AGGREGATORS: Set<[name: string, new () => Aggregator]> = Set.of<
   new () => Aggregator
->(MeanAggregator, SecureAggregator).map((Aggregator) => [
+>(
+  MeanAggregator,
+  SecureAggregator,
+  ByzantineRobustAggregator,
+  PercentileClippingAggregator,
+).map((Aggregator) => [
   // MeanAggregator waits for 100% of the node's contributions by default
   Aggregator.name,
   Aggregator,
@@ -122,11 +129,15 @@ export async function communicate<A extends Aggregator>(
       if (contribution === undefined)
         throw new Error(`no contribution for ${id}`);
 
-      for (const [to, payload] of agg.makePayloads(contribution))
-        network.get(to)?.add(id, payload.clone(), aggregationRound, r);
+      for (const [to, payload] of agg.makePayloads(contribution)) {
+        network.get(to)?.add(id, payload, aggregationRound, r);
+        payload.dispose();
+      }
     }
 
-    contributions = Map(await Promise.all(nextContributions));
+    const aggregated = Map(await Promise.all(nextContributions));
+    if (r > 0) contributions.forEach((c) => c.dispose());
+    contributions = aggregated;
   }
 
   return contributions;

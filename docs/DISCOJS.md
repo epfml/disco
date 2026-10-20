@@ -204,8 +204,32 @@ async function frobeniusNorm(weights: tf.Tensor): Promise<number> {
 
 #### Ownership conventions
 
-To know who is responsible for disposing a tensor, we follow these conventions:
+Every tensor has exactly one **owner**, who is responsible for disposing it. Code that uses a tensor without owning it only **borrows** it: it must not dispose it, and must not use it after the owner may have disposed it.
 
-1. A function does not dispose its inputs, the caller remains responsible for them.
-2. A function returning tensors (or a `WeightsContainer`) transfers their ownership to the caller, who has to dispose them.
-3. Returned tensors must not alias the inputs (e.g., return `input.clone()` rather than `input`), otherwise disposing one would dispose the other.
+| Situation                                                                              | Who owns the tensor                                               |
+| -------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Arguments passed to a function or method                                               | The caller: the callee borrows them and must not dispose them     |
+| Tensors returned by a function or method                                               | The caller, who has to dispose them                               |
+| Tensors returned by a getter (`model.weights`, `weightsContainer.weights`, `.get(i)`)  | The object: the caller borrows them and must not dispose them     |
+| Tensors passed to a constructor or wrapper (`new WeightsContainer(tensors)`)           | The new object, which disposes them in its own `dispose()`        |
+| Tensors kept by an object beyond a call (stored in a field, a map, an aggregator, ...) | The object, which must store a `clone()` rather than the argument |
+| Tensors emitted in an event (e.g. the aggregator's `"aggregation"` event)              | The listener that consumes them: there must be exactly one        |
+| Objects handed over explicitly (e.g. `trainer.releaseModel()`)                         | The caller, the previous owner forgets its reference              |
+
+#### Using memory efficiently
+
+In the browser, a tab can only use a limited amount of memory, and models such as GPT are large. What matters is not only leaks but also **peak memory**, i.e., how many tensors are alive at the same time.
+
+- **`clone()` does not copy data.** A clone shares its buffer with the original, and the buffer is freed once the last tensor referencing it is disposed. Cloning to respect the rules above is therefore cheap.
+- **A clone keeps old values alive.** Assigning new values to a variable (e.g. setting `model.weights`) makes it point to a new buffer, while existing clones keep the old one. A snapshot of the model weights thus costs a full copy of the model as soon as the model is updated. Dispose snapshots as soon as they are not needed anymore.
+- **Setting weights does not copy them either.** After `model.weights = weights`, the model and `weights` share the same buffers: the caller still owns `weights` and can dispose it right away, without affecting the model.
+- **Keep `tf.tidy` scopes short.** `tf.tidy` only disposes intermediate tensors when `fn` returns, so wrapping a whole loop keeps every iteration's intermediates alive until the end. In loops, use one `tf.tidy` per iteration and dispose the accumulator manually:
+
+```ts
+let acc = tf.zeros([10]);
+for (const t of tensors) {
+  const next = tf.tidy(() => acc.add(t.square()));
+  acc.dispose();
+  acc = next;
+}
+```

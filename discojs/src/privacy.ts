@@ -7,10 +7,13 @@ import type { WeightNormHistory } from "#training/types";
 /** Computes the Frobenius norm of the given weights. */
 export async function frobeniusNorm(weights: tf.Tensor): Promise<number> {
   const squaredTensor = tf.tidy(() => weights.square().sum());
-  const squared = await squaredTensor.data();
-  squaredTensor.dispose();
-  if (squared.length !== 1) throw new Error("unexpected weights shape");
-  return Math.sqrt(squared[0]);
+  try {
+    const squared = await squaredTensor.data();
+    if (squared.length !== 1) throw new Error("unexpected weights shape");
+    return Math.sqrt(squared[0]);
+  } finally {
+    squaredTensor.dispose();
+  }
 }
 
 /** ALDP-FL implementation */
@@ -55,8 +58,12 @@ export async function addOptimalNoise(
   const clippedWeights = await clipNorm(weightUpdates, clippingRadius);
 
   try {
-    return clippedWeights.map((w, i) =>
-      tf.tidy(() => w.add(tf.randomNormal(w.shape, 0, sigmas[i]))),
+    return new WeightsContainer(
+      tf.tidy(() =>
+        clippedWeights.weights.map((w, i) =>
+          w.add(tf.randomNormal(w.shape, 0, sigmas[i])),
+        ),
+      ),
     );
   } finally {
     clippedWeights.dispose();
@@ -80,19 +87,18 @@ export async function clipNorm(
       `radius length mismatch: got ${radius.length}, expected ${layers.length}`,
     );
 
+  // Check the invalid radius value
+  if (radius.some((r) => !Number.isFinite(r) || r <= 0))
+    throw new Error("Invalid radius value");
+
+  // Compute every norm before allocating any clipped tensor so that a failure
+  // doesn't leave already clipped layers behind
+  const norms = await Promise.all(layers.map(frobeniusNorm));
+
   /** Apply different clipping radius to each layer in the WeightsContainer */
-  const clipped = await Promise.all(
-    layers.map(async (l, i) => {
-      const norm = await frobeniusNorm(l);
-      const r = radius[i];
-
-      // Check the invalid radius value
-      if (!Number.isFinite(r) || r <= 0)
-        throw new Error("Invalid radius value");
-      const scaling = Math.max(1, norm / r);
-      return l.div(scaling);
-    }),
+  return new WeightsContainer(
+    tf.tidy(() =>
+      layers.map((l, i) => l.div(Math.max(1, norms[i] / radius[i]))),
+    ),
   );
-
-  return new WeightsContainer(clipped);
 }

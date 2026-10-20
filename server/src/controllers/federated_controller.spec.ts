@@ -6,6 +6,7 @@ import {
   weightsDecode,
   weightsEncode,
 } from "@epfml/discojs";
+import * as msgpack from "@msgpack/msgpack";
 import { assert, describe, expect, it, vi } from "vitest";
 import { FederatedController } from "../../src/controllers/federated_controller.js";
 import type { FederatedFakeWebSocket } from "../../tests/fake_websocket.js";
@@ -103,7 +104,7 @@ async function wait(ms: number): Promise<void> {
  * @param expected The expected values for the NewFederatedNodeInfo message.
  * @returns The checked NewFederatedNodeInfo message.
  */
-function checkFederatedNodeInfo(
+async function checkFederatedNodeInfo(
   ws: FederatedFakeWebSocket,
   expected: {
     round: number;
@@ -112,7 +113,7 @@ function checkFederatedNodeInfo(
     payload: WeightsContainer | null;
     id?: string;
   },
-): federatedMessages.NewFederatedNodeInfo {
+): Promise<federatedMessages.NewFederatedNodeInfo> {
   const nodeInfo = expectLastMessageOfType(
     ws,
     MessageTypes.NewFederatedNodeInfo,
@@ -131,7 +132,9 @@ function checkFederatedNodeInfo(
     expect(nodeInfo.payload).toBeNull();
   } else {
     assert.exists(nodeInfo.payload, "no weights sent to a mid-training joiner");
-    expect(weightsDecode(nodeInfo.payload).equals(expected.payload)).toBe(true);
+    expect(await weightsDecode(nodeInfo.payload).equals(expected.payload)).toBe(
+      true,
+    );
   }
 
   return nodeInfo;
@@ -142,14 +145,14 @@ function checkFederatedNodeInfo(
  * @param ws The fake WebSocket instance representing the participant.
  * @param expected The expected values for the ReceiveServerPayload message.
  */
-function checkReceiveServerPayload(
+async function checkReceiveServerPayload(
   ws: FederatedFakeWebSocket,
   expected: {
     weights: WeightsContainer | null;
     round: number;
     nbOfParticipants: number;
   },
-): void {
+): Promise<void> {
   const receivedPayload = expectLastMessageOfType(
     ws,
     MessageTypes.ReceiveServerPayload,
@@ -160,7 +163,7 @@ function checkReceiveServerPayload(
   } else {
     assert.exists(receivedPayload.payload, "no payload received");
     expect(
-      weightsDecode(receivedPayload.payload).equals(expected.weights),
+      await weightsDecode(receivedPayload.payload).equals(expected.weights),
     ).toBe(true);
   }
   expect(receivedPayload.round).toBe(expected.round);
@@ -177,7 +180,7 @@ describe("Join handshake", () => {
 
     connect(controller, ws);
 
-    checkFederatedNodeInfo(ws, {
+    await checkFederatedNodeInfo(ws, {
       round: 0,
       nbOfParticipants: 1,
       waitForMoreParticipants: true,
@@ -215,7 +218,7 @@ describe("Join handshake", () => {
 
     // The second participant should receive a NewFederatedNodeInfo message with waitForMoreParticipants=false
     // but not have received an EnoughParticipants message
-    const newNodeInfo2 = checkFederatedNodeInfo(ws2, {
+    const newNodeInfo2 = await checkFederatedNodeInfo(ws2, {
       round: 0,
       nbOfParticipants: 2,
       waitForMoreParticipants: false,
@@ -256,7 +259,7 @@ describe("Join handshake", () => {
 
     // The third participant should have received a NewFederatedNodeInfo message
     // but not a ParticipantsUpdate message
-    checkFederatedNodeInfo(ws3, {
+    await checkFederatedNodeInfo(ws3, {
       round: 0,
       nbOfParticipants: 3,
       waitForMoreParticipants: false,
@@ -284,7 +287,7 @@ describe("Join handshake retry", () => {
     const nodeInfos = messagesOfType(ws, MessageTypes.NewFederatedNodeInfo);
     expect(nodeInfos).toHaveLength(2);
     // Same websocket, so same participant: same id and still alone
-    checkFederatedNodeInfo(ws, {
+    await checkFederatedNodeInfo(ws, {
       round: 0,
       nbOfParticipants: 1,
       waitForMoreParticipants: true,
@@ -336,8 +339,8 @@ describe("Join handshake retry", () => {
 
     // Wait for the messages to be received
     for (const ws of [ws1, ws2]) {
-      await vi.waitFor(() => {
-        checkReceiveServerPayload(ws, {
+      await vi.waitFor(async () => {
+        await checkReceiveServerPayload(ws, {
           weights: MEAN_WEIGHTS_12,
           round: 1,
           nbOfParticipants: 2,
@@ -348,7 +351,7 @@ describe("Join handshake retry", () => {
     ws2.emitMessage({ type: MessageTypes.ClientConnected });
 
     // The newFederatedNodeInfo message should contain the current round and the aggregated weights
-    checkFederatedNodeInfo(ws2, {
+    await checkFederatedNodeInfo(ws2, {
       round: 1,
       nbOfParticipants: 2,
       waitForMoreParticipants: false,
@@ -370,8 +373,8 @@ describe("Join handshake retry", () => {
 
     // The duplicate registration must not have broken aggregation
     for (const ws of [ws1, ws2]) {
-      await vi.waitFor(() => {
-        checkReceiveServerPayload(ws, {
+      await vi.waitFor(async () => {
+        await checkReceiveServerPayload(ws, {
           weights: MEAN_WEIGHTS_12,
           round: 1,
           nbOfParticipants: 2,
@@ -404,8 +407,8 @@ describe("The aggregation mechanism", () => {
     // After both participants have sent their weights, the controller should aggregate them
     // and send the aggregated weights back to both participants
     for (const ws of [ws1, ws2]) {
-      await vi.waitFor(() => {
-        checkReceiveServerPayload(ws, {
+      await vi.waitFor(async () => {
+        await checkReceiveServerPayload(ws, {
           weights: MEAN_WEIGHTS_12,
           round: 1,
           nbOfParticipants: 2,
@@ -457,7 +460,7 @@ describe("The aggregation mechanism", () => {
 
     // Now all participants should receive the aggregated weights
     for (const ws of [ws1, ws2, ws3]) {
-      checkReceiveServerPayload(ws, {
+      await checkReceiveServerPayload(ws, {
         weights: MEAN_WEIGHTS_123,
         round: 1,
         nbOfParticipants: 3,
@@ -492,8 +495,8 @@ describe("The aggregation mechanism", () => {
 
     // Now both participants should receive the aggregated weights
     for (const ws of [ws1, ws2]) {
-      await vi.waitFor(() => {
-        checkReceiveServerPayload(ws, {
+      await vi.waitFor(async () => {
+        await checkReceiveServerPayload(ws, {
           weights: MEAN_WEIGHTS_12,
           round: 1,
           nbOfParticipants: 2,
@@ -520,8 +523,8 @@ describe("The aggregation mechanism", () => {
 
     // Now both participants should receive the aggregated weights for round 0
     for (const ws of [ws1, ws2]) {
-      await vi.waitFor(() => {
-        checkReceiveServerPayload(ws, {
+      await vi.waitFor(async () => {
+        await checkReceiveServerPayload(ws, {
           weights: MEAN_WEIGHTS_12,
           round: 1,
           nbOfParticipants: 2,
@@ -539,7 +542,7 @@ describe("The aggregation mechanism", () => {
 
     // No new aggregation should have occurred for round 10
     for (const ws of [ws1, ws2]) {
-      checkReceiveServerPayload(ws, {
+      await checkReceiveServerPayload(ws, {
         weights: MEAN_WEIGHTS_12,
         round: 1,
         nbOfParticipants: 2,
@@ -561,8 +564,8 @@ describe("The aggregation mechanism", () => {
 
     // Make sure the two participants received the aggregated weights for round 0
     for (const ws of [ws1, ws2]) {
-      await vi.waitFor(() => {
-        checkReceiveServerPayload(ws, {
+      await vi.waitFor(async () => {
+        await checkReceiveServerPayload(ws, {
           weights: MEAN_WEIGHTS_12,
           round: 1,
           nbOfParticipants: 2,
@@ -575,8 +578,8 @@ describe("The aggregation mechanism", () => {
 
     // The third participant contributes its weights for round 0 late
     await contribute(ws3, DUMMY_WEIGHTS_3, 0);
-    await vi.waitFor(() => {
-      checkReceiveServerPayload(ws3, {
+    await vi.waitFor(async () => {
+      await checkReceiveServerPayload(ws3, {
         weights: MEAN_WEIGHTS_12,
         round: 1,
         nbOfParticipants: 3,
@@ -598,8 +601,8 @@ describe("The aggregation mechanism", () => {
 
     // Wait for both participants to receive the aggregated weights
     for (const ws of [ws1, ws2]) {
-      await vi.waitFor(() => {
-        checkReceiveServerPayload(ws, {
+      await vi.waitFor(async () => {
+        await checkReceiveServerPayload(ws, {
           weights: MEAN_WEIGHTS_12,
           round: 1,
           nbOfParticipants: 2,
@@ -612,7 +615,7 @@ describe("The aggregation mechanism", () => {
     connect(controller, ws3);
 
     // The third participant should receive the latest global weights (mean of ws1 and ws2)
-    checkFederatedNodeInfo(ws3, {
+    await checkFederatedNodeInfo(ws3, {
       round: 1,
       nbOfParticipants: 3,
       waitForMoreParticipants: false,
@@ -657,9 +660,9 @@ describe("The aggregation mechanism", () => {
     await contribute(ws1, DUMMY_WEIGHTS_1, 0);
     await contribute(ws2, DUMMY_WEIGHTS_2, 0);
 
-    await vi.waitFor(() => {
+    await vi.waitFor(async () => {
       // ws1 should have received the aggregated weights for round 0
-      checkReceiveServerPayload(ws1, {
+      await checkReceiveServerPayload(ws1, {
         weights: MEAN_WEIGHTS_12,
         round: 1,
         nbOfParticipants: 2,
@@ -688,8 +691,8 @@ describe("The departure mechanism of a participant", () => {
     await contribute(ws2, DUMMY_WEIGHTS_2, 0);
 
     for (const ws of [ws1, ws2]) {
-      await vi.waitFor(() => {
-        checkReceiveServerPayload(ws, {
+      await vi.waitFor(async () => {
+        await checkReceiveServerPayload(ws, {
           weights: MEAN_WEIGHTS_12,
           round: 1,
           nbOfParticipants: 2,
@@ -790,8 +793,8 @@ describe("The departure mechanism of a participant", () => {
     await contribute(ws3, DUMMY_WEIGHTS_2, 0);
 
     for (const ws of [ws1, ws3]) {
-      await vi.waitFor(() => {
-        checkReceiveServerPayload(ws, {
+      await vi.waitFor(async () => {
+        await checkReceiveServerPayload(ws, {
           weights: MEAN_WEIGHTS_12,
           round: 1,
           nbOfParticipants: 2,
@@ -830,7 +833,7 @@ describe("The departure mechanism of a participant", () => {
     connect(controller, ws3);
 
     // The received lastGlobalModel should be the initial model since the controller has been reset
-    checkFederatedNodeInfo(ws3, {
+    await checkFederatedNodeInfo(ws3, {
       round: 0,
       nbOfParticipants: 1,
       waitForMoreParticipants: true,
@@ -891,5 +894,165 @@ describe("The departure mechanism of a participant", () => {
         ).toHaveLength(1);
       });
     }
+  });
+});
+
+describe("Crashing a participant", () => {
+  /** Checks that the server told a participant to crash, then disconnected it */
+  async function expectCrashed(ws: FederatedFakeWebSocket): Promise<void> {
+    expectLastMessageOfType(ws, MessageTypes.CrashClient);
+    await vi.waitFor(() => {
+      expect(ws.nbOfTerminations).toBe(1);
+    });
+  }
+
+  /** Checks that a participant was told it is now alone */
+  async function expectToWaitAlone(ws: FederatedFakeWebSocket): Promise<void> {
+    await vi.waitFor(() => {
+      expect(
+        expectLastMessageOfType(ws, MessageTypes.WaitingForMoreParticipants)
+          .nbOfParticipants,
+      ).toBe(1);
+    });
+    expect(ws.nbOfTerminations).toBe(0);
+  }
+
+  it("disconnects a participant contributing without having connected", async () => {
+    const controller = await makeController(2);
+    const ws = makeFederatedFakeWebSocket();
+
+    controller.handle(ws); // never sends ClientConnected
+    await contribute(ws, DUMMY_WEIGHTS_1, 0);
+
+    await expectCrashed(ws);
+  });
+
+  it("disconnects a participant resending ClientConnected too many times", async () => {
+    const controller = await makeController(2);
+    const ws1 = makeFederatedFakeWebSocket();
+    const ws2 = makeFederatedFakeWebSocket();
+
+    connect(controller, ws1);
+    connect(controller, ws2);
+    for (let i = 0; i < FederatedController.MAX_CLIENT_CONNECTION_RETRY; i++)
+      ws1.emitMessage({ type: MessageTypes.ClientConnected });
+
+    await expectCrashed(ws1);
+    await expectToWaitAlone(ws2);
+  });
+
+  it("disconnects a participant contributing for a future round", async () => {
+    const controller = await makeController(2);
+    const ws1 = makeFederatedFakeWebSocket();
+    const ws2 = makeFederatedFakeWebSocket();
+
+    connect(controller, ws1);
+    connect(controller, ws2);
+    await contribute(ws1, DUMMY_WEIGHTS_1, 10);
+
+    await expectCrashed(ws1);
+    await expectToWaitAlone(ws2);
+  });
+
+  it("disconnects a participant sending an invalid message", async () => {
+    const controller = await makeController(2);
+    const ws1 = makeFederatedFakeWebSocket();
+    const ws2 = makeFederatedFakeWebSocket();
+
+    connect(controller, ws1);
+    connect(controller, ws2);
+    ws1.emit("message", msgpack.encode({ type: "not a message type" }));
+
+    await expectCrashed(ws1);
+    await expectToWaitAlone(ws2);
+  });
+
+  it("disconnects a participant sending an undecodable message", async () => {
+    const controller = await makeController(2);
+    const ws1 = makeFederatedFakeWebSocket();
+    const ws2 = makeFederatedFakeWebSocket();
+
+    connect(controller, ws1);
+    connect(controller, ws2);
+    ws1.emit("message", Buffer.from([0xc1])); // never used msgpack byte
+
+    await expectCrashed(ws1);
+    await expectToWaitAlone(ws2);
+  });
+
+  it("disconnects a participant sending undecodable weights", async () => {
+    const controller = await makeController(2);
+    const ws1 = makeFederatedFakeWebSocket();
+    const ws2 = makeFederatedFakeWebSocket();
+
+    connect(controller, ws1);
+    connect(controller, ws2);
+    ws1.emitMessage({
+      type: MessageTypes.SendPayload,
+      payload: new Uint8Array([1, 2, 3]),
+      round: 0,
+    });
+
+    await expectCrashed(ws1);
+    await expectToWaitAlone(ws2);
+  });
+
+  it("disconnects a participant whose websocket errored", async () => {
+    const controller = await makeController(2);
+    const ws1 = makeFederatedFakeWebSocket();
+    const ws2 = makeFederatedFakeWebSocket();
+
+    connect(controller, ws1);
+    connect(controller, ws2);
+    ws1.emit("error", new Error("socket failure"));
+
+    await vi.waitFor(() => {
+      expect(ws1.nbOfTerminations).toBe(1);
+    });
+    await expectToWaitAlone(ws2);
+  });
+
+  it("disconnects a participant it fails to send messages to", async () => {
+    const controller = await makeController(2);
+    const ws1 = makeFederatedFakeWebSocket();
+    const ws2 = makeFederatedFakeWebSocket();
+    ws2.send = vi.fn((_: unknown, ...args: unknown[]) => {
+      const cb = args.find((arg) => typeof arg === "function");
+      (cb as ((err: Error) => void) | undefined)?.(new Error("send failure"));
+    }) as typeof ws2.send;
+
+    connect(controller, ws1);
+    connect(controller, ws2);
+
+    await vi.waitFor(() => {
+      expect(ws2.nbOfTerminations).toBe(1);
+    });
+    await expectToWaitAlone(ws1);
+  });
+
+  it("aggregates without waiting for a crashed participant", async () => {
+    const controller = await makeController(2);
+    const ws1 = makeFederatedFakeWebSocket();
+    const ws2 = makeFederatedFakeWebSocket();
+    const ws3 = makeFederatedFakeWebSocket();
+
+    connect(controller, ws1);
+    connect(controller, ws2);
+    connect(controller, ws3);
+
+    // ws3 crashes, then the two others contribute
+    await contribute(ws3, DUMMY_WEIGHTS_3, 10);
+    await expectCrashed(ws3);
+    await contribute(ws1, DUMMY_WEIGHTS_1, 0);
+    await contribute(ws2, DUMMY_WEIGHTS_2, 0);
+
+    for (const ws of [ws1, ws2])
+      await vi.waitFor(async () => {
+        await checkReceiveServerPayload(ws, {
+          weights: MEAN_WEIGHTS_12,
+          round: 1,
+          nbOfParticipants: 2,
+        });
+      });
   });
 });

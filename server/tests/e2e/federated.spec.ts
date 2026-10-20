@@ -115,7 +115,7 @@ describe("end-to-end federated", () => {
       expect(lastEpoch.training.accuracy).to.be.greaterThan(0.4);
       expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.4);
     }
-    assert.isTrue(m1.equals(m2) && m2.equals(m3));
+    assert.isTrue((await m1.equals(m2)) && (await m2.equals(m3)));
   });
 
   it("two titanic users reach consensus", { timeout: 50_000 }, async () => {
@@ -143,8 +143,47 @@ describe("end-to-end federated", () => {
       expect(lastEpoch.training.accuracy).to.be.greaterThan(0.4);
       expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.4);
     }
-    assert.isTrue(m1.equals(m2));
+    assert.isTrue(await m1.equals(m2));
   });
+
+  it(
+    "two titanic users reach consensus with byzantine aggregation",
+    { timeout: 50_000 },
+    async () => {
+      const baseTask = await defaultTasks.titanic.getTask();
+      const task: Task<"tabular", "federated"> = {
+        ...baseTask,
+        trainingInformation: {
+          ...baseTask.trainingInformation,
+          aggregationStrategy: "byzantine",
+          minNbOfParticipants: 2,
+          privacy: {
+            byzantineFaultTolerance: {
+              clippingRadius: 10,
+              maxIterations: 1,
+              beta: 0.9,
+            },
+          },
+        },
+      };
+      const url = await startServer(defaultModels.TitanicClassifier, {
+        ...defaultTasks.titanic,
+        getTask: () => Promise.resolve(task),
+      });
+      const dataset = datasets.loadTitanic();
+
+      const [[m1, l1], [m2, l2]] = await Promise.all([
+        runUser(url, task, dataset),
+        runUser(url, task, dataset),
+      ]);
+
+      for (const lastEpoch of [l1, l2]) {
+        expect(lastEpoch.training.accuracy).to.be.greaterThan(0.4);
+        expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.4);
+      }
+      assert.isTrue(await m1.equals(m2));
+    },
+  );
 
   it("two lus_covid users reach consensus", { timeout: 200_000 }, async () => {
     const task = await defaultTasks.lusCovid.getTask();
@@ -170,7 +209,7 @@ describe("end-to-end federated", () => {
       expect(lastEpoch.training.accuracy).to.be.greaterThan(0.4);
       expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.4);
     }
-    assert.isTrue(m1.equals(m2));
+    assert.isTrue(await m1.equals(m2));
   });
 
   it("two wikitext reach consensus", { timeout: 500_000 }, async () => {
@@ -202,7 +241,7 @@ describe("end-to-end federated", () => {
       runUser(url, task, dataset, false),
       runUser(url, task, dataset, false),
     ]);
-    assert.isTrue(r1[0].equals(r2[0]));
+    assert.isTrue(await r1[0].equals(r2[0]));
   });
 
   /**
@@ -485,7 +524,7 @@ describe("end-to-end federated", () => {
         expect(lastEpoch.training.accuracy).to.be.greaterThan(0.4);
         expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.4);
       }
-      assert.isTrue(m1.equals(m2) && m2.equals(m3));
+      assert.isTrue((await m1.equals(m2)) && (await m2.equals(m3)));
     },
   );
 

@@ -1,9 +1,8 @@
-import { Map } from "immutable";
+import { List, Map } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 
-import type { WeightsContainer } from "#weights/index";
 import type { NodeID } from "#client/types";
-import { avg } from "#weights/index";
+import { avg, WeightsContainer } from "#weights/index";
 
 import { AggregationStep } from "#aggregator/aggregator";
 import type { ThresholdType } from "#aggregator/multiround";
@@ -16,18 +15,29 @@ import { MultiRoundAggregator } from "#aggregator/multiround";
  * This class implements Centered Clipping (Algorithm 1) with an additional
  * server-side per-client momentum mechanism inspired by Algorithm 2.
  *
- * We initialize using the mean of contributions when no previous
- * aggregate exists. This improves convergence compared to zero initialization.
- *
- * NOTE:
- * - Momentum:
- *     m_i^t = (1 - β) g_i^t + β m_i^{t-1}
- * - Aggregation is then performed on {m_i}
+ * The paper aggregates gradients while Disco nodes send their model weights.
+ * We thus turn each contribution w_i into an update g_i = w_i - w^{t-1},
+ * where w^{t-1} is the previous aggregate (the global model
+ * every node started the round from).
+ * The returned aggregate is w^{t-1} + v^t, 
+ * with v^t = CC(m^t)
+ * Momentum: m_i^t = (1 - β) g_i^t + β m_i^{t-1}
+ 
+ * Initializations:
+ * - m_i^t is initialized to m_i = g_i the first time node i contributes.
+ *   If init to 0 then the next round momentum is damped by (1 - β)
+ * - Centered Clipping is then performed on {m_i}, starting from
+ *   the previous aggregated momentum v^{t-1} as its center
+ * - CC previous aggregated momentum is initialized to 0 at first.
+ * - At the first round, no previous aggregate exists yet: Centered Clipping is
+ *   performed on the weights directly, starting from their mean, without momentum.
  *
  * WARNING:
  * This implementation requires stable client identities and is not
  * compatible with secure aggregation, since per-client momentum
  * must be tracked on the server.
+ * Contributions from previous rounds (when roundCutoff > 0) are compared
+ * to the latest aggregate rather than to the model they started from.
  *
  * Use Case:
  *
@@ -46,7 +56,10 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
   private readonly maxIterations: number;
   private readonly beta: number;
   private historyMomentums: Map<NodeID, WeightsContainer> = Map();
+  // previous aggregate w^{t-1}, the reference model to compute updates from
   private prevAggregate: WeightsContainer | null = null;
+  // previous aggregated momentum v^{t-1}, the initial center of Centered Clipping
+  private prevAggregateMomentum: WeightsContainer | null = null;
 
   /** 
   @property clippingRadius The clipping threshold (λ) used to limit the influence of outlier updates.
@@ -91,25 +104,20 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
   }
 
   override _add(nodeId: NodeID, contribution: WeightsContainer): void {
+    const previous = this.contributions.getIn([0, nodeId]) as
+      | WeightsContainer
+      | undefined;
     this.log(
-      this.contributions.hasIn([0, nodeId])
-        ? AggregationStep.UPDATE
-        : AggregationStep.ADD,
+      previous !== undefined ? AggregationStep.UPDATE : AggregationStep.ADD,
       nodeId,
     );
-
-    const prevMomentum = this.historyMomentums.get(nodeId);
-    const newMomentum = prevMomentum
-      ? contribution.mapWith(prevMomentum, (g, m) =>
-          g.mul(1 - this.beta).add(m.mul(this.beta)),
-        )
-      : contribution.map((g) => g.mul(1 - this.beta));
-
-    const historyMomentum = newMomentum.clone();
-    prevMomentum?.dispose();
-
-    this.historyMomentums = this.historyMomentums.set(nodeId, historyMomentum);
-    this.contributions = this.contributions.setIn([0, nodeId], newMomentum);
+    // Momentums are only updated when aggregating, so that
+    // a node updating its contribution doesn't count twice
+    previous?.dispose();
+    this.contributions = this.contributions.setIn(
+      [0, nodeId],
+      contribution.clone(),
+    );
   }
 
   override aggregate(): WeightsContainer {
@@ -119,66 +127,132 @@ export class ByzantineRobustAggregator extends MultiRoundAggregator {
 
     this.log(AggregationStep.AGGREGATE);
 
+    // Forget the momentums of nodes that are no longer part of the aggregation
+    this.historyMomentums
+      .filter((_, nodeId) => !this.nodes.has(nodeId))
+      .forEach((momentum) => momentum.dispose());
+    this.historyMomentums = this.historyMomentums.filter((_, nodeId) =>
+      this.nodes.has(nodeId),
+    );
+
+    const reference = this.prevAggregate;
+    if (reference === null) {
+      // first round: no reference model to compute updates from
+      // so only apply centered clipping and
+      // return their average without momentum
+      const contributions = List(currentContributions.values());
+      const center = avg(contributions);
+      // CC on weights with center set to their average
+      const aggregate = this.centeredClipping(contributions, center);
+      center.dispose();
+
+      this.prevAggregate = aggregate.clone();
+      return aggregate;
+    }
+
+    // Step 1: Update each node's momentum with its model update
+    currentContributions.forEach((weights, nodeId) => {
+      const update = weights.sub(reference);
+      const prevMomentum = this.historyMomentums.get(nodeId);
+      if (prevMomentum === undefined) {
+        // second round, momentum init to first update
+        this.historyMomentums = this.historyMomentums.set(nodeId, update);
+        return;
+      }
+      // update momentum with an exponential moving average starting round 2
+      const momentum = update.mapWith(prevMomentum, (g, m) =>
+        tf.tidy(() => g.mul(1 - this.beta).add(m.mul(this.beta))),
+      );
+      update.dispose();
+      prevMomentum.dispose();
+      this.historyMomentums = this.historyMomentums.set(nodeId, momentum);
+    });
+    const momentums = List(currentContributions.keys()).map((nodeId) => {
+      const momentum = this.historyMomentums.get(nodeId);
+      if (momentum === undefined) throw new Error("missing node momentum");
+      return momentum;
+    });
+
+    // Step 2: Centered Clipping of the momentums around the previous aggregated momentum
+    const center =
+      this.prevAggregateMomentum ?? reference.map((w) => tf.zerosLike(w));
+    // CC on momentums with center set to last round's value
+    const aggregateMomentum = this.centeredClipping(momentums, center); // v^t = CC(m^t)
+    if (center !== this.prevAggregateMomentum) center.dispose();
+
+    // Step 3: Apply the aggregated update and update history
+    const aggregate = reference.add(aggregateMomentum); // w^{t-1} + v^t
+    this.prevAggregateMomentum?.dispose();
+    this.prevAggregateMomentum = aggregateMomentum;
+    // Keep our own copy, the returned aggregate is owned (and disposed) by the caller
+    reference.dispose();
+    this.prevAggregate = aggregate.clone();
+    return aggregate;
+  }
+
+  /**
+   * Iterative Centered Clipping of the given points, starting from `center`.
+   * Neither the points nor the center are disposed.
+   */
+  private centeredClipping(
+    points: List<WeightsContainer>,
+    center: WeightsContainer,
+  ): WeightsContainer {
     // If clipping radius is infinite, fall back to simple mean
-    if (!isFinite(this.clippingRadius)) {
-      return avg(currentContributions.values());
-    }
+    if (!isFinite(this.clippingRadius)) return avg(points);
 
-    // Step 1: Initialize v using previous aggregate or mean of contributions
-    let v: WeightsContainer;
-    if (this.prevAggregate) {
-      v = this.prevAggregate.map((t) => tf.clone(t)); // Clone to avoid in-place modifications
-    } else {
-      v = avg(currentContributions.values());
-    }
-
-    const eps = tf.scalar(1e-12);
-    const one = tf.scalar(1);
-    const radius = tf.scalar(this.clippingRadius);
-
-    // Step 2: Iterative Centered Clipping
+    let v = center.clone(); // Clone to avoid in-place modifications
     for (let l = 0; l < this.maxIterations; l++) {
-      const clippedDiffs = Array.from(currentContributions.values()).map(
-        (m) => {
-          const diff = m.sub(v);
-
-          const norm = euclideanNorm(diff);
-
-          const safeNorm = tf.maximum(norm, eps);
-
-          const scale = tf.minimum(one, tf.div(radius, safeNorm));
-
-          const clipped = diff.mul(scale);
-
-          norm.dispose();
-          safeNorm.dispose();
-          scale.dispose();
-
-          return clipped;
-        },
+      // Clip one point at a time so that the unclipped diff is freed
+      // right away rather than keeping all of them alive until the end
+      const clippedDiffs = points.map(
+        (m) =>
+          new WeightsContainer(
+            tf.tidy(() => {
+              const diff = m.sub(v);
+              const safeNorm = tf.maximum(euclideanNorm(diff), 1e-12);
+              const scale = tf.minimum(
+                1,
+                tf.div(this.clippingRadius, safeNorm),
+              );
+              return diff.mul(scale).weights;
+            }),
+          ),
       );
 
       const avgClip = avg(clippedDiffs);
-      const newV = v.add(avgClip);
-
       clippedDiffs.forEach((d) => d.dispose());
+      const newV = v.add(avgClip);
+      avgClip.dispose();
 
-      const oldV = v;
+      v.dispose();
       v = newV;
-      oldV.dispose();
     }
 
-    tf.dispose([eps, one, radius]);
-    // Step 3: Update history
-    this.prevAggregate = v;
     return v;
+  }
+
+  override removeNode(nodeId: NodeID): void {
+    super.removeNode(nodeId);
+    this.historyMomentums.get(nodeId)?.dispose();
+    this.historyMomentums = this.historyMomentums.delete(nodeId);
+  }
+
+  override dispose(): void {
+    this.historyMomentums.forEach((momentum) => momentum.dispose());
+    this.historyMomentums = Map();
+    this.prevAggregate?.dispose();
+    this.prevAggregate = null;
+    this.prevAggregateMomentum?.dispose();
+    this.prevAggregateMomentum = null;
+    super.dispose();
   }
 
   override makePayloads(
     weights: WeightsContainer,
   ): Map<NodeID, WeightsContainer> {
     // Communicate our local weights to every other node, be it a peer or a server
-    return this.nodes.toMap().map(() => weights);
+    return this.nodes.toMap().map(() => weights.clone());
   }
 }
 
