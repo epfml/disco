@@ -10,7 +10,7 @@ export class Packet {
     public readonly chunkID: ChunkID,
     public readonly totalChunks?: number,
     public readonly payload: Buffer = Buffer.alloc(0),
-  ) { }
+  ) {}
 
   // message id size in bytes (uint16)
   static MESSAGE_ID_BYTES = 2;
@@ -82,7 +82,6 @@ export class Packet {
     this.payload.copy(buf, Packet.HEADER_SIZE, 0);
     return buf;
   }
-
 
   static decode(data: Buffer): Packet {
     if (!Buffer.isBuffer(data) || data.length < Packet.HEADER_SIZE) {
