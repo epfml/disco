@@ -120,16 +120,32 @@ the workspace with `pnpm -r run build`, and fetch the datasets with
 
 ```sh
 pnpm -F webapp run test:e2e:local
+pnpm -F webapp run test:e2e:federated
 pnpm -F webapp run test:e2e:decentralized
 ```
 
 The local command runs both Titanic and LUS COVID with a mocked server.
+The federated command runs both tasks with a real server and a separate Node
+participant for each task. Locally, it defaults to Firefox because headless Electron
+can stall on the LUS COVID image task without WebGL support; Firefox must therefore
+be installed locally.
 The decentralized command runs MNIST across Chrome, Edge and Firefox participants with a real server; install Chrome, Edge and Firefox (plus `xvfb` and `xauth` on headless Linux).
-Both commands start and stop their servers and Vite automatically.
+All three commands start and stop their servers and Vite automatically.
 
 Federated training tests run in separate CI jobs for Titanic and LUS COVID.
-Each job starts a real server and a Node participant configured for its task;
-see `test-e2e-federated` in `.github/workflows/_test.yml` for the setup.
+Each job starts a real server and a Node participant configured for its task,
+while the package command runs both tasks together; see `test-e2e-federated`
+in `.github/workflows/_test.yml` for the CI setup. CI runs Cypress in its default
+Electron environment under `xvfb`.
+
+##### Test environment variables
+
+The end-to-end training test suite uses the following environment variables:
+
+- `DISCO_TRAINING_E2E`: Set to `1` to include training specs (`cypress/e2e/training/{local,federated,decentralized}/**/*.cy.ts`), which are otherwise excluded by default from the general test suite.
+- `DISCO_SCRIPTED_SERVER_E2E`: Set to `1` to include scripted server specs (`cypress/e2e/training/scripted/**/*.cy.ts`) and resolve the `server` test host to `127.0.0.1`.
+- `DISCO_E2E_FEDERATED_TASK`: Controls which task(s) the federated peer serves and trains: `titanic`, `lus_covid`, or `all` (defaults to `titanic`).
+- `VITE_SERVER_URL`: Sets the DISCO server endpoint that the webapp connects to (e.g., `http://server` for mock tests or `http://localhost:8080` for real server tests).
 
 #### Cypress and Github Actions
 

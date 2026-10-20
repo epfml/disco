@@ -1,10 +1,10 @@
-import { assertNoErrorToast } from "../../../support/training";
+import {
+  assertNoErrorToast,
+  goToTaskOverview,
+} from "../../../support/training";
 
 function goToTitanicTraining(): void {
-  cy.visit("/");
-  cy.contains("a", "Start training").click();
-  cy.get(".driver-popover-close-btn").click();
-  cy.contains("button", "participate").click();
+  goToTaskOverview("titanic");
   cy.contains("button", "next").click();
   cy.get('[data-testid="select-tabular-button"]')
     .first()
