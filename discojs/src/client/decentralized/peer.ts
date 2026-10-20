@@ -7,14 +7,24 @@ import { EventEmitter } from "#utils/event_emitter";
 type MessageID = number;
 type ChunkID = number;
 
-// message id (2 bytes) + chunk counter (4 bytes) + total chunk count (4 bytes)
-const FIRST_HEADER_SIZE = 2 + 4 + 4;
+// helper function to make it evident that the number passed is a chunk id
+const asChunkID = (n: number): ChunkID => n;
+
+// message id size in bytes (uint16)
+const MESSAGE_ID_BYTES = 2;
+// chunk counter size in bytes (uint32)
+const CHUNK_ID_BYTES = 4;
+// total chunk count size in bytes (uint32)
+const TOTAL_CHUNKS_BYTES = 4;
 
 // message id (2 bytes) + chunk counter (4 bytes)
-const HEADER_SIZE = 2 + 4;
+const HEADER_SIZE = MESSAGE_ID_BYTES + CHUNK_ID_BYTES;
+
+// message id (2 bytes) + chunk counter (4 bytes) + total chunk count (4 bytes)
+const FIRST_HEADER_SIZE = HEADER_SIZE + TOTAL_CHUNKS_BYTES;
 
 // chunk counter of an acknowledgement, unused by messages
-const ACK_CHUNK_ID = 0xffff_ffff;
+const ACK_CHUNK_ID: ChunkID = 0xffff_ffff;
 
 // at which interval to poll
 const TICK = 10;
@@ -22,8 +32,99 @@ const TICK = 10;
 // how long to wait for sent messages to be received before giving up
 const MAX_DRAIN_TIME = 10_000;
 
-// Maximum safe SCTP message size supported across browsers (Chrome/Firefox/Node)
-const MAX_TRANSPORT_MESSAGE_SIZE = 262_144; // 256 KiB
+// Fallback SCTP message size per RFC 8841 / WebRTC spec when transport is not yet connected
+const DEFAULT_MAX_MESSAGE_SIZE = 65_536; // 64 KiB
+
+export class Packet {
+  constructor(
+    public readonly messageID: MessageID,
+    public readonly chunkID: ChunkID,
+    public readonly totalChunks?: number,
+    public readonly payload: Buffer = Buffer.alloc(0),
+  ) {}
+
+  get isAck(): boolean {
+    return this.chunkID === ACK_CHUNK_ID;
+  }
+
+  get isFirstChunk(): boolean {
+    return this.chunkID === asChunkID(0);
+  }
+
+  static ack(messageID: MessageID): Packet {
+    return new Packet(messageID, ACK_CHUNK_ID);
+  }
+
+  static firstChunk(
+    messageID: MessageID,
+    totalChunks: number,
+    payload: Buffer,
+  ): Packet {
+    return new Packet(messageID, asChunkID(0), totalChunks, payload);
+  }
+
+  static chunk(
+    messageID: MessageID,
+    chunkID: ChunkID,
+    payload: Buffer,
+  ): Packet {
+    return new Packet(messageID, chunkID, undefined, payload);
+  }
+
+  encode(): Buffer {
+    if (this.isAck) {
+      const buf = Buffer.alloc(HEADER_SIZE);
+      buf.writeUInt16BE(this.messageID, 0);
+      buf.writeUInt32BE(ACK_CHUNK_ID, MESSAGE_ID_BYTES);
+      return buf;
+    }
+
+    if (this.isFirstChunk) {
+      if (this.totalChunks === undefined) {
+        throw new Error("first chunk packet requires totalChunks");
+      }
+      const buf = Buffer.alloc(FIRST_HEADER_SIZE + this.payload.length);
+      buf.writeUInt16BE(this.messageID, 0);
+      buf.writeUInt32BE(asChunkID(0), MESSAGE_ID_BYTES);
+      buf.writeUInt32BE(this.totalChunks, HEADER_SIZE);
+      this.payload.copy(buf, FIRST_HEADER_SIZE, 0);
+      return buf;
+    }
+
+    const buf = Buffer.alloc(HEADER_SIZE + this.payload.length);
+    buf.writeUInt16BE(this.messageID, 0);
+    buf.writeUInt32BE(this.chunkID, MESSAGE_ID_BYTES);
+    this.payload.copy(buf, HEADER_SIZE, 0);
+    return buf;
+  }
+
+  static decode(data: Buffer): Packet {
+    if (!Buffer.isBuffer(data) || data.length < HEADER_SIZE) {
+      throw new Error("received invalid message type");
+    }
+
+    const messageID: MessageID = data.readUInt16BE(0);
+    const chunkID: ChunkID = data.readUInt32BE(MESSAGE_ID_BYTES);
+
+    if (chunkID === ACK_CHUNK_ID) {
+      return Packet.ack(messageID);
+    }
+
+    if (chunkID === asChunkID(0)) {
+      if (data.length < FIRST_HEADER_SIZE) {
+        throw new Error("received invalid message type");
+      }
+      const totalChunks = data.readUInt32BE(HEADER_SIZE);
+      const payload = Buffer.alloc(data.length - FIRST_HEADER_SIZE);
+      data.copy(payload, 0, FIRST_HEADER_SIZE);
+      return Packet.firstChunk(messageID, totalChunks, payload);
+    }
+
+    const payload = Buffer.alloc(data.length - HEADER_SIZE);
+    data.copy(payload, 0, HEADER_SIZE);
+    return Packet.chunk(messageID, chunkID, payload);
+  }
+}
 
 // we can't use the definition in DOM as we're platform independent
 export type SignalData =
@@ -118,7 +219,7 @@ export class Peer extends EventEmitter<EventPayloads> {
     this.channel = channel;
     this.channel.binaryType = "arraybuffer";
     try {
-      this.channel.bufferedAmountLowThreshold = MAX_TRANSPORT_MESSAGE_SIZE;
+      this.channel.bufferedAmountLowThreshold = this.maxChunkSize;
     } catch {
       // Some WebRTC implementations may not support bufferedAmountLowThreshold
     }
@@ -231,9 +332,7 @@ export class Peer extends EventEmitter<EventPayloads> {
   }
 
   private acknowledge(messageID: MessageID): void {
-    const ack = Buffer.alloc(HEADER_SIZE);
-    ack.writeUInt16BE(messageID, 0);
-    ack.writeUInt32BE(ACK_CHUNK_ID, 2);
+    const ack = Packet.ack(messageID).encode();
     this.sendQueue = this.sendQueue.push(ack);
     this.flush();
   }
@@ -272,20 +371,16 @@ export class Peer extends EventEmitter<EventPayloads> {
   }
 
   get maxChunkSize(): number {
-    // 1. Built-in RTCSctpTransport.maxMessageSize from the active connection
     const sctpLimit = this.pc.sctp?.maxMessageSize;
     if (
       typeof sctpLimit === "number" &&
       sctpLimit > 0 &&
       Number.isFinite(sctpLimit)
     ) {
-      // Chromium send limit is 256 KiB (262,144 bytes).
-      // Even if remote peer (like Firefox) advertises 1 GiB, cap at 256 KiB for universal cross-browser reliability.
-      return Math.min(sctpLimit, MAX_TRANSPORT_MESSAGE_SIZE);
+      return sctpLimit;
     }
 
-    // Safe universal default (256 KiB)
-    return MAX_TRANSPORT_MESSAGE_SIZE;
+    return DEFAULT_MAX_MESSAGE_SIZE;
   }
 
   private chunk(b: Buffer): Seq.Indexed<Buffer> {
@@ -313,31 +408,20 @@ export class Peer extends EventEmitter<EventPayloads> {
       );
     }
 
-    const firstChunk = Buffer.alloc(
-      b.length > this.maxChunkSize - FIRST_HEADER_SIZE
-        ? this.maxChunkSize
-        : FIRST_HEADER_SIZE + b.length,
-    );
-    firstChunk.writeUInt16BE(messageID, 0);
-    firstChunk.writeUInt32BE(0, 2);
-    firstChunk.writeUInt32BE(totalChunkCount, 6);
-    b.copy(
-      firstChunk,
-      FIRST_HEADER_SIZE,
+    const firstPayload = b.subarray(
       0,
-      this.maxChunkSize - FIRST_HEADER_SIZE,
+      Math.min(b.length, this.maxChunkSize - FIRST_HEADER_SIZE),
     );
+    const firstChunk = Packet.firstChunk(
+      messageID,
+      totalChunkCount,
+      firstPayload,
+    ).encode();
 
     return Seq.Indexed([firstChunk]).concat(
-      Range(1, Number.POSITIVE_INFINITY)
+      Range(asChunkID(1), Number.POSITIVE_INFINITY)
         .zip(tail)
-        .map(([id, raw]) => {
-          const chunk = Buffer.alloc(HEADER_SIZE + raw.length);
-          chunk.writeUInt16BE(messageID, 0);
-          chunk.writeUInt32BE(id, 2);
-          raw.copy(chunk, HEADER_SIZE, 0);
-          return chunk;
-        }),
+        .map(([id, raw]) => Packet.chunk(messageID, id, raw).encode()),
     );
   }
 
@@ -373,53 +457,44 @@ export class Peer extends EventEmitter<EventPayloads> {
   }
 
   private handleData(data: Buffer): void {
-    if (!Buffer.isBuffer(data) || data.length < HEADER_SIZE) {
-      throw new Error("received invalid message type");
-    }
-    const messageID: MessageID = data.readUInt16BE(0);
-    const chunkID: ChunkID = data.readUInt32BE(2);
-    if (chunkID === ACK_CHUNK_ID) {
-      this.unacknowledged = this.unacknowledged.delete(messageID);
+    const packet = Packet.decode(data);
+    if (packet.isAck) {
+      this.unacknowledged = this.unacknowledged.delete(packet.messageID);
       return;
     }
 
-    const received = this.receiving.get(messageID, {
+    const received = this.receiving.get(packet.messageID, {
       total: undefined,
       chunks: Map<ChunkID, Buffer>(),
     });
     let total = received.total;
     const chunks = received.chunks;
 
-    if (chunks.has(chunkID)) {
-      throw new Error(`chunk ${messageID}:${chunkID} already received`);
+    if (chunks.has(packet.chunkID)) {
+      throw new Error(
+        `chunk ${packet.messageID}:${packet.chunkID} already received`,
+      );
     }
 
-    let chunk: Buffer;
-    if (chunkID !== 0) {
-      chunk = Buffer.alloc(data.length - HEADER_SIZE);
-      data.copy(chunk, 0, HEADER_SIZE);
-    } else {
-      if (data.length < FIRST_HEADER_SIZE) {
-        throw new Error("received invalid message type");
-      }
+    if (packet.isFirstChunk) {
       if (total !== undefined) {
         throw new Error("first header received twice");
       }
-
-      const readTotal = data.readUInt32BE(6);
-      total = readTotal;
-      chunk = Buffer.alloc(data.length - FIRST_HEADER_SIZE);
-      data.copy(chunk, 0, FIRST_HEADER_SIZE);
-
-      if (chunks.keySeq().some((id) => id >= readTotal)) {
+      if (packet.totalChunks === undefined) {
+        throw new Error("first chunk packet missing totalChunks");
+      }
+      const totalLimit = packet.totalChunks;
+      total = totalLimit;
+      if (chunks.keySeq().some((id) => id >= totalLimit)) {
         throw new Error(
           "received total of chunk but got now-out-of-bound chunks",
         );
       }
     }
-    this.receiving = this.receiving.set(messageID, {
+
+    this.receiving = this.receiving.set(packet.messageID, {
       total,
-      chunks: chunks.set(chunkID, chunk),
+      chunks: chunks.set(packet.chunkID, packet.payload),
     });
 
     const readyMessages = this.receiving
