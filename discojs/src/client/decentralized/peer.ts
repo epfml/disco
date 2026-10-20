@@ -22,11 +22,8 @@ const MAX_DRAIN_TIME = 10_000;
 // Fallback SCTP message size per RFC 8841 / WebRTC spec when transport is not yet connected
 const DEFAULT_MAX_MESSAGE_SIZE = 65_536; // 64 KiB
 
-// we can't use the definition in DOM as we're platform independent
 export type SignalData =
-  | { type: "answer" | "offer" | "pranswer" | "rollback"; sdp?: string }
-  | { type: "transceiverRequest"; transceiverRequest: { kind: string } }
-  | { type: "renegotiate"; renegotiate: true }
+  | RTCSessionDescriptionInit
   | { type: "candidate"; candidate: RTCIceCandidateInit };
 
 type EventPayloads = {
