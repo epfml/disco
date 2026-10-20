@@ -70,7 +70,7 @@ export class Peer extends EventEmitter<EventPayloads> {
 
     this.pc.onicecandidate = (event) => {
       if (event.candidate) {
-        const candidate: RTCIceCandidateInit = event.candidate.toJSON()
+        const candidate: RTCIceCandidateInit = event.candidate.toJSON();
         this.emit("signal", { type: "candidate", candidate });
       }
     };
@@ -299,10 +299,11 @@ export class Peer extends EventEmitter<EventPayloads> {
   // Resolves once every message sent so far has been received,
   // as destroying the peer drops whatever is still in transit.
   // Gives up after a while in case the other peer is gone.
-  public async drain(): Promise<void> {
-    const deadline = Date.now() + MAX_DRAIN_TIME;
+  public async drain(timeout: number = MAX_DRAIN_TIME): Promise<void> {
+    const deadline = Date.now() + timeout;
     while (
       !this.isDestroyed &&
+      this.channel?.readyState === "open" &&
       !this.unacknowledged.isEmpty() &&
       Date.now() < deadline
     ) {
@@ -348,7 +349,7 @@ export class Peer extends EventEmitter<EventPayloads> {
     }
 
     // Receive the header message
-    if (packet.isFirstChunk) {  
+    if (packet.isFirstChunk) {
       if (total !== undefined) {
         throw new Error("first header received twice");
       }
@@ -356,8 +357,7 @@ export class Peer extends EventEmitter<EventPayloads> {
       const totalChunks = packet.totalChunks;
       if (totalChunks === undefined) {
         throw new Error("first chunk packet missing totalChunks");
-      }
-      else if (chunks.keySeq().some((id) => id >= totalChunks)) {
+      } else if (chunks.keySeq().some((id) => id >= totalChunks)) {
         throw new Error(
           "received total of chunk but got now-out-of-bound chunks",
         );

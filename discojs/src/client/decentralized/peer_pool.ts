@@ -26,6 +26,9 @@ async function createStaggered<T>(create: () => T): Promise<T> {
   return create();
 }
 
+// Maximum time in ms to wait for pending messages to be delivered and acknowledged during shutdown
+const SHUTDOWN_GRACE_PERIOD = 10_000;
+
 export class PeerPool {
   private peers = Map<NodeID, PeerConnection>();
 
@@ -41,11 +44,12 @@ export class PeerPool {
   async shutdown(): Promise<void> {
     debug(`[${this.id}] is shutting down all its connections`);
 
-    // Add a timeout o.w. the promise hangs forever if the other peer is already disconnected
-    await Promise.race([
-      Promise.all(this.peers.valueSeq().map((peer) => peer.disconnect())),
-      new Promise((res, _) => setTimeout(res, 1000)), // Wait for other peers to finish
-    ]);
+    // Let messages still being sent reach the other peers before closing
+    await Promise.all(
+      this.peers
+        .valueSeq()
+        .map((peer) => peer.disconnect(SHUTDOWN_GRACE_PERIOD)),
+    );
     this.peers = Map();
     this.pendingSignals = Map();
   }
