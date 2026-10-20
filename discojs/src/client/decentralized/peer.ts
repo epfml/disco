@@ -57,7 +57,6 @@ export class Peer extends EventEmitter<EventPayloads> {
   private isDestroyed = false;
   private signalQueue = Promise.resolve();
   private queuedCandidates: RTCIceCandidateInit[] = [];
-  private remoteMaxMessageSize?: number;
 
   private sendCounter: MessageID = 0;
   private sendQueue = List<Buffer>();
@@ -182,7 +181,6 @@ export class Peer extends EventEmitter<EventPayloads> {
       if (signal.sdp === undefined) {
         throw new Error("signal offer without session description");
       }
-      this.extractMaxMessageSize(signal.sdp);
       await this.pc.setRemoteDescription(
         new wrtc.RTCSessionDescription({ type: "offer", sdp: signal.sdp }),
       );
@@ -197,7 +195,6 @@ export class Peer extends EventEmitter<EventPayloads> {
       if (signal.sdp === undefined) {
         throw new Error("signal answer without session description");
       }
-      this.extractMaxMessageSize(signal.sdp);
       await this.pc.setRemoteDescription(
         new wrtc.RTCSessionDescription({ type: "answer", sdp: signal.sdp }),
       );
@@ -210,16 +207,6 @@ export class Peer extends EventEmitter<EventPayloads> {
         );
       } else {
         this.queuedCandidates.push(signal.candidate);
-      }
-    }
-  }
-
-  private extractMaxMessageSize(sdp: string): void {
-    const match = sdp.match(/a=max-message-size:(\d+)/);
-    if (match !== null) {
-      const max = parseInt(match[1], 10);
-      if (!isNaN(max)) {
-        this.remoteMaxMessageSize = max;
       }
     }
   }
@@ -297,12 +284,7 @@ export class Peer extends EventEmitter<EventPayloads> {
       return Math.min(sctpLimit, MAX_TRANSPORT_MESSAGE_SIZE);
     }
 
-    // 2. Fallback to remote SDP if extracted
-    if (this.remoteMaxMessageSize !== undefined) {
-      return Math.min(this.remoteMaxMessageSize, MAX_TRANSPORT_MESSAGE_SIZE);
-    }
-
-    // 3. Safe universal default (256 KiB)
+    // Safe universal default (256 KiB)
     return MAX_TRANSPORT_MESSAGE_SIZE;
   }
 
