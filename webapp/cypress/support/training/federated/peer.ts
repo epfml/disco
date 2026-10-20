@@ -71,9 +71,9 @@ try {
   );
   const [, url] = await server.serve(8080);
 
-  const training: Promise<void>[] = [];
+  const trainings: (() => Promise<void>)[] = [];
   if (taskName === "titanic" || taskName === "all") {
-    training.push(
+    trainings.push(() =>
       train(
         defaultTasks.titanic,
         loadCSV(
@@ -97,9 +97,11 @@ try {
     const negative = (await nodeHalfOfImages(path.join(folder, "COVID-"))).zip(
       Repeat("COVID-Negative"),
     );
-    training.push(train(reducedLusCovidTask, positive.chain(negative), url));
+    trainings.push(() =>
+      train(reducedLusCovidTask, positive.chain(negative), url),
+    );
   }
-  await Promise.all(training);
+  await Promise.all(trainings.map((run) => run()));
 } catch (error) {
   // Take the server down so that the browser fails instead of waiting forever.
   console.error("federated peer failed", error);
