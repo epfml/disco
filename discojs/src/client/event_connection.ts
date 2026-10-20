@@ -201,7 +201,7 @@ export class PeerConnection
 
   // Resolves once the messages sent so far have left the connection
   async drain(): Promise<void> {
-    await this.#peer.drain();
+    await this.#peer.waitAcks();
   }
 
   async disconnect(): Promise<void> {

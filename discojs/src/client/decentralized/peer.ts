@@ -6,10 +6,6 @@ import { EventEmitter } from "#utils/event_emitter";
 import {
   type MessageID,
   type ChunkID,
-  asChunkID,
-  HEADER_SIZE,
-  FIRST_HEADER_SIZE,
-  ACK_CHUNK_ID,
   Packet,
 } from "#client/decentralized/packet";
 
@@ -20,7 +16,7 @@ const TICK = 10;
 const MAX_DRAIN_TIME = 10_000;
 
 // Fallback SCTP message size per RFC 8841 / WebRTC spec when transport is not yet connected
-const DEFAULT_MAX_MESSAGE_SIZE = 65_536; // 64 KiB
+const SAFE_MAX_MESSAGE_SIZE = 65_536;
 
 export type SignalData =
   | RTCSessionDescriptionInit
@@ -53,7 +49,7 @@ export class Peer extends EventEmitter<EventPayloads> {
   private queuedCandidates: RTCIceCandidateInit[] = [];
 
   private sendCounter: MessageID = 0;
-  private sendQueue = List<Buffer>();
+  private sendQueue = List<Packet>();
   private unacknowledged = Set<MessageID>();
 
   private receiving = Map<
@@ -66,7 +62,7 @@ export class Peer extends EventEmitter<EventPayloads> {
 
   constructor(
     public readonly id: NodeID,
-    initiator: boolean = false,
+    isInitiator: boolean = false,
   ) {
     super();
 
@@ -74,28 +70,19 @@ export class Peer extends EventEmitter<EventPayloads> {
 
     this.pc.onicecandidate = (event) => {
       if (event.candidate) {
-        const candidate: RTCIceCandidateInit = event.candidate.toJSON
-          ? event.candidate.toJSON()
-          : {
-              candidate: event.candidate.candidate,
-              sdpMid: event.candidate.sdpMid,
-              sdpMLineIndex: event.candidate.sdpMLineIndex,
-              usernameFragment: event.candidate.usernameFragment,
-            };
+        const candidate: RTCIceCandidateInit = event.candidate.toJSON()
         this.emit("signal", { type: "candidate", candidate });
       }
     };
 
     this.pc.onconnectionstatechange = () => {
-      if (
-        this.pc.connectionState === "failed" ||
-        this.pc.connectionState === "closed"
-      ) {
+      const state = this.pc.connectionState;
+      if (state === "failed" || state === "closed") {
         this.emit("close", undefined);
       }
     };
 
-    if (initiator) {
+    if (isInitiator) {
       const channel = this.pc.createDataChannel("disco");
       this.setupChannel(channel);
       queueMicrotask(() => {
@@ -225,7 +212,7 @@ export class Peer extends EventEmitter<EventPayloads> {
   }
 
   private acknowledge(messageID: MessageID): void {
-    const ack = Packet.ack(messageID).encode();
+    const ack = Packet.ack(messageID);
     this.sendQueue = this.sendQueue.push(ack);
     this.flush();
   }
@@ -250,9 +237,9 @@ export class Peer extends EventEmitter<EventPayloads> {
       const chunk = this.sendQueue.first();
       if (chunk === undefined) break;
 
-      this.sendQueue = this.sendQueue.shift();
       try {
-        (this.channel.send as (data: unknown) => void)(chunk);
+        this.channel.send(chunk.encode() as ArrayBufferView<ArrayBuffer>);
+        this.sendQueue = this.sendQueue.shift();
       } catch (err) {
         this.emit(
           "error",
@@ -264,19 +251,10 @@ export class Peer extends EventEmitter<EventPayloads> {
   }
 
   get maxChunkSize(): number {
-    const sctpLimit = this.pc.sctp?.maxMessageSize;
-    if (
-      typeof sctpLimit === "number" &&
-      sctpLimit > 0 &&
-      Number.isFinite(sctpLimit)
-    ) {
-      return sctpLimit;
-    }
-
-    return DEFAULT_MAX_MESSAGE_SIZE;
+    return this.pc.sctp?.maxMessageSize || SAFE_MAX_MESSAGE_SIZE;
   }
 
-  private chunk(b: Buffer): Seq.Indexed<Buffer> {
+  private chunk(b: Buffer): Seq.Indexed<Packet> {
     const messageID = this.sendCounter;
     this.sendCounter++;
     if (this.sendCounter > 0xffff) {
@@ -284,44 +262,44 @@ export class Peer extends EventEmitter<EventPayloads> {
     }
 
     let tail = Seq.Indexed<Buffer>([]);
-    if (b.length > this.maxChunkSize - FIRST_HEADER_SIZE) {
+    if (b.length > this.maxChunkSize - Packet.FIRST_HEADER_SIZE) {
       tail = Range(
-        this.maxChunkSize - FIRST_HEADER_SIZE,
+        this.maxChunkSize - Packet.FIRST_HEADER_SIZE,
         b.length,
-        this.maxChunkSize - HEADER_SIZE,
+        this.maxChunkSize - Packet.HEADER_SIZE,
       ).map((offset) =>
-        b.subarray(offset, offset + this.maxChunkSize - HEADER_SIZE),
+        b.subarray(offset, offset + this.maxChunkSize - Packet.HEADER_SIZE),
       );
     }
 
     const totalChunkCount = 1 + tail.count();
-    if (totalChunkCount >= ACK_CHUNK_ID) {
+    if (totalChunkCount >= Packet.ACK_CHUNK_ID) {
       throw new Error(
-        `The payload is too big: ${totalChunkCount} chunks exceeds max chunks (${ACK_CHUNK_ID})`,
+        `The payload is too big: ${totalChunkCount} chunks exceeds max chunks (${Packet.ACK_CHUNK_ID})`,
       );
     }
 
     const firstPayload = b.subarray(
       0,
-      Math.min(b.length, this.maxChunkSize - FIRST_HEADER_SIZE),
+      Math.min(b.length, this.maxChunkSize - Packet.FIRST_HEADER_SIZE),
     );
-    const firstChunk = Packet.firstChunk(
+    const headerChunk = Packet.firstChunk(
       messageID,
       totalChunkCount,
       firstPayload,
-    ).encode();
+    );
 
-    return Seq.Indexed([firstChunk]).concat(
-      Range(asChunkID(1), Number.POSITIVE_INFINITY)
+    return Seq.Indexed([headerChunk]).concat(
+      Range(1, Number.POSITIVE_INFINITY)
         .zip(tail)
-        .map(([id, raw]) => Packet.chunk(messageID, id, raw).encode()),
+        .map(([id, raw]) => Packet.chunk(messageID, id, raw)),
     );
   }
 
   // Resolves once every message sent so far has been received,
   // as destroying the peer drops whatever is still in transit.
   // Gives up after a while in case the other peer is gone.
-  async drain(): Promise<void> {
+  async waitAcks(): Promise<void> {
     const deadline = Date.now() + MAX_DRAIN_TIME;
     while (
       !this.isDestroyed &&
@@ -346,7 +324,7 @@ export class Peer extends EventEmitter<EventPayloads> {
     }
 
     this.emit("close", undefined);
-    await Promise.resolve();
+    return Promise.resolve();
   }
 
   private handleData(data: Buffer): void {
@@ -369,20 +347,24 @@ export class Peer extends EventEmitter<EventPayloads> {
       );
     }
 
-    if (packet.isFirstChunk) {
+    // Receive the header message
+    if (packet.isFirstChunk) {  
       if (total !== undefined) {
         throw new Error("first header received twice");
       }
-      if (packet.totalChunks === undefined) {
+
+      const totalChunks = packet.totalChunks;
+      if (totalChunks === undefined) {
         throw new Error("first chunk packet missing totalChunks");
       }
-      const totalLimit = packet.totalChunks;
-      total = totalLimit;
-      if (chunks.keySeq().some((id) => id >= totalLimit)) {
+      else if (chunks.keySeq().some((id) => id >= totalChunks)) {
         throw new Error(
           "received total of chunk but got now-out-of-bound chunks",
         );
       }
+
+      // Set the total number of chunks expected for this message ID
+      total = totalChunks;
     }
 
     this.receiving = this.receiving.set(packet.messageID, {
@@ -402,11 +384,11 @@ export class Peer extends EventEmitter<EventPayloads> {
           .sortBy(([id]) => id),
       )
       .map((chunks) => Buffer.concat(chunks.map(([_, b]) => b).toArray()));
-    this.receiving = this.receiving.deleteAll(readyMessages.keys());
 
     readyMessages.forEach((message, messageID) => {
       this.acknowledge(messageID);
       this.emit("data", message);
+      this.receiving = this.receiving.delete(messageID);
     });
   }
 }

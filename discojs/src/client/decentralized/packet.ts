@@ -2,23 +2,7 @@ export type MessageID = number;
 export type ChunkID = number;
 
 // helper function to make it evident that the number passed is a chunk id
-export const asChunkID = (n: number): ChunkID => n;
-
-// message id size in bytes (uint16)
-export const MESSAGE_ID_BYTES = 2;
-// chunk counter size in bytes (uint32)
-export const CHUNK_ID_BYTES = 4;
-// total chunk count size in bytes (uint32)
-export const TOTAL_CHUNKS_BYTES = 4;
-
-// message id (2 bytes) + chunk counter (4 bytes)
-export const HEADER_SIZE = MESSAGE_ID_BYTES + CHUNK_ID_BYTES;
-
-// message id (2 bytes) + chunk counter (4 bytes) + total chunk count (4 bytes)
-export const FIRST_HEADER_SIZE = HEADER_SIZE + TOTAL_CHUNKS_BYTES;
-
-// chunk counter of an acknowledgement, unused by messages
-export const ACK_CHUNK_ID: ChunkID = 0xffff_ffff;
+const asChunkID = (n: number): ChunkID => n;
 
 export class Packet {
   constructor(
@@ -26,10 +10,26 @@ export class Packet {
     public readonly chunkID: ChunkID,
     public readonly totalChunks?: number,
     public readonly payload: Buffer = Buffer.alloc(0),
-  ) {}
+  ) { }
+
+  // message id size in bytes (uint16)
+  static MESSAGE_ID_BYTES = 2;
+  // chunk counter size in bytes (uint32)
+  static CHUNK_ID_BYTES = 4;
+  // total chunk count size in bytes (uint32)
+  static TOTAL_CHUNKS_BYTES = 4;
+
+  // message id (2 bytes) + chunk counter (4 bytes)
+  static HEADER_SIZE = Packet.MESSAGE_ID_BYTES + Packet.CHUNK_ID_BYTES;
+
+  // message id (2 bytes) + chunk counter (4 bytes) + total chunk count (4 bytes)
+  static FIRST_HEADER_SIZE = Packet.HEADER_SIZE + Packet.TOTAL_CHUNKS_BYTES;
+
+  // chunk counter of an acknowledgement, unused by messages
+  static ACK_CHUNK_ID: ChunkID = 0xffff_ffff;
 
   get isAck(): boolean {
-    return this.chunkID === ACK_CHUNK_ID;
+    return this.chunkID === Packet.ACK_CHUNK_ID;
   }
 
   get isFirstChunk(): boolean {
@@ -37,7 +37,7 @@ export class Packet {
   }
 
   static ack(messageID: MessageID): Packet {
-    return new Packet(messageID, ACK_CHUNK_ID);
+    return new Packet(messageID, Packet.ACK_CHUNK_ID);
   }
 
   static firstChunk(
@@ -58,9 +58,9 @@ export class Packet {
 
   encode(): Buffer {
     if (this.isAck) {
-      const buf = Buffer.alloc(HEADER_SIZE);
+      const buf = Buffer.alloc(Packet.HEADER_SIZE);
       buf.writeUInt16BE(this.messageID, 0);
-      buf.writeUInt32BE(ACK_CHUNK_ID, MESSAGE_ID_BYTES);
+      buf.writeUInt32BE(Packet.ACK_CHUNK_ID, Packet.MESSAGE_ID_BYTES);
       return buf;
     }
 
@@ -68,45 +68,46 @@ export class Packet {
       if (this.totalChunks === undefined) {
         throw new Error("first chunk packet requires totalChunks");
       }
-      const buf = Buffer.alloc(FIRST_HEADER_SIZE + this.payload.length);
+      const buf = Buffer.alloc(Packet.FIRST_HEADER_SIZE + this.payload.length);
       buf.writeUInt16BE(this.messageID, 0);
-      buf.writeUInt32BE(asChunkID(0), MESSAGE_ID_BYTES);
-      buf.writeUInt32BE(this.totalChunks, HEADER_SIZE);
-      this.payload.copy(buf, FIRST_HEADER_SIZE, 0);
+      buf.writeUInt32BE(asChunkID(0), Packet.MESSAGE_ID_BYTES);
+      buf.writeUInt32BE(this.totalChunks, Packet.HEADER_SIZE);
+      this.payload.copy(buf, Packet.FIRST_HEADER_SIZE, 0);
       return buf;
     }
 
-    const buf = Buffer.alloc(HEADER_SIZE + this.payload.length);
+    const buf = Buffer.alloc(Packet.HEADER_SIZE + this.payload.length);
     buf.writeUInt16BE(this.messageID, 0);
-    buf.writeUInt32BE(this.chunkID, MESSAGE_ID_BYTES);
-    this.payload.copy(buf, HEADER_SIZE, 0);
+    buf.writeUInt32BE(this.chunkID, Packet.MESSAGE_ID_BYTES);
+    this.payload.copy(buf, Packet.HEADER_SIZE, 0);
     return buf;
   }
 
+
   static decode(data: Buffer): Packet {
-    if (!Buffer.isBuffer(data) || data.length < HEADER_SIZE) {
+    if (!Buffer.isBuffer(data) || data.length < Packet.HEADER_SIZE) {
       throw new Error("received invalid message type");
     }
 
     const messageID: MessageID = data.readUInt16BE(0);
-    const chunkID: ChunkID = data.readUInt32BE(MESSAGE_ID_BYTES);
+    const chunkID: ChunkID = data.readUInt32BE(Packet.MESSAGE_ID_BYTES);
 
-    if (chunkID === ACK_CHUNK_ID) {
+    if (chunkID === Packet.ACK_CHUNK_ID) {
       return Packet.ack(messageID);
     }
 
     if (chunkID === asChunkID(0)) {
-      if (data.length < FIRST_HEADER_SIZE) {
+      if (data.length < Packet.FIRST_HEADER_SIZE) {
         throw new Error("received invalid message type");
       }
-      const totalChunks = data.readUInt32BE(HEADER_SIZE);
-      const payload = Buffer.alloc(data.length - FIRST_HEADER_SIZE);
-      data.copy(payload, 0, FIRST_HEADER_SIZE);
+      const totalChunks = data.readUInt32BE(Packet.HEADER_SIZE);
+      const payload = Buffer.alloc(data.length - Packet.FIRST_HEADER_SIZE);
+      data.copy(payload, 0, Packet.FIRST_HEADER_SIZE);
       return Packet.firstChunk(messageID, totalChunks, payload);
     }
 
-    const payload = Buffer.alloc(data.length - HEADER_SIZE);
-    data.copy(payload, 0, HEADER_SIZE);
+    const payload = Buffer.alloc(data.length - Packet.HEADER_SIZE);
+    data.copy(payload, 0, Packet.HEADER_SIZE);
     return Packet.chunk(messageID, chunkID, payload);
   }
 }
