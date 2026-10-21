@@ -147,6 +147,19 @@ The end-to-end training test suite uses the following environment variables:
 - `DISCO_E2E_FEDERATED_TASK`: Controls which task(s) the federated peer serves and trains: `titanic`, `lus_covid`, or `all` (defaults to `titanic`).
 - `VITE_SERVER_URL`: Sets the DISCO server endpoint that the webapp connects to (e.g., `http://server` for mock tests or `http://localhost:8080` for real server tests).
 
+##### Running with a specific browser
+
+In CI, Cypress workflows run in Google Chrome (`browser: chrome`).
+
+When running end-to-end training tests locally, you can select which browser to run with using the `DISCO_E2E_BROWSER` environment variable (e.g. `chrome`, `firefox`, `edge`):
+
+```sh
+DISCO_E2E_BROWSER=firefox pnpm -F webapp run test:e2e:local
+DISCO_E2E_BROWSER=chrome pnpm -F webapp run test:e2e:local
+```
+
+On Linux, running image tasks (such as LUS COVID) with real browsers like Chrome or Firefox is recommended over headless Electron to leverage hardware WebGL acceleration and avoid CPU software fallback stalls.
+
 #### Cypress and Github Actions
 
 It is possible to record the cypress tests ran in the Github Actions CI and visualize them in the [Cypress Cloud](cloud.cypress.io). It is currently used only when needed (because the free plan has a limited number of recordings). The [cypress documentation](https://docs.cypress.io/app/continuous-integration/github-actions) describes how to set up the recordings.
