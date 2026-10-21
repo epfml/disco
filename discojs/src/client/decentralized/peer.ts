@@ -1,21 +1,13 @@
 import { List, Map, Range, Seq, Set } from "immutable";
 import wrtc from "@epfml/isomorphic-wrtc";
-import SimplePeer from "simple-peer";
 
 import type { NodeID } from "#client/types";
-
-type MessageID = number;
-type ChunkID = number;
-
-// message id + (chunk counter == 0) + chunk count
-const FIRST_HEADER_SIZE = 2 + 1 + 1;
-
-// message id + chunk counter
-const HEADER_SIZE = 2 + 1;
-
-// chunk counter of an acknowledgement, unused by messages
-// as they have at most 0xff chunks, numbered from 0
-const ACK_CHUNK_ID = 0xff;
+import { EventEmitter } from "#utils/event_emitter";
+import {
+  type MessageID,
+  type ChunkID,
+  Packet,
+} from "#client/decentralized/packet";
 
 // at which interval to poll
 const TICK = 10;
@@ -23,45 +15,41 @@ const TICK = 10;
 // how long to wait for sent messages to be received before giving up
 const MAX_DRAIN_TIME = 10_000;
 
-// we can't use the definition in DOM as we're platform independent
+// Fallback SCTP message size per RFC 8841 / WebRTC spec when transport is not yet connected
+const SAFE_MAX_MESSAGE_SIZE = 65_536;
+
 export type SignalData =
-  | { type: "answer" | "offer" | "pranswer" | "rollback"; sdp?: string }
-  | { type: "transceiverRequest"; transceiverRequest: { kind: string } }
-  | { type: "renegotiate"; renegotiate: true }
-  | { type: "candidate"; candidate: RTCIceCandidate };
+  | RTCSessionDescriptionInit
+  | { type: "candidate"; candidate: RTCIceCandidateInit };
 
-interface Events {
-  close: () => void;
-  connect: () => void;
-  error: (err: Error) => void;
-  signal: (signal: SignalData) => void;
-  data: (data: Buffer) => void;
-}
+type EventPayloads = {
+  close: void;
+  connect: void;
+  error: Error;
+  signal: SignalData;
+  data: Buffer;
+  [key: string]: unknown;
+};
 
-// Peer wraps a SimplePeer, adding message fragmentation
+// Peer adds message fragmentation, flow control, and receipt acknowledgements
+// over standard WebRTC RTCPeerConnection and RTCDataChannel.
 //
-// WebRTC implementations have various maximum message size
-// but with huge models, our messages might be bigger.
-// We split messages by chunks and reconstruct these
-// on the other side.
+// WebRTC implementations have various maximum message sizes (e.g. 256 KiB in Chromium).
+// For large models (megabytes to gigabytes), messages are split into chunks
+// and reconstructed on the receiving peer.
 //
-// As the WebRTC's DataChannel is not a stream, we need
-// reorder messages, so we use a header on each chunk
-// with a message id and chunk counter. The first chunk
-// (chunk counter == 0), also add the total number of chunk.
-//
-// Once a message is fully received, its id is sent back
-// with ACK_CHUNK_ID as chunk counter, so that the sender
-// knows when it can close the connection without losing it.
-//
-// see feross/simple-peer#393 for more info
-export class Peer {
-  private readonly peer: SimplePeer.Instance;
-
-  private bufferSize?: number;
+// As the WebRTC DataChannel is not a stream, we frame each chunk with a message ID,
+// chunk counter, and total chunk count. Once a message is fully received, its ID is sent back
+// with ACK_CHUNK_ID so the sender can drain before closing the connection.
+export class Peer extends EventEmitter<EventPayloads> {
+  private readonly pc: RTCPeerConnection;
+  private channel?: RTCDataChannel;
+  private isDestroyed = false;
+  private signalQueue = Promise.resolve();
+  private queuedCandidates: RTCIceCandidateInit[] = [];
 
   private sendCounter: MessageID = 0;
-  private sendQueue = List<Buffer>();
+  private sendQueue = List<Packet>();
   private unacknowledged = Set<MessageID>();
 
   private receiving = Map<
@@ -74,18 +62,145 @@ export class Peer {
 
   constructor(
     public readonly id: NodeID,
-    initiator: boolean = false,
+    isInitiator: boolean = false,
   ) {
-    this.peer = new SimplePeer({ wrtc, initiator });
+    super();
 
-    this.peer.on("data", (data: unknown) => {
-      if (
-        Buffer.isBuffer(data) &&
-        data.length === HEADER_SIZE &&
-        data.readUInt8(2) === ACK_CHUNK_ID
-      )
-        this.unacknowledged = this.unacknowledged.delete(data.readUInt16BE());
-    });
+    this.pc = new wrtc.RTCPeerConnection();
+
+    this.pc.onicecandidate = (event) => {
+      if (event.candidate) {
+        const candidate: RTCIceCandidateInit = event.candidate.toJSON();
+        this.emit("signal", { type: "candidate", candidate });
+      }
+    };
+
+    this.pc.onconnectionstatechange = () => {
+      const state = this.pc.connectionState;
+      if (state === "failed" || state === "closed") {
+        this.emit("close", undefined);
+      }
+    };
+
+    if (isInitiator) {
+      const channel = this.pc.createDataChannel("disco");
+      this.setupChannel(channel);
+      queueMicrotask(() => {
+        void this.makeOffer();
+      });
+    } else {
+      this.pc.ondatachannel = (event) => {
+        this.setupChannel(event.channel);
+      };
+    }
+  }
+
+  private setupChannel(channel: RTCDataChannel): void {
+    this.channel = channel;
+    this.channel.binaryType = "arraybuffer";
+    try {
+      this.channel.bufferedAmountLowThreshold = this.maxChunkSize;
+    } catch {
+      // Some WebRTC implementations may not support bufferedAmountLowThreshold
+    }
+
+    this.channel.onopen = () => {
+      this.emit("connect", undefined);
+      this.flush();
+    };
+
+    this.channel.onmessage = (event: MessageEvent) => {
+      const data = Buffer.isBuffer(event.data)
+        ? event.data
+        : Buffer.from(event.data as ArrayBuffer);
+      this.handleData(data);
+    };
+
+    this.channel.onbufferedamountlow = () => {
+      this.flush();
+    };
+
+    this.channel.onclose = () => {
+      this.emit("close", undefined);
+    };
+
+    this.channel.onerror = (event) => {
+      const message =
+        "error" in event && event.error instanceof Error
+          ? event.error.message
+          : "DataChannel error";
+      this.emit("error", new Error(message));
+    };
+  }
+
+  private async makeOffer(): Promise<void> {
+    if (this.isDestroyed) return;
+    try {
+      const offer = await this.pc.createOffer();
+      await this.pc.setLocalDescription(offer);
+      this.emit("signal", {
+        type: "offer",
+        sdp: offer.sdp,
+      });
+    } catch (err) {
+      this.emit("error", err instanceof Error ? err : new Error(String(err)));
+    }
+  }
+
+  signal(signal: SignalData): void {
+    this.signalQueue = this.signalQueue
+      .then(() => this.handleSignal(signal))
+      .catch((err) => {
+        this.emit("error", err instanceof Error ? err : new Error(String(err)));
+      });
+  }
+
+  private async handleSignal(signal: SignalData): Promise<void> {
+    if (this.isDestroyed) return;
+
+    if (signal.type === "offer") {
+      if (signal.sdp === undefined) {
+        throw new Error("signal offer without session description");
+      }
+      await this.pc.setRemoteDescription(
+        new wrtc.RTCSessionDescription({ type: "offer", sdp: signal.sdp }),
+      );
+      await this.drainQueuedCandidates();
+      const answer = await this.pc.createAnswer();
+      await this.pc.setLocalDescription(answer);
+      this.emit("signal", {
+        type: "answer",
+        sdp: answer.sdp,
+      });
+    } else if (signal.type === "answer") {
+      if (signal.sdp === undefined) {
+        throw new Error("signal answer without session description");
+      }
+      await this.pc.setRemoteDescription(
+        new wrtc.RTCSessionDescription({ type: "answer", sdp: signal.sdp }),
+      );
+      await this.drainQueuedCandidates();
+    } else if (signal.type === "candidate") {
+      if (!signal.candidate) return;
+      if (this.pc.remoteDescription && this.pc.remoteDescription.type) {
+        await this.pc.addIceCandidate(
+          new wrtc.RTCIceCandidate(signal.candidate),
+        );
+      } else {
+        this.queuedCandidates.push(signal.candidate);
+      }
+    }
+  }
+
+  private async drainQueuedCandidates(): Promise<void> {
+    for (const c of this.queuedCandidates) {
+      try {
+        await this.pc.addIceCandidate(new wrtc.RTCIceCandidate(c));
+      } catch {
+        // Ignore candidate errors if transport already connected
+      }
+    }
+    this.queuedCandidates = [];
   }
 
   send(msg: Buffer): void {
@@ -97,222 +212,183 @@ export class Peer {
   }
 
   private acknowledge(messageID: MessageID): void {
-    const ack = Buffer.alloc(HEADER_SIZE);
-    ack.writeUint16BE(messageID);
-    ack.writeUint8(ACK_CHUNK_ID, 2);
+    const ack = Packet.ack(messageID);
     this.sendQueue = this.sendQueue.push(ack);
     this.flush();
   }
 
   private flush(): void {
-    if (this.bufferSize === undefined) {
-      throw new Error("flush without known buffer size");
-    }
-
-    const chunk = this.sendQueue.first();
-    if (chunk === undefined) {
-      return; // nothing to flush
-    }
-
-    const remainingBufferSize = this.bufferSize - this.peer.bufferSize;
-    if (chunk.length > remainingBufferSize) {
-      setTimeout(() => {
-        this.flush();
-      }, TICK);
+    if (
+      this.isDestroyed ||
+      !this.channel ||
+      this.channel.readyState !== "open"
+    ) {
       return;
     }
 
-    this.sendQueue = this.sendQueue.shift();
-    this.peer.send(chunk);
+    const HIGH_WATER_MARK = 1024 * 1024; // 1 MB queue backpressure cap
 
-    // and loop
-    this.flush();
-  }
+    while (!this.sendQueue.isEmpty()) {
+      if (this.channel.bufferedAmount >= HIGH_WATER_MARK) {
+        setTimeout(() => this.flush(), TICK);
+        return;
+      }
 
-  get maxChunkSize(): number {
-    if (this.bufferSize === undefined) {
-      throw new Error("chunk without known buffer size");
+      const chunk = this.sendQueue.first();
+      if (chunk === undefined) break;
+
+      try {
+        this.channel.send(chunk.encode() as ArrayBufferView<ArrayBuffer>);
+        this.sendQueue = this.sendQueue.shift();
+      } catch (err) {
+        this.emit(
+          "error",
+          err instanceof Error ? err : new Error("Failed to send chunk"),
+        );
+        return;
+      }
     }
-    return this.bufferSize;
   }
 
-  private chunk(b: Buffer): Seq.Indexed<Buffer> {
+  private get maxChunkSize(): number {
+    return this.pc.sctp?.maxMessageSize || SAFE_MAX_MESSAGE_SIZE;
+  }
+
+  private chunk(b: Buffer): Seq.Indexed<Packet> {
     const messageID = this.sendCounter;
     this.sendCounter++;
     if (this.sendCounter > 0xffff) {
-      throw new Error("too much messages sent to this peer");
+      throw new Error("too many messages sent to this peer");
     }
 
-    // special case as Range(1, 0) yields a value
     let tail = Seq.Indexed<Buffer>([]);
-    if (b.length > this.maxChunkSize) {
+    if (b.length > this.maxChunkSize - Packet.FIRST_HEADER_SIZE) {
       tail = Range(
-        this.maxChunkSize - FIRST_HEADER_SIZE,
+        this.maxChunkSize - Packet.FIRST_HEADER_SIZE,
         b.length,
-        this.maxChunkSize - HEADER_SIZE,
+        this.maxChunkSize - Packet.HEADER_SIZE,
       ).map((offset) =>
-        b.subarray(offset, offset + this.maxChunkSize - HEADER_SIZE),
+        b.subarray(offset, offset + this.maxChunkSize - Packet.HEADER_SIZE),
       );
     }
 
     const totalChunkCount = 1 + tail.count();
-    if (totalChunkCount > 0xff) {
+    if (totalChunkCount >= Packet.ACK_CHUNK_ID) {
       throw new Error(
-        `The payload is too big: ${totalChunkCount * this.maxChunkSize} bytes > 255,` +
-          " consider reducing the model size or increasing the chunk size",
+        `The payload is too big: ${totalChunkCount} chunks exceeds max chunks (${Packet.ACK_CHUNK_ID})`,
       );
     }
 
-    const firstChunk = Buffer.alloc(
-      b.length > this.maxChunkSize - FIRST_HEADER_SIZE
-        ? this.maxChunkSize
-        : FIRST_HEADER_SIZE + b.length,
-    );
-    firstChunk.writeUint16BE(messageID);
-    const asChunkID = (n: number): ChunkID => n;
-    firstChunk.writeUint8(asChunkID(0), 2);
-    firstChunk.writeUint8(totalChunkCount, 3);
-    b.copy(
-      firstChunk,
-      FIRST_HEADER_SIZE,
+    const firstPayload = b.subarray(
       0,
-      this.maxChunkSize - FIRST_HEADER_SIZE,
+      Math.min(b.length, this.maxChunkSize - Packet.FIRST_HEADER_SIZE),
+    );
+    const headerChunk = Packet.firstChunk(
+      messageID,
+      totalChunkCount,
+      firstPayload,
     );
 
-    return Seq.Indexed([firstChunk]).concat(
-      Range(asChunkID(1), Number.POSITIVE_INFINITY)
+    return Seq.Indexed([headerChunk]).concat(
+      Range(1, Number.POSITIVE_INFINITY)
         .zip(tail)
-        .map(([id, raw]) => {
-          const chunk = Buffer.alloc(HEADER_SIZE + raw.length);
-          chunk.writeUint16BE(messageID);
-          chunk.writeUint8(id, 2);
-          raw.copy(chunk, HEADER_SIZE, 0);
-          return chunk;
-        }),
+        .map(([id, raw]) => Packet.chunk(messageID, id, raw)),
     );
   }
 
   // Resolves once every message sent so far has been received,
   // as destroying the peer drops whatever is still in transit.
   // Gives up after a while in case the other peer is gone.
-  async drain(): Promise<void> {
-    const deadline = Date.now() + MAX_DRAIN_TIME;
+  public async drain(timeout: number = MAX_DRAIN_TIME): Promise<void> {
+    const deadline = Date.now() + timeout;
     while (
-      !this.peer.destroyed &&
+      !this.isDestroyed &&
+      this.channel?.readyState === "open" &&
       !this.unacknowledged.isEmpty() &&
       Date.now() < deadline
-    )
+    ) {
       await new Promise((resolve) => setTimeout(resolve, TICK));
+    }
   }
 
   async destroy(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.peer.once("error", reject);
-      this.peer.once("close", resolve);
-      this.peer.destroy();
-    });
-  }
+    if (this.isDestroyed) return;
+    this.isDestroyed = true;
 
-  signal(signal: SignalData): void {
-    // extract max buffer size from the signal
-    if (signal.type === "offer" || signal.type === "answer") {
-      if (signal.sdp === undefined) {
-        throw new Error("signal answer|offer without session description");
+    try {
+      if (this.channel) {
+        this.channel.close();
       }
-      if (this.bufferSize !== undefined) {
-        throw new Error("buffer size set twice");
-      }
-
-      const match = signal.sdp.match(/a=max-message-size:(\d+)/);
-      if (match === null) {
-        // TODO default value instead?
-        throw new Error("no max-message-size found in signal");
-      }
-      const max = parseInt(match[1], 10);
-      if (isNaN(max)) {
-        throw new Error(`unable to parse max-message-size as int: ${match[1]}`);
-      }
-
-      this.bufferSize = max;
+      this.pc.close();
+    } catch {
+      // Ignore closing errors
     }
 
-    this.peer.signal(signal);
+    this.emit("close", undefined);
+    return Promise.resolve();
   }
 
-  on<K extends keyof Events>(event: K, listener: Events[K]): void {
-    if (event !== "data") {
-      this.peer.on(event, listener);
+  private handleData(data: Buffer): void {
+    const packet = Packet.decode(data);
+    if (packet.isAck) {
+      this.unacknowledged = this.unacknowledged.delete(packet.messageID);
       return;
     }
-    // gotta help typescript here
-    const dataListener = listener as Events["data"];
 
-    this.peer.on("data", (data: unknown) => {
-      if (!Buffer.isBuffer(data) || data.length < HEADER_SIZE) {
-        throw new Error("received invalid message type");
-      }
-      const messageID: MessageID = data.readUInt16BE(); //readUint16BE (case sensitive) fails at runtime
-      const chunkID: ChunkID = data.readUInt8(2); // same for readUint8
-      if (chunkID === ACK_CHUNK_ID) return; // handled in the constructor
+    const received = this.receiving.get(packet.messageID, {
+      total: undefined,
+      chunks: Map<ChunkID, Buffer>(),
+    });
+    let total = received.total;
+    const chunks = received.chunks;
 
-      const received = this.receiving.get(messageID, {
-        total: undefined,
-        chunks: Map<ChunkID, Buffer>(),
-      });
-      let total = received.total;
-      const chunks = received.chunks;
+    if (chunks.has(packet.chunkID)) {
+      throw new Error(
+        `chunk ${packet.messageID}:${packet.chunkID} already received`,
+      );
+    }
 
-      if (chunks.has(chunkID)) {
-        throw new Error(`chunk ${messageID}:${chunkID} already received`);
+    // Receive the header message
+    if (packet.isFirstChunk) {
+      if (total !== undefined) {
+        throw new Error("first header received twice");
       }
 
-      let chunk: Buffer;
-      if (chunkID !== 0) {
-        chunk = Buffer.alloc(data.length - HEADER_SIZE);
-        data.copy(chunk, 0, HEADER_SIZE);
-      } else {
-        if (data.length < FIRST_HEADER_SIZE) {
-          throw new Error("received invalid message type");
-        }
-        if (total !== undefined) {
-          throw new Error("first header received twice");
-        }
-
-        const readTotal = data.readUInt8(3);
-        total = readTotal;
-        chunk = Buffer.alloc(data.length - FIRST_HEADER_SIZE);
-        data.copy(chunk, 0, FIRST_HEADER_SIZE);
-
-        if (chunks.keySeq().some((id) => id > readTotal)) {
-          throw new Error(
-            "received total of chunk but got now-out-of-bound chunks",
-          );
-        }
+      const totalChunks = packet.totalChunks;
+      if (totalChunks === undefined) {
+        throw new Error("first chunk packet missing totalChunks");
+      } else if (chunks.keySeq().some((id) => id >= totalChunks)) {
+        throw new Error(
+          "received total of chunk but got now-out-of-bound chunks",
+        );
       }
-      this.receiving = this.receiving.set(messageID, {
-        total,
-        chunks: chunks.set(chunkID, chunk),
-      });
 
-      const readyMessages = this.receiving
-        .filter(
-          ({ total, chunks }) => total !== undefined && chunks.size === total,
-        )
-        .sort()
-        .map(({ chunks }) =>
-          chunks
-            .entrySeq()
-            .toList()
-            .sortBy(([id, _]) => id),
-        )
-        .map((chunks) => Buffer.concat(chunks.map(([_, b]) => b).toArray()));
-      this.receiving = this.receiving.deleteAll(readyMessages.keys());
+      // Set the total number of chunks expected for this message ID
+      total = totalChunks;
+    }
 
-      readyMessages.forEach((message, messageID) => {
-        this.acknowledge(messageID);
-        // TODO debug
-        dataListener(message);
-      });
+    this.receiving = this.receiving.set(packet.messageID, {
+      total,
+      chunks: chunks.set(packet.chunkID, packet.payload),
+    });
+
+    const readyMessages = this.receiving
+      .filter(
+        ({ total, chunks }) => total !== undefined && chunks.size === total,
+      )
+      .sort()
+      .map(({ chunks }) =>
+        chunks
+          .entrySeq()
+          .toList()
+          .sortBy(([id]) => id),
+      )
+      .map((chunks) => Buffer.concat(chunks.map(([_, b]) => b).toArray()));
+
+    readyMessages.forEach((message, messageID) => {
+      this.acknowledge(messageID);
+      this.emit("data", message);
+      this.receiving = this.receiving.delete(messageID);
     });
   }
 }

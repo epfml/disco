@@ -34,7 +34,7 @@ export interface EventConnection {
     handler: (event: NarrowMessage<K>) => void,
   ) => void;
   send: <T extends Message>(msg: T) => void;
-  disconnect: () => Promise<void>;
+  disconnect: (gracePeriod?: number) => Promise<void>;
 }
 
 /**
@@ -199,12 +199,10 @@ export class PeerConnection
     this.#peer.send(Buffer.from(msgpack.encode(msg)));
   }
 
-  // Resolves once the messages sent so far have left the connection
-  async drain(): Promise<void> {
-    await this.#peer.drain();
-  }
-
-  async disconnect(): Promise<void> {
+  async disconnect(gracePeriod = 0): Promise<void> {
+    if (gracePeriod > 0) {
+      await this.#peer.drain(gracePeriod);
+    }
     await this.#peer.destroy();
   }
 }
