@@ -2,11 +2,10 @@ name: verify
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - "**/*.md"
   pull_request:
     paths-ignore:
       - "**/*.md"
+      - "webapp/**"
 
 permissions:
   contents: read
@@ -28,3 +27,20 @@ jobs:
   test:
     needs: [build]
     uses: ./.github/workflows/_test.yml
+
+  complete:
+    if: always()
+    needs: [download-datasets, static-analysis, build, test]
+    runs-on: ubuntu-latest
+    env:
+      DATASETS: ${{ needs.download-datasets.result }}
+      STATIC: ${{ needs.static-analysis.result }}
+      BUILD: ${{ needs.build.result }}
+      TEST: ${{ needs.test.result }}
+    steps:
+      - name: Check verification results
+        run: |
+          test "$DATASETS" = success
+          test "$STATIC" = success
+          test "$BUILD" = success
+          test "$TEST" = success
