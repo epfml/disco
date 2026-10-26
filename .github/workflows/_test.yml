@@ -2,31 +2,14 @@ name: test
 on:
   workflow_call:
     inputs:
-      discojs:
-        type: boolean
-        default: true
-      discojs_node:
-        type: boolean
-        default: true
-      discojs_web:
-        type: boolean
-        default: true
-      server:
-        type: boolean
-        default: true
-      webapp:
-        type: boolean
-        default: true
-      cli:
-        type: boolean
-        default: true
-      docs_examples:
-        type: boolean
-        default: true
+      selection:
+        description: JSON array of selected suites; all runs every test job.
+        type: string
+        default: '["all"]'
 
 jobs:
   test-discojs:
-    if: inputs.discojs
+    if: contains(fromJSON(inputs.selection), 'all') || contains(fromJSON(inputs.selection), 'discojs')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -37,7 +20,7 @@ jobs:
       - run: pnpm exec vitest --run --project=discojs
 
   test-discojs-node:
-    if: inputs.discojs_node
+    if: contains(fromJSON(inputs.selection), 'all') || contains(fromJSON(inputs.selection), 'discojs_node')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -48,7 +31,7 @@ jobs:
       - run: pnpm exec vitest --run --project=discojs-node
 
   test-discojs-web:
-    if: inputs.discojs_web
+    if: contains(fromJSON(inputs.selection), 'all') || contains(fromJSON(inputs.selection), 'discojs_web')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -59,7 +42,7 @@ jobs:
       - run: pnpm exec vitest --run --project=discojs-web
 
   test-server:
-    if: inputs.server
+    if: contains(fromJSON(inputs.selection), 'all') || contains(fromJSON(inputs.selection), 'server')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -70,7 +53,7 @@ jobs:
       - run: pnpm exec vitest --run --project=server
 
   test-webapp:
-    if: inputs.webapp
+    if: contains(fromJSON(inputs.selection), 'all') || contains(fromJSON(inputs.selection), 'webapp')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -81,7 +64,7 @@ jobs:
       - run: pnpm -F webapp run test:unit
 
   test-e2e:
-    if: inputs.webapp
+    if: contains(fromJSON(inputs.selection), 'all') || contains(fromJSON(inputs.selection), 'webapp')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -97,7 +80,7 @@ jobs:
           start: pnpm exec vite --mode test --port 1351
 
   test-local-training:
-    if: inputs.webapp
+    if: contains(fromJSON(inputs.selection), 'all') || contains(fromJSON(inputs.selection), 'webapp')
     name: local training (${{ matrix.task }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -128,7 +111,7 @@ jobs:
           if-no-files-found: ignore
 
   test-e2e-scripted:
-    if: inputs.webapp
+    if: contains(fromJSON(inputs.selection), 'all') || contains(fromJSON(inputs.selection), 'webapp')
     name: scripted server e2e
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -156,7 +139,7 @@ jobs:
           if-no-files-found: ignore
 
   test-e2e-federated:
-    if: inputs.webapp
+    if: contains(fromJSON(inputs.selection), 'all') || contains(fromJSON(inputs.selection), 'webapp')
     name: federated webapp (${{ matrix.task }})
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -192,6 +175,7 @@ jobs:
           if-no-files-found: ignore
 
   test-e2e-decentralized:
+    if: contains(fromJSON(inputs.selection), 'all') || contains(fromJSON(inputs.selection), 'webapp')
     name: decentralized webapp (mnist)
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -210,7 +194,7 @@ jobs:
           if-no-files-found: ignore
 
   test-cli:
-    if: inputs.cli
+    if: contains(fromJSON(inputs.selection), 'all') || contains(fromJSON(inputs.selection), 'cli')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -238,7 +222,7 @@ jobs:
           pnpm -F cli start -t cifar10 -u 3 -e 1 -r 1 -i ci-cifar10
 
   test-docs-examples:
-    if: inputs.docs_examples
+    if: contains(fromJSON(inputs.selection), 'all') || contains(fromJSON(inputs.selection), 'docs_examples')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

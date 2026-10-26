@@ -1,0 +1,38 @@
+# Each file must match every pattern in its filter (predicate-quantifier: every).
+# Markdown and docs outside docs/examples never select verification jobs.
+# Mixed changes select the union; shared and unfamiliar paths select all suites.
+# Like other picomatch globs, these patterns do not support newlines in filenames.
+all:
+  - "**"
+  - &non_markdown "!**/*.md"
+  - "!{webapp,cli,server,discojs-node,discojs-web,onnx-converter,docs}/**"
+
+# The converter has no test suite, but still needs shared preparation and builds.
+build:
+  - "onnx-converter/**"
+  - *non_markdown
+
+discojs_node:
+  - "discojs-node/**"
+  - *non_markdown
+
+discojs_web:
+  - "discojs-web/**"
+  - *non_markdown
+
+server:
+  - "{discojs-node,server}/**"
+  - *non_markdown
+
+webapp:
+  - "{discojs-node,discojs-web,server,webapp}/**"
+  - *non_markdown
+
+cli:
+  - "{discojs-node,server,cli}/**"
+  - *non_markdown
+
+docs_examples:
+  - "{discojs-node,server,docs/examples}/**"
+  # Markdown inside docs/examples participates in verification too.
+  - "!{discojs-node,server}/**/*.md"
