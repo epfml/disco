@@ -379,6 +379,8 @@ export class DecentralizedController<
 
     // Stop the timeout
     this.#clearTimeout();
+    // Reset the connection retry count
+    this.#connectionRetry = 0;
 
     // Send round participants StartWeightSharing messages
     this.#broadcastMessageToNodes(
@@ -404,6 +406,9 @@ export class DecentralizedController<
   #startTimeout(
     maxTime: number = this.task.trainingInformation.maxPeerConnectionTime,
   ): void {
+    // Cancel the previous timeout if it exists
+    this.#clearTimeout();
+
     this.#timeout = setTimeout(() => {
       this.#handleTimeout();
     }, maxTime);
@@ -472,8 +477,7 @@ export class DecentralizedController<
 
       // Reset the connectionRetry since we excluded the failed clients
       this.#connectionRetry = 0;
-      // Restart the timeout after sending retry messages
-      this.#startTimeout();
+
       return;
     }
 
@@ -492,9 +496,6 @@ export class DecentralizedController<
         };
       },
     );
-
-    // Restart the timeout after sending retry messages
-    this.#startTimeout();
   }
 
   protected override connectClient(nodeId: string, ws: WebSocket): void {
