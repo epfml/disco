@@ -11,9 +11,22 @@ jobs:
   affected:
     runs-on: ubuntu-latest
     outputs:
-      # Every matched area needs static analysis and a workspace build.
+      # Code changes need a workspace build; analysis-only changes do not.
       # Pushes to main always run the complete pipeline.
-      build: ${{ github.event_name == 'push' || steps.select.outputs.changes != '[]' }}
+      static_analysis: ${{ github.event_name == 'push' || steps.select.outputs.changes != '[]' }}
+      build: >-
+        ${{
+          github.event_name == 'push' ||
+          steps.select.outputs.everything == 'true' ||
+          steps.select.outputs.discojs == 'true' ||
+          steps.select.outputs.discojs_node == 'true' ||
+          steps.select.outputs.discojs_web == 'true' ||
+          steps.select.outputs.server == 'true' ||
+          steps.select.outputs.webapp == 'true' ||
+          steps.select.outputs.cli == 'true' ||
+          steps.select.outputs.docs_examples == 'true' ||
+          steps.select.outputs.onnx_converter == 'true'
+        }}
       docker: >-
         ${{
           github.event_name == 'push' ||
@@ -114,7 +127,7 @@ jobs:
 
   static-analysis:
     needs: affected
-    if: needs.affected.outputs.build == 'true'
+    if: needs.affected.outputs.static_analysis == 'true'
     uses: ./.github/workflows/_static-analysis.yml
 
   build:
@@ -143,6 +156,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       AFFECTED: ${{ needs.affected.result }}
+      RUN_STATIC: ${{ needs.affected.outputs.static_analysis }}
       RUN_BUILD: ${{ needs.affected.outputs.build }}
       RUN_TESTS: ${{ needs.affected.outputs.any_tests }}
       DATASETS: ${{ needs.download-datasets.result }}
@@ -153,8 +167,10 @@ jobs:
       - name: Check required jobs
         run: |
           test "$AFFECTED" = success
-          if [ "$RUN_BUILD" = true ]; then
+          if [ "$RUN_STATIC" = true ]; then
             test "$STATIC" = success
+          fi
+          if [ "$RUN_BUILD" = true ]; then
             test "$BUILD" = success
           fi
           if [ "$RUN_TESTS" = true ]; then
