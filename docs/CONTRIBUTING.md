@@ -36,6 +36,33 @@ There are many ways to use Disco.js: from a browser, a CLI, by importing `discoj
 
 ## Contributing in practice
 
+### CI selection
+
+PR verification uses the positive path lists in [`.github/ci-paths.yml`](../.github/ci-paths.yml).
+Each filter identifies a changed package or shared input; `verify.yml` then selects
+that package's consumers using the workspace dependencies:
+
+| Changed area   | Selected test suites                                |
+| -------------- | --------------------------------------------------- |
+| Core `discojs` | All suites                                          |
+| `discojs-node` | Node support, server, CLI, webapp and examples      |
+| `discojs-web`  | Browser support and webapp                          |
+| Server         | Server, CLI, webapp and examples                    |
+| Webapp         | Webapp unit and all webapp E2E jobs                 |
+| CLI            | CLI                                                 |
+| Docs examples  | Examples                                            |
+| ONNX converter | No tests; static analysis and workspace compilation |
+
+The `everything` filter lists shared adapters, dataset preparation, toolchain
+configuration and shared CI files that require all suites. Docker runs for those
+changes and for core, Node support or server changes. Datasets are prepared only
+when tests run; the converter does not need datasets or Docker.
+
+Unlisted paths do not request verification jobs on PRs. Add new package inputs and
+shared configuration files to the map when introducing them. Formatting still
+runs on every PR, and every push to `main` runs full verification regardless of
+the changed paths. Selected suites use the reusable `_test-<component>.yml` files.
+
 ### Running TypeScript
 
 As a contributor, you will certainly end up having to run TypeScript scripts. A practical way to do so is to use `ts-node`:
