@@ -78,4 +78,48 @@ describe("peer", () => {
 
     assert.isTrue(received);
   });
+
+  it("transfers GPT-sized payload with byte-for-byte reassembly", async () => {
+    // 10 MB buffer simulating GPT weights
+    const size = 10 * 1024 * 1024;
+    const message = Buffer.alloc(size);
+    // Fill with non-trivial pattern to thoroughly verify byte ordering
+    for (let i = 0; i < size; i += 4) {
+      message.writeUInt32LE((i * 1103515245 + 12345) >>> 0, i);
+    }
+
+    const receivedPromise = new Promise<Buffer>((resolve) => {
+      peer2.on("data", (data) => resolve(data));
+    });
+
+    peer1.send(message);
+    await peer1.drain();
+    const received = await receivedPromise;
+
+    assert.strictEqual(received.length, message.length);
+    assert.strictEqual(Buffer.compare(received, message), 0);
+  });
+
+  it("handles payloads with more than 255 chunks", async () => {
+    // Override maxChunkSize to small size (1024 bytes) to test >255 chunk count boundary
+    Object.defineProperty(peer1, "maxChunkSize", { get: () => 1024 });
+
+    // 300 chunks
+    const size = 300 * 1024;
+    const message = Buffer.alloc(size);
+    for (let i = 0; i < size; i += 4) {
+      message.writeUInt32LE((i * 1664525 + 1013904223) >>> 0, i);
+    }
+
+    const receivedPromise = new Promise<Buffer>((resolve) => {
+      peer2.on("data", (data) => resolve(data));
+    });
+
+    peer1.send(message);
+    await peer1.drain();
+    const received = await receivedPromise;
+
+    assert.strictEqual(received.length, message.length);
+    assert.strictEqual(Buffer.compare(received, message), 0);
+  });
 });
