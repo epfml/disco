@@ -66,7 +66,7 @@ change checked-out files for every runner.
 Unlisted paths do not request verification jobs on PRs. Add new package inputs and
 shared configuration files to the map when introducing them. Formatting still
 runs on every PR, and every push to `main` runs full verification regardless of
-the changed paths. Selected suites use the reusable `_test-<component>.yml` files.
+the changed paths. All selected test jobs live in [`.github/workflows/_test.yml`](../.github/workflows/_test.yml).
 
 ### Running TypeScript
 
@@ -178,7 +178,7 @@ All three commands start and stop their servers and Vite automatically.
 Federated training tests run in separate CI jobs for Titanic and LUS COVID.
 Each job starts a real server and a Node participant configured for its task,
 while the package command runs both tasks together; see `test-e2e-federated`
-in `.github/workflows/_test-webapp.yml` for the CI setup. CI runs these Cypress
+in `.github/workflows/_test.yml` for the CI setup. CI runs these Cypress
 jobs in Chrome.
 
 ##### Test environment variables
