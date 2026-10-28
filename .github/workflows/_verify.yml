@@ -1,0 +1,89 @@
+name: verification
+on:
+  workflow_call:
+    inputs:
+      build:
+        type: boolean
+        default: true
+      docker:
+        type: boolean
+        default: true
+      any_tests:
+        type: boolean
+        default: true
+      discojs:
+        type: boolean
+        default: true
+      discojs_node:
+        type: boolean
+        default: true
+      discojs_web:
+        type: boolean
+        default: true
+      server:
+        type: boolean
+        default: true
+      webapp:
+        type: boolean
+        default: true
+      cli:
+        type: boolean
+        default: true
+      docs_examples:
+        type: boolean
+        default: true
+
+jobs:
+  download-datasets:
+    if: inputs.build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/download-datasets
+
+  static-analysis:
+    if: inputs.build
+    uses: ./.github/workflows/_static-analysis.yml
+
+  build:
+    needs: [download-datasets, static-analysis]
+    if: inputs.build
+    uses: ./.github/workflows/_build.yml
+    with:
+      docker: ${{ inputs.docker }}
+
+  test:
+    needs: build
+    if: inputs.any_tests
+    uses: ./.github/workflows/_test.yml
+    with:
+      discojs: ${{ inputs.discojs }}
+      discojs_node: ${{ inputs.discojs_node }}
+      discojs_web: ${{ inputs.discojs_web }}
+      server: ${{ inputs.server }}
+      webapp: ${{ inputs.webapp }}
+      cli: ${{ inputs.cli }}
+      docs_examples: ${{ inputs.docs_examples }}
+
+  check-results:
+    if: always()
+    needs: [download-datasets, static-analysis, build, test]
+    runs-on: ubuntu-latest
+    env:
+      RUN_BUILD: ${{ inputs.build }}
+      RUN_TESTS: ${{ inputs.any_tests }}
+      DATASETS: ${{ needs.download-datasets.result }}
+      STATIC: ${{ needs.static-analysis.result }}
+      BUILD: ${{ needs.build.result }}
+      TEST: ${{ needs.test.result }}
+    steps:
+      - name: Check required jobs
+        run: |
+          if [ "$RUN_BUILD" = true ]; then
+            test "$DATASETS" = success
+            test "$STATIC" = success
+            test "$BUILD" = success
+          fi
+          if [ "$RUN_TESTS" = true ]; then
+            test "$TEST" = success
+          fi
