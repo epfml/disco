@@ -4,7 +4,7 @@
 # Add new packages and shared build inputs here when they are introduced.
 
 # Shared runtime adapters, toolchain, test setup and CI orchestration affect
-# every suite. Package-specific source and workflow files are listed below.
+# every suite. Package-specific source and build inputs are listed below.
 everything:
   - "isomorphic-wrtc/*.js"
   - "isomorphic-wrtc/*.ts"
@@ -48,21 +48,18 @@ discojs:
   - "discojs/src/**/*.ts"
   - "discojs/package.json"
   - "discojs/tsconfig*.json"
-  - ".github/workflows/_test-discojs.yml"
 
 # Node loaders/model support is used by server, CLI, examples and webapp E2E.
 discojs_node:
   - "discojs-node/src/**"
   - "discojs-node/package.json"
   - "discojs-node/tsconfig*.json"
-  - ".github/workflows/_test-discojs-node.yml"
 
 # Browser loaders are used by the webapp.
 discojs_web:
   - "discojs-web/src/**"
   - "discojs-web/package.json"
   - "discojs-web/tsconfig*.json"
-  - ".github/workflows/_test-discojs-web.yml"
 
 # CLI, examples and webapp training E2E also use the server.
 server:
@@ -70,7 +67,6 @@ server:
   - "server/tests/**"
   - "server/package.json"
   - "server/tsconfig*.json"
-  - ".github/workflows/_test-server.yml"
 
 webapp:
   - "webapp/src/**"
@@ -85,18 +81,15 @@ webapp:
   - "webapp/index.html"
   - "webapp/.env"
   - "webapp/.env.*"
-  - ".github/workflows/_test-webapp.yml"
 
 cli:
   - "cli/src/**/*.ts"
   - "cli/package.json"
   - "cli/tsconfig.json"
-  - ".github/workflows/_test-cli.yml"
 
 # Keep all examples, including their README and notebooks, under verification.
 docs_examples:
   - "docs/examples/**"
-  - ".github/workflows/_test-docs-examples.yml"
 
 # This standalone conversion tool has no consumers and no test job. Changes
 # require static analysis and workspace compilation, but no datasets or Docker.
