@@ -99,7 +99,14 @@ export abstract class Client<N extends Network> extends EventEmitter<{
   /**
    * Handles the disconnection process of the client from any sort of network server.
    */
-  async disconnect(): Promise<void> {}
+  async disconnect(): Promise<void> {
+    // Optional server for the local client
+    // Makes it also safe on multiple calls
+    await this._server?.disconnect();
+    this._server = undefined;
+    this._ownId = undefined;
+    this.promiseForMoreParticipants = undefined;
+  }
 
   /**
    * Emits the round status specified. It also stores the status emitted such that
