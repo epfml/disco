@@ -51,6 +51,8 @@ if (
   );
 
 export default defineConfig({
+  defaultBrowser: process.env.DISCO_E2E_BROWSER ?? "chrome",
+
   // Cypress.env() is deprecated throw; use cy.env() for sensitive values
   // and Cypress.expose() otherwise
   // allowCypressEnv will be removed in v16.0 so delete this line at that point
@@ -74,6 +76,12 @@ export default defineConfig({
       ...(scriptedServer ? [] : ["cypress/e2e/training/scripted/**/*.cy.ts"]),
     ],
     setupNodeEvents(on) {
+      on("before:browser:launch", (browser) => {
+        console.log(
+          `Running on ${browser.displayName} ${browser.version} (${browser.path})`,
+        );
+      });
+
       // Creates a scripted server
       const scriptServer = scriptedServer
         ? serveWebSockets(Number(serverUrl.port))

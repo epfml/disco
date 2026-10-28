@@ -104,13 +104,24 @@ pnpm -F webapp test
 
 The webapp tests rely on `cypress` and the test suite is located in the `webapp/cypress` folder.
 
-Note that you can also run test interactively in the browser of your choice. To do so, run from the `webapp` folder
+#### Running with a specific browser
 
+In CI, Cypress workflows run in Google Chrome (`browser: chrome`).
+
+Cypress defaults to Google Chrome for headless tests. When running tests locally, you can choose the browser with the `DISCO_E2E_BROWSER` environment variable (e.g. `chrome`, `firefox`, `edge`):
+
+```sh
+DISCO_E2E_BROWSER=firefox pnpm -F webapp test
+DISCO_E2E_BROWSER=firefox pnpm -F webapp run test:e2e:local
 ```
+
+Note that you can also run tests interactively in the browser of your choice. To do so, run from the `webapp` folder:
+
+```sh
 pnpm run test:e2e-interactive
 ```
 
-which should open the Cypress UI and let you choose the browser you wand to use and which tests to run. More information on [the Cypress docs](https://docs.cypress.io/app/get-started/open-the-app).
+which should open the Cypress UI and let you choose the browser you want to use and which tests to run. More information on [the Cypress docs](https://docs.cypress.io/app/get-started/open-the-app).
 
 #### Training end-to-end tests
 
