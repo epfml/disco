@@ -17,10 +17,8 @@ everything:
   - "pnpm-lock.yaml"
   - "pnpm-workspace.yaml"
   - ".nvmrc"
-  - ".gitignore"
+  # text/eol attributes can alter the checked-out inputs of every runner.
   - ".gitattributes"
-  - ".knip.json"
-  - "eslint.config.js"
   - "tsconfig.base.json"
   - "tsconfig.base.lib.json"
   - "vitest.config.ts"
@@ -34,8 +32,15 @@ everything:
   - ".github/workflows/verify.yml"
   - ".github/workflows/_test.yml"
   - ".github/workflows/_build.yml"
-  - ".github/workflows/_static-analysis.yml"
   - ".github/workflows/publish-deploy.yml"
+
+# These affect analysis/file discovery, not application compilation or tests.
+# Prettier also reads .gitignore; its separate workflow already runs on every PR.
+static_analysis:
+  - ".gitignore"
+  - ".knip.json"
+  - "eslint.config.js"
+  - ".github/workflows/_static-analysis.yml"
 
 # Every application and support package imports the core library.
 # Its source tree also contains Markdown documentation, which is not code.

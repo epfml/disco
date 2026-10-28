@@ -58,6 +58,11 @@ configuration and shared CI files that require all suites. Docker runs for those
 changes and for core, Node support or server changes. Datasets are prepared only
 when tests run; the converter does not need datasets or Docker.
 
+Changes to `.gitignore`, `.knip.json`, `eslint.config.js` or the static-analysis
+workflow run static analysis without builds, datasets, Docker or application
+tests. `.gitattributes` remains a shared input because its line-ending rules can
+change checked-out files for every runner.
+
 Unlisted paths do not request verification jobs on PRs. Add new package inputs and
 shared configuration files to the map when introducing them. Formatting still
 runs on every PR, and every push to `main` runs full verification regardless of
