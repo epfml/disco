@@ -24,228 +24,32 @@ on:
         type: boolean
         default: true
 
+# Dispatch selected suites after shared dataset preparation and builds.
 jobs:
   test-discojs:
     if: inputs.discojs
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/pull-dataset-artifacts
-      - uses: actions/download-artifact@v8
-        with: { name: all-builds }
-      - run: pnpm exec vitest --run --project=discojs
+    uses: ./.github/workflows/_test-discojs.yml
 
   test-discojs-node:
     if: inputs.discojs_node
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/pull-dataset-artifacts
-      - uses: actions/download-artifact@v8
-        with: { name: all-builds }
-      - run: pnpm exec vitest --run --project=discojs-node
+    uses: ./.github/workflows/_test-discojs-node.yml
 
   test-discojs-web:
     if: inputs.discojs_web
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/pull-dataset-artifacts
-      - uses: actions/download-artifact@v8
-        with: { name: all-builds }
-      - run: pnpm exec vitest --run --project=discojs-web
+    uses: ./.github/workflows/_test-discojs-web.yml
 
   test-server:
     if: inputs.server
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/pull-dataset-artifacts
-      - uses: actions/download-artifact@v8
-        with: { name: all-builds }
-      - run: pnpm exec vitest --run --project=server
+    uses: ./.github/workflows/_test-server.yml
 
   test-webapp:
     if: inputs.webapp
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/pull-dataset-artifacts
-      - uses: actions/download-artifact@v8
-        with: { name: all-builds }
-      - run: pnpm -F webapp run test:unit
-
-  test-e2e:
-    if: inputs.webapp
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/pull-dataset-artifacts
-      - uses: actions/download-artifact@v8
-        with: { name: all-builds }
-      - uses: cypress-io/github-action@v7
-        with:
-          browser: chrome
-          working-directory: webapp
-          install: false
-          start: pnpm exec vite --mode test --port 1351
-
-  test-local-training:
-    if: inputs.webapp
-    name: local training (${{ matrix.task }})
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        task: [titanic, lus_covid]
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/pull-dataset-artifacts
-      - uses: actions/download-artifact@v8
-        with: { name: all-builds }
-      - uses: cypress-io/github-action@v7
-        env:
-          DISCO_TRAINING_E2E: "1"
-        with:
-          browser: chrome
-          working-directory: webapp
-          install: false
-          start: pnpm exec vite --mode test --port 1351
-          spec: cypress/e2e/training/local/${{ matrix.task }}.cy.ts
-      - uses: actions/upload-artifact@v7
-        if: failure()
-        with:
-          name: local-training-${{ matrix.task }}-screenshots
-          path: webapp/cypress/screenshots
-          if-no-files-found: ignore
-
-  test-e2e-scripted:
-    if: inputs.webapp
-    name: scripted server e2e
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/pull-dataset-artifacts
-      - uses: actions/download-artifact@v8
-        with: { name: all-builds }
-      - uses: cypress-io/github-action@v7
-        env:
-          DISCO_SCRIPTED_SERVER_E2E: "1"
-          VITE_SERVER_URL: http://server:8080
-        with:
-          browser: chrome
-          working-directory: webapp
-          install: false
-          start: pnpm exec vite --mode test --port 1351
-          spec: cypress/e2e/training/scripted/*.cy.ts
-      - uses: actions/upload-artifact@v7
-        if: failure()
-        with:
-          name: scripted-server-screenshots
-          path: webapp/cypress/screenshots
-          if-no-files-found: ignore
-
-  test-e2e-federated:
-    if: inputs.webapp
-    name: federated webapp (${{ matrix.task }})
-    runs-on: ubuntu-latest
-    timeout-minutes: 12
-    strategy:
-      fail-fast: false
-      matrix:
-        task: [titanic, lus_covid]
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/pull-dataset-artifacts
-      - uses: actions/download-artifact@v8
-        with: { name: all-builds }
-      - uses: cypress-io/github-action@v7
-        env:
-          VITE_SERVER_URL: http://localhost:8080
-          DISCO_TRAINING_E2E: "1"
-          DISCO_E2E_FEDERATED_TASK: ${{ matrix.task }}
-        with:
-          browser: chrome
-          working-directory: webapp
-          install: false
-          start: >-
-            node --experimental-strip-types cypress/support/training/federated/peer.ts,
-            pnpm exec vite --mode test --port 1351 --strictPort
-          wait-on: "http://localhost:8080, http://localhost:1351"
-          spec: cypress/e2e/training/federated/${{ matrix.task }}.cy.ts
-      - uses: actions/upload-artifact@v7
-        if: failure()
-        with:
-          name: federated-${{ matrix.task }}-screenshots
-          path: webapp/cypress/screenshots
-          if-no-files-found: ignore
-
-  test-e2e-decentralized:
-    if: inputs.webapp
-    name: decentralized webapp (mnist)
-    runs-on: ubuntu-latest
-    timeout-minutes: 12
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/pull-dataset-artifacts
-      - uses: actions/download-artifact@v8
-        with: { name: all-builds }
-      - run: xvfb-run --auto-servernum pnpm -F webapp run test:e2e:decentralized
-      - uses: actions/upload-artifact@v7
-        if: failure()
-        with:
-          name: decentralized-mnist-screenshots
-          path: webapp/cypress/screenshots
-          if-no-files-found: ignore
+    uses: ./.github/workflows/_test-webapp.yml
 
   test-cli:
     if: inputs.cli
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/pull-dataset-artifacts
-      - uses: actions/download-artifact@v8
-        with: { name: all-builds }
-      - name: Verify CLI fails when required arguments are missing
-        run: |
-          if pnpm -F cli start -t cifar10 -u 3 -e 1 -r 1; then
-            echo "Expected CLI to fail when required argument testID is missing, but it succeeded"
-            exit 1
-          fi
-      - name: Run CLI decentralized training
-        run: |
-          node server/dist/main.js &
-          SERVER_PID=$!
-          trap "kill -9 $SERVER_PID 2>/dev/null || true" EXIT
-          timeout=120
-          while ! curl -s --fail http://localhost:8080/ > /dev/null; do
-            [ $timeout -eq 0 ] && echo "Server timeout" && exit 1
-            sleep 1
-            timeout=$((timeout - 1))
-          done
-          pnpm -F cli start -t cifar10 -u 3 -e 1 -r 1 -i ci-cifar10
+    uses: ./.github/workflows/_test-cli.yml
 
   test-docs-examples:
     if: inputs.docs_examples
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-node
-      - uses: ./.github/actions/pull-dataset-artifacts
-      - uses: actions/download-artifact@v8
-        with: { name: all-builds }
-      - run: pnpm run test
-        working-directory: docs/examples
+    uses: ./.github/workflows/_test-docs-examples.yml
