@@ -13,16 +13,16 @@ jobs:
     outputs:
       # Main pushes bypass filtering and always run the entire pipeline.
       build: ${{ github.event_name == 'push' || steps.select.outputs.changes != '[]' }}
-      docker: ${{ github.event_name == 'push' || steps.select.outputs.all == 'true' || steps.select.outputs.server == 'true' }}
+      docker: ${{ github.event_name == 'push' || steps.select.outputs.full_suite == 'true' || steps.select.outputs.server == 'true' }}
       # The converter's build-only selection has no corresponding test suite.
-      any_tests: ${{ github.event_name == 'push' || (steps.select.outputs.changes != '[]' && steps.select.outputs.changes != '["build"]') }}
-      discojs: ${{ github.event_name == 'push' || steps.select.outputs.all == 'true' }}
-      discojs_node: ${{ github.event_name == 'push' || steps.select.outputs.all == 'true' || steps.select.outputs.discojs_node == 'true' }}
-      discojs_web: ${{ github.event_name == 'push' || steps.select.outputs.all == 'true' || steps.select.outputs.discojs_web == 'true' }}
-      server: ${{ github.event_name == 'push' || steps.select.outputs.all == 'true' || steps.select.outputs.server == 'true' }}
-      webapp: ${{ github.event_name == 'push' || steps.select.outputs.all == 'true' || steps.select.outputs.webapp == 'true' }}
-      cli: ${{ github.event_name == 'push' || steps.select.outputs.all == 'true' || steps.select.outputs.cli == 'true' }}
-      docs_examples: ${{ github.event_name == 'push' || steps.select.outputs.all == 'true' || steps.select.outputs.docs_examples == 'true' }}
+      any_tests: ${{ github.event_name == 'push' || (steps.select.outputs.changes != '[]' && steps.select.outputs.changes != '["build_only"]') }}
+      discojs: ${{ github.event_name == 'push' || steps.select.outputs.full_suite == 'true' }}
+      discojs_node: ${{ github.event_name == 'push' || steps.select.outputs.full_suite == 'true' || steps.select.outputs.discojs_node == 'true' }}
+      discojs_web: ${{ github.event_name == 'push' || steps.select.outputs.full_suite == 'true' || steps.select.outputs.discojs_web == 'true' }}
+      server: ${{ github.event_name == 'push' || steps.select.outputs.full_suite == 'true' || steps.select.outputs.server == 'true' }}
+      webapp: ${{ github.event_name == 'push' || steps.select.outputs.full_suite == 'true' || steps.select.outputs.webapp == 'true' }}
+      cli: ${{ github.event_name == 'push' || steps.select.outputs.full_suite == 'true' || steps.select.outputs.cli == 'true' }}
+      docs_examples: ${{ github.event_name == 'push' || steps.select.outputs.full_suite == 'true' || steps.select.outputs.docs_examples == 'true' }}
     steps:
       - uses: actions/checkout@v7
         with:

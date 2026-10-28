@@ -1,38 +1,60 @@
-# Each file must match every pattern in its filter (predicate-quantifier: every).
-# Markdown and docs outside docs/examples never select verification jobs.
-# Mixed changes select the union; shared and unfamiliar paths select all suites.
-# Like other picomatch globs, these patterns do not support newlines in filenames.
-all:
+# Each key names a test suite or verification mode that verify.yml can select.
+# A filter is true if ANY changed file satisfies ALL of its rules, because the
+# action uses predicate-quantifier: every. Negative patterns exclude files.
+# A pattern such as "{server,discojs-node}/**" means either directory, not both.
+# Multiple filters can be true for the same PR; all selected suites will run.
+# Filenames containing newlines inherit picomatch's matching limitations.
+
+# Shared code, root configuration, CI, datasets and unfamiliar paths require
+# every suite and Docker. Exclude the areas handled by specific filters below.
+# Documentation outside docs/examples, and Markdown outside docs/examples,
+# do not select verification jobs.
+full_suite:
   - "**"
-  - &non_markdown "!**/*.md"
-  - "!{webapp,cli,server,discojs-node,discojs-web,onnx-converter,docs}/**"
+  - "!**/*.md"
+  - "!docs/**"
+  - "!webapp/**"
+  - "!cli/**"
+  - "!server/**"
+  - "!discojs-node/**"
+  - "!discojs-web/**"
+  - "!onnx-converter/**"
 
-# The converter has no test suite, but still needs shared preparation and builds.
-build:
+# The converter has no test suite. Its code still requires dataset preparation,
+# static analysis and workspace builds. It does not require Docker.
+build_only:
   - "onnx-converter/**"
-  - *non_markdown
+  - "!**/*.md"
 
+# Node support has its own tests; its consumers are also included below.
 discojs_node:
   - "discojs-node/**"
-  - *non_markdown
+  - "!**/*.md"
 
+# Browser support has its own tests and also affects the webapp tests below.
 discojs_web:
   - "discojs-web/**"
-  - *non_markdown
+  - "!**/*.md"
 
+# Server tests cover both server code and its Node support dependency.
 server:
-  - "{discojs-node,server}/**"
-  - *non_markdown
+  - "{server,discojs-node}/**"
+  - "!**/*.md"
 
+# Select every webapp unit/E2E job. The webapp uses browser support; training
+# E2E tests also use the server and Node support.
 webapp:
-  - "{discojs-node,discojs-web,server,webapp}/**"
-  - *non_markdown
+  - "{webapp,discojs-web,server,discojs-node}/**"
+  - "!**/*.md"
 
+# CLI tests also exercise the server and Node support.
 cli:
-  - "{discojs-node,server,cli}/**"
-  - *non_markdown
+  - "{cli,server,discojs-node}/**"
+  - "!**/*.md"
 
+# Examples exercise the server and Node support. Their own Markdown files are
+# intentionally included; only Markdown in the dependency packages is ignored.
 docs_examples:
-  - "{discojs-node,server,docs/examples}/**"
-  # Markdown inside docs/examples participates in verification too.
-  - "!{discojs-node,server}/**/*.md"
+  - "{docs/examples,server,discojs-node}/**"
+  - "!server/**/*.md"
+  - "!discojs-node/**/*.md"
