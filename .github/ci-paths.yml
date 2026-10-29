@@ -1,0 +1,45 @@
+# Declarative path map for selective PR test execution (used by dorny/paths-filter in verify.yml).
+# Downstream packages inherit upstream dependencies via YAML anchors (& / *).
+
+shared: &shared
+  - "package.json"
+  - "pnpm-lock.yaml"
+  - "pnpm-workspace.yaml"
+  - ".nvmrc"
+  - ".gitattributes"
+  - "tsconfig*.json"
+  - "vitest.config.ts"
+  - "testSetupImportTFJSNode.ts"
+  - "datasets/populate"
+  - "isomorphic-wrtc/**"
+  - "isomorphic-ws/**"
+  - ".github/**"
+
+discojs: &discojs
+  - *shared
+  - "discojs/**"
+
+discojs_node: &discojs_node
+  - *discojs
+  - "discojs-node/**"
+
+discojs_web: &discojs_web
+  - *discojs
+  - "discojs-web/**"
+
+server: &server
+  - *discojs_node
+  - "server/**"
+
+webapp:
+  - *discojs_web
+  - *server
+  - "webapp/**"
+
+cli:
+  - *server
+  - "cli/**"
+
+docs_examples:
+  - *server
+  - "docs/examples/**"
