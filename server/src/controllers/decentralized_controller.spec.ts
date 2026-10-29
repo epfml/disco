@@ -176,6 +176,83 @@ describe("DecentralizedController peer connection retry", () => {
     expect(
       messagesOfType(ws1, MessageTypes.RetryPeerConnections),
     ).to.have.length(4);
+
+    // The server doesn't wait for the excluded peer to leave
+    await vi.waitFor(() => {
+      expect(ws2.nbOfTerminations).to.equal(1);
+    });
+    expect(ws1.nbOfTerminations).to.equal(0);
+  });
+
+  /**
+   * A peer failing to connect to the others is stuck connecting, so it misses
+   * the RetryPeerConnections and never sends PeerIsReady again.
+   */
+  it("drops a peer stuck connecting so that the others go on", async () => {
+    const controller = await makeController(3, 2);
+    const [ws1, ws2, stuck] = [
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+    ];
+    // all connected before joining, so that the round has the three of them
+    for (const ws of [ws1, ws2, stuck]) connect(controller, ws);
+    for (const ws of [ws1, ws2, stuck]) {
+      ws.emitMessage({ type: MessageTypes.JoinRound });
+      ws.emitMessage({ type: MessageTypes.PeerIsReady });
+    }
+    const ws2Id = expectLastMessageOfType(
+      ws2,
+      MessageTypes.NewDecentralizedNodeInfo,
+    ).id;
+
+    ws1.emitMessage({ type: MessageTypes.ConnectionsReady });
+    ws2.emitMessage({ type: MessageTypes.ConnectionsReady });
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(
+      messagesOfType(ws1, MessageTypes.RetryPeerConnections),
+    ).to.have.length(1);
+
+    // only the peers which got the retry come back ready
+    ws1.emitMessage({ type: MessageTypes.PeerIsReady });
+    ws2.emitMessage({ type: MessageTypes.PeerIsReady });
+    expect(messagesOfType(ws1, MessageTypes.PeersForRound)).to.have.length(1);
+
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    await vi.waitFor(() => {
+      expect(stuck.nbOfTerminations).to.equal(1);
+    });
+    expectLastMessageOfType(stuck, MessageTypes.ConnectionFail);
+    // the round starts over without it
+    expect(
+      expectLastMessageOfType(ws1, MessageTypes.PeersForRound).peers,
+    ).to.deep.equal([ws2Id]);
+    expect(ws1.nbOfTerminations).to.equal(0);
+    expect(ws2.nbOfTerminations).to.equal(0);
+  });
+
+  it("doesn't drop peers waiting for more participants", async () => {
+    const controller = await makeController(3, 3);
+    const [ws1, ws2, stuck] = [
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+    ];
+    for (const ws of [ws1, ws2, stuck]) connectAndJoinRound(controller, ws);
+
+    ws1.emitMessage({ type: MessageTypes.ConnectionsReady });
+    ws2.emitMessage({ type: MessageTypes.ConnectionsReady });
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    // a peer leaving makes the others wait, without sending PeerIsReady
+    ws2.emitClose();
+    expectLastMessageOfType(ws1, MessageTypes.WaitingForMoreParticipants);
+
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    expect(ws1.nbOfTerminations).to.equal(0);
+    expect(stuck.nbOfTerminations).to.equal(0);
   });
 });
 
