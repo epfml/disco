@@ -14,6 +14,9 @@ on:
       server:
         type: boolean
         default: true
+      server_docker:
+        type: boolean
+        default: true
       webapp:
         type: boolean
         default: true
@@ -70,7 +73,7 @@ jobs:
       - run: pnpm exec vitest --run --project=server
 
   test-server-docker:
-    if: inputs.server
+    if: inputs.server_docker
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
