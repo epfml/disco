@@ -247,6 +247,9 @@ export class DecentralizedController<
     });
     // Setup callback for client leaving the session
     ws.on("close", () => {
+      // Whether it left while the peers of the round connect to each other
+      const leftWhileConnecting = this.#connectFinishedNodes.has(peerId);
+
       // Remove the participant when the websocket is closed
       this.disconnectClient(peerId);
 
@@ -273,18 +276,23 @@ export class DecentralizedController<
       if (this.waitingForMoreParticipants) {
         // tell the remaining participants that one of them left
         this.sendParticipantsUpdateMsg();
-        return;
       }
       // If no, check if we are still above the minimum number of participant required
-      if (this.connections.size >= minNbOfParticipants) {
+      else if (this.connections.size >= minNbOfParticipants) {
         this.sendParticipantsUpdateMsg();
         this.#sendPeersForRoundIfNeeded();
-        return;
       }
       // If we are below the minimum number of participants
       // tell remaining participants to wait until more participants join,
       // which already carries the number of participants
-      this.sendWaitForMoreParticipantsMsg();
+      else this.sendWaitForMoreParticipantsMsg();
+
+      // The other peers of the round would wait for its contribution
+      // until timing out: have them connect again without it right away.
+      // This is not a failed attempt, so it doesn't count as a retry.
+      // Sent last, so that peers know first whether to wait for more participants
+      if (leftWhileConnecting && !this.#roundPeers.isEmpty())
+        this.#retryPeerConnections();
     });
 
     // Setup callback for WebSocket errors
@@ -467,10 +475,18 @@ export class DecentralizedController<
       this.#connectionRetry = 0;
     }
 
-    // Retry peer connection with the peers of the round
-    // Reset the ready and connection status of roundPeers
+    this.#retryPeerConnections();
+  }
+
+  /**
+   * Tells the peers of the round to connect to each other again,
+   * then gives them time to come back ready.
+   */
+  #retryPeerConnections(): void {
+    // Reset the ready status of roundPeers. No peers are connecting anymore
+    // until the next PeersForRound, so a late ConnectionsReady is ignored
     this.#roundPeers = this.#roundPeers.map(() => false);
-    this.#connectFinishedNodes = this.#roundPeers.map(() => false);
+    this.#connectFinishedNodes = Map();
 
     this.#broadcastMessageToNodes(
       this.#roundPeers.keySeq(),

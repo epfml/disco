@@ -254,6 +254,89 @@ describe("DecentralizedController peer connection retry", () => {
     expect(ws1.nbOfTerminations).to.equal(0);
     expect(stuck.nbOfTerminations).to.equal(0);
   });
+
+  /**
+   * The others would wait for the contribution of a peer leaving while they
+   * connect, so they connect again without it rather than wait for the timeout.
+   */
+  it("retries right away when a peer leaves while connecting", async () => {
+    // a retry counted would exclude the peers failing the next attempt
+    const controller = await makeController(1, 2);
+    const [ws1, ws2, leaving] = [
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+    ];
+    for (const ws of [ws1, ws2, leaving]) connect(controller, ws);
+    for (const ws of [ws1, ws2, leaving]) {
+      ws.emitMessage({ type: MessageTypes.JoinRound });
+      ws.emitMessage({ type: MessageTypes.PeerIsReady });
+    }
+    const ws2Id = expectLastMessageOfType(
+      ws2,
+      MessageTypes.NewDecentralizedNodeInfo,
+    ).id;
+    ws1.emitMessage({ type: MessageTypes.ConnectionsReady });
+    ws2.emitMessage({ type: MessageTypes.ConnectionsReady });
+
+    leaving.emitClose();
+
+    for (const ws of [ws1, ws2]) {
+      expect(
+        messagesOfType(ws, MessageTypes.RetryPeerConnections),
+      ).to.have.length(1);
+      expect(messagesOfType(ws, MessageTypes.StartWeightSharing)).to.be.empty;
+    }
+
+    // the round starts over without it
+    ws1.emitMessage({ type: MessageTypes.PeerIsReady });
+    ws2.emitMessage({ type: MessageTypes.PeerIsReady });
+    expect(
+      expectLastMessageOfType(ws1, MessageTypes.PeersForRound).peers,
+    ).to.deep.equal([ws2Id]);
+
+    // failing this attempt is only the first failed one
+    ws1.emitMessage({ type: MessageTypes.ConnectionsReady });
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(
+      messagesOfType(ws2, MessageTypes.RetryPeerConnections),
+    ).to.have.length(2);
+    expect(messagesOfType(ws2, MessageTypes.ConnectionFail)).to.be.empty;
+  });
+
+  it("tells to wait for more participants before retrying", async () => {
+    const controller = await makeController(3, 2);
+    const [ws1, leaving] = [
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+    ];
+    for (const ws of [ws1, leaving]) connectAndJoinRound(controller, ws);
+    ws1.emitMessage({ type: MessageTypes.ConnectionsReady });
+
+    leaving.emitClose();
+
+    const types = ws1.sentMessages.map((msg) => msg.type);
+    const waiting = types.lastIndexOf(MessageTypes.WaitingForMoreParticipants);
+    expect(waiting).to.not.equal(-1);
+    expect(types.lastIndexOf(MessageTypes.RetryPeerConnections)).to.be.above(
+      waiting,
+    );
+  });
+
+  it("doesn't retry when a peer leaves between rounds", async () => {
+    const controller = await makeController(3, 2);
+    const [ws1, ws2, leaving] = [
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+    ];
+    for (const ws of [ws1, ws2, leaving]) connect(controller, ws);
+    runRound([ws1, ws2, leaving]);
+
+    leaving.emitClose();
+
+    expect(messagesOfType(ws1, MessageTypes.RetryPeerConnections)).to.be.empty;
+  });
 });
 
 describe("DecentralizedController participants updates", () => {
