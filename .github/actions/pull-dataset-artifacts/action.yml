@@ -2,7 +2,8 @@ name: Pull dataset artifacts
 runs:
   using: composite
   steps:
-    - uses: actions/download-artifact@v7
+    - uses: actions/cache/restore@v5
       with:
-        name: datasets
-        path: datasets/
+        path: datasets
+        key: datasets-${{ hashFiles('datasets/populate') }}
+        fail-on-cache-miss: true

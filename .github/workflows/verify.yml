@@ -20,6 +20,7 @@ jobs:
       discojs_node: ${{ github.event_name == 'push' || steps.select.outputs.discojs_node == 'true' }}
       discojs_web: ${{ github.event_name == 'push' || steps.select.outputs.discojs_web == 'true' }}
       server: ${{ github.event_name == 'push' || steps.select.outputs.server == 'true' }}
+      server_docker: ${{ github.event_name == 'push' || steps.select.outputs.server_docker == 'true' }}
       webapp: ${{ github.event_name == 'push' || steps.select.outputs.webapp == 'true' }}
       cli: ${{ github.event_name == 'push' || steps.select.outputs.cli == 'true' }}
       docs_examples: ${{ github.event_name == 'push' || steps.select.outputs.docs_examples == 'true' }}
@@ -45,17 +46,18 @@ jobs:
     uses: ./.github/workflows/_static-analysis.yml
 
   build:
-    needs: [download-datasets, static-analysis]
+    needs: [static-analysis]
     uses: ./.github/workflows/_build.yml
 
   test:
-    needs: [affected, build]
+    needs: [affected, download-datasets, build]
     uses: ./.github/workflows/_test.yml
     with:
       discojs: ${{ needs.affected.outputs.discojs == 'true' }}
       discojs_node: ${{ needs.affected.outputs.discojs_node == 'true' }}
       discojs_web: ${{ needs.affected.outputs.discojs_web == 'true' }}
       server: ${{ needs.affected.outputs.server == 'true' }}
+      server_docker: ${{ needs.affected.outputs.server_docker == 'true' }}
       webapp: ${{ needs.affected.outputs.webapp == 'true' }}
       cli: ${{ needs.affected.outputs.cli == 'true' }}
       docs_examples: ${{ needs.affected.outputs.docs_examples == 'true' }}

@@ -14,6 +14,9 @@ on:
       server:
         type: boolean
         default: true
+      server_docker:
+        type: boolean
+        default: true
       webapp:
         type: boolean
         default: true
@@ -68,6 +71,24 @@ jobs:
       - uses: actions/download-artifact@v8
         with: { name: all-builds }
       - run: pnpm exec vitest --run --project=server
+
+  test-server-docker:
+    if: inputs.server_docker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - run: docker build .
+      - run: |
+          docker build --quiet --load . | \
+            xargs docker run --detach --publish 8080:8080
+          timeout=120
+          while ! curl http://localhost:8080
+          do
+            [ $timeout -eq 0 ] && exit 1
+            sleep 1
+            timeout=$((timeout - 1))
+          done
 
   test-webapp:
     if: inputs.webapp
