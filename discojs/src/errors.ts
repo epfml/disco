@@ -9,3 +9,13 @@ export class ClientCrashError extends Error {
     this.name = "ClientCrashError";
   }
 }
+
+/**
+ * Error thrown by the operations of a client that disconnected meanwhile.
+ */
+export class ClientDisconnectedError extends Error {
+  constructor() {
+    super("client disconnected");
+    this.name = "ClientDisconnectedError";
+  }
+}

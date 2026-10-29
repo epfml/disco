@@ -19,6 +19,7 @@ import {
   defaultTasks,
   defaultModels,
   ClientCrashError,
+  ClientDisconnectedError,
 } from "@epfml/discojs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Server } from "../src/index.js";
@@ -95,9 +96,9 @@ describe("decentralized client", () => {
       }
     )._server;
 
-    // Listen for the crash signal from the server
+    // Listen for the client being stopped, by the server crashing it
     const crashed = new Promise((resolve) =>
-      client.crashSignal.addEventListener("abort", resolve, { once: true }),
+      client.stopSignal.addEventListener("abort", resolve, { once: true }),
     );
 
     // Tries to connect the maximum number of times allowed by the server
@@ -110,8 +111,8 @@ describe("decentralized client", () => {
 
     // Make sure the crash occured and that the reason is correct
     await crashed;
-    expect(client.crashSignal.reason).to.be.instanceOf(ClientCrashError);
-    expect(client.crashSignal.reason).to.have.property(
+    expect(client.stopSignal.reason).to.be.instanceOf(ClientCrashError);
+    expect(client.stopSignal.reason).to.have.property(
       "reason",
       "Exceeded maximum number of retries to connect",
     );
@@ -177,7 +178,7 @@ describe("federated client", () => {
     );
     await client.connect();
     const crashed = new Promise((resolve) =>
-      client.crashSignal.addEventListener("abort", resolve, { once: true }),
+      client.stopSignal.addEventListener("abort", resolve, { once: true }),
     );
 
     // contributing to a round the server didn't reach yet makes it crash us
@@ -196,6 +197,8 @@ describe("federated client", () => {
     });
 
     await crashed;
+    // stopped by the crash, not by a disconnection
+    expect(client.stopSignal.reason).to.be.instanceOf(ClientCrashError);
     // the server closes the connection itself
     await vi.waitFor(() => {
       expect(connection.socket.readyState).to.equal(WebSocket.CLOSED);
@@ -434,6 +437,122 @@ describe("peer failing to begin a round", () => {
       await failedRoundStart;
       await settled();
       expect(participants).to.deep.equal([2]);
+    } finally {
+      close();
+    }
+  });
+});
+
+/**
+ * No message arrives once a client disconnected, so whatever it was waiting
+ * for on the server has to stop rather than wait forever.
+ */
+describe("client disconnecting while waiting on the server", () => {
+  const decentralizedJoinAnswer = (
+    waitForMoreParticipants: boolean,
+  ): decentralizedMessages.NewDecentralizedNodeInfo => ({
+    type: mtype.MType.NewDecentralizedNodeInfo,
+    id: "node-id",
+    waitForMoreParticipants,
+    joinedMidTraining: false,
+    nbOfParticipants: waitForMoreParticipants ? 1 : 2,
+  });
+
+  /** A server answering the join request only */
+  const answerJoinOnly =
+    (joinAnswer: ServerMessage) =>
+    (msg: { type: mtype.MType }, send: (msg: ServerMessage) => void) => {
+      if (msg.type === mtype.MType.ClientConnected) send(joinAnswer);
+    };
+
+  it("stops waiting for participants when decentralized", async () => {
+    const { url, close } = await serveStub(
+      answerJoinOnly(decentralizedJoinAnswer(true)),
+    );
+    const client = withoutModel(
+      new DecentralizedClient(
+        url,
+        await defaultTasks.cifar10.getTask(),
+        new MeanAggregator(),
+      ),
+    );
+
+    try {
+      await client.connect();
+      const round = client.onRoundBeginCommunication();
+
+      // expect before disconnecting, as disconnecting rejects the round
+      const stopped = expect(round).rejects.toBeInstanceOf(
+        ClientDisconnectedError,
+      );
+      await client.disconnect();
+      await stopped;
+    } finally {
+      close();
+    }
+  });
+
+  it("stops waiting for the peers of the round when decentralized", async () => {
+    // the server never sends the peers of the round
+    const { url, close } = await serveStub(
+      answerJoinOnly(decentralizedJoinAnswer(false)),
+    );
+    const client = withoutModel(
+      new DecentralizedClient(
+        url,
+        await defaultTasks.cifar10.getTask(),
+        new MeanAggregator(),
+      ),
+    );
+
+    try {
+      await client.connect();
+      await client.onRoundBeginCommunication();
+      const round = client.onRoundEndCommunication(new WeightsContainer([[1]]));
+      await settled();
+
+      // expect before disconnecting, as disconnecting rejects the round
+      const stopped = expect(round).rejects.toBeInstanceOf(
+        ClientDisconnectedError,
+      );
+      await client.disconnect();
+      await stopped;
+    } finally {
+      close();
+    }
+  });
+
+  it("stops waiting for the server's update when federated", async () => {
+    const joinAnswer: federatedMessages.NewFederatedNodeInfo = {
+      type: mtype.MType.NewFederatedNodeInfo,
+      id: "node-id",
+      waitForMoreParticipants: false,
+      payload: undefined,
+      round: 0,
+      nbOfParticipants: 2,
+    };
+    // the server never answers our contribution
+    const { url, close } = await serveStub(answerJoinOnly(joinAnswer));
+    const client = withoutModel(
+      new FederatedClient(
+        url,
+        await defaultTasks.titanic.getTask(),
+        new MeanAggregator(),
+      ),
+    );
+
+    try {
+      await client.connect();
+      await client.onRoundBeginCommunication();
+      const round = client.onRoundEndCommunication(new WeightsContainer([[1]]));
+      await settled();
+
+      // expect before disconnecting, as disconnecting rejects the round
+      const stopped = expect(round).rejects.toBeInstanceOf(
+        ClientDisconnectedError,
+      );
+      await client.disconnect();
+      await stopped;
     } finally {
       close();
     }
