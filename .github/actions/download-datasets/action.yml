@@ -7,6 +7,7 @@ runs:
       with:
         path: datasets
         key: datasets-${{ hashFiles('datasets/populate') }} # Only invalidate cache when download script changes
+        # Only check whether the cache key exists without downloading the archive on a cache hit
         lookup-only: true
     - if: steps.cache.outputs.cache-hit != 'true'
       run: datasets/populate
