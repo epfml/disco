@@ -178,9 +178,21 @@ export abstract class TrainingController<
   protected crashClient(ws: WebSocket, clientId: NodeID, reason: string): void {
     debug("crashing client [%s]: %s", clientId.slice(0, 4), reason);
     const msg: mtype.CrashClient = { type: mtype.MType.CrashClient, reason };
+    this.sendAndDisconnect(ws, clientId, msgpack.encode(msg));
+  }
+
+  /**
+   * Sends a last message to a client, then disconnects it once the message is sent.
+   * The client may be too stuck to ever leave by itself.
+   */
+  protected sendAndDisconnect(
+    ws: WebSocket,
+    clientId: NodeID,
+    data: Uint8Array,
+  ): void {
     try {
       // disconnect whether the message was delivered or not
-      ws.send(msgpack.encode(msg), () => ws.terminate());
+      ws.send(data, () => ws.terminate());
     } catch (err) {
       this.disconnect(ws, clientId, err);
     }
