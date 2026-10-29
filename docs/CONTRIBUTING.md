@@ -145,7 +145,7 @@ All three commands start and stop their servers and Vite automatically.
 
 Federated training tests run in separate CI jobs for Titanic and LUS COVID.
 Each job starts a real server and a Node participant configured for its task,
-while the package command runs both tasks together; see `test-e2e-federated`
+while the package command runs both tasks together; see `webapp-federated-training`
 in `.github/workflows/_test.yml` for the CI setup. CI runs Cypress in its default
 Electron environment under `xvfb`.
 
