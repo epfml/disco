@@ -36,38 +36,6 @@ There are many ways to use Disco.js: from a browser, a CLI, by importing `discoj
 
 ## Contributing in practice
 
-### CI selection
-
-PR verification uses the positive path lists in [`.github/ci-paths.yml`](../.github/ci-paths.yml).
-Each filter identifies a changed package or shared input; `verify.yml` then selects
-that package's consumers using the workspace dependencies:
-
-| Changed area   | Selected test suites                                |
-| -------------- | --------------------------------------------------- |
-| Core `discojs` | All suites                                          |
-| `discojs-node` | Node support, server, CLI, webapp and examples      |
-| `discojs-web`  | Browser support and webapp                          |
-| Server         | Server, CLI, webapp and examples                    |
-| Webapp         | Webapp unit and all webapp E2E jobs                 |
-| CLI            | CLI                                                 |
-| Docs examples  | Examples                                            |
-| ONNX converter | No tests; static analysis and workspace compilation |
-
-The `everything` filter lists shared adapters, dataset preparation, toolchain
-configuration and shared CI files that require all suites. Docker runs for those
-changes and for core, Node support or server changes. Datasets are prepared only
-when tests run; the converter does not need datasets or Docker.
-
-Changes to `.gitignore`, `.knip.json`, `eslint.config.js` or the static-analysis
-workflow run static analysis without builds, datasets, Docker or application
-tests. `.gitattributes` remains a shared input because its line-ending rules can
-change checked-out files for every runner.
-
-Unlisted paths do not request verification jobs on PRs. Add new package inputs and
-shared configuration files to the map when introducing them. Formatting still
-runs on every PR, and every push to `main` runs full verification regardless of
-the changed paths. All selected test jobs live in [`.github/workflows/_test.yml`](../.github/workflows/_test.yml).
-
 ### Running TypeScript
 
 As a contributor, you will certainly end up having to run TypeScript scripts. A practical way to do so is to use `ts-node`:
@@ -178,8 +146,8 @@ All three commands start and stop their servers and Vite automatically.
 Federated training tests run in separate CI jobs for Titanic and LUS COVID.
 Each job starts a real server and a Node participant configured for its task,
 while the package command runs both tasks together; see `test-e2e-federated`
-in `.github/workflows/_test.yml` for the CI setup. CI runs these Cypress
-jobs in Chrome.
+in `.github/workflows/_test.yml` for the CI setup. CI runs Cypress in its default
+Electron environment under `xvfb`.
 
 ##### Test environment variables
 

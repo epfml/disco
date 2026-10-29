@@ -1,99 +1,45 @@
-# Each filter lists files that affect a shared input or a package.
-# Matching ANY listed path selects the filter (predicate-quantifier: some).
-# verify.yml selects consumers of each changed package using its dependencies.
-# Add new packages and shared build inputs here when they are introduced.
+# Declarative path map for selective PR test execution (used by dorny/paths-filter in verify.yml).
+# Downstream packages inherit upstream dependencies via YAML anchors (& / *).
 
-# Shared runtime adapters, toolchain, test setup and CI orchestration affect
-# every suite. Package-specific source and build inputs are listed below.
-everything:
-  - "isomorphic-wrtc/*.js"
-  - "isomorphic-wrtc/*.ts"
-  - "isomorphic-wrtc/package.json"
-  - "isomorphic-ws/*.js"
-  - "isomorphic-ws/*.ts"
-  - "isomorphic-ws/package.json"
-  - "datasets/populate"
+shared: &shared
   - "package.json"
   - "pnpm-lock.yaml"
   - "pnpm-workspace.yaml"
   - ".nvmrc"
-  # text/eol attributes can alter the checked-out inputs of every runner.
   - ".gitattributes"
-  - "tsconfig.base.json"
-  - "tsconfig.base.lib.json"
+  - "tsconfig*.json"
   - "vitest.config.ts"
   - "testSetupImportTFJSNode.ts"
-  - "Dockerfile"
-  - ".dockerignore"
-  - ".github/ci-paths.yml"
-  - ".github/actions/setup-node/**"
-  - ".github/actions/download-datasets/**"
-  - ".github/actions/pull-dataset-artifacts/**"
-  - ".github/workflows/verify.yml"
-  - ".github/workflows/_test.yml"
-  - ".github/workflows/_build.yml"
-  - ".github/workflows/publish-deploy.yml"
+  - "datasets/populate"
+  - "isomorphic-wrtc/**"
+  - "isomorphic-ws/**"
+  - ".github/**"
 
-# These affect analysis/file discovery, not application compilation or tests.
-# Prettier also reads .gitignore; its separate workflow already runs on every PR.
-static_analysis:
-  - ".gitignore"
-  - ".knip.json"
-  - "eslint.config.js"
-  - ".github/workflows/_static-analysis.yml"
+discojs: &discojs
+  - *shared
+  - "discojs/**"
 
-# Every application and support package imports the core library.
-# Its source tree also contains Markdown documentation, which is not code.
-discojs:
-  - "discojs/src/**/*.ts"
-  - "discojs/package.json"
-  - "discojs/tsconfig*.json"
+discojs_node: &discojs_node
+  - *discojs
+  - "discojs-node/**"
 
-# Node loaders/model support is used by server, CLI, examples and webapp E2E.
-discojs_node:
-  - "discojs-node/src/**"
-  - "discojs-node/package.json"
-  - "discojs-node/tsconfig*.json"
+discojs_web: &discojs_web
+  - *discojs
+  - "discojs-web/**"
 
-# Browser loaders are used by the webapp.
-discojs_web:
-  - "discojs-web/src/**"
-  - "discojs-web/package.json"
-  - "discojs-web/tsconfig*.json"
-
-# CLI, examples and webapp training E2E also use the server.
-server:
-  - "server/src/**"
-  - "server/tests/**"
-  - "server/package.json"
-  - "server/tsconfig*.json"
+server: &server
+  - *discojs_node
+  - "server/**"
 
 webapp:
-  - "webapp/src/**"
-  - "webapp/public/**"
-  - "webapp/cypress/**"
-  - "webapp/package.json"
-  - "webapp/tsconfig*.json"
-  - "webapp/vite.config.ts"
-  - "webapp/vitest.config.ts"
-  - "webapp/cypress.config.ts"
-  - "webapp/env.d.ts"
-  - "webapp/index.html"
-  - "webapp/.env"
-  - "webapp/.env.*"
+  - *discojs_web
+  - *server
+  - "webapp/**"
 
 cli:
-  - "cli/src/**/*.ts"
-  - "cli/package.json"
-  - "cli/tsconfig.json"
+  - *server
+  - "cli/**"
 
-# Keep all examples, including their README and notebooks, under verification.
 docs_examples:
+  - *server
   - "docs/examples/**"
-
-# This standalone conversion tool has no consumers and no test job. Changes
-# require static analysis and workspace compilation, but no datasets or Docker.
-onnx_converter:
-  - "onnx-converter/src/**"
-  - "onnx-converter/package.json"
-  - "onnx-converter/tsconfig*.json"
