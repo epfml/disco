@@ -361,7 +361,7 @@ export class DecentralizedController<
     this.#roundPeers = this.#roundPeers.map(() => false);
 
     // Start timeout to check peer connections are successful
-    this.#startTimeout();
+    this.#startTimeout(() => this.#handleTimeout());
   }
 
   /**
@@ -397,18 +397,18 @@ export class DecentralizedController<
   }
 
   /**
-   * Set a timeout to check peer connections establishment
+   * Set a timeout to check that the peers of the round make progress
+   * @param onTimeout called when the peers didn't make it in time
    */
   #startTimeout(
+    onTimeout: () => void,
     maxTime: number = this.task.trainingInformation.maxPeerConnectionTime,
   ): void {
     // Cancel the previous timeout if it exists
     // A previous timeout exists if we are retrying to establish peer connections
     this.#clearTimeout();
 
-    this.#timeout = setTimeout(() => {
-      this.#handleTimeout();
-    }, maxTime);
+    this.#timeout = setTimeout(onTimeout, maxTime);
   }
 
   /**
@@ -442,47 +442,17 @@ export class DecentralizedController<
     ) {
       // Exclude the failed peers
       this.#connectFinishedNodes.forEach((connected, nodeId) => {
-        if (!connected) {
-          // If the node failed connection, exclude from #roundPeers
-          this.#roundPeers = this.#roundPeers.delete(nodeId);
-          this.#connectFinishedNodes =
-            this.#connectFinishedNodes.delete(nodeId);
-          // Signal the node that connection is failed for that node
-          debug("Signaling connection failure to: %o", nodeId.slice(0, 4));
-
-          this.#sendMessageToNode(nodeId, {
-            type: MessageTypes.ConnectionFail,
-          });
-        }
+        if (connected) return;
+        this.#roundPeers = this.#roundPeers.delete(nodeId);
+        this.#connectFinishedNodes = this.#connectFinishedNodes.delete(nodeId);
+        this.#excludeNode(nodeId);
       });
-
-      // Restart the round with remaining clients
-      this.#broadcastMessageToNodes(
-        this.#roundPeers.keySeq(),
-        (id): messages.RetryPeerConnections => {
-          debug("Signaling connection retry to: %o", id.slice(0, 4));
-
-          return {
-            type: MessageTypes.RetryPeerConnections,
-          };
-        },
-      );
-
-      // Reset the ready and connection status of roundPeers
-      this.#roundPeers = this.#roundPeers.map(() => false);
-      this.#connectFinishedNodes = this.#roundPeers.map(() => false);
 
       // Reset the connectionRetry since we excluded the failed clients
       this.#connectionRetry = 0;
-
-      // Start the timeout for the next connection attempt
-      // Avoids getting stuck waiting for enough PeerIsReady messages
-      this.#startTimeout();
-
-      return;
     }
 
-    // Retry peer connection with original roundPeers
+    // Retry peer connection with the peers of the round
     // Reset the ready and connection status of roundPeers
     this.#roundPeers = this.#roundPeers.map(() => false);
     this.#connectFinishedNodes = this.#roundPeers.map(() => false);
@@ -497,6 +467,40 @@ export class DecentralizedController<
         };
       },
     );
+
+    // Peers that don't come back ready in time missed the retry,
+    // likely stuck connecting: drop them so that the others can go on
+    this.#startTimeout(() => this.#dropUnreadyPeers());
+  }
+
+  /**
+   * Called when the peers told to retry didn't all come back ready in time.
+   * The peers sending PeerIsReady are then sent the peers of the round,
+   * once the others are gone.
+   */
+  #dropUnreadyPeers(): void {
+    this.#clearTimeout();
+    // Peers waiting for more participants don't send PeerIsReady meanwhile
+    if (this.waitingForMoreParticipants) return;
+
+    this.#roundPeers.forEach((ready, nodeId) => {
+      if (!ready) this.#excludeNode(nodeId);
+    });
+  }
+
+  /**
+   * Tells a peer that it failed to connect to the peers of the round,
+   * then disconnects it. The peer may be stuck connecting and never
+   * read the message, so the server doesn't wait for it to leave.
+   * Its socket closing removes it from the round, through the close handler.
+   */
+  #excludeNode(nodeId: NodeID): void {
+    const ws = this.connections.get(nodeId);
+    if (ws === undefined) return;
+    debug("Signaling connection failure to: %o", nodeId.slice(0, 4));
+
+    const msg: messages.ConnectionFail = { type: MessageTypes.ConnectionFail };
+    this.sendAndDisconnect(ws, nodeId, msgpack.encode(msg));
   }
 
   protected override connectClient(nodeId: NodeID, ws: WebSocket): void {
