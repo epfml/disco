@@ -70,7 +70,7 @@ export class FederatedClient extends Client<"federated"> {
     };
     const { id, waitForMoreParticipants, payload, round, nbOfParticipants } =
       await sendAndWaitWithRetry(this.server, msg, MType.NewFederatedNodeInfo, {
-        signal: this.crashSignal,
+        signal: this.stopSignal,
       });
 
     // This should come right after receiving the message to make sure
@@ -117,8 +117,8 @@ export class FederatedClient extends Client<"federated"> {
   }
 
   override onRoundBeginCommunication(): Promise<void> {
-    // Check if the crash signal has been triggered and throw if so
-    this.crashSignal.throwIfAborted();
+    // Throw if the client crashed or disconnected
+    this.stopSignal.throwIfAborted();
 
     // Prepare the result promise for the incoming round
     this.aggregationResult = new Promise((resolve) =>
@@ -147,8 +147,8 @@ export class FederatedClient extends Client<"federated"> {
       throw new Error("local aggregation result was not set");
     }
 
-    // Check if the crash signal has been triggered and throw if so
-    this.crashSignal.throwIfAborted();
+    // Throw if the client crashed or disconnected
+    this.stopSignal.throwIfAborted();
 
     // First we check if we are waiting for more participants before sending our weight update
     await this.waitForParticipantsIfNeeded();
@@ -198,7 +198,7 @@ export class FederatedClient extends Client<"federated"> {
     } = await waitMessage(
       this.server,
       MType.ReceiveServerPayload,
-      this.crashSignal,
+      this.stopSignal,
     );
     this.nbOfParticipants = nbOfParticipants; // Save the current participants
     const serverResult = weightsDecode(payloadFromServer);
