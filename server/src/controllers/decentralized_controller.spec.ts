@@ -349,6 +349,61 @@ describe("DecentralizedController participants updates", () => {
 });
 
 /**
+ * ConnectionsReady is only expected from the peers of a round connecting to
+ * each other. Received at any other time, it must not start weight sharing.
+ */
+describe("Stray ConnectionsReady", () => {
+  it("doesn't start a round before the peers are sent", async () => {
+    const controller = await makeController(3, 2);
+    const [ws1, ws2] = [
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+    ];
+    for (const ws of [ws1, ws2]) connect(controller, ws);
+
+    ws1.emitMessage({ type: MessageTypes.JoinRound });
+    ws2.emitMessage({ type: MessageTypes.ConnectionsReady });
+
+    for (const ws of [ws1, ws2])
+      expect(messagesOfType(ws, MessageTypes.StartWeightSharing)).to.be.empty;
+
+    // the first round is still the first one
+    ws1.emitMessage({ type: MessageTypes.PeerIsReady });
+    ws2.emitMessage({ type: MessageTypes.JoinRound });
+    ws2.emitMessage({ type: MessageTypes.PeerIsReady });
+    expect(
+      expectLastMessageOfType(ws1, MessageTypes.PeersForRound).aggregationRound,
+    ).to.equal(0);
+  });
+
+  it("doesn't start the next round when sent again", async () => {
+    const controller = await makeController(3, 2);
+    const [ws1, ws2] = [
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+    ];
+    for (const ws of [ws1, ws2]) connect(controller, ws);
+    runRound([ws1, ws2]);
+
+    // ws1 joins the next round and repeats its ConnectionsReady
+    ws1.emitMessage({ type: MessageTypes.JoinRound });
+    ws1.emitMessage({ type: MessageTypes.ConnectionsReady });
+
+    for (const ws of [ws1, ws2])
+      expect(
+        messagesOfType(ws, MessageTypes.StartWeightSharing),
+      ).to.have.length(1);
+
+    ws1.emitMessage({ type: MessageTypes.PeerIsReady });
+    ws2.emitMessage({ type: MessageTypes.JoinRound });
+    ws2.emitMessage({ type: MessageTypes.PeerIsReady });
+    expect(
+      expectLastMessageOfType(ws1, MessageTypes.PeersForRound).aggregationRound,
+    ).to.equal(1);
+  });
+});
+
+/**
  * A peer resends ClientConnected when the server's answer is late or lost.
  * The server has to answer again without treating it as a new participant.
  */
