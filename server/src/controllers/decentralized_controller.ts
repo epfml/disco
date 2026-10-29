@@ -169,6 +169,16 @@ export class DecentralizedController<
             break;
           }
           case MessageTypes.ConnectionsReady: {
+            // Only the peers of a round being connected are expected to send it,
+            // a late or duplicate one must not start a round
+            if (!this.#connectFinishedNodes.has(peerId)) {
+              debug(
+                "Ignoring ConnectionsReady from [%s], not connecting to the peers of a round",
+                shortId,
+              );
+              break;
+            }
+
             // Select the first client that finishes peer connections
             // as the model provider for clients joined mid-training
             const numconnFinishedNodes = this.#connectFinishedNodes.reduce(
@@ -370,8 +380,13 @@ export class DecentralizedController<
    * If so, send StartWeightSharing message to signal peers to proceed
    */
   #signalWeightSharing(): void {
-    // Return if not all participants are ready
-    if (!this.#connectFinishedNodes.every((ready) => ready)) return;
+    // Return if no peers are connecting, as every() is true for an empty map,
+    // or if not all participants are ready
+    if (
+      this.#connectFinishedNodes.isEmpty() ||
+      !this.#connectFinishedNodes.every((ready) => ready)
+    )
+      return;
 
     // Stop the timeout
     this.#clearTimeout();
