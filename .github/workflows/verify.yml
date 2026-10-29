@@ -48,24 +48,6 @@ jobs:
     needs: [static-analysis]
     uses: ./.github/workflows/_build.yml
 
-  build-server-docker:
-    needs: [static-analysis]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: docker/setup-buildx-action@v4
-      - run: docker build .
-      - run: |
-          docker build --quiet --load . | \
-            xargs docker run --detach --publish 8080:8080
-          timeout=120
-          while ! curl http://localhost:8080
-          do
-            [ $timeout -eq 0 ] && exit 1
-            sleep 1
-            timeout=$((timeout - 1))
-          done
-
   test:
     needs: [affected, download-datasets, build]
     uses: ./.github/workflows/_test.yml

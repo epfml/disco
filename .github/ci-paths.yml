@@ -30,6 +30,8 @@ discojs_web: &discojs_web
 server: &server
   - *discojs_node
   - "server/**"
+  - "Dockerfile"
+  - ".dockerignore"
 
 webapp:
   - *discojs_web
