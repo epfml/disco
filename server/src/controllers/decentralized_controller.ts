@@ -23,7 +23,8 @@ const debug = createDebug("server:controllers:decentralized");
  * - `connections` (inherited): map between the ids of clients
  *   that completed the connection handshake and their socket.
  * - `#roundPeers`: the nodes that want to join the current round and their readiness status.
- * - `#connectFinishedNodes`: the nodes that have completed the connection handshake and are ready for the current round.
+ * - `#connectFinishedNodes`: the nodes that have completed their peer-to-peer webRTC connections
+ *   and are ready for the current round.
  * - `#syncingNodes`: the nodes that are currently syncing with the latest model.
  * - `#providerNode`: the client selected to provide the latest model to peers joining in the middle of training.
  *
@@ -291,12 +292,7 @@ export class DecentralizedController<
     this.#connectionRetry = 0;
     this.#providerNode = undefined;
     this.#syncingNodes = Set<NodeID>();
-
-    // Reset the timeout
-    if (this.#timeout !== undefined) {
-      clearTimeout(this.#timeout);
-      this.#timeout = undefined;
-    }
+    this.#clearTimeout();
   }
 
   #sendMessageToNode(
@@ -407,6 +403,7 @@ export class DecentralizedController<
     maxTime: number = this.task.trainingInformation.maxPeerConnectionTime,
   ): void {
     // Cancel the previous timeout if it exists
+    // A previous timeout exists if we are retrying to establish peer connections
     this.#clearTimeout();
 
     this.#timeout = setTimeout(() => {
@@ -478,6 +475,10 @@ export class DecentralizedController<
       // Reset the connectionRetry since we excluded the failed clients
       this.#connectionRetry = 0;
 
+      // Start the timeout for the next connection attempt
+      // Avoids getting stuck waiting for enough PeerIsReady messages
+      this.#startTimeout();
+
       return;
     }
 
@@ -498,7 +499,7 @@ export class DecentralizedController<
     );
   }
 
-  protected override connectClient(nodeId: string, ws: WebSocket): void {
+  protected override connectClient(nodeId: NodeID, ws: WebSocket): void {
     super.connectClient(nodeId, ws);
 
     // If the new peer joins in the middle of training,
@@ -508,7 +509,7 @@ export class DecentralizedController<
     }
   }
 
-  protected override disconnectClient(nodeId: string): void {
+  protected override disconnectClient(nodeId: NodeID): void {
     super.disconnectClient(nodeId);
 
     this.#roundPeers = this.#roundPeers.delete(nodeId);

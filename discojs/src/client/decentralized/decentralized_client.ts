@@ -222,6 +222,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
       const providerInfo = await waitMessageWithTimeout(
         this.server,
         MType.ModelProviderInfo,
+        this.crashSignal,
         this.task.trainingInformation.maxModelSyncTime,
         "Timeout while waiting for the latest model provider",
       );
@@ -427,6 +428,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
           const message = await waitMessageWithTimeout(
             connection,
             MType.Payload,
+            this.crashSignal,
             MAX_PAYLOAD_WAIT,
             "Timeout waiting for a contribution from peer " + peerId,
           );
@@ -607,6 +609,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
     const message = await waitMessageWithTimeout(
       providerConn,
       MType.SharedModel,
+      this.crashSignal,
       this.task.trainingInformation.maxModelSyncTime,
       "Timeout while waiting for the latest model",
     );

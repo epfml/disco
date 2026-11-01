@@ -1,6 +1,6 @@
 import createDebug from "debug";
 import type WebSocket from "ws";
-import { Map } from "immutable";
+import { Map, Set } from "immutable";
 import * as msgpack from "@msgpack/msgpack";
 import { v4 as randomUUID } from "uuid";
 
@@ -43,10 +43,10 @@ export abstract class TrainingController<
    * Complete list of client ids that have connected their websocket
    * Make sure two clients don't share the same ID.
    */
-  protected clientIds = new Set<NodeID>();
+  protected clientIds = Set<NodeID>();
   /**
    * Number of ClientConnected messages each client's socket sent.
-   * We answer them with the global weights, so a client resending it
+   * In FL, we answer them with the global weights, so a client resending it
    * could make the server send them over and over.
    * By limiting the number of times a client can send the ClientConnected message, we prevent some abuse.
    * Note: It does not prevent a client from connecting with a different websocket and thus clientID.
