@@ -65,11 +65,12 @@ export async function waitMessage<T extends MType>(
 export async function waitMessageWithTimeout<T extends MType>(
   connection: EventConnection,
   type: T,
+  signal: AbortSignal,
   timeoutMs?: number,
   errorMsg: string = "timeout",
 ): Promise<NarrowMessage<T>> {
   return await Promise.race([
-    waitMessage(connection, type),
+    waitMessage(connection, type, signal),
     timeout(timeoutMs, errorMsg),
   ]);
 }

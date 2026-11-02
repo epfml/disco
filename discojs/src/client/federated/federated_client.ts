@@ -112,12 +112,8 @@ export class FederatedClient extends Client<"federated"> {
    * Disconnection process when user quits the task.
    */
   override async disconnect(): Promise<void> {
-    await this.server.disconnect();
-    this._server = undefined;
-    this._ownId = undefined;
-    this.promiseForMoreParticipants = undefined;
-
     this.aggregator.setNodes(this.aggregator.nodes.delete(SERVER_NODE_ID));
+    await super.disconnect();
   }
 
   override onRoundBeginCommunication(): Promise<void> {

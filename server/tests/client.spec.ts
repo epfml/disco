@@ -18,9 +18,11 @@ import {
   mtype,
   defaultTasks,
   defaultModels,
+  ClientCrashError,
 } from "@epfml/discojs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Server } from "../src/index.js";
+import { TrainingController } from "../src/controllers/index.js";
 
 describe("decentralized client", () => {
   let handle: http.Server;
@@ -70,6 +72,57 @@ describe("decentralized client", () => {
     );
 
     await expect(client.connect()).rejects.toThrow();
+  });
+
+  it("is disconnected by the server crashing it", async () => {
+    const url = await startServer(
+      [defaultModels.CIFAR10Classifier],
+      [defaultTasks.cifar10],
+    );
+
+    const client = new DecentralizedClient(
+      url,
+      await defaultTasks.cifar10.getTask(),
+      new MeanAggregator(),
+    );
+    await client.connect();
+    const connection = (
+      client as unknown as {
+        _server: {
+          send: (msg: mtype.ClientConnected) => void;
+          socket: { readyState: number };
+        };
+      }
+    )._server;
+
+    // Listen for the crash signal from the server
+    const crashed = new Promise((resolve) =>
+      client.crashSignal.addEventListener("abort", resolve, { once: true }),
+    );
+
+    // Tries to connect the maximum number of times allowed by the server
+    for (let i = 0; i < TrainingController.MAX_CLIENT_CONNECTION_RETRY; i++) {
+      const msg: mtype.ClientConnected = {
+        type: mtype.MType.ClientConnected,
+      };
+      connection.send(msg);
+    }
+
+    // Make sure the crash occured and that the reason is correct
+    await crashed;
+    expect(client.crashSignal.reason).to.be.instanceOf(ClientCrashError);
+    expect(client.crashSignal.reason).to.have.property(
+      "reason",
+      "Exceeded maximum number of retries to connect",
+    );
+
+    // Make sure the connection is closed after the crash signal is received
+    await vi.waitFor(() => {
+      expect(connection.socket.readyState).to.equal(WebSocket.CLOSED);
+    });
+
+    // Make sure the client can still be disconnected gracefully
+    await client.disconnect();
   });
 });
 
