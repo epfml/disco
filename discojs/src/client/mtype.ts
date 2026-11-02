@@ -34,8 +34,6 @@ export enum MType {
   StartWeightSharing = "StartWeightSharing",
   // Sent by the server to signal nodes reestablish connections
   RetryPeerConnections = "RetryPeerConnections",
-  // Sent by the server to signal that the node's connection was not successful
-  ConnectionFail = "ConnectionFail",
   // The weight update, sent from peer to peer
   Payload = "Payload",
   // Sent by nodes to the server to request the latest model

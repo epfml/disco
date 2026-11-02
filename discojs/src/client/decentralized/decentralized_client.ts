@@ -317,15 +317,14 @@ export class DecentralizedClient extends Client<"decentralized"> {
       // (1) If the client receives a StartWeightSharing message, it proceeds to weight update exchange
       // (2) If it receives a RetryPeerConnections message, it retries peer connection establishment
       // (3) After multiple retires, if the connection is still unsuccessful, the server starts excluding nodes from the round
-      // and sends a ConnectionFail message to those nodes
-      // (4) Upon receiving ConnectionFail, the client disconnects from the server
+      // and sends a CrashClient message to those nodes, which triggers the signal
+      // (4) Upon receiving CrashClient, it makes any waiting promises reject and aborts the current training round
       // TODO: Promise.race() does not close the waitMessage listeners that lost the race.
       // Therefore, unsolved listeners may accumulate across rounds.
       // We can add listener resolving if this becomes a problem later.
       const msg = await Promise.race([
         waitMessage(this.server, MType.StartWeightSharing, this.stopSignal),
         waitMessage(this.server, MType.RetryPeerConnections, this.stopSignal),
-        waitMessage(this.server, MType.ConnectionFail, this.stopSignal),
       ]);
 
       if (msg.type === MType.StartWeightSharing) {
@@ -348,10 +347,6 @@ export class DecentralizedClient extends Client<"decentralized"> {
         this.#connections = Map();
         this.aggregator.setNodes(Set([this.ownId]));
         continue;
-      } else if (msg.type === MType.ConnectionFail) {
-        debug(`[${shortenId(this.ownId)}] disconnect from the server`);
-        await this.disconnect();
-        throw new Error("Client disconnected after connection failure");
       }
     }
     // Exchange weight updates with peers and return aggregated weights
@@ -411,12 +406,17 @@ export class DecentralizedClient extends Client<"decentralized"> {
 
       // Initiate peer to peer connections with each peer
       // When connected, create a promise waiting for each peer's round contribution
-      const connections = await this.#pool.getPeers(
-        peers,
-        this.server,
-        // Init receipt of peers weights. this awaits the peer's
-        // weight update and adds it to our aggregator upon reception
-        (conn) => this.receivePayloads(conn),
+      // Making it abortable with the stop signal,
+      // otherwise the client may be stuck waiting for connections indefinitely
+      const connections = await abortable(
+        this.#pool.getPeers(
+          peers,
+          this.server,
+          // Init receipt of peers weights. this awaits the peer's
+          // weight update and adds it to our aggregator upon reception
+          (conn) => this.receivePayloads(conn),
+        ),
+        this.stopSignal,
       );
 
       // Signal server that all connections with other peers in the round are established
