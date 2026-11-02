@@ -282,13 +282,6 @@ async function startTraining(): Promise<void> {
       );
     } else if (
       e instanceof Error &&
-      e.message.includes("Client disconnected after connection failure")
-    ) {
-      toaster.error(
-        "Client disconnected after multiple peer connection failure. Please rejoin the training.",
-      );
-    } else if (
-      e instanceof Error &&
       e.message.includes("Timeout while waiting for the latest model")
     ) {
       toaster.error(
