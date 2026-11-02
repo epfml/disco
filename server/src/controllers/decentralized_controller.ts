@@ -530,8 +530,7 @@ export class DecentralizedController<
     if (ws === undefined) return;
     debug("Signaling connection failure to: %o", nodeId.slice(0, 4));
 
-    const msg: messages.ConnectionFail = { type: MessageTypes.ConnectionFail };
-    this.sendAndDisconnect(ws, nodeId, msgpack.encode(msg));
+    this.crashClient(ws, nodeId, "Failed to connect to peers of the round");
   }
 
   protected override connectClient(nodeId: NodeID, ws: WebSocket): void {

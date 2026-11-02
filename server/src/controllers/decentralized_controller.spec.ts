@@ -76,6 +76,12 @@ async function expectCrashed(ws: DecentralizedFakeWebSocket): Promise<void> {
   });
 }
 
+/** Checks that the server didn't tell a participant to crash */
+function expectNotCrashed(ws: DecentralizedFakeWebSocket): void {
+  expect(lastMessageOfType(ws, MessageTypes.CrashClient)).toBe(undefined);
+  expect(ws.nbOfTerminations).toBe(0);
+}
+
 describe("DecentralizedController peer connection retry", () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -116,8 +122,8 @@ describe("DecentralizedController peer connection retry", () => {
       messagesOfType(ws2, MessageTypes.RetryPeerConnections),
     ).to.have.length(1);
 
-    expect(messagesOfType(ws1, MessageTypes.ConnectionFail)).to.have.length(0);
-    expect(messagesOfType(ws2, MessageTypes.ConnectionFail)).to.have.length(0);
+    expectNotCrashed(ws1);
+    expectNotCrashed(ws2);
   });
 
   it("excludes failed peers only after maxConnectionRetry retries are exhausted", async () => {
@@ -137,12 +143,8 @@ describe("DecentralizedController peer connection retry", () => {
 
       await vi.advanceTimersByTimeAsync(60_000);
 
-      expect(messagesOfType(ws1, MessageTypes.ConnectionFail)).to.have.length(
-        0,
-      );
-      expect(messagesOfType(ws2, MessageTypes.ConnectionFail)).to.have.length(
-        0,
-      );
+      expectNotCrashed(ws1);
+      expectNotCrashed(ws2);
 
       expect(
         messagesOfType(ws1, MessageTypes.RetryPeerConnections),
@@ -161,18 +163,18 @@ describe("DecentralizedController peer connection retry", () => {
     }
 
     // Reached retries threshold, so the peer that never
-    // sent ConnectionsReady should receive ConnectionFail.
+    // sent ConnectionsReady should be told to crash.
     ws1.emitMessage({
       type: MessageTypes.ConnectionsReady,
     });
 
     await vi.advanceTimersByTimeAsync(60_000);
 
-    expect(messagesOfType(ws2, MessageTypes.ConnectionFail)).to.have.length(1);
+    await expectCrashed(ws2);
 
     // The peer that did finish connecting stays in the round and is told to retry
     // with the remaining participants.
-    expect(messagesOfType(ws1, MessageTypes.ConnectionFail)).to.have.length(0);
+    expectNotCrashed(ws1);
     expect(
       messagesOfType(ws1, MessageTypes.RetryPeerConnections),
     ).to.have.length(4);
@@ -223,7 +225,7 @@ describe("DecentralizedController peer connection retry", () => {
     await vi.waitFor(() => {
       expect(stuck.nbOfTerminations).to.equal(1);
     });
-    expectLastMessageOfType(stuck, MessageTypes.ConnectionFail);
+    expectLastMessageOfType(stuck, MessageTypes.CrashClient);
     // the round starts over without it
     expect(
       expectLastMessageOfType(ws1, MessageTypes.PeersForRound).peers,
@@ -301,7 +303,7 @@ describe("DecentralizedController peer connection retry", () => {
     expect(
       messagesOfType(ws2, MessageTypes.RetryPeerConnections),
     ).to.have.length(2);
-    expect(messagesOfType(ws2, MessageTypes.ConnectionFail)).to.be.empty;
+    expect(messagesOfType(ws2, MessageTypes.CrashClient)).to.be.empty;
   });
 
   it("tells to wait for more participants before retrying", async () => {
