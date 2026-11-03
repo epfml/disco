@@ -215,7 +215,7 @@ export abstract class TrainingController<
     while (this.clientIds.has(nodeId)) {
       nodeId = randomUUID();
     }
-    this.clientIds.add(nodeId);
+    this.clientIds = this.clientIds.add(nodeId);
     return nodeId;
   }
 
@@ -234,6 +234,6 @@ export abstract class TrainingController<
   protected disconnectClient(id: NodeID): void {
     this.connections = this.connections.delete(id);
     this.clientCounters = this.clientCounters.delete(id);
-    this.clientIds.delete(id);
+    this.clientIds = this.clientIds.delete(id);
   }
 }
