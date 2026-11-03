@@ -18,6 +18,11 @@ const MAX_DRAIN_TIME = 10_000;
 // Fallback SCTP message size per RFC 8841 / WebRTC spec when transport is not yet connected
 const SAFE_MAX_MESSAGE_SIZE = 65_536;
 
+// Keep individual messages small even when the transport permits much more.
+const MAX_CHUNK_SIZE = 65_536;
+const HIGH_WATER_MARK = 1024 * 1024;
+const LOW_WATER_MARK = HIGH_WATER_MARK / 2;
+
 export type SignalData =
   | RTCSessionDescriptionInit
   | { type: "candidate"; candidate: RTCIceCandidateInit };
@@ -45,6 +50,8 @@ export class Peer extends EventEmitter<EventPayloads> {
   private readonly pc: RTCPeerConnection;
   private channel?: RTCDataChannel;
   private isDestroyed = false;
+  private useBufferPolling = false;
+  private flushTimer?: ReturnType<typeof setTimeout>;
   private signalQueue = Promise.resolve();
   private queuedCandidates: RTCIceCandidateInit[] = [];
 
@@ -66,7 +73,16 @@ export class Peer extends EventEmitter<EventPayloads> {
   ) {
     super();
 
-    this.pc = new wrtc.RTCPeerConnection();
+    this.pc = new wrtc.RTCPeerConnection({
+      iceServers: [
+        {
+          urls: [
+            "stun:stun.l.google.com:19302",
+            "stun:global.stun.twilio.com:3478",
+          ],
+        },
+      ],
+    });
 
     this.pc.onicecandidate = (event) => {
       if (event.candidate) {
@@ -78,7 +94,7 @@ export class Peer extends EventEmitter<EventPayloads> {
     this.pc.onconnectionstatechange = () => {
       const state = this.pc.connectionState;
       if (state === "failed" || state === "closed") {
-        this.emit("close", undefined);
+        void this.destroy();
       }
     };
 
@@ -96,12 +112,16 @@ export class Peer extends EventEmitter<EventPayloads> {
   }
 
   private setupChannel(channel: RTCDataChannel): void {
+    if (this.isDestroyed) {
+      channel.close();
+      return;
+    }
     this.channel = channel;
     this.channel.binaryType = "arraybuffer";
-    try {
-      this.channel.bufferedAmountLowThreshold = this.maxChunkSize;
-    } catch {
-      // Some WebRTC implementations may not support bufferedAmountLowThreshold
+    // @roamhq/wrtc needs polling because it does not implement low-buffer events.
+    this.useBufferPolling = !("bufferedAmountLowThreshold" in channel);
+    if (!this.useBufferPolling) {
+      this.channel.bufferedAmountLowThreshold = LOW_WATER_MARK;
     }
 
     this.channel.onopen = () => {
@@ -121,7 +141,7 @@ export class Peer extends EventEmitter<EventPayloads> {
     };
 
     this.channel.onclose = () => {
-      this.emit("close", undefined);
+      void this.destroy();
     };
 
     this.channel.onerror = (event) => {
@@ -130,6 +150,7 @@ export class Peer extends EventEmitter<EventPayloads> {
           ? event.error.message
           : "DataChannel error";
       this.emit("error", new Error(message));
+      void this.destroy();
     };
   }
 
@@ -138,6 +159,7 @@ export class Peer extends EventEmitter<EventPayloads> {
     try {
       const offer = await this.pc.createOffer();
       await this.pc.setLocalDescription(offer);
+      if (this.isDestroyed) return;
       this.emit("signal", {
         type: "offer",
         sdp: offer.sdp,
@@ -168,6 +190,7 @@ export class Peer extends EventEmitter<EventPayloads> {
       await this.drainQueuedCandidates();
       const answer = await this.pc.createAnswer();
       await this.pc.setLocalDescription(answer);
+      if (this.isDestroyed) return;
       this.emit("signal", {
         type: "answer",
         sdp: answer.sdp,
@@ -218,40 +241,54 @@ export class Peer extends EventEmitter<EventPayloads> {
   }
 
   private flush(): void {
-    if (
-      this.isDestroyed ||
-      !this.channel ||
-      this.channel.readyState !== "open"
-    ) {
-      return;
-    }
+    clearTimeout(this.flushTimer);
+    this.flushTimer = undefined;
+    let recheck = this.useBufferPolling;
 
-    const HIGH_WATER_MARK = 1024 * 1024; // 1 MB queue backpressure cap
-
-    while (!this.sendQueue.isEmpty()) {
-      if (this.channel.bufferedAmount >= HIGH_WATER_MARK) {
-        setTimeout(() => this.flush(), TICK);
+    try {
+      if (
+        this.isDestroyed ||
+        !this.channel ||
+        this.channel.readyState !== "open"
+      ) {
         return;
       }
 
-      const chunk = this.sendQueue.first();
-      if (chunk === undefined) break;
-
-      try {
-        this.channel.send(chunk.encode() as ArrayBufferView<ArrayBuffer>);
+      while (!this.sendQueue.isEmpty()) {
+        const chunk = this.sendQueue.first();
+        if (chunk === undefined) break;
+        const data = chunk.encode();
+        if (this.channel.bufferedAmount + data.length > HIGH_WATER_MARK) {
+          return;
+        }
+        this.channel.send(data as ArrayBufferView<ArrayBuffer>);
         this.sendQueue = this.sendQueue.shift();
-      } catch (err) {
-        this.emit(
-          "error",
-          err instanceof Error ? err : new Error("Failed to send chunk"),
-        );
-        return;
+      }
+    } catch (err) {
+      // An error can interrupt refill below the low watermark, so another
+      // threshold crossing may never happen. Schedule an explicit retry.
+      recheck = true;
+      this.emit(
+        "error",
+        err instanceof Error ? err : new Error("Failed to send chunk"),
+      );
+    } finally {
+      if (
+        recheck &&
+        !this.isDestroyed &&
+        this.channel?.readyState === "open" &&
+        !this.sendQueue.isEmpty()
+      ) {
+        this.flushTimer = setTimeout(() => this.flush(), TICK);
       }
     }
   }
 
   private get maxChunkSize(): number {
-    return this.pc.sctp?.maxMessageSize || SAFE_MAX_MESSAGE_SIZE;
+    return Math.min(
+      MAX_CHUNK_SIZE,
+      this.pc.sctp?.maxMessageSize || SAFE_MAX_MESSAGE_SIZE,
+    );
   }
 
   private chunk(b: Buffer): Seq.Indexed<Packet> {
@@ -315,14 +352,25 @@ export class Peer extends EventEmitter<EventPayloads> {
     if (this.isDestroyed) return;
     this.isDestroyed = true;
 
-    try {
-      if (this.channel) {
-        this.channel.close();
-      }
-      this.pc.close();
-    } catch {
-      // Ignore closing errors
+    clearTimeout(this.flushTimer);
+    this.flushTimer = undefined;
+    this.pc.onicecandidate = null;
+    this.pc.onconnectionstatechange = null;
+    this.pc.ondatachannel = null;
+    if (this.channel) {
+      this.channel.onopen = null;
+      this.channel.onmessage = null;
+      this.channel.onbufferedamountlow = null;
+      this.channel.onclose = null;
+      this.channel.onerror = null;
     }
+    this.sendQueue = List();
+    this.unacknowledged = Set();
+    this.receiving = Map();
+    this.queuedCandidates = [];
+
+    this.channel?.close();
+    this.pc.close();
 
     this.emit("close", undefined);
     return Promise.resolve();

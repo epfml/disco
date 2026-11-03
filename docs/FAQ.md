@@ -10,9 +10,9 @@ In case of doubts, close everything, re-install dependencies (`pnpm ci`), re-bui
 
 ### Peers can't connect to each other in decentralized learning
 
-Make sure you are connected to internet, without any VPN. Indeed, WebRTC needs connection to reach an online server (the STUN server, `simple-peer` currently uses `stun.l.google.com:19302`) for peers to establish a direct connection. More information on WebRTC [here](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API).
+Check that your network allows access to the configured STUN servers, `stun.l.google.com:19302` and `global.stun.twilio.com:3478`. WebRTC uses STUN to discover public addresses when establishing direct connections between peers behind NAT. VPNs and restrictive firewalls can interfere with these connections, so trying another network can help identify the cause.
 
-You can troubleshoot the issue by trying [the simple use case](https://github.com/feross/simple-peer?tab=readme-ov-file#usage) of `simple-peer`.
+See the [decentralized learning guide](DECENTRALIZED.md#webrtc-implementation) for the implementation and connection flow, and [MDN's WebRTC guide](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API) for background on the browser APIs.
 
 ### Using TensorFlow.js on Mac laptops with M1 chips
 

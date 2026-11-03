@@ -12,8 +12,6 @@ export default defineConfig({
     conditions: ["@disco/source", ...defaultClientConditions],
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
-      // TODO until simple-peer#883 is fixed
-      "simple-peer": "simple-peer/simplepeer.min.js",
       buffer: "buffer/",
     },
   },
