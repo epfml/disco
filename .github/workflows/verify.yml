@@ -49,6 +49,28 @@ jobs:
     needs: [static-analysis]
     uses: ./.github/workflows/_build.yml
 
+  test-docker:
+    needs: [affected]
+    if: needs.affected.outputs.server_docker == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: server-test
+      - run: |
+          docker run --detach --publish 8080:8080 server-test
+          timeout=120
+          while ! curl http://localhost:8080
+          do
+            [ $timeout -eq 0 ] && exit 1
+            sleep 1
+            timeout=$((timeout - 1))
+          done
+
   test:
     needs: [affected, download-datasets, build]
     uses: ./.github/workflows/_test.yml
@@ -57,7 +79,6 @@ jobs:
       discojs_node: ${{ needs.affected.outputs.discojs_node == 'true' }}
       discojs_web: ${{ needs.affected.outputs.discojs_web == 'true' }}
       server: ${{ needs.affected.outputs.server == 'true' }}
-      server_docker: ${{ needs.affected.outputs.server_docker == 'true' }}
       webapp: ${{ needs.affected.outputs.webapp == 'true' }}
       cli: ${{ needs.affected.outputs.cli == 'true' }}
       docs_examples: ${{ needs.affected.outputs.docs_examples == 'true' }}

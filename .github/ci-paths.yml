@@ -32,9 +32,9 @@ server: &server
   - "server/**"
 
 server_docker:
+  - *server
   - "Dockerfile"
   - ".dockerignore"
-  - "server/**"
 
 webapp:
   - *discojs_web
