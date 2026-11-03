@@ -8,7 +8,7 @@ import { weightsEncode, weightsDecode } from "#serialization/index";
 import { Client } from "#client/client";
 import type { NodeID } from "#client/types";
 import { MType, type ClientConnected } from "#client/mtype";
-import { timeout, shortenId } from "#client/utils";
+import { abortable, timeout, shortenId } from "#client/utils";
 import {
   WebSocketServer,
   waitMessage,
@@ -62,6 +62,28 @@ export class DecentralizedClient extends Client<"decentralized"> {
     return new WeightsContainer(weights.weights.map((t) => t.clone()));
   }
 
+  /**
+   * Connects to a peer to send or receive the latest model.
+   * The connection may never be established, so we give up after
+   * maxModelSyncTime, or once the client crashes or disconnects.
+   * @param errorMsg the message of the error thrown upon timeout
+   * @returns the connection, undefined if the pool didn't connect to the peer
+   */
+  private async connectForModelSync(
+    pool: PeerPool,
+    peerId: NodeID,
+    errorMsg: string,
+  ): Promise<PeerConnection | undefined> {
+    const connections = await abortable(
+      Promise.race([
+        pool.getPeers(Set([peerId]), this.server, () => {}),
+        timeout(this.task.trainingInformation.maxModelSyncTime, errorMsg),
+      ]),
+      this.stopSignal,
+    );
+    return connections.get(peerId);
+  }
+
   // Between rounds, the server can send us a ProvideModelToPeer message to tell us to help a
   // peer that joined mid training or fell behind by sending them the latest global model
   // IMPORTANT: never send our model after training locally for privacy reasons.
@@ -78,13 +100,11 @@ export class DecentralizedClient extends Client<"decentralized"> {
     // Note:
     // getPeers() keeps the temporary connection with model provider even after model synchronization.
     // This connection is not added to #connections so it is not used for aggregation.
-    const syncConnection = await this.#pool.getPeers(
-      Set([event.newNode]),
-      this.server,
-      () => {},
+    const newcomerConn = await this.connectForModelSync(
+      this.#pool,
+      event.newNode,
+      "Timeout while connecting to the newly joined client",
     );
-
-    const newcomerConn = syncConnection.get(event.newNode);
 
     if (newcomerConn === undefined) {
       // if connection with newly joining client fails, print debug message
@@ -137,7 +157,13 @@ export class DecentralizedClient extends Client<"decentralized"> {
     // Upon receiving the signal, this client establishes a connection with the newcomer
     // and sends the latest model weights.
     this.server.on(MType.ProvideModelToPeer, (event) => {
-      void this.helpNewPeer(event);
+      // Helping is done on the side of training, nobody else awaits it
+      this.helpNewPeer(event).catch((e: unknown) =>
+        debug(
+          `[${shortenId(this._ownId ?? "?")}] failed to send the latest model to ${shortenId(event.newNode)}: %o`,
+          e,
+        ),
+      );
     });
 
     // c.f. setupServerCallbacks doc for explanation
@@ -233,12 +259,11 @@ export class DecentralizedClient extends Client<"decentralized"> {
         );
 
       // 3. Connect with model provider client and get the latest model
-      const syncConnection = await this.#pool.getPeers(
-        Set([providerInfo.providerNode]),
-        this.server,
-        () => {},
+      const providerConn = await this.connectForModelSync(
+        this.#pool,
+        providerInfo.providerNode,
+        "Timeout while waiting for the latest model provider to connect",
       );
-      const providerConn = syncConnection.get(providerInfo.providerNode);
 
       if (providerConn === undefined)
         throw new Error("The latest model provider is not connected");

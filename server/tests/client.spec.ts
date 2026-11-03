@@ -557,4 +557,128 @@ describe("client disconnecting while waiting on the server", () => {
       close();
     }
   });
+
+  /**
+   * Connecting to another peer to sync the model never ends if the
+   * connection is never established, as the server doesn't relay signals here.
+   */
+  describe("model syncing", () => {
+    /** Resolves once the client tries to connect to another peer */
+    let connecting: Promise<void>;
+    let startedConnecting: () => void;
+    let push: ((msg: ServerMessage) => void) | undefined;
+
+    /** A server making the client sync its model from an unreachable peer */
+    async function serveSync(): Promise<{ url: URL; close: () => void }> {
+      connecting = new Promise((resolve) => (startedConnecting = resolve));
+      return await serveStub((msg, send) => {
+        push = send;
+        switch (msg.type) {
+          case mtype.MType.ClientConnected:
+            send({
+              ...decentralizedJoinAnswer(false),
+              joinedMidTraining: true,
+            });
+            break;
+          case mtype.MType.ModelSyncRequest:
+            send({
+              type: mtype.MType.ModelProviderInfo,
+              providerNode: "provider-id",
+            });
+            break;
+          case mtype.MType.SignalForPeer:
+            startedConnecting();
+            break;
+        }
+      });
+    }
+
+    it("stops connecting to the provider when disconnected", async () => {
+      const { url, close } = await serveSync();
+      const client = withoutModel(
+        new DecentralizedClient(
+          url,
+          await defaultTasks.cifar10.getTask(),
+          new MeanAggregator(),
+        ),
+      );
+
+      try {
+        await client.connect();
+        const round = client.onRoundBeginCommunication();
+        await connecting;
+
+        // expect before disconnecting, as disconnecting rejects the round
+        const stopped = expect(round).rejects.toBeInstanceOf(
+          ClientDisconnectedError,
+        );
+        await client.disconnect();
+        await stopped;
+      } finally {
+        close();
+      }
+    });
+
+    /** A task giving little time to sync the model */
+    async function quickSyncTask() {
+      const task = await defaultTasks.cifar10.getTask();
+      return {
+        ...task,
+        trainingInformation: {
+          ...task.trainingInformation,
+          maxModelSyncTime: 100,
+        },
+      };
+    }
+
+    it("gives up connecting to the provider after a while", async () => {
+      const { url, close } = await serveSync();
+      const client = withoutModel(
+        new DecentralizedClient(
+          url,
+          await quickSyncTask(),
+          new MeanAggregator(),
+        ),
+      );
+
+      try {
+        await client.connect();
+
+        await expect(client.onRoundBeginCommunication()).rejects.toThrow(
+          "Timeout while waiting for the latest model provider to connect",
+        );
+      } finally {
+        await client.disconnect();
+        close();
+      }
+    });
+
+    it("stops connecting to the newcomer when disconnected", async () => {
+      const { url, close } = await serveSync();
+      const client = withoutModel(
+        new DecentralizedClient(
+          url,
+          await defaultTasks.cifar10.getTask(),
+          new MeanAggregator(),
+        ),
+      );
+
+      try {
+        await client.connect();
+        // the server picked us to send our model to a newcomer,
+        // with a greater id so that we initiate the connection and signal first
+        push?.({
+          type: mtype.MType.ProvideModelToPeer,
+          newNode: "peer-newcomer-id",
+        });
+        await connecting;
+
+        // the help given on the side stops without an unhandled rejection
+        await client.disconnect();
+        await settled();
+      } finally {
+        close();
+      }
+    });
+  });
 });
