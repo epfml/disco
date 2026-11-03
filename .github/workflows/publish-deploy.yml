@@ -10,11 +10,22 @@ on:
   push:
     tags: [v*]
 
+concurrency:
+  group: publish-deploy-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  # When triggered by workflow_run, jobs only proceed if post-merge verification succeeded.
+  # When triggered by workflow_run, jobs only proceed if post-merge verification on main succeeded
+  # in the target repository, preventing fork PRs with head_branch 'main' from triggering CD.
   # The push condition allows release tags (v*) to publish immediately.
   publish-npm:
-    if: github.event_name == 'push' || github.event.workflow_run.conclusion == 'success'
+    if: >-
+      github.event_name == 'push' ||
+      (
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.conclusion == 'success'
+      )
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -38,7 +49,16 @@ jobs:
       - run: pnpm -F 'discojs*' publish --access public --tag latest
 
   build-webapp:
-    if: (github.event_name == 'push' || github.event.workflow_run.conclusion == 'success') && github.ref_type == 'branch'
+    if: >-
+      github.ref_type == 'branch' &&
+      (
+        github.event_name == 'push' ||
+        (
+          github.event.workflow_run.event == 'push' &&
+          github.event.workflow_run.head_repository.full_name == github.repository &&
+          github.event.workflow_run.conclusion == 'success'
+        )
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -67,7 +87,13 @@ jobs:
         uses: actions/deploy-pages@v5
 
   publish-github-container:
-    if: github.event_name == 'push' || github.event.workflow_run.conclusion == 'success'
+    if: >-
+      github.event_name == 'push' ||
+      (
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.conclusion == 'success'
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: read
