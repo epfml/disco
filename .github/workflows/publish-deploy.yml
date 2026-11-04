@@ -1,17 +1,40 @@
 name: publish-deploy
 on:
-  push:
+  # Deployments on main are chained to the verify workflow so they run only
+  # after post-merge verification succeeds on main, preventing deployment of broken commits.
+  workflow_run:
+    workflows: ["verify"]
     branches: [main]
+    types: [completed]
+  # Release tags publish directly without waiting for a workflow_run event.
+  push:
     tags: [v*]
 
+concurrency:
+  group: publish-deploy-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
+  # When triggered by workflow_run, jobs only proceed if post-merge verification on main succeeded
+  # in the target repository, preventing fork PRs with head_branch 'main' from triggering CD.
+  # The push condition allows release tags (v*) to publish immediately.
   publish-npm:
+    if: >-
+      github.event_name == 'push' ||
+      (
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.conclusion == 'success'
+      )
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
     steps:
       - uses: actions/checkout@v7
+        with:
+          # In workflow_run, checkout the verified commit SHA rather than the latest branch tip.
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
@@ -26,12 +49,23 @@ jobs:
       - run: pnpm -F 'discojs*' publish --access public --tag latest
 
   build-webapp:
-    if: github.ref_type == 'branch'
+    if: >-
+      github.ref_type == 'branch' &&
+      (
+        github.event_name == 'push' ||
+        (
+          github.event.workflow_run.event == 'push' &&
+          github.event.workflow_run.head_repository.full_name == github.repository &&
+          github.event.workflow_run.conclusion == 'success'
+        )
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
       - uses: ./.github/actions/setup-node
       - run: pnpm -F webapp run build
       - uses: actions/upload-pages-artifact@v5
@@ -53,6 +87,13 @@ jobs:
         uses: actions/deploy-pages@v5
 
   publish-github-container:
+    if: >-
+      github.event_name == 'push' ||
+      (
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.conclusion == 'success'
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -60,6 +101,9 @@ jobs:
     outputs:
       digest: ${{ steps.build.outputs.digest }}
     steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
       - uses: docker/login-action@v4
         with:
           registry: ghcr.io
@@ -75,6 +119,7 @@ jobs:
       - uses: docker/build-push-action@v7
         id: build
         with:
+          context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -88,6 +133,8 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
       - uses: google-github-actions/auth@v3
         with:
           project_id: disco-367212

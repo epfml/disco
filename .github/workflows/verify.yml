@@ -12,6 +12,29 @@ permissions:
   contents: read
 
 jobs:
+  affected:
+    runs-on: ubuntu-latest
+    outputs:
+      # Pushes to main always run all test suites; PRs run only affected suites.
+      discojs: ${{ github.event_name == 'push' || steps.select.outputs.discojs == 'true' }}
+      discojs_node: ${{ github.event_name == 'push' || steps.select.outputs.discojs_node == 'true' }}
+      discojs_web: ${{ github.event_name == 'push' || steps.select.outputs.discojs_web == 'true' }}
+      server: ${{ github.event_name == 'push' || steps.select.outputs.server == 'true' }}
+      webapp: ${{ github.event_name == 'push' || steps.select.outputs.webapp == 'true' }}
+      cli: ${{ github.event_name == 'push' || steps.select.outputs.cli == 'true' }}
+      docs_examples: ${{ github.event_name == 'push' || steps.select.outputs.docs_examples == 'true' }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # PR checkouts use a synthetic merge commit; depth 2 includes its base parent.
+          fetch-depth: 2
+      - id: select
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
+        with:
+          token: ""
+          filters: .github/ci-paths.yml
+
   download-datasets:
     runs-on: ubuntu-latest
     steps:
@@ -26,5 +49,13 @@ jobs:
     uses: ./.github/workflows/_build.yml
 
   test:
-    needs: [build]
+    needs: [affected, build]
     uses: ./.github/workflows/_test.yml
+    with:
+      discojs: ${{ needs.affected.outputs.discojs == 'true' }}
+      discojs_node: ${{ needs.affected.outputs.discojs_node == 'true' }}
+      discojs_web: ${{ needs.affected.outputs.discojs_web == 'true' }}
+      server: ${{ needs.affected.outputs.server == 'true' }}
+      webapp: ${{ needs.affected.outputs.webapp == 'true' }}
+      cli: ${{ needs.affected.outputs.cli == 'true' }}
+      docs_examples: ${{ needs.affected.outputs.docs_examples == 'true' }}
