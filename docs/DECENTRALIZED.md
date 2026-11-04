@@ -35,8 +35,8 @@ The process is as follows:
 1. If the number of retries is still below `maxConnectionRetry`, the server sends a `RetryPeerConnections` message to all peers in the current round.
 2. When clients receive `RetryPeerConnections`, they clean up their peer pool and aggregator nodes, then rerun the peer connection phase.
 3. If the connection setup still fails after more than `maxConnectionRetry` attempts, the server removes the failed peers from the round peer list.
-4. The server sends a `ConnectionFail` message to the failed peers.
-5. When a client receives `ConnectionFail`, it disconnects from the server.
+4. The server sends a `CrashClient` message to the failed peers and kills their connection.
+5. When a client receives `CrashClient`, it aborts whatever it is waiting for and the training fails with a `ClientCrashError`. The caller of `Disco.train` then closes the client. The webapp does this and tells the user they can rejoin the training.
 6. The remaining clients receive `RetryPeerConnections` and retry the peer connection phase without the failed peers.
 
 This allows the remaining participants to continue training even when one or more peers fail to establish connections.
@@ -119,8 +119,8 @@ sequenceDiagram
                 S-->>C: RetryPeerConnections
                 Note over C: drops its peer pool and connections,<br/>then runs this barrier again
             else server timed out, maxConnectionRetry reached
-                S-->>C: ConnectionFail
-                Note over C: disconnects from the server
+                S-->>C: CrashClient
+                Note over C: training fails with ClientCrashError
             end
         end
     end
