@@ -5,7 +5,7 @@ export type ChunkID = number;
 const asChunkID = (n: number): ChunkID => n;
 
 export class Packet {
-  constructor(
+  private constructor(
     public readonly messageID: MessageID,
     public readonly chunkID: ChunkID,
     public readonly totalChunks?: number,
@@ -13,20 +13,21 @@ export class Packet {
   ) {}
 
   // message id size in bytes (uint16)
-  static MESSAGE_ID_BYTES = 2;
+  static readonly MESSAGE_ID_BYTES = 2;
   // chunk counter size in bytes (uint32)
-  static CHUNK_ID_BYTES = 4;
+  static readonly CHUNK_ID_BYTES = 4;
   // total chunk count size in bytes (uint32)
-  static TOTAL_CHUNKS_BYTES = 4;
+  static readonly TOTAL_CHUNKS_BYTES = 4;
 
   // message id (2 bytes) + chunk counter (4 bytes)
-  static HEADER_SIZE = Packet.MESSAGE_ID_BYTES + Packet.CHUNK_ID_BYTES;
+  static readonly HEADER_SIZE = Packet.MESSAGE_ID_BYTES + Packet.CHUNK_ID_BYTES;
 
   // message id (2 bytes) + chunk counter (4 bytes) + total chunk count (4 bytes)
-  static FIRST_HEADER_SIZE = Packet.HEADER_SIZE + Packet.TOTAL_CHUNKS_BYTES;
+  static readonly FIRST_HEADER_SIZE =
+    Packet.HEADER_SIZE + Packet.TOTAL_CHUNKS_BYTES;
 
   // chunk counter of an acknowledgement, unused by messages
-  static ACK_CHUNK_ID: ChunkID = 0xffff_ffff;
+  static readonly ACK_CHUNK_ID: ChunkID = 0xffff_ffff;
 
   get isAck(): boolean {
     return this.chunkID === Packet.ACK_CHUNK_ID;
@@ -100,13 +101,11 @@ export class Packet {
         throw new Error("received invalid message type");
       }
       const totalChunks = data.readUInt32BE(Packet.HEADER_SIZE);
-      const payload = Buffer.alloc(data.length - Packet.FIRST_HEADER_SIZE);
-      data.copy(payload, 0, Packet.FIRST_HEADER_SIZE);
+      const payload = data.subarray(Packet.FIRST_HEADER_SIZE);
       return Packet.firstChunk(messageID, totalChunks, payload);
     }
 
-    const payload = Buffer.alloc(data.length - Packet.HEADER_SIZE);
-    data.copy(payload, 0, Packet.HEADER_SIZE);
+    const payload = data.subarray(Packet.HEADER_SIZE);
     return Packet.chunk(messageID, chunkID, payload);
   }
 }
