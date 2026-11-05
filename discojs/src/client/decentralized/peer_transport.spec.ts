@@ -11,6 +11,7 @@ const { pc, channel, createPeerConnection } = vi.hoisted(() => {
     onbufferedamountlow: null as (() => void) | null,
     onclose: null as (() => void) | null,
     onerror: null as ((event: Event) => void) | null,
+    onmessage: null as ((event: MessageEvent) => void) | null,
     send: vi.fn<(data: Buffer) => void>(),
     close: vi.fn(),
   };
@@ -209,6 +210,59 @@ describe("peer transport", () => {
 
     expect(pc.close).toHaveBeenCalledOnce();
     expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("reports malformed input and still receives the next valid message", () => {
+    const onError = vi.fn();
+    const onData = vi.fn();
+    peer.on("error", onError);
+    peer.on("data", onData);
+
+    for (const data of [null, Buffer.alloc(2)]) {
+      expect(() =>
+        channel.onmessage?.(new MessageEvent("message", { data })),
+      ).not.toThrow();
+    }
+    expect(onError).toHaveBeenCalledTimes(2);
+    expect(onData).not.toHaveBeenCalled();
+
+    const message = Buffer.from("valid message");
+    const encoded = Packet.firstChunk(0, 1, message).encode();
+    // Exercise the ArrayBuffer path used by browser data channels.
+    channel.onmessage?.(
+      new MessageEvent("message", {
+        data: Uint8Array.from(encoded).buffer,
+      }),
+    );
+
+    expect(onData).toHaveBeenCalledExactlyOnceWith(message);
+    expect(Packet.decode(channel.send.mock.calls[0][0]).isAck).toBe(true);
+    expect(pc.close).not.toHaveBeenCalled();
+  });
+
+  it("reports a duplicate chunk without preventing message completion", () => {
+    const onError = vi.fn();
+    const onData = vi.fn();
+    peer.on("error", onError);
+    peer.on("data", onData);
+    const first = Packet.firstChunk(0, 2, Buffer.from("hello ")).encode();
+    channel.onmessage?.(new MessageEvent("message", { data: first }));
+
+    expect(() =>
+      channel.onmessage?.(new MessageEvent("message", { data: first })),
+    ).not.toThrow();
+    expect(onError).toHaveBeenCalledExactlyOnceWith(
+      new Error("chunk 0:0 already received"),
+    );
+    expect(onData).not.toHaveBeenCalled();
+
+    channel.onmessage?.(
+      new MessageEvent("message", {
+        data: Packet.chunk(0, 1, Buffer.from("world")).encode(),
+      }),
+    );
+    expect(onData).toHaveBeenCalledExactlyOnceWith(Buffer.from("hello world"));
+    expect(pc.close).not.toHaveBeenCalled();
   });
 
   it("reports data channel failures and closes the peer", () => {

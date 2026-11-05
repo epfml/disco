@@ -130,10 +130,14 @@ export class Peer extends EventEmitter<EventPayloads> {
     };
 
     this.channel.onmessage = (event: MessageEvent) => {
-      const data = Buffer.isBuffer(event.data)
-        ? event.data
-        : Buffer.from(event.data as ArrayBuffer);
-      this.handleData(data);
+      try {
+        const data = Buffer.isBuffer(event.data)
+          ? event.data
+          : Buffer.from(event.data as ArrayBuffer);
+        this.handleData(data);
+      } catch (err) {
+        this.emit("error", err instanceof Error ? err : new Error(String(err)));
+      }
     };
 
     this.channel.onbufferedamountlow = () => {
