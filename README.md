@@ -41,7 +41,7 @@ The latest version is always running on the following link, for web and mobile:
 :question: **DISCO TECHNOLOGY**
 
 - DISCO runs arbitrary deep learning tasks and model architectures in your browser, via [TF.js](https://www.tensorflow.org/js)
-- Decentralized learning :sparkles: relies on peer-to-peer communication over [WebRTC](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API)
+- Decentralized learning :sparkles: relies on peer-to-peer communication over [WebRTC](https://webrtc.org/)
 - Have a look at how DISCO ensures privacy and confidentiality [HERE](docs/PRIVACY.md)
 
 ---
