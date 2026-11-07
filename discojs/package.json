@@ -102,11 +102,10 @@
     "debug": "catalog:",
     "fast-check": "3.23.2",
     "immutable": "catalog:",
-    "simple-peer": "9.11.1",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/simple-peer": "9.11.9",
+    "@types/node": "22.19.15",
     "nodemon": "3.1.14",
     "vitest": "catalog:"
   }

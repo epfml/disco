@@ -1,6 +1,7 @@
 {
   "extends": "../tsconfig.base.lib.json",
   "compilerOptions": {
+    "types": ["node"],
     // Copied from `package.json` since some tools don't work without it
     "paths": {
       "#root/*": ["./src/*"],

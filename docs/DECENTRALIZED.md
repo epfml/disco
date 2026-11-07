@@ -5,6 +5,14 @@ Relevant code can be found in [decentralized controller](../server/src/controlle
 
 Peer connections for decentralized learning are coordinated by the server. However, model weight updates are shared only between peers.
 
+## WebRTC Implementation
+
+Peers exchange model updates over WebRTC data channels using the native `RTCPeerConnection` and `RTCDataChannel` APIs. Browsers provide these APIs directly; Node.js uses [@roamhq/wrtc](https://github.com/WonderInventions/node-webrtc), selected through our [isomorphic WebRTC module](../isomorphic-wrtc). The [Peer implementation](../discojs/src/client/decentralized/peer.ts) handles signaling, message fragmentation, backpressure, and receipt acknowledgements. See [MDN's WebRTC guide](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API) for an introduction to the APIs and connection setup.
+
+For history tracking, the Node.js implementation has switched between node-webrtc and [node-datachannel](https://github.com/murat-dogan/node-datachannel). We originally used `wrtc`, but segfaults led us to switch to `node-datachannel` in [#652](https://github.com/epfml/disco/pull/652). In [#1079](https://github.com/epfml/disco/pull/1079), we switched back to node-webrtc through the `@roamhq/wrtc` fork for better compatibility with the [simple-peer](https://github.com/feross/simple-peer) wrapper. The fork also tracks the [segfault issue](https://github.com/WonderInventions/node-webrtc/issues/7).
+
+[#1265](https://github.com/epfml/disco/pull/1265) removes the unmaintained `simple-peer` wrapper while keeping `@roamhq/wrtc` for Node.js. `node-datachannel` remains an alternative if a future change of implementation is needed; its [WebRTC polyfill documentation](https://github.com/murat-dogan/node-datachannel#webrtc-polyfills) describes compatibility considerations.
+
 ## Peer Connection and Round Participation
 
 Clients first connect to the server. The server then coordinates which clients should participate in each decentralized training round.
