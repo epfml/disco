@@ -83,12 +83,6 @@ afterEach(() => {
   workers.length = 0;
 });
 
-// jsdom cannot load browser WASM URLs. Keep actual training and model code,
-// using the CPU backend as in the original component test.
-vi.mock("../worker_backend", () => ({
-  initializeTrainingBackend: () => tf.setBackend("cpu"),
-}));
-
 it("increases accuracy when training alone", { timeout: 20_000 }, async () => {
   const wrapper = await setupForTask(undefined, true);
   let model: Model<"tabular"> | undefined;

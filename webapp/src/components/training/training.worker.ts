@@ -1,5 +1,5 @@
 import "@/buffer-polyfill";
-import { initializeTrainingBackend } from "./worker_backend";
+import * as tf from "@tensorflow/tfjs";
 import {
   Dataset,
   Client,
@@ -145,7 +145,9 @@ async function train(
       DataType,
       Network
     >;
-    await initializeTrainingBackend(task.dataType);
+    const webglReady = await tf.setBackend("webgl").catch(() => false);
+    if (!webglReady) await tf.setBackend("cpu");
+    await tf.ready();
     if (message.scheme === "decentralized") {
       pageClient = new PageClient(
         new URL(message.serverUrl),
