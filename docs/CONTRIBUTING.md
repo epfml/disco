@@ -63,7 +63,7 @@ pnpm -F server test
 
 Make sure you are not running a server at the same time as the test suite will launch its own instance. We use [vitest](https://vitest.dev/) and [Cypress](https://www.cypress.io/) for testing; respectively they are libraries for unit tests and browser testing.
 
-Server tests live in the `server/tests/` folder. All files ending with the `.spec.ts` extension written in this folder will be run as tests. Simply write a new `your_own_test.spec.ts` file to include it in the testing pipeline.
+Server tests live in `server/src/` (controller unit tests) and `server/tests/` (route, client, validator, and end-to-end training tests under `server/tests/e2e/`). All files ending with the `.spec.ts` extension in these folders will be run as tests. Simply write a new `your_own_test.spec.ts` file to include it in the testing pipeline. In CI (`.github/workflows/_test.yml`), fast unit tests run in `server-unit` while end-to-end training specs under `server/tests/e2e/` are sharded across 3 runners in `server-e2e` using `--shard` and `--no-file-parallelism` (so training runs on the same runner do not contend for CPU threads or interfere with `tf.memory()` assertions).
 
 ### Contributing to `webapp`
 
