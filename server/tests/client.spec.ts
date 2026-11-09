@@ -444,6 +444,85 @@ describe("peer failing to begin a round", () => {
 });
 
 /**
+ * Connecting to a peer that left never ends, so the server tells the others
+ * to start the round over, which they must hear while still connecting.
+ */
+describe("peer connecting to a peer that left", () => {
+  it("starts the round over when told to", async () => {
+    const joinAnswer: decentralizedMessages.NewDecentralizedNodeInfo = {
+      type: mtype.MType.NewDecentralizedNodeInfo,
+      id: "node-id",
+      waitForMoreParticipants: false,
+      joinedMidTraining: false,
+      nbOfParticipants: 2,
+    };
+    const peersForRound = (
+      peers: string[],
+    ): decentralizedMessages.PeersForRound => ({
+      type: mtype.MType.PeersForRound,
+      peers,
+      aggregationRound: 0,
+      nbOfParticipants: 2,
+    });
+
+    let startedConnecting: () => void;
+    const connecting = new Promise<void>(
+      (resolve) => (startedConnecting = resolve),
+    );
+    let nbOfPeerIsReady = 0;
+    let nbOfConnectionsReady = 0;
+    let push: ((msg: ServerMessage) => void) | undefined;
+    const { url, close } = await serveStub((msg, send) => {
+      push = send;
+      switch (msg.type) {
+        case mtype.MType.ClientConnected:
+          send(joinAnswer);
+          break;
+        case mtype.MType.PeerIsReady:
+          nbOfPeerIsReady++;
+          // first with a peer that left, with a greater id so that we
+          // signal first, then without it once the round starts over
+          send(peersForRound(nbOfPeerIsReady === 1 ? ["peer-gone-id"] : []));
+          break;
+        case mtype.MType.SignalForPeer:
+          startedConnecting();
+          break;
+        case mtype.MType.ConnectionsReady:
+          nbOfConnectionsReady++;
+          send({ type: mtype.MType.StartWeightSharing });
+          break;
+      }
+    });
+
+    const client = withoutModel(
+      new DecentralizedClient(
+        url,
+        await defaultTasks.cifar10.getTask(),
+        new MeanAggregator(),
+      ),
+    );
+
+    try {
+      await client.connect();
+      await client.onRoundBeginCommunication();
+      const round = client.onRoundEndCommunication(new WeightsContainer([[1]]));
+
+      // stuck connecting to the peer that left
+      await connecting;
+      push?.({ type: mtype.MType.RetryPeerConnections });
+
+      // the round goes on without it
+      await round;
+      expect(nbOfPeerIsReady).to.equal(2);
+      expect(nbOfConnectionsReady).to.equal(1);
+    } finally {
+      await client.disconnect();
+      close();
+    }
+  });
+});
+
+/**
  * No message arrives once a client disconnected, so whatever it was waiting
  * for on the server has to stop rather than wait forever.
  */

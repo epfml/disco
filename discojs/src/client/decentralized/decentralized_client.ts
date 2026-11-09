@@ -307,8 +307,12 @@ export class DecentralizedClient extends Client<"decentralized"> {
       // when participants disconnect when connection error happens continuously
       await this.waitForParticipantsIfNeeded();
 
-      // Create peer-to-peer connections with all peers for the round
-      await this.establishPeerConnections();
+      // Aborted to give up connecting to the peers of the round
+      const giveUpConnecting = new AbortController();
+      const signal = AbortSignal.any([
+        this.stopSignal,
+        giveUpConnecting.signal,
+      ]);
 
       // Wait for connection related messages from the server before exchanging weight updates
       // (1) If the client receives a StartWeightSharing message, it proceeds to weight update exchange
@@ -316,13 +320,35 @@ export class DecentralizedClient extends Client<"decentralized"> {
       // (3) After multiple retires, if the connection is still unsuccessful, the server starts excluding nodes from the round
       // and sends a CrashClient message to those nodes, which triggers the signal
       // (4) Upon receiving CrashClient, it makes any waiting promises reject and aborts the current training round
-      // TODO: Promise.race() does not close the waitMessage listeners that lost the race.
-      // Therefore, unsolved listeners may accumulate across rounds.
-      // We can add listener resolving if this becomes a problem later.
-      const msg = await Promise.race([
-        waitMessage(this.server, MType.StartWeightSharing, this.stopSignal),
-        waitMessage(this.server, MType.RetryPeerConnections, this.stopSignal),
+      // We listen before connecting: the server may send (2) while we still
+      // try to reach a peer, such as one that left, which never ends.
+      // (4) needs no listening here, as the signal also stops connecting.
+      // TODO: aborting the waits that lost the race doesn't remove their
+      // listeners, so unsolved listeners may accumulate across rounds.
+      // We can add listener removal if this becomes a problem later.
+      const serverAnswer = Promise.race([
+        waitMessage(this.server, MType.StartWeightSharing, signal),
+        waitMessage(this.server, MType.RetryPeerConnections, signal),
       ]);
+
+      // Create peer-to-peer connections with all peers for the round
+      const connecting = this.establishPeerConnections(signal);
+
+      let msg;
+      try {
+        // StartWeightSharing only comes once we are connected, while the
+        // other answers can come first. Fails if connecting fails.
+        msg = await Promise.race([
+          serverAnswer,
+          connecting.then(() => serverAnswer),
+        ]);
+      } finally {
+        // Stop connecting if the server answered first,
+        // and stop waiting for the answers that lost the race
+        giveUpConnecting.abort();
+      }
+      // Let the connection attempt wind down before cleaning up after it
+      await connecting;
 
       if (msg.type === MType.StartWeightSharing) {
         // Generate a promise that resolves when round training finishes
@@ -354,8 +380,10 @@ export class DecentralizedClient extends Client<"decentralized"> {
    * Signal to the server that we are ready to exchange weights.
    * Once enough peers are ready, the server sends the list of peers for this round
    * and the peers can establish peer-to-peer connections with each other.
+   * @param signal aborted to give up connecting, which only throws if the
+   * client crashed or disconnected
    */
-  private async establishPeerConnections(): Promise<void> {
+  private async establishPeerConnections(signal: AbortSignal): Promise<void> {
     if (this.server === undefined) {
       throw new Error(
         "peer's server is undefined, make sure to call `client.connect()` first",
@@ -381,7 +409,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
       const receivedMessage = await waitMessage(
         this.server,
         MType.PeersForRound,
-        this.stopSignal,
+        signal,
       );
       // every peer is ready to share weights, we can now connect to them
       this.saveAndEmit("connecting to peers");
@@ -409,7 +437,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
         // Init receipt of peers weights. this awaits the peer's
         // weight update and adds it to our aggregator upon reception
         (conn) => this.receivePayloads(conn),
-        this.stopSignal,
+        signal,
       );
 
       // Signal server that all connections with other peers in the round are established
