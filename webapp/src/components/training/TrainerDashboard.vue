@@ -262,6 +262,13 @@ async function startTraining(): Promise<void> {
     if (e === stopper) {
       toaster.info("Training stopped");
       return;
+    } else if (
+      e instanceof ClientCrashError &&
+      e.message.includes("Failed to connect to peers of the round")
+    ) {
+      toaster.error(
+        "Client disconnected after multiple peer connection failures. Please rejoin the training.",
+      );
     } else if (e instanceof ClientCrashError) {
       toaster.error(
         "The server has disconnected you due to an unexpected event.<br/> Feel free to rejoin the training.",
