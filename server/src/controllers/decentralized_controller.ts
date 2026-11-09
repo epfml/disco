@@ -527,8 +527,15 @@ export class DecentralizedController<
    */
   #excludeNode(nodeId: NodeID): void {
     const ws = this.connections.get(nodeId);
-    if (ws === undefined) return;
-    debug("Signaling connection failure to: %o", nodeId.slice(0, 4));
+    // Should not happen under normal execution
+    // A node leaving the session is also removed
+    // from #roundPeers and #connectFinishedNodes
+    if (ws === undefined) {
+      throw new Error(
+        `Cannot exclude node ${nodeId} as it is not connected anymore`,
+      );
+    }
+    debug("Sending connection failure to: %o", nodeId.slice(0, 4));
 
     this.crashClient(ws, nodeId, "Failed to connect to peers of the round");
   }
