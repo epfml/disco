@@ -1,20 +1,242 @@
+import type * as http from "node:http";
 import type {
+  Client,
   DataFormat,
   DataType,
   Dataset,
+  EpochLogs,
+  ModelCard,
   Network,
   RoundLogs,
   RoundStatus,
   Task,
+  TaskProvider,
 } from "@epfml/discojs";
-import { Disco, WeightsContainer } from "@epfml/discojs";
+import {
+  DecentralizedClient,
+  Disco,
+  MeanAggregator,
+  SecureAggregator,
+  WeightsContainer,
+  defaultModels,
+  defaultTasks,
+} from "@epfml/discojs";
+import * as tf from "@tensorflow/tfjs-node";
 import { List } from "immutable";
-import { expect } from "vitest";
+import { afterEach, expect } from "vitest";
 
-import { Queue } from "../utils.js";
+import { Server } from "../../src/index.js";
+import { Queue, datasets } from "../utils.js";
+
+let handle: http.Server | undefined;
+
+afterEach(
+  () =>
+    new Promise<void>((resolve, reject) =>
+      handle?.close((e) => {
+        if (e !== undefined) reject(e);
+        else resolve();
+        handle = undefined;
+      }),
+    ),
+);
+
+export async function startServer<N extends Network>(
+  model: ModelCard<DataType>,
+  task: TaskProvider<DataType, N>,
+): Promise<URL> {
+  const server = await Server.with([model], [task]);
+
+  let url: URL;
+  [handle, url] = await server.serve();
+  return url;
+}
+
+// Return tensor snapshot to check model weight reset
+export const tensorMemorySnapshot = () => {
+  const memory = tf.memory();
+
+  return {
+    numTensors: memory.numTensors,
+    numBytes: memory.numBytes,
+  };
+};
+
+export async function runFederatedUser<D extends DataType>(
+  url: URL,
+  task: Task<D, "federated">,
+  dataset: Dataset<DataFormat.Raw[D]>,
+  preprocessOnce = true,
+): Promise<[WeightsContainer, EpochLogs]> {
+  const disco = new Disco(task, url, { preprocessOnce });
+
+  const logs = List(await arrayFromAsync(disco.trainByRound(dataset)));
+
+  expect(logs.first()?.epochs.first()?.training.loss).to.be.above(
+    logs.last()?.epochs.last()?.training.loss as number,
+  );
+
+  const lastEpoch = logs.last()?.epochs.last();
+  if (lastEpoch === undefined) throw new Error("no epoch ran");
+
+  const finalWeights = disco.trainer.model.weights.clone();
+  await disco.close();
+
+  return [finalWeights, lastEpoch];
+}
+
+/**
+ * Makes client object to connect to server. The input array is the weights that the client will share
+ * with other ready peers. The input will vary with model architecture and training data. If secure is true,
+ * the client will implement secure aggregation. If it is false, it will be a clear text client.
+ */
+async function simulateClient(
+  url: URL,
+  aggregatorType: "mean" | "secure",
+  input: number[],
+  rounds: number,
+): Promise<[WeightsContainer, Client<"decentralized">]> {
+  const task = await defaultTasks.cifar10.getTask();
+  const aggregator =
+    aggregatorType === "mean"
+      ? new MeanAggregator(0, 1, "relative")
+      : new SecureAggregator();
+
+  const client = new DecentralizedClient(url, task, aggregator);
+  await client.connect();
+
+  // Perform multiple training rounds
+  let weights = WeightsContainer.of(input);
+  for (let r = 0; r < rounds; r++) {
+    await client.onRoundBeginCommunication();
+    await new Promise((resolve) => setTimeout(resolve, 1_000));
+    weights = await client.onRoundEndCommunication(weights);
+  }
+
+  return [weights, client];
+}
+
+/**
+ * Creates three clients with different update values and returns the aggregated update value between all three clients.
+ * The clients have model dimension of 4 model updates to share, which can be seen as their input parameter in makeClient.
+ */
+export async function reachDecentralizedConsensus(
+  url: URL,
+  aggregatorType: "mean" | "secure",
+  rounds = 1,
+): Promise<void> {
+  // Expect the clients to reach the mean consensus, for both the mean and secure aggregators
+  const contributions = List.of(
+    [0.001, 3, 40, 10],
+    [0.002, 5, 30, 11],
+    [0.003, 13, 11, 12],
+  );
+  const actual = await Promise.all(
+    contributions
+      .map(async (w) => await simulateClient(url, aggregatorType, w, rounds))
+      .toArray(),
+  );
+  const consensuses = await Promise.all(
+    actual.map(async ([consensus, client]) => {
+      // Disconnect clients once they reached consensus
+      await client.disconnect();
+      return consensus;
+    }),
+  );
+
+  const consensus = consensuses[0];
+  await Promise.all(
+    consensuses.map(
+      async (current) => await expectWSToBeClose(consensus, current),
+    ),
+  );
+}
+
+/**
+ * Runs 10 CIFAR-10 participants reaching consensus under decentralized training.
+ */
+export async function runTenCifar10Consensus(
+  trainingInformationOverrides: Partial<
+    Task<"image", "decentralized">["trainingInformation"]
+  >,
+): Promise<void> {
+  const baseTask = await defaultTasks.cifar10.getTask();
+  const task: Task<"image", "decentralized"> = {
+    ...baseTask,
+    trainingInformation: {
+      ...baseTask.trainingInformation,
+      scheme: "decentralized",
+      epochs: 3,
+      roundDuration: 1,
+      minNbOfParticipants: 10,
+      ...trainingInformationOverrides,
+    } as Task<"image", "decentralized">["trainingInformation"],
+  };
+
+  const url = await startServer(defaultModels.CIFAR10Classifier, {
+    ...defaultTasks.cifar10,
+    getTask: () => Promise.resolve(task),
+  });
+  const dataset = await datasets.loadCifar10();
+
+  const discos = Array.from(
+    { length: 10 },
+    () => new Disco(task, url, { preprocessOnce: true }),
+  );
+
+  try {
+    const results = await Promise.all(
+      discos.map(async (disco) => {
+        const logs = List(await arrayFromAsync(disco.trainByRound(dataset)));
+        const lastEpoch = logs.last()?.epochs.last();
+        if (lastEpoch === undefined) throw new Error("no epoch ran");
+
+        return [disco.trainer.model.weights, lastEpoch] as [
+          WeightsContainer,
+          EpochLogs,
+        ];
+      }),
+    );
+
+    await expectAllWSToBeClose(...results.map(([weights]) => weights));
+  } finally {
+    await Promise.all(discos.map((disco) => disco.close()));
+  }
+}
+
+/** The LUS COVID task, decentralized between at least two participants */
+export async function lusCovidDecentralized(
+  trainingInformationOverrides: { epochs?: number } = {},
+): Promise<{
+  task: Task<"image", "decentralized">;
+  taskProvider: TaskProvider<"image", "decentralized">;
+}> {
+  const baseTask = await defaultTasks.lusCovid.getTask();
+  const task: Task<"image", "decentralized"> = {
+    ...baseTask,
+    trainingInformation: {
+      ...baseTask.trainingInformation,
+      scheme: "decentralized",
+      aggregationStrategy: "mean",
+      roundDuration: 1,
+      minNbOfParticipants: 2,
+      maxConnectionRetry: 3,
+      maxPeerConnectionTime: 60_000,
+      maxModelSyncTime: 30_000,
+      ...trainingInformationOverrides,
+    },
+  };
+  return {
+    task,
+    taskProvider: {
+      ...defaultTasks.lusCovid,
+      getTask: () => Promise.resolve(task),
+    },
+  };
+}
 
 // Array.fromAsync not yet widely used (2024)
-export async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
+async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
   const ret: T[] = [];
   for await (const e of iter) {
     // TODO trick to allow other Promises to run
@@ -45,7 +267,7 @@ export async function expectWSToBeClose(
 }
 
 /** Every given model should be close to the first one */
-export async function expectAllWSToBeClose(
+async function expectAllWSToBeClose(
   ...weights: readonly WeightsContainer[]
 ): Promise<void> {
   const [reference, ...others] = weights;
