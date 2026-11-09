@@ -1,5 +1,5 @@
-import { Map, Range } from "immutable";
-import { assert, afterEach, beforeEach, describe, it } from "vitest";
+import { Map, Range, Set } from "immutable";
+import { assert, afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import type { EventConnection, PeerConnection } from "#client/event_connection";
 import { MType } from "#client/mtype";
@@ -138,5 +138,81 @@ describe("peer pool", { timeout: 10_000 }, () => {
 
     const poolsPeersSecond = await getAllPeers(pools);
     await assertCanSendMessagesToEach(poolsPeersSecond);
+  });
+
+  it("doesn't create peers once aborted", async () => {
+    const pool = pools.get("1");
+    if (pool === undefined) throw new Error("pool 1 not found");
+
+    // Create the peers with the pool
+    const sent: unknown[] = [];
+    const server: EventConnection = {
+      send: (msg): void => {
+        sent.push(msg);
+      },
+      on: (): void => {},
+      once: (): void => {},
+      disconnect: (): Promise<void> => Promise.resolve(),
+    };
+    const controller = new AbortController();
+    const reason = new Error("aborted");
+    const peers = pool.getPeers(
+      Set(["2", "3"]),
+      server,
+      () => {},
+      controller.signal,
+    );
+
+    // As the peer connection creation is staggered with a delay,
+    // aborting here should prevent any new peers from being created
+    controller.abort(reason);
+
+    // Make sure the promise rejects with the abort reason
+    await expect(peers).rejects.toThrow(reason);
+
+    // Leave the time for both staggered peers to be created (if any) and send their messages
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Verify that no messages were sent since the peers should not have been created
+    assert.isEmpty(sent);
+  });
+
+  it("stops waiting for the peers to connect once aborted", async () => {
+    const pool = pools.get("1");
+    if (pool === undefined) throw new Error("pool 1 not found");
+
+    // Resolves once the pool created all the peers
+    let peersCreated = (): void => {};
+    const created = new Promise<void>((resolve) => {
+      peersCreated = resolve;
+    });
+
+    // Drops any connection attempts
+    const server: EventConnection = {
+      send: (): void => {},
+      on: (): void => {},
+      once: (): void => {},
+      disconnect: (): Promise<void> => Promise.resolve(),
+    };
+    const controller = new AbortController();
+    const reason = new Error("aborted");
+    const peers = pool.getPeers(
+      Set(["2", "3"]),
+      server,
+      () => peersCreated(), // It is called between peer creation and connection attempts
+      controller.signal,
+    );
+
+    // Wait until all peers have been created before aborting
+    await created;
+
+    // Wait some time to make sure we are in the connection phase
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Abort the controller
+    controller.abort(reason);
+
+    // Ensure that the peers promise rejects due to the abort
+    await expect(peers).rejects.toThrow(reason);
   });
 });
