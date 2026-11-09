@@ -27,9 +27,11 @@ describe("decentralized webapp training", () => {
     cy.contains("button", "Start training").click();
     assertNoErrorToast();
 
+    // Long enough for a peer whose browser failed to connect to be launched
+    // again by cypress/support/training/decentralized/browsers.ts
     cy.env(["numberOfParticipants"]).then(({ numberOfParticipants = 4 }) => {
       cy.contains("h6", "number of participants")
-        .next({ timeout: 120_000 })
+        .next({ timeout: 240_000 })
         .should("have.text", `${numberOfParticipants}`);
     });
     cy.contains("h6", "epochs")
