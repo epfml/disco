@@ -69,7 +69,7 @@ jobs:
         with: { name: all-builds }
       # Run fast unit/controller specs separately so Vitest's file-count sharding
       # in server-e2e only distributes the slow end-to-end training files.
-      - run: pnpm exec vitest --run --project=server --exclude="server/tests/e2e/**"
+      - run: pnpm exec vitest --run --project=server
 
   server-e2e:
     if: inputs.server
@@ -85,9 +85,9 @@ jobs:
       - uses: ./.github/actions/pull-dataset-artifacts
       - uses: actions/download-artifact@v8
         with: { name: all-builds }
-      # --shard splits E2E files across 3 runners to stay within GitHub's 20-worker cap.
-      # --no-file-parallelism runs files sequentially per runner to avoid CPU contention and shared tf.memory() interference.
-      - run: pnpm exec vitest --run --project=server server/tests/e2e --no-file-parallelism --shard=${{ matrix.shard }}/3
+      # --shard splits E2E files across runners to stay within GitHub's 20-worker cap.
+      # E2E files run sequentially per runner (fileParallelism: false in vitest.config.ts) to prevent CPU contention during training.
+      - run: pnpm exec vitest --run --project=server-e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
 
   webapp-unit:
     if: inputs.webapp
