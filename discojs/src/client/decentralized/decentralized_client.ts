@@ -8,7 +8,7 @@ import { weightsEncode, weightsDecode } from "#serialization/index";
 import { Client } from "#client/client";
 import type { NodeID } from "#client/types";
 import { MType, type ClientConnected } from "#client/mtype";
-import { abortable, timeout, shortenId } from "#client/utils";
+import { timeout, shortenId } from "#client/utils";
 import {
   WebSocketServer,
   waitMessage,
@@ -74,13 +74,10 @@ export class DecentralizedClient extends Client<"decentralized"> {
     peerId: NodeID,
     errorMsg: string,
   ): Promise<PeerConnection | undefined> {
-    const connections = await abortable(
-      Promise.race([
-        pool.getPeers(Set([peerId]), this.server, () => {}),
-        timeout(this.task.trainingInformation.maxModelSyncTime, errorMsg),
-      ]),
-      this.stopSignal,
-    );
+    const connections = await Promise.race([
+      pool.getPeers(Set([peerId]), this.server, () => {}, this.stopSignal),
+      timeout(this.task.trainingInformation.maxModelSyncTime, errorMsg),
+    ]);
     return connections.get(peerId);
   }
 
@@ -406,16 +403,12 @@ export class DecentralizedClient extends Client<"decentralized"> {
 
       // Initiate peer to peer connections with each peer
       // When connected, create a promise waiting for each peer's round contribution
-      // Making it abortable with the stop signal,
-      // otherwise the client may be stuck waiting for connections indefinitely
-      const connections = await abortable(
-        this.#pool.getPeers(
-          peers,
-          this.server,
-          // Init receipt of peers weights. this awaits the peer's
-          // weight update and adds it to our aggregator upon reception
-          (conn) => this.receivePayloads(conn),
-        ),
+      const connections = await this.#pool.getPeers(
+        peers,
+        this.server,
+        // Init receipt of peers weights. this awaits the peer's
+        // weight update and adds it to our aggregator upon reception
+        (conn) => this.receivePayloads(conn),
         this.stopSignal,
       );
 
