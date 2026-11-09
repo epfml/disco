@@ -12,9 +12,7 @@
     "watch": "nodemon --ext ts --ignore dist --watch ../discojs-node/dist --watch . --exec pnpm run",
     "start": "pnpm run build && node dist/main.js",
     "build": "tsc --build",
-    "test": "pnpm run test:unit && pnpm run test:e2e",
-    "test:unit": "cd .. && vitest --run --project=server",
-    "test:e2e": "cd .. && vitest --run --project=server-e2e"
+    "test": "cd .. && vitest --run --project=server"
   },
   "author": "",
   "license": "ISC",

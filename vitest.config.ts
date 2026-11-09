@@ -30,19 +30,7 @@ export default defineConfig({
       },
       {
         extends: true,
-        test: {
-          name: "server",
-          include: ["server/{src,tests}/**/*.spec.ts"],
-          exclude: ["server/tests/e2e/**"],
-        },
-      },
-      {
-        extends: true,
-        test: {
-          name: "server-e2e",
-          include: ["server/tests/e2e/**/*.spec.ts"],
-          fileParallelism: false,
-        },
+        test: { name: "server", include: ["server/{src,tests}/**/*.spec.ts"] },
       },
     ],
   },
