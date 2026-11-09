@@ -51,7 +51,7 @@
     "buffer": "6.0.3",
     "canvas": "3.2.3",
     "jsdom": "29.0.1",
-    "start-server-and-test": "3.0.4",
+    "start-server-and-test": "3.0.13",
     "tailwindcss": "4.3.1",
     "typescript": "catalog:",
     "vite": "8.1.6",

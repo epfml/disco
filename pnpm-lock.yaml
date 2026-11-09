@@ -215,8 +215,8 @@ catalogs:
       specifier: 4.4.3
       version: 4.4.3
     immutable:
-      specifier: 5.1.6
-      version: 5.1.6
+      specifier: 5.1.8
+      version: 5.1.8
     typescript:
       specifier: 6.0.3
       version: 6.0.3
@@ -305,7 +305,7 @@ importers:
         version: 4.4.3(supports-color@8.1.1)
       immutable:
         specifier: 'catalog:'
-        version: 5.1.6
+        version: 5.1.8
       server:
         specifier: 'workspace:'
         version: link:../server
@@ -351,7 +351,7 @@ importers:
         version: 3.23.2
       immutable:
         specifier: 'catalog:'
-        version: 5.1.6
+        version: 5.1.8
       zod:
         specifier: 'catalog:'
         version: 4.3.6
@@ -438,7 +438,7 @@ importers:
         version: 4.22.0(seedrandom@3.0.5)(supports-color@8.1.1)
       immutable:
         specifier: 'catalog:'
-        version: 5.1.6
+        version: 5.1.8
       server:
         specifier: 'workspace:'
         version: link:../../server
@@ -468,7 +468,7 @@ importers:
         version: 4.22.0(seedrandom@3.0.5)(supports-color@8.1.1)
       immutable:
         specifier: 'catalog:'
-        version: 5.1.6
+        version: 5.1.8
       long:
         specifier: 4.0.0
         version: 4.0.0
@@ -508,7 +508,7 @@ importers:
         version: 5.0.2(express@5.2.1(supports-color@8.1.1))
       immutable:
         specifier: 'catalog:'
-        version: 5.1.6
+        version: 5.1.8
       uuid:
         specifier: 14.0.0
         version: 14.0.0
@@ -572,7 +572,7 @@ importers:
         version: 1.4.0
       immutable:
         specifier: 'catalog:'
-        version: 5.1.6
+        version: 5.1.8
       pinia:
         specifier: 3.0.4
         version: 3.0.4(typescript@6.0.3)(vue@3.5.34(typescript@6.0.3))
@@ -650,8 +650,8 @@ importers:
         specifier: 'workspace:'
         version: link:../server
       start-server-and-test:
-        specifier: 3.0.4
-        version: 3.0.4(supports-color@8.1.1)
+        specifier: 3.0.13
+        version: 3.0.13(supports-color@8.1.1)
       tailwindcss:
         specifier: 4.3.1
         version: 4.3.1
@@ -2228,8 +2228,8 @@ packages:
   aws4@1.13.2:
     resolution: {integrity: sha512-lHe62zvbTB5eEABUVi/AwVh0ZKY9rMMDhmm+eeyuuUQbQ3+J+fONVQOZyj+DdrvD4BY33uYniyRJ4UJIaSKAfw==}
 
-  axios@1.18.0:
-    resolution: {integrity: sha512-E32NzpYKp++W7XRe52rHiXV2ehxmh3wbdgO7MHeFM+vqxLBYHzt0ElkiImtOBxtOmyp0yoC8C6uESVV84Y2/hw==}
+  axios@1.21.0:
+    resolution: {integrity: sha512-YCzXMB53Q9PZBsh7yN7wtapit4WepwcHS2fP8QhGsBxSz5YtgYobV7GGlWlAJi+RxfU77GQTQi2DSLUma42EYA==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -3230,8 +3230,8 @@ packages:
     resolution: {integrity: sha512-Hs59xBNfUIunMFgWAbGX5cq6893IbWg4KnrjbYwX3tx0ztorVgTDA6B2sxf8ejHJ4wz8BqGUMYlnzNBer5NvGg==}
     engines: {node: '>= 4'}
 
-  immutable@5.1.6:
-    resolution: {integrity: sha512-q1swsS8K7L8usSHuOqF2TAoCCkonYz0SG38wLAggaa4Wml70zixIvt2ql4coQ2C2B3hTjltJry4r6bULwgAXLQ==}
+  immutable@5.1.8:
+    resolution: {integrity: sha512-TM5YqrGeTsVIPPpILzeqZ8D2Zc2TvNgSDi88zPF2a4cyqQdWV/wVWBDRDbNzzrLeRWScrFcOX9lW2iX6GOtUDw==}
 
   imurmurhash@0.1.4:
     resolution: {integrity: sha512-JmXMZ6wuvDmLiHEml9ykzqO6lwFbof0GG4IkcGaENdCRDDmMVnny7s5HsIgHCbaq0w2MyPhDqkhTUgS2LU2PHA==}
@@ -3333,8 +3333,8 @@ packages:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
 
-  joi@18.2.3:
-    resolution: {integrity: sha512-N5A3KTWQpPWT4ExxxPlUx7WmykGXRzhNidWhV41d6Abu9YfI2NyWCJuxdPnslJCPWtbRpSVOWSnSS6GakLM/Rg==}
+  joi@18.3.2:
+    resolution: {integrity: sha512-iUivApKYw5GpZmq2Sy6El99j7noo8QSUFZlyQtr3HCkosC/b5wKF6/Y3teiHIlaM8WI38sAT3P+51rB0lhAhJA==}
     engines: {node: '>= 20'}
 
   js-beautify@1.15.4:
@@ -3403,8 +3403,8 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
 
-  lazy-ass@1.6.0:
-    resolution: {integrity: sha512-cc8oEVoctTvsFZ/Oje/kGnHbpWHYBe8IAJe4C0QNc3t8uM/0Y8+erSz/7Y1ALuXTEZTMvxXwO6YbX1ey3ujiZw==}
+  lazy-ass@2.0.3:
+    resolution: {integrity: sha512-/O3/DoQmI1XAhklDvF1dAjFf/epE8u3lzOZegQfLZ8G7Ud5bTRSZiFOpukHCu6jODrCA4gtIdwUCC7htxcDACA==}
     engines: {node: '> 0.8'}
 
   levn@0.4.1:
@@ -4165,10 +4165,6 @@ packages:
     resolution: {integrity: sha512-PPlsspAZ4jbMBu5DMFhfUGDQLu/vrL4SyBROVS37x8ynnVmFIs1VPBz1Co8Xks3TvpIaZXmU85y4DrQ+UyVFoQ==}
     engines: {node: '>= 18'}
 
-  source-map-js@1.2.1:
-    resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
-    engines: {node: '>=0.10.0'}
-
   source-map-js@1.2.2:
     resolution: {integrity: sha512-KGj/8Y43x35aZVDtt+J4mK1hoLGHULMYfSkODJNQjNDC3oW1PqPoxMwo0pLUsWM/UEGzON/NxeHywEfNXNP3Vw==}
     engines: {node: '>=0.10.0'}
@@ -4188,8 +4184,8 @@ packages:
   stackback@0.0.2:
     resolution: {integrity: sha512-1XMJE5fQo1jGH6Y/7ebnwPOBEkIEnT4QF32d5R1+VXdXveM0IBMJt8zfaxX1P3QhVwrYe+576+jkANtSS2mBbw==}
 
-  start-server-and-test@3.0.4:
-    resolution: {integrity: sha512-y9j+VvFW5SH8deed5GvyNQs8gk8t8TJRDZYBvEPhCwdr/VhISvVvyamMNcNV4h9PxOptPGgPigb6yz4C67O1Qw==}
+  start-server-and-test@3.0.13:
+    resolution: {integrity: sha512-Zlgm0u/S+J9XOPljvr2M/cOWCG4BasrNLnBBr/rCK/EWmmTF2c5+P4CCALQNwwmJHovvgsS8aGlmze2ybYUn3g==}
     engines: {node: ^22 || >=24}
     hasBin: true
 
@@ -4668,8 +4664,8 @@ packages:
     resolution: {integrity: sha512-o8qghlI8NZHU1lLPrpi2+Uq7abh4GGPpYANlalzWxyWteJOCsr/P+oPBA49TOLu5FTZO4d3F9MnWJfiMo4BkmA==}
     engines: {node: '>=18'}
 
-  wait-on@9.0.6:
-    resolution: {integrity: sha512-KR+Te+NBg6DmPVil4anyIO72mpt/QDHjRo3nVFkwRgb26oweUp3DDW2szO3EeUY4cqafWy4rQuOOeEk4n+7Oeg==}
+  wait-on@9.5.1:
+    resolution: {integrity: sha512-bOtj1wRY6u+GPnNskZLcgZNHOaL5NC4+5hRCbEpVoVX6MbMrCLCqIBM2bjsAfrgst3ZC0siIo7vLb4LuYFfIow==}
     engines: {node: '>=20.0.0'}
     hasBin: true
 
@@ -5499,7 +5495,7 @@ snapshots:
       jiti: 2.7.0
       lightningcss: 1.32.0
       magic-string: 0.30.21
-      source-map-js: 1.2.1
+      source-map-js: 1.2.2
       tailwindcss: 4.3.1
 
   '@tailwindcss/oxide-android-arm64@4.3.1':
@@ -6056,7 +6052,7 @@ snapshots:
       '@vue/shared': 3.5.34
       entities: 7.0.1
       estree-walker: 2.0.2
-      source-map-js: 1.2.1
+      source-map-js: 1.2.2
 
   '@vue/compiler-core@3.5.38':
     dependencies:
@@ -6086,7 +6082,7 @@ snapshots:
       estree-walker: 2.0.2
       magic-string: 0.30.21
       postcss: 8.5.16
-      source-map-js: 1.2.1
+      source-map-js: 1.2.2
 
   '@vue/compiler-sfc@3.5.38':
     dependencies:
@@ -6328,7 +6324,7 @@ snapshots:
 
   aws4@1.13.2: {}
 
-  axios@1.18.0(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1):
+  axios@1.21.0(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1):
     dependencies:
       follow-redirects: 1.16.0(debug@4.4.3(supports-color@8.1.1))
       form-data: 4.0.6
@@ -7438,7 +7434,7 @@ snapshots:
 
   ignore@7.0.5: {}
 
-  immutable@5.1.6: {}
+  immutable@5.1.8: {}
 
   imurmurhash@0.1.4: {}
 
@@ -7510,7 +7506,7 @@ snapshots:
 
   jiti@2.7.0: {}
 
-  joi@18.2.3:
+  joi@18.3.2:
     dependencies:
       '@hapi/address': 5.1.1
       '@hapi/formula': 3.0.2
@@ -7611,7 +7607,7 @@ snapshots:
       yaml: 2.9.0
       zod: 4.4.3
 
-  lazy-ass@1.6.0: {}
+  lazy-ass@2.0.3: {}
 
   levn@0.4.1:
     dependencies:
@@ -8076,7 +8072,7 @@ snapshots:
     dependencies:
       nanoid: 3.3.15
       picocolors: 1.1.1
-      source-map-js: 1.2.1
+      source-map-js: 1.2.2
 
   postcss@8.5.31:
     dependencies:
@@ -8419,8 +8415,6 @@ snapshots:
 
   smol-toml@1.7.1: {}
 
-  source-map-js@1.2.1: {}
-
   source-map-js@1.2.2: {}
 
   speakingurl@14.0.1: {}
@@ -8441,16 +8435,15 @@ snapshots:
 
   stackback@0.0.2: {}
 
-  start-server-and-test@3.0.4(supports-color@8.1.1):
+  start-server-and-test@3.0.13(supports-color@8.1.1):
     dependencies:
       arg: 5.0.2
-      bluebird: 3.7.2
       check-more-types: 2.24.0
       debug: 4.4.3(supports-color@8.1.1)
       execa: 5.1.1
-      lazy-ass: 1.6.0
+      lazy-ass: 2.0.3
       tree-kill: 1.2.2
-      wait-on: 9.0.6(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
+      wait-on: 9.5.1(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -8869,12 +8862,11 @@ snapshots:
     dependencies:
       xml-name-validator: 5.0.0
 
-  wait-on@9.0.6(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1):
+  wait-on@9.5.1(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1):
     dependencies:
-      axios: 1.18.0(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
-      joi: 18.2.3
+      axios: 1.21.0(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
+      joi: 18.3.2
       lodash: 4.18.1
-      minimist: 1.2.8
       rxjs: 7.8.2
     transitivePeerDependencies:
       - debug

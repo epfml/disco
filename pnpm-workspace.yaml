@@ -12,7 +12,7 @@ packages:
 
 catalog:
   "debug": "4.4.3"
-  "immutable": "5.1.6"
+  "immutable": "5.1.8"
   "vitest": "4.1.9"
   "zod": "4.3.6"
   "@tensorflow/tfjs": "4.22.0"
