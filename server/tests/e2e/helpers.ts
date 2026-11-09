@@ -236,7 +236,7 @@ export async function lusCovidDecentralized(
 }
 
 // Array.fromAsync not yet widely used (2024)
-export async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
+async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
   const ret: T[] = [];
   for await (const e of iter) {
     // TODO trick to allow other Promises to run
@@ -267,7 +267,7 @@ export async function expectWSToBeClose(
 }
 
 /** Every given model should be close to the first one */
-export async function expectAllWSToBeClose(
+async function expectAllWSToBeClose(
   ...weights: readonly WeightsContainer[]
 ): Promise<void> {
   const [reference, ...others] = weights;
