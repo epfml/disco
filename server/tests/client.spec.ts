@@ -681,4 +681,113 @@ describe("client disconnecting while waiting on the server", () => {
       }
     });
   });
+
+  /**
+   * Connecting to the peers of the round never ends if the connections
+   * are never established, as the server doesn't relay signals here.
+   */
+  describe("connecting to the peers of the round", () => {
+    /** Resolves once the client tries to connect to the peers of the round */
+    let connecting: Promise<void>;
+    let startedConnecting: () => void;
+    let push: ((msg: ServerMessage) => void) | undefined;
+
+    // Create a fake server that:
+    // - Responds to client connections with a NewDecentralizedNodeInfo
+    // - Provides an unreachable peer for the round when the peer is ready
+    // - Marks when the client starts connecting to the peers of the round
+    async function serveRound(): Promise<{ url: URL; close: () => void }> {
+      connecting = new Promise((resolve) => (startedConnecting = resolve));
+      return await serveStub((msg, send) => {
+        push = send; // Register the send function to be able to re-send messages to the client
+        switch (msg.type) {
+          case mtype.MType.ClientConnected:
+            // Respond to the client connection with a decentralized join answer
+            send(decentralizedJoinAnswer(false));
+            break;
+          case mtype.MType.PeerIsReady:
+            // When the peer is ready, return the unreachable peer for the round
+            // with a greater id ("other-id" > "node-id"), so that we initiate the connection and signal first
+            send({
+              type: mtype.MType.PeersForRound,
+              peers: ["other-id"],
+              aggregationRound: 0,
+              nbOfParticipants: 2,
+            });
+            break;
+          case mtype.MType.SignalForPeer:
+            // Register that we started connecting
+            startedConnecting();
+            break;
+        }
+      });
+    }
+
+    it("stops connecting when disconnected", async () => {
+      const { url, close } = await serveRound();
+      const client = withoutModel(
+        new DecentralizedClient(
+          url,
+          await defaultTasks.cifar10.getTask(),
+          new MeanAggregator(),
+        ),
+      );
+
+      try {
+        await client.connect();
+        await client.onRoundBeginCommunication();
+        const round = client.onRoundEndCommunication(
+          new WeightsContainer([[1]]),
+        );
+        // Wait until the client starts connecting to the peers of the round
+        // It gets stuck trying to connect as the peer is unreachable
+        await connecting;
+
+        // Make sure that disconnecting stops the client from connecting to the peers of the round
+        // expect before disconnecting, as disconnecting rejects the round
+        const stopped = expect(round).rejects.toBeInstanceOf(
+          ClientDisconnectedError,
+        );
+        await client.disconnect();
+        await stopped;
+      } finally {
+        close();
+      }
+    });
+
+    it("stops connecting when crashed", async () => {
+      const { url, close } = await serveRound();
+      const client = withoutModel(
+        new DecentralizedClient(
+          url,
+          await defaultTasks.cifar10.getTask(),
+          new MeanAggregator(),
+        ),
+      );
+
+      try {
+        await client.connect();
+        await client.onRoundBeginCommunication();
+        const round = client.onRoundEndCommunication(
+          new WeightsContainer([[1]]),
+        );
+        // Wait until the client starts connecting to the peers of the round
+        // It gets stuck trying to connect as the peer is unreachable
+        await connecting;
+
+        // expect before receiving the crash message, as receiving it will reject the round
+        const crashed = expect(round).rejects.toBeInstanceOf(ClientCrashError);
+        // Simulate that the client receives a CrashClient message from the server
+        push?.({
+          type: mtype.MType.CrashClient,
+          reason: "Failed to connect to peers of the round",
+        });
+        await crashed;
+      } finally {
+        // the caller disconnects a crashed client
+        await client.disconnect();
+        close();
+      }
+    });
+  });
 });
