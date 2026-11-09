@@ -20,7 +20,9 @@ catalog:
   "typescript": "6.0.3"
 
 overrides:
-  "@xenova/transformers>sharp": 0.35.3
+  "@xenova/transformers>sharp": 0.35.5
+  "@tensorflow/tfjs-node>tar": 7.5.22
+  "@mapbox/node-pre-gyp>tar": 7.5.22
 
 allowBuilds:
   "@tensorflow/tfjs-node": true
