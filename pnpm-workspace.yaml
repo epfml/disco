@@ -14,7 +14,7 @@ catalog:
   "debug": "4.4.3"
   "immutable": "5.1.8"
   "vitest": "4.1.9"
-  "zod": "4.3.6"
+  "zod": "4.6.7"
   "@tensorflow/tfjs": "4.22.0"
   "@tensorflow/tfjs-node": "4.22.0"
   "typescript": "6.0.3"
@@ -23,6 +23,11 @@ overrides:
   "@xenova/transformers>sharp": 0.35.5
   "@tensorflow/tfjs-node>tar": 7.5.22
   "@mapbox/node-pre-gyp>tar": 7.5.22
+  "@tensorflow/tfjs-node>adm-zip": 0.6.1
+  "onnx-proto>protobufjs": 7.6.5
+  "@jimp/types>zod": 4.6.7
+  "@jimp/plugin-resize>zod": 4.6.7
+  "jsdom>undici": 7.30.2
 
 allowBuilds:
   "@tensorflow/tfjs-node": true
