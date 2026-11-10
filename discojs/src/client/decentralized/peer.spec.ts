@@ -88,7 +88,7 @@ describe("peer", () => {
       message.writeUInt32LE((i * 1103515245 + 12345) >>> 0, i);
     }
 
-    const receivedPromise = new Promise<Buffer>((resolve) => {
+    const receivedPromise = new Promise<Uint8Array>((resolve) => {
       peer2.on("data", (data) => resolve(data));
     });
 
@@ -111,7 +111,7 @@ describe("peer", () => {
       message.writeUInt32LE((i * 1664525 + 1013904223) >>> 0, i);
     }
 
-    const receivedPromise = new Promise<Buffer>((resolve) => {
+    const receivedPromise = new Promise<Uint8Array>((resolve) => {
       peer2.on("data", (data) => resolve(data));
     });
 
