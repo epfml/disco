@@ -123,13 +123,8 @@ import type {
 } from "@epfml/discojs";
 import {
   EpochLogs as EpochLogsClass,
-  DecentralizedClient,
-  getAggregator,
   modelDecode,
-  modelEncode,
   serializeTaskToJSON,
-  weightsDecode,
-  weightsEncode,
 } from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster";
@@ -138,6 +133,7 @@ import CustomButton from "@/components/simple/CustomButton.vue";
 import IconCard from "@/components/containers/IconCard.vue";
 import { CONFIG } from "../../config";
 import { VueSpinnerPuff, VueSpinnerGears } from "vue3-spinners";
+import { servePeerTransport } from "./peer_transport";
 import type { FromWorker, RawSample, ToWorker } from "./worker_messages";
 
 const debug = createDebug("webapp:training:Trainer");
@@ -157,9 +153,7 @@ const batchesOfEpochLogs = ref(List<BatchLogs>());
 const roundStatus = ref<[RoundStatus, string]>();
 const training = ref(false);
 let worker: Worker | undefined;
-let networkClient: DecentralizedClient | undefined;
-let syncedWeights: Uint8Array | undefined;
-let syncEncoding: Promise<void> | undefined;
+let closePeerTransport: (() => void) | undefined;
 const iterators = new Map<number, AsyncIterator<RawSample>>();
 let stopTimeout: ReturnType<typeof setTimeout> | undefined;
 
@@ -213,35 +207,11 @@ function startTraining(): void {
   const scheme = isTrainingLocally.value
     ? "local"
     : props.task.trainingInformation.scheme;
+  let peerPort: MessagePort | undefined;
   if (scheme === "decentralized") {
-    const task = toRaw(props.task) as Task<DataType, "decentralized">;
-    const client = new DecentralizedClient(
-      CONFIG.serverUrl,
-      task,
-      getAggregator(task),
-    );
-    networkClient = client;
-    client.on("status", (status) => {
-      if (worker === active)
-        active.postMessage({
-          type: "network-event",
-          event: "status",
-          status,
-        } satisfies ToWorker);
-    });
-    client.on("participants", (count) => {
-      if (worker === active)
-        active.postMessage({
-          type: "network-event",
-          event: "participants",
-          count,
-        } satisfies ToWorker);
-    });
-    client.on("modelSynced", (weights) => {
-      syncEncoding = weightsEncode(weights).then((encoded) => {
-        if (networkClient === client) syncedWeights = encoded;
-      });
-    });
+    const channel = new MessageChannel();
+    closePeerTransport = servePeerTransport(channel.port1);
+    peerPort = channel.port2;
   }
   active.onmessage = (event: MessageEvent<FromWorker>) => {
     if (worker !== active) return;
@@ -249,9 +219,6 @@ function startTraining(): void {
     switch (message.type) {
       case "data-request":
         void provideData(active, dataset, message.requestId, message.streamId);
-        break;
-      case "network-request":
-        void handleNetworkRequest(active, message);
         break;
       case "status":
         roundStatus.value = [
@@ -306,68 +273,9 @@ function startTraining(): void {
     task: serializeTaskToJSON(toRaw(props.task) as Task<DataType, Network>),
     serverUrl: CONFIG.serverUrl.toString(),
     scheme,
+    peerPort,
   };
-  active.postMessage(start);
-}
-
-async function handleNetworkRequest(
-  active: Worker,
-  request: Extract<FromWorker, { type: "network-request" }>,
-): Promise<void> {
-  const client = networkClient;
-  if (client === undefined || worker !== active) return;
-  const response: Extract<ToWorker, { type: "network-response" }> = {
-    type: "network-response",
-    requestId: request.requestId,
-  };
-  try {
-    switch (request.operation) {
-      case "connect": {
-        const model = await client.connect();
-        try {
-          response.model = await modelEncode(model);
-        } finally {
-          model.dispose();
-        }
-        break;
-      }
-      case "begin":
-        await client.onRoundBeginCommunication();
-        await syncEncoding;
-        // A newly joined peer may receive the current global model here.
-        response.syncedWeights = syncedWeights;
-        syncedWeights = undefined;
-        break;
-      case "end": {
-        if (request.weights === undefined)
-          throw new Error("missing local weights");
-        const local = weightsDecode(request.weights);
-        let result;
-        try {
-          result = await client.onRoundEndCommunication(local);
-          client.finishRound(result);
-          response.weights = await weightsEncode(result);
-        } finally {
-          if (result !== local) result?.dispose();
-          local.dispose();
-        }
-        break;
-      }
-      case "disconnect":
-        await client.disconnect();
-        break;
-    }
-  } catch (error) {
-    response.error = error instanceof Error ? error.message : String(error);
-    response.errorName = error instanceof Error ? error.name : undefined;
-  }
-  if (worker === active) {
-    const bytes = response.model ?? response.weights ?? response.syncedWeights;
-    active.postMessage(
-      response,
-      bytes?.buffer instanceof ArrayBuffer ? [bytes.buffer] : [],
-    );
-  }
+  active.postMessage(start, peerPort === undefined ? [] : [peerPort]);
 }
 
 async function provideData(
@@ -473,14 +381,8 @@ function closeWorker(active: Worker): void {
   if (stopTimeout !== undefined) clearTimeout(stopTimeout);
   stopTimeout = undefined;
   active.terminate();
-  const client = networkClient;
-  networkClient = undefined;
-  syncedWeights = undefined;
-  syncEncoding = undefined;
-  if (client !== undefined)
-    void client
-      .disconnect()
-      .catch((error: unknown) => debug("disconnect: %o", error));
+  closePeerTransport?.();
+  closePeerTransport = undefined;
   worker = undefined;
   iterators.clear();
   training.value = false;
