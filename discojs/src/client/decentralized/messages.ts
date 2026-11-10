@@ -63,11 +63,6 @@ export interface RetryPeerConnections {
   type: MType.RetryPeerConnections;
 }
 
-// Server signals a node that the connection with other peers failed
-export interface ConnectionFail {
-  type: MType.ConnectionFail;
-}
-
 // Nodes joining in the middle of the training send to server
 // to request the latest model before starting local training
 export interface ModelSyncRequest {
@@ -115,7 +110,6 @@ export type MessageFromServer =
   | ParticipantsUpdate
   | StartWeightSharing
   | RetryPeerConnections
-  | ConnectionFail
   | ModelProviderInfo
   | ProvideModelToPeer
   | CrashClient;
@@ -150,7 +144,6 @@ export function isMessageFromServer(o: unknown): o is MessageFromServer {
     case MType.ParticipantsUpdate:
     case MType.StartWeightSharing:
     case MType.RetryPeerConnections:
-    case MType.ConnectionFail:
     case MType.ModelProviderInfo:
     case MType.ProvideModelToPeer:
     case MType.CrashClient:

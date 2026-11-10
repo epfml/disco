@@ -4,7 +4,7 @@ import { Map, type Set, List } from "immutable";
 import type { SignalData } from "#client/decentralized/peer";
 import type { NodeID } from "#client/types";
 import { PeerConnection, type EventConnection } from "#client/event_connection";
-import { shortenId } from "#client/utils";
+import { abortable, shortenId } from "#client/utils";
 
 const debug = createDebug("discojs:client:decentralized:pool");
 
@@ -16,13 +16,24 @@ const PEER_CREATION_STAGGER = 100;
 
 let peerCreationQueue: Promise<unknown> = Promise.resolve();
 
-async function createStaggered<T>(create: () => T): Promise<T> {
+/**
+ * Function to create a resource with a staggered delay to avoid ICE deadlocks.
+ * @param create Function to create the resource.
+ * @param signal Optional AbortSignal to cancel the creation.
+ * @returns A promise that resolves to the created resource
+ */
+async function createStaggered<T>(
+  create: () => T,
+  signal?: AbortSignal,
+): Promise<T> {
   const ready = peerCreationQueue;
   peerCreationQueue = ready.then(
     () => new Promise((resolve) => setTimeout(resolve, PEER_CREATION_STAGGER)),
   );
 
   await ready;
+  // If the signal is triggered, don't create the resource
+  signal?.throwIfAborted();
   return create();
 }
 
@@ -74,11 +85,21 @@ export class PeerPool {
     peer.signal(signal);
   }
 
+  /**
+   * Establishes peer connections with the specified set of peers
+   * Replays all pending signals for newly created connections.
+   * @param peersToConnect Set of peer IDs to connect to.
+   * @param signallingServer Signalling server connection used to establish peer connections.
+   * @param clientHandle Callback function for handling the current map of peer connections.
+   * @param signal Optional AbortSignal to cancel the peer connection process.
+   * @returns A promise that resolves to the map of connected peer connections.
+   */
   async getPeers(
     peersToConnect: Set<NodeID>,
     signallingServer: EventConnection,
     // TODO as event?
     clientHandle: (connections: Map<NodeID, PeerConnection>) => void,
+    signal?: AbortSignal,
   ): Promise<Map<NodeID, PeerConnection>> {
     if (peersToConnect.contains(this.id)) {
       throw new Error("peers to connect contains our id");
@@ -90,6 +111,7 @@ export class PeerPool {
     for (const thatId of peersToConnect.filterNot((id) => this.peers.has(id))) {
       const connection = await createStaggered(
         () => new PeerConnection(this.id, thatId, signallingServer),
+        signal,
       );
       newPeersConnections = newPeersConnections.set(thatId, connection);
 
@@ -101,9 +123,11 @@ export class PeerPool {
 
     clientHandle(this.peers);
 
-    await Promise.all(
-      newPeersConnections.valueSeq().map((conn) => conn.connect()),
+    await abortable(
+      Promise.all(newPeersConnections.valueSeq().map((conn) => conn.connect())),
+      signal,
     );
+
     debug(
       `[${this.id}] knowns connected peers: %o`,
       this.peers.keySeq().toArray(),
