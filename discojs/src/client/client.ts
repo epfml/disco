@@ -112,14 +112,24 @@ export abstract class Client<N extends Network> extends EventEmitter<{
    * Handles the disconnection process of the client from any sort of network server.
    */
   async disconnect(): Promise<void> {
-    // Release the waits on the server, which would never resolve otherwise
-    this.#disconnectController.abort(new ClientDisconnectedError());
+    this.stopWaiting();
     // Optional server for the local client
     // Makes it also safe on multiple calls
     await this._server?.disconnect();
     this._server = undefined;
     this._ownId = undefined;
     this.promiseForMoreParticipants = undefined;
+  }
+
+  /**
+   * Releases the waits on the server and on peers, which would never resolve
+   * once disconnected, rejecting them with a ClientDisconnectedError.
+   * Subclasses call it before any cleanup that takes time, so that
+   * the waits don't outlive the disconnection meanwhile.
+   * Safe on multiple calls.
+   */
+  protected stopWaiting(): void {
+    this.#disconnectController.abort(new ClientDisconnectedError());
   }
 
   /**

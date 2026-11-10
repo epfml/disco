@@ -205,6 +205,9 @@ export class DecentralizedClient extends Client<"decentralized"> {
   }
 
   override async disconnect(): Promise<void> {
+    // First, as shutting down the pool gives time to messages being sent
+    this.stopWaiting();
+
     // Disconnect from peers
     await this.#pool?.shutdown();
     this.#pool = undefined;
@@ -218,6 +221,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
     this.#latestModel = undefined;
 
     // At the end in case there is a throw while disconnecting the server
+    // The waits are already released if there is a throw before
     await super.disconnect();
 
     return Promise.resolve();

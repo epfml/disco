@@ -22,6 +22,8 @@ import {
   ClientDisconnectedError,
 } from "@epfml/discojs";
 import { afterEach, describe, expect, it, vi } from "vitest";
+// not exported, imported from source to hold its shutdown
+import { PeerPool } from "../../discojs/src/client/decentralized/peer_pool.js";
 import { Server } from "../src/index.js";
 import { TrainingController } from "../src/controllers/index.js";
 
@@ -597,6 +599,45 @@ describe("client disconnecting while waiting on the server", () => {
       await client.disconnect();
       await stopped;
     } finally {
+      close();
+    }
+  });
+
+  it("stops waiting before closing the connections to peers", async () => {
+    // the server never sends the peers of the round
+    const { url, close } = await serveStub(
+      answerJoinOnly(decentralizedJoinAnswer(false)),
+    );
+    const client = withoutModel(
+      new DecentralizedClient(
+        url,
+        await defaultTasks.cifar10.getTask(),
+        new MeanAggregator(),
+      ),
+    );
+
+    // closing the connections to peers lets the messages being sent
+    // reach them, which takes time: hold it until told to go on
+    let closePeers: (() => void) | undefined;
+    const peersClosed = new Promise<void>((resolve) => (closePeers = resolve));
+    const shutdown = vi
+      .spyOn(PeerPool.prototype, "shutdown")
+      .mockImplementation(() => peersClosed);
+
+    try {
+      await client.connect();
+      await client.onRoundBeginCommunication();
+      const round = client.onRoundEndCommunication(new WeightsContainer([[1]]));
+      await settled();
+
+      const disconnecting = client.disconnect();
+      await expect(round).rejects.toBeInstanceOf(ClientDisconnectedError);
+      expect(shutdown).toHaveBeenCalledOnce();
+
+      closePeers?.();
+      await disconnecting;
+    } finally {
+      shutdown.mockRestore();
       close();
     }
   });
