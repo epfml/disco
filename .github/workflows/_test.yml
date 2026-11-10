@@ -24,6 +24,12 @@ on:
         type: boolean
         default: true
 
+env:
+  # Cypress checks its binary starts before running, within 30s by default.
+  # A fresh runner busy with other startups (Vite, servers, browsers) can
+  # exceed it, failing the job before any test runs.
+  CYPRESS_VERIFY_TIMEOUT: 120000
+
 jobs:
   discojs:
     if: inputs.discojs
