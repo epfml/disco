@@ -2,29 +2,20 @@ import "@/buffer-polyfill";
 import * as tf from "@tensorflow/tfjs";
 import {
   Dataset,
-  Client,
+  DecentralizedClient,
   Disco,
   Image,
   deserializeTaskFromJSON,
   modelEncode,
-  modelDecode,
   getAggregator,
-  weightsEncode,
-  weightsDecode,
   split,
 } from "@epfml/discojs";
-import type {
-  DataFormat,
-  DataType,
-  Network,
-  Task,
-  WeightsContainer,
-} from "@epfml/discojs";
+import type { DataFormat, DataType, Network, Task } from "@epfml/discojs";
+import { workerPeerFactory } from "./peer_transport";
 import type { FromWorker, ToWorker } from "./worker_messages";
 
 const send = (message: FromWorker): void => {
-  const bytes =
-    message.type === "network-request" ? message.weights : undefined;
+  const bytes = message.type === "finished" ? message.model : undefined;
   self.postMessage(message, {
     transfer: bytes?.buffer instanceof ArrayBuffer ? [bytes.buffer] : [],
   });
@@ -36,79 +27,6 @@ const pending = new Map<
   number,
   (message: Extract<ToWorker, { type: "data" }>) => void
 >();
-const pendingNetwork = new Map<
-  number,
-  (message: Extract<ToWorker, { type: "network-response" }>) => void
->();
-
-class PageClient extends Client<"decentralized"> {
-  constructor(url: URL, task: Task<DataType, "decentralized">) {
-    super(url, task, getAggregator(task));
-  }
-
-  private async request(
-    operation: Extract<FromWorker, { type: "network-request" }>["operation"],
-    weights?: Uint8Array,
-  ): Promise<Extract<ToWorker, { type: "network-response" }>> {
-    const requestId = nextRequestId++;
-    const response = new Promise<
-      Extract<ToWorker, { type: "network-response" }>
-    >((resolve) => pendingNetwork.set(requestId, resolve));
-    send({ type: "network-request", requestId, operation, weights });
-    const message = await response;
-    if (message.error !== undefined)
-      throw Object.assign(new Error(message.error), {
-        name: message.errorName ?? "Error",
-      });
-    return message;
-  }
-
-  override async connect() {
-    const { model } = await this.request("connect");
-    if (model === undefined) throw new Error("missing model from page");
-    return modelDecode(model);
-  }
-
-  override async onRoundBeginCommunication(): Promise<void> {
-    const { syncedWeights } = await this.request("begin");
-    if (syncedWeights !== undefined) {
-      const weights = weightsDecode(syncedWeights);
-      try {
-        this.emit("modelSynced", weights);
-      } finally {
-        weights.dispose();
-      }
-    }
-  }
-
-  override async onRoundEndCommunication(
-    weights: WeightsContainer,
-  ): Promise<WeightsContainer> {
-    const { weights: result } = await this.request(
-      "end",
-      await weightsEncode(weights),
-    );
-    if (result === undefined)
-      throw new Error("missing aggregated weights from page");
-    return weightsDecode(result);
-  }
-
-  override finishRound(): void {
-    // The page client finishes the round before returning aggregated weights.
-  }
-
-  override async disconnect(): Promise<void> {
-    await this.request("disconnect");
-  }
-
-  receiveEvent(message: Extract<ToWorker, { type: "network-event" }>): void {
-    if (message.event === "status") this.emit("status", message.status);
-    else this.nbOfParticipants = message.count;
-  }
-}
-
-let pageClient: PageClient | undefined;
-
 function dataset<D extends DataType>(dataType: D): Dataset<DataFormat.Raw[D]> {
   return new Dataset(async function* () {
     const streamId = nextStreamId++;
@@ -148,15 +66,19 @@ async function train(
     const webglReady = await tf.setBackend("webgl").catch(() => false);
     if (!webglReady) await tf.setBackend("cpu");
     await tf.ready();
+    const url = new URL(message.serverUrl);
+    let client;
     if (message.scheme === "decentralized") {
-      pageClient = new PageClient(
-        new URL(message.serverUrl),
+      if (message.peerPort === undefined)
+        throw new Error("missing peer transport");
+      client = new DecentralizedClient(
+        url,
         task as Task<DataType, "decentralized">,
+        getAggregator(task),
+        workerPeerFactory(message.peerPort),
       );
     }
-    disco = new Disco(task, pageClient ?? new URL(message.serverUrl), {
-      scheme: message.scheme,
-    });
+    disco = new Disco(task, client ?? url, { scheme: message.scheme });
     disco.on("status", (status) => send({ type: "status", status }));
     disco.on("participants", (count) => send({ type: "participants", count }));
 
@@ -211,7 +133,6 @@ async function train(
     });
   } finally {
     await disco?.close().catch(() => undefined);
-    pageClient = undefined;
   }
 }
 
@@ -222,9 +143,5 @@ self.onmessage = (event: MessageEvent<ToWorker>) => {
   else if (message.type === "data") {
     pending.get(message.requestId)?.(message);
     pending.delete(message.requestId);
-  } else if (message.type === "network-response") {
-    pendingNetwork.get(message.requestId)?.(message);
-    pendingNetwork.delete(message.requestId);
-  } else if (message.type === "network-event")
-    pageClient?.receiveEvent(message);
+  }
 };

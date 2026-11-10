@@ -27,12 +27,12 @@ export type SignalData =
   | RTCSessionDescriptionInit
   | { type: "candidate"; candidate: RTCIceCandidateInit };
 
-type EventPayloads = {
+export type PeerEvents = {
   close: void;
   connect: void;
   error: Error;
   signal: SignalData;
-  data: Buffer;
+  data: Uint8Array;
   [key: string]: unknown;
 };
 
@@ -46,7 +46,21 @@ type EventPayloads = {
 // As the WebRTC DataChannel is not a stream, we frame each chunk with a message ID,
 // chunk counter, and total chunk count. Once a message is fully received, its ID is sent back
 // with ACK_CHUNK_ID so the sender can drain before closing the connection.
-export class Peer extends EventEmitter<EventPayloads> {
+/** Platform-neutral peer transport; implementations must emit events asynchronously. */
+export interface PeerTransport {
+  on<K extends keyof PeerEvents>(
+    event: K,
+    listener: (value: PeerEvents[K]) => void,
+  ): void;
+  signal(signal: SignalData): void;
+  send(data: Uint8Array): void;
+  drain(timeout?: number): Promise<void>;
+  destroy(): Promise<void>;
+}
+
+export type PeerFactory = (id: NodeID, isInitiator: boolean) => PeerTransport;
+
+export class Peer extends EventEmitter<PeerEvents> implements PeerTransport {
   private readonly pc: RTCPeerConnection;
   private channel?: RTCDataChannel;
   private isDestroyed = false;
@@ -230,7 +244,8 @@ export class Peer extends EventEmitter<EventPayloads> {
     this.queuedCandidates = [];
   }
 
-  send(msg: Buffer): void {
+  send(data: Uint8Array): void {
+    const msg = Buffer.from(data.buffer, data.byteOffset, data.byteLength);
     const messageID = this.sendCounter;
     const chunks = this.chunk(msg);
     this.unacknowledged = this.unacknowledged.add(messageID);

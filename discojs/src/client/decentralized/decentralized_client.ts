@@ -5,6 +5,9 @@ import { WeightsContainer } from "#weights/index";
 import type { Model } from "#models/index";
 import type { DataType } from "#types/index";
 import { weightsEncode, weightsDecode } from "#serialization/index";
+import type { Aggregator } from "#aggregator/index";
+import type { Task } from "#task/index";
+import type { PeerFactory } from "#client/decentralized/peer";
 import { Client } from "#client/client";
 import type { NodeID } from "#client/types";
 import { MType, type ClientConnected } from "#client/mtype";
@@ -34,6 +37,15 @@ const MAX_PAYLOAD_WAIT = 60_000;
  * See docs/DECENTRALIZED.md for a description and schema of the event flow.
  */
 export class DecentralizedClient extends Client<"decentralized"> {
+  constructor(
+    url: URL,
+    task: Task<DataType, "decentralized">,
+    aggregator: Aggregator,
+    private readonly createPeer?: PeerFactory,
+  ) {
+    super(url, task, aggregator);
+  }
+
   /**
    * The pool of peers to communicate with during the current training round.
    */
@@ -177,7 +189,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
       throw new Error("received id from server but was already received");
     }
     this._ownId = id;
-    this.#pool = new PeerPool(id);
+    this.#pool = new PeerPool(id, this.createPeer);
     return model;
   }
 
@@ -317,7 +329,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
         );
         // clear the communication round peer pool
         await this.#pool?.shutdown();
-        this.#pool = new PeerPool(this.ownId);
+        this.#pool = new PeerPool(this.ownId, this.createPeer);
         // clear the connections. The peers are still part of the session,
         // so the number of participants is left as the server reported it
         this.#connections = Map();

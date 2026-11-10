@@ -14,30 +14,14 @@ export type ToWorker =
       type: "start";
       task: Parameters<typeof deserializeTaskFromJSON>[0];
       serverUrl: string;
+      peerPort?: MessagePort;
       scheme: "local" | "federated" | "decentralized";
     }
   | { type: "data"; requestId: number; samples: RawSample[]; done: boolean }
-  | {
-      type: "network-response";
-      requestId: number;
-      model?: Uint8Array;
-      weights?: Uint8Array;
-      syncedWeights?: Uint8Array;
-      error?: string;
-      errorName?: string;
-    }
-  | { type: "network-event"; event: "status"; status: RoundStatus }
-  | { type: "network-event"; event: "participants"; count: number }
   | { type: "stop" };
 
 export type FromWorker =
   | { type: "data-request"; requestId: number; streamId: number }
-  | {
-      type: "network-request";
-      requestId: number;
-      operation: "connect" | "begin" | "end" | "disconnect";
-      weights?: Uint8Array;
-    }
   | { type: "status"; status: RoundStatus }
   | { type: "participants"; count: number }
   | { type: "batch"; log: BatchLogs }

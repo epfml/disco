@@ -19,7 +19,7 @@ export default defineConfig({
     resolve: { conditions: ["@disco/source", ...defaultServerConditions] },
   },
   optimizeDeps: {
-    include: ["buffer", "@tensorflow/tfjs-backend-wasm"],
+    include: ["buffer"],
   },
   cacheDir: "../node_modules/.vite/webapp",
 });
