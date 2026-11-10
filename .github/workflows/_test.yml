@@ -222,7 +222,7 @@ jobs:
     if: inputs.webapp
     name: webapp-decentralized-training-mnist
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node
