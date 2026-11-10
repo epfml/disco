@@ -388,13 +388,8 @@ export class DecentralizedController<
    * If so, send StartWeightSharing message to signal peers to proceed
    */
   #signalWeightSharing(): void {
-    // Return if no peers are connecting, as every() is true for an empty map,
-    // or if not all participants are ready
-    if (
-      this.#connectFinishedNodes.isEmpty() ||
-      !this.#connectFinishedNodes.every((ready) => ready)
-    )
-      return;
+    // Return if not all participants are ready
+    if (!this.#connectFinishedNodes.every((ready) => ready)) return;
 
     // Stop the timeout
     this.#clearTimeout();
@@ -463,11 +458,10 @@ export class DecentralizedController<
     if (
       this.#connectionRetry > this.task.trainingInformation.maxConnectionRetry
     ) {
-      // Exclude the failed peers
+      // Exclude the failed peers. #connectFinishedNodes is reset by the retry below
       this.#connectFinishedNodes.forEach((connected, nodeId) => {
         if (connected) return;
         this.#roundPeers = this.#roundPeers.delete(nodeId);
-        this.#connectFinishedNodes = this.#connectFinishedNodes.delete(nodeId);
         this.#excludeNode(nodeId);
       });
 
