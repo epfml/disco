@@ -176,6 +176,166 @@ describe("DecentralizedController peer connection retry", () => {
     expect(
       messagesOfType(ws1, MessageTypes.RetryPeerConnections),
     ).to.have.length(4);
+
+    // The server doesn't wait for the excluded peer to leave
+    await vi.waitFor(() => {
+      expect(ws2.nbOfTerminations).to.equal(1);
+    });
+    expect(ws1.nbOfTerminations).to.equal(0);
+  });
+
+  /**
+   * A peer failing to connect to the others is stuck connecting, so it misses
+   * the RetryPeerConnections and never sends PeerIsReady again.
+   */
+  it("drops a peer stuck connecting so that the others go on", async () => {
+    const controller = await makeController(3, 2);
+    const [ws1, ws2, stuck] = [
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+    ];
+    // all connected before joining, so that the round has the three of them
+    for (const ws of [ws1, ws2, stuck]) connect(controller, ws);
+    for (const ws of [ws1, ws2, stuck]) {
+      ws.emitMessage({ type: MessageTypes.JoinRound });
+      ws.emitMessage({ type: MessageTypes.PeerIsReady });
+    }
+    const ws2Id = expectLastMessageOfType(
+      ws2,
+      MessageTypes.NewDecentralizedNodeInfo,
+    ).id;
+
+    ws1.emitMessage({ type: MessageTypes.ConnectionsReady });
+    ws2.emitMessage({ type: MessageTypes.ConnectionsReady });
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(
+      messagesOfType(ws1, MessageTypes.RetryPeerConnections),
+    ).to.have.length(1);
+
+    // only the peers which got the retry come back ready
+    ws1.emitMessage({ type: MessageTypes.PeerIsReady });
+    ws2.emitMessage({ type: MessageTypes.PeerIsReady });
+    expect(messagesOfType(ws1, MessageTypes.PeersForRound)).to.have.length(1);
+
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    await vi.waitFor(() => {
+      expect(stuck.nbOfTerminations).to.equal(1);
+    });
+    expectLastMessageOfType(stuck, MessageTypes.ConnectionFail);
+    // the round starts over without it
+    expect(
+      expectLastMessageOfType(ws1, MessageTypes.PeersForRound).peers,
+    ).to.deep.equal([ws2Id]);
+    expect(ws1.nbOfTerminations).to.equal(0);
+    expect(ws2.nbOfTerminations).to.equal(0);
+  });
+
+  it("doesn't drop peers waiting for more participants", async () => {
+    const controller = await makeController(3, 3);
+    const [ws1, ws2, stuck] = [
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+    ];
+    for (const ws of [ws1, ws2, stuck]) connectAndJoinRound(controller, ws);
+
+    ws1.emitMessage({ type: MessageTypes.ConnectionsReady });
+    ws2.emitMessage({ type: MessageTypes.ConnectionsReady });
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    // a peer leaving makes the others wait, without sending PeerIsReady
+    ws2.emitClose();
+    expectLastMessageOfType(ws1, MessageTypes.WaitingForMoreParticipants);
+
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    expect(ws1.nbOfTerminations).to.equal(0);
+    expect(stuck.nbOfTerminations).to.equal(0);
+  });
+
+  /**
+   * The others would wait for the contribution of a peer leaving while they
+   * connect, so they connect again without it rather than wait for the timeout.
+   */
+  it("retries right away when a peer leaves while connecting", async () => {
+    // a retry counted would exclude the peers failing the next attempt
+    const controller = await makeController(1, 2);
+    const [ws1, ws2, leaving] = [
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+    ];
+    for (const ws of [ws1, ws2, leaving]) connect(controller, ws);
+    for (const ws of [ws1, ws2, leaving]) {
+      ws.emitMessage({ type: MessageTypes.JoinRound });
+      ws.emitMessage({ type: MessageTypes.PeerIsReady });
+    }
+    const ws2Id = expectLastMessageOfType(
+      ws2,
+      MessageTypes.NewDecentralizedNodeInfo,
+    ).id;
+    ws1.emitMessage({ type: MessageTypes.ConnectionsReady });
+    ws2.emitMessage({ type: MessageTypes.ConnectionsReady });
+
+    leaving.emitClose();
+
+    for (const ws of [ws1, ws2]) {
+      expect(
+        messagesOfType(ws, MessageTypes.RetryPeerConnections),
+      ).to.have.length(1);
+      expect(messagesOfType(ws, MessageTypes.StartWeightSharing)).to.be.empty;
+    }
+
+    // the round starts over without it
+    ws1.emitMessage({ type: MessageTypes.PeerIsReady });
+    ws2.emitMessage({ type: MessageTypes.PeerIsReady });
+    expect(
+      expectLastMessageOfType(ws1, MessageTypes.PeersForRound).peers,
+    ).to.deep.equal([ws2Id]);
+
+    // failing this attempt is only the first failed one
+    ws1.emitMessage({ type: MessageTypes.ConnectionsReady });
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(
+      messagesOfType(ws2, MessageTypes.RetryPeerConnections),
+    ).to.have.length(2);
+    expect(messagesOfType(ws2, MessageTypes.ConnectionFail)).to.be.empty;
+  });
+
+  it("tells to wait for more participants before retrying", async () => {
+    const controller = await makeController(3, 2);
+    const [ws1, leaving] = [
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+    ];
+    for (const ws of [ws1, leaving]) connectAndJoinRound(controller, ws);
+    ws1.emitMessage({ type: MessageTypes.ConnectionsReady });
+
+    leaving.emitClose();
+
+    const types = ws1.sentMessages.map((msg) => msg.type);
+    const waiting = types.lastIndexOf(MessageTypes.WaitingForMoreParticipants);
+    expect(waiting).to.not.equal(-1);
+    expect(types.lastIndexOf(MessageTypes.RetryPeerConnections)).to.be.above(
+      waiting,
+    );
+  });
+
+  it("doesn't retry when a peer leaves between rounds", async () => {
+    const controller = await makeController(3, 2);
+    const [ws1, ws2, leaving] = [
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+    ];
+    for (const ws of [ws1, ws2, leaving]) connect(controller, ws);
+    runRound([ws1, ws2, leaving]);
+
+    leaving.emitClose();
+
+    expect(messagesOfType(ws1, MessageTypes.RetryPeerConnections)).to.be.empty;
   });
 });
 
@@ -267,6 +427,61 @@ describe("DecentralizedController participants updates", () => {
     expect(
       lastMessageOfType(ws1, MessageTypes.WaitingForMoreParticipants)
         ?.nbOfParticipants,
+    ).to.equal(1);
+  });
+});
+
+/**
+ * ConnectionsReady is only expected from the peers of a round connecting to
+ * each other. Received at any other time, it must not start weight sharing.
+ */
+describe("Stray ConnectionsReady", () => {
+  it("doesn't start a round before the peers are sent", async () => {
+    const controller = await makeController(3, 2);
+    const [ws1, ws2] = [
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+    ];
+    for (const ws of [ws1, ws2]) connect(controller, ws);
+
+    ws1.emitMessage({ type: MessageTypes.JoinRound });
+    ws2.emitMessage({ type: MessageTypes.ConnectionsReady });
+
+    for (const ws of [ws1, ws2])
+      expect(messagesOfType(ws, MessageTypes.StartWeightSharing)).to.be.empty;
+
+    // the first round is still the first one
+    ws1.emitMessage({ type: MessageTypes.PeerIsReady });
+    ws2.emitMessage({ type: MessageTypes.JoinRound });
+    ws2.emitMessage({ type: MessageTypes.PeerIsReady });
+    expect(
+      expectLastMessageOfType(ws1, MessageTypes.PeersForRound).aggregationRound,
+    ).to.equal(0);
+  });
+
+  it("doesn't start the next round when sent again", async () => {
+    const controller = await makeController(3, 2);
+    const [ws1, ws2] = [
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+    ];
+    for (const ws of [ws1, ws2]) connect(controller, ws);
+    runRound([ws1, ws2]);
+
+    // ws1 joins the next round and repeats its ConnectionsReady
+    ws1.emitMessage({ type: MessageTypes.JoinRound });
+    ws1.emitMessage({ type: MessageTypes.ConnectionsReady });
+
+    for (const ws of [ws1, ws2])
+      expect(
+        messagesOfType(ws, MessageTypes.StartWeightSharing),
+      ).to.have.length(1);
+
+    ws1.emitMessage({ type: MessageTypes.PeerIsReady });
+    ws2.emitMessage({ type: MessageTypes.JoinRound });
+    ws2.emitMessage({ type: MessageTypes.PeerIsReady });
+    expect(
+      expectLastMessageOfType(ws1, MessageTypes.PeersForRound).aggregationRound,
     ).to.equal(1);
   });
 });

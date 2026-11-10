@@ -14,7 +14,7 @@ import type { EventConnection } from "#client/event_connection";
 import type { NodeID } from "#client/types";
 import { MType } from "#client/mtype";
 import { abortable, shortenId } from "#client/utils";
-import { ClientCrashError } from "#root/errors";
+import { ClientCrashError, ClientDisconnectedError } from "#root/errors";
 
 const debug = createDebug("discojs:client");
 
@@ -64,6 +64,18 @@ export abstract class Client<N extends Network> extends EventEmitter<{
    * AbortController used to signal a client crash.
    */
   #crashController = new AbortController();
+  /**
+   * AbortController used to signal that the client disconnected,
+   * so that no wait on the server outlives the connection.
+   */
+  #disconnectController = new AbortController();
+  /**
+   * Aborted on a crash or a disconnection, whichever comes first.
+   */
+  #stopSignal = AbortSignal.any([
+    this.#crashController.signal,
+    this.#disconnectController.signal,
+  ]);
 
   constructor(
     public readonly url: URL, // The network server's URL to connect to
@@ -100,6 +112,8 @@ export abstract class Client<N extends Network> extends EventEmitter<{
    * Handles the disconnection process of the client from any sort of network server.
    */
   async disconnect(): Promise<void> {
+    // Release the waits on the server, which would never resolve otherwise
+    this.#disconnectController.abort(new ClientDisconnectedError());
     // Optional server for the local client
     // Makes it also safe on multiple calls
     await this._server?.disconnect();
@@ -143,6 +157,11 @@ export abstract class Client<N extends Network> extends EventEmitter<{
   protected setupServerCallbacks(setMessageInversionFlag: () => void) {
     this.#nbOfParticipantsUpdatedSinceJoining = false;
     this.#crashController = new AbortController();
+    this.#disconnectController = new AbortController();
+    this.#stopSignal = AbortSignal.any([
+      this.#crashController.signal,
+      this.#disconnectController.signal,
+    ]);
 
     // Setup an event callback if the server signals that we should
     // wait for more participants
@@ -246,7 +265,7 @@ export abstract class Client<N extends Network> extends EventEmitter<{
 
       // Await the promise for more participants if it exists
       if (this.promiseForMoreParticipants !== undefined)
-        await abortable(this.promiseForMoreParticipants, this.crashSignal);
+        await abortable(this.promiseForMoreParticipants, this.stopSignal);
     }
   }
 
@@ -312,9 +331,11 @@ export abstract class Client<N extends Network> extends EventEmitter<{
   }
 
   /**
-   * Returns the AbortSignal associated with the client's crash.
+   * Returns the AbortSignal aborted when the client crashes or disconnects.
+   * Its reason is a ClientCrashError or a ClientDisconnectedError.
+   * Waits on the server use it, as no message arrives after either.
    */
-  get crashSignal(): AbortSignal {
-    return this.#crashController.signal;
+  get stopSignal(): AbortSignal {
+    return this.#stopSignal;
   }
 }
