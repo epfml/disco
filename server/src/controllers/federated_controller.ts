@@ -144,167 +144,175 @@ export class FederatedController<D extends DataType> extends TrainingController<
 
     // Setup callbacks triggered upon receiving the different client messages
     ws.on("message", (data: Buffer) => {
-      try {
-        const msg: unknown = msgpack.decode(data);
-        if (!federatedMessages.isMessageToServer(msg)) {
-          debug("invalid federated message received on WebSocket: %o", msg);
-          this.crashClient(ws, clientId, "Invalid federated message");
-          return;
-        }
-
-        // If the client has not yet established a connection
-        // and the message is not a ClientConnected message,
-        // we consider it as coming from an unconnected client
-        // and respond with a CrashClient message.
-        if (
-          !this.connections.has(clientId) &&
-          msg.type !== MessageTypes.ClientConnected
-        ) {
-          debug(
-            "Received message from an unconnected client [%s], sending CrashClient message",
-            shortId,
-          );
-          this.crashClient(ws, clientId, "No ClientConnected message received");
-          return;
-        }
-
-        // Currently expect two types of message:
-        // - the client connects to the task
-        // - the client sends a weight update
-        switch (msg.type) {
-          /*
-           * A new participant joins the task
-           */
-          case MessageTypes.ClientConnected: {
-            // Verify if this is a new client connection
-            const isNewClient = !this.connections.has(clientId);
-            if (!isNewClient) {
-              debug(
-                `Duplicate client connection detected for client [%s]`,
-                shortId,
-              );
-            } else {
-              debug(`New client connection for client [%s]`, shortId);
-              // Connect the new client to both the connections map and the aggregator
-              this.connectClient(clientId, ws);
-            }
-
-            // Count the client's join attempt
-            // Crash the client if it exceeded the maximum number of connection attempts
-            if (!this.countJoinAttempt(clientId)) {
-              debug(
-                "Client [%s] exceeded the maximum number of connections (%d), sending CrashClient message",
-                shortId,
-                TrainingController.MAX_CLIENT_CONNECTION_RETRY,
-              );
-              this.crashClient(
-                ws,
-                clientId,
-                "Exceeded maximum number of retries to connect",
-              );
-              return;
-            }
-
-            // Send the new federated node info to the client in both cases (new or duplicate connection)
-            const msg: federatedMessages.NewFederatedNodeInfo = {
-              type: MessageTypes.NewFederatedNodeInfo,
-              id: clientId,
-              waitForMoreParticipants:
-                this.connections.size < minNbOfParticipants,
-              payload:
-                this.#aggregator.round === 0
-                  ? undefined // Optimization: no need to send the initial weights, the client already has them
-                  : this.#latestGlobalWeights,
-              round: this.#aggregator.round,
-              nbOfParticipants: this.connections.size,
-            };
-            this.send(ws, clientId, msgpack.encode(msg));
-
-            // Send an update to participants if we can start/resume training,
-            // which already carries the number of participants
-            // Only for new clients, as they would receive it twice otherwise
-            if (
-              isNewClient &&
-              !this.sendEnoughParticipantsMsgIfNeeded(clientId)
-            )
-              // otherwise just tell them that someone joined
-              this.sendParticipantsUpdateMsg(clientId);
-            break;
+      void (async () => {
+        try {
+          const msg: unknown = msgpack.decode(data);
+          if (!federatedMessages.isMessageToServer(msg)) {
+            debug("invalid federated message received on WebSocket: %o", msg);
+            this.crashClient(ws, clientId, "Invalid federated message");
+            return;
           }
-          /*
-           * A client sends a weight update to the server
-           */
-          case MessageTypes.SendPayload: {
-            const { payload, round } = msg;
-            // This case should generally not happen under normal operation,
-            // as clients should only contribute to the current round
-            // and have no way to be ahead of the server's current round
-            // We notify the client to crash in this case
-            if (this.#aggregator.round < round) {
-              debug(
-                "Received contribution from client [%s] for future round %d (current round=%d)",
-                shortId,
-                round,
-                this.#aggregator.round,
-              );
-              // Send a notification to crash to the client
-              this.crashClient(
-                ws,
-                clientId,
-                `Received contribution for future round ${round} (current round=${this.#aggregator.round})`,
-              );
-            } else if (this.#aggregator.isValidContribution(clientId, round)) {
-              debug(
-                "Received valid contribution from client [%s] for round %d (participants=%d)",
-                shortId,
-                round,
-                this.connections.size,
-              );
-              const weights = weightsDecode(payload);
-              let added = false;
-              try {
-                // Add the contribution
-                debug(
-                  "Adding contribution from client [%s] to aggregator for round %d",
-                  shortId,
-                  round,
-                );
-                this.#pendingUpdateRecipients.set(clientId, ws);
-                this.#aggregator.add(clientId, weights, round);
-                added = true;
-                debug(
-                  `Successfully added contribution from client [%s] for round ${round}`,
-                  shortId,
-                );
-              } finally {
-                weights.dispose();
-                if (!added) this.#pendingUpdateRecipients.delete(clientId);
-              }
-            } else {
-              // If the client sent an invalid or outdated contribution
-              // the server answers with the current round and last global model update
-              debug(
-                `Dropped contribution from client [%s] for round ${round} ` +
-                  `Sending last global model from current round ${this.#aggregator.round}`,
-                shortId,
-              );
 
-              const msg: federatedMessages.ReceiveServerPayload = {
-                type: MessageTypes.ReceiveServerPayload,
+          // If the client has not yet established a connection
+          // and the message is not a ClientConnected message,
+          // we consider it as coming from an unconnected client
+          // and respond with a CrashClient message.
+          if (
+            !this.connections.has(clientId) &&
+            msg.type !== MessageTypes.ClientConnected
+          ) {
+            debug(
+              "Received message from an unconnected client [%s], sending CrashClient message",
+              shortId,
+            );
+            this.crashClient(
+              ws,
+              clientId,
+              "No ClientConnected message received",
+            );
+            return;
+          }
+
+          // Currently expect two types of message:
+          // - the client connects to the task
+          // - the client sends a weight update
+          switch (msg.type) {
+            /*
+             * A new participant joins the task
+             */
+            case MessageTypes.ClientConnected: {
+              // Verify if this is a new client connection
+              const isNewClient = !this.connections.has(clientId);
+              if (!isNewClient) {
+                debug(
+                  `Duplicate client connection detected for client [%s]`,
+                  shortId,
+                );
+              } else {
+                debug(`New client connection for client [%s]`, shortId);
+                // Connect the new client to both the connections map and the aggregator
+                this.connectClient(clientId, ws);
+              }
+
+              // Count the client's join attempt
+              // Crash the client if it exceeded the maximum number of connection attempts
+              if (!this.countJoinAttempt(clientId)) {
+                debug(
+                  "Client [%s] exceeded the maximum number of connections (%d), sending CrashClient message",
+                  shortId,
+                  TrainingController.MAX_CLIENT_CONNECTION_RETRY,
+                );
+                this.crashClient(
+                  ws,
+                  clientId,
+                  "Exceeded maximum number of retries to connect",
+                );
+                return;
+              }
+
+              // Send the new federated node info to the client in both cases (new or duplicate connection)
+              const msg: federatedMessages.NewFederatedNodeInfo = {
+                type: MessageTypes.NewFederatedNodeInfo,
+                id: clientId,
+                waitForMoreParticipants:
+                  this.connections.size < minNbOfParticipants,
+                payload:
+                  this.#aggregator.round === 0
+                    ? undefined // Optimization: no need to send the initial weights, the client already has them
+                    : this.#latestGlobalWeights,
                 round: this.#aggregator.round,
-                payload: this.#latestGlobalWeights,
                 nbOfParticipants: this.connections.size,
               };
               this.send(ws, clientId, msgpack.encode(msg));
+
+              // Send an update to participants if we can start/resume training,
+              // which already carries the number of participants
+              // Only for new clients, as they would receive it twice otherwise
+              if (
+                isNewClient &&
+                !this.sendEnoughParticipantsMsgIfNeeded(clientId)
+              )
+                // otherwise just tell them that someone joined
+                this.sendParticipantsUpdateMsg(clientId);
+              break;
             }
-            break;
+            /*
+             * A client sends a weight update to the server
+             */
+            case MessageTypes.SendPayload: {
+              const { payload, round } = msg;
+              // This case should generally not happen under normal operation,
+              // as clients should only contribute to the current round
+              // and have no way to be ahead of the server's current round
+              // We notify the client to crash in this case
+              if (this.#aggregator.round < round) {
+                debug(
+                  "Received contribution from client [%s] for future round %d (current round=%d)",
+                  shortId,
+                  round,
+                  this.#aggregator.round,
+                );
+                // Send a notification to crash to the client
+                this.crashClient(
+                  ws,
+                  clientId,
+                  `Received contribution for future round ${round} (current round=${this.#aggregator.round})`,
+                );
+              } else if (
+                this.#aggregator.isValidContribution(clientId, round)
+              ) {
+                debug(
+                  "Received valid contribution from client [%s] for round %d (participants=%d)",
+                  shortId,
+                  round,
+                  this.connections.size,
+                );
+                const weights = weightsDecode(payload);
+                let added = false;
+                try {
+                  // Add the contribution
+                  debug(
+                    "Adding contribution from client [%s] to aggregator for round %d",
+                    shortId,
+                    round,
+                  );
+                  this.#pendingUpdateRecipients.set(clientId, ws);
+                  await this.#aggregator.add(clientId, weights, round);
+                  added = true;
+                  debug(
+                    `Successfully added contribution from client [%s] for round ${round}`,
+                    shortId,
+                  );
+                } finally {
+                  weights.dispose();
+                  if (!added) this.#pendingUpdateRecipients.delete(clientId);
+                }
+              } else {
+                // If the client sent an invalid or outdated contribution
+                // the server answers with the current round and last global model update
+                debug(
+                  `Dropped contribution from client [%s] for round ${round} ` +
+                    `Sending last global model from current round ${this.#aggregator.round}`,
+                  shortId,
+                );
+
+                const msg: federatedMessages.ReceiveServerPayload = {
+                  type: MessageTypes.ReceiveServerPayload,
+                  round: this.#aggregator.round,
+                  payload: this.#latestGlobalWeights,
+                  nbOfParticipants: this.connections.size,
+                };
+                this.send(ws, clientId, msgpack.encode(msg));
+              }
+              break;
+            }
           }
+        } catch (err) {
+          // The client is in an unknown state, drop it rather than waiting for it
+          debug("failed to handle message of client [%s]: %o", shortId, err);
+          this.crashClient(ws, clientId, "Server failed to handle a message");
         }
-      } catch (err) {
-        // The client is in an unknown state, drop it rather than waiting for it
-        debug("failed to handle message of client [%s]: %o", shortId, err);
-        this.crashClient(ws, clientId, "Server failed to handle a message");
-      }
+      })();
     });
 
     // Setup callback for client leaving the session

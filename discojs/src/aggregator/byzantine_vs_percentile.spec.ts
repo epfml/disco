@@ -26,9 +26,13 @@ async function measureAggregation(
   const currentRound = aggregator.round;
 
   const startTime = performance.now();
-  peers.forEach((peer) => {
-    aggregator.add(peer.id, WeightsContainer.of([peer.value]), currentRound);
-  });
+  for (const peer of peers) {
+    await aggregator.add(
+      peer.id,
+      WeightsContainer.of([peer.value]),
+      currentRound,
+    );
+  }
 
   const result = await promise;
   const endTime = performance.now();

@@ -460,7 +460,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
                   message.communicationRound,
                 ),
               );
-              this.aggregator.add(
+              await this.aggregator.add(
                 peerId,
                 decoded,
                 message.aggregationRound,
@@ -512,7 +512,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
       // Aggregation may complete while payloads are being encoded and sent, so
       // every contribution in this exchange must retain the same round number.
       const aggregationRound = this.aggregator.round;
-      const payloads = this.aggregator.makePayloads(result);
+      const payloads = await this.aggregator.makePayloads(result);
       const sent = Promise.all(
         payloads
           .entrySeq()
@@ -520,7 +520,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
             try {
               if (id === this.ownId) {
                 // add our own contribution to the aggregator, which takes a copy
-                this.aggregator.add(
+                await this.aggregator.add(
                   this.ownId,
                   payload,
                   aggregationRound,

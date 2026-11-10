@@ -58,10 +58,10 @@ describe("Secure history aggregator", function () {
       .toList();
 
     // Add one total contribution per node
-    partialSums.forEach((partialSum, idx) => {
+    for (const [idx, partialSum] of partialSums.entries()) {
       const nodeId = idx.toString();
-      aggregator.add(nodeId, partialSum.clone(), 0);
-    });
+      await aggregator.add(nodeId, partialSum.clone(), 0);
+    }
 
     const sumRound0 = await aggregationPromise;
 
@@ -73,10 +73,10 @@ describe("Secure history aggregator", function () {
     // simulate second communication round partial sums
     const aggregationPromise2 = aggregator.getPromiseForAggregation();
 
-    partialSums.forEach((partialSum, idx) => {
+    for (const [idx, partialSum] of partialSums.entries()) {
       const nodeId = idx.toString();
-      aggregator.add(nodeId, partialSum.clone(), 0);
-    });
+      await aggregator.add(nodeId, partialSum.clone(), 0);
+    }
     const sumRound1 = await aggregationPromise2;
 
     // First aggregation with momentum - no previous momentum, so just average
@@ -85,10 +85,10 @@ describe("Secure history aggregator", function () {
 
     // Now we simulate a second round of aggregation with momentum smoothing
     const dummyPromise = aggregator.getPromiseForAggregation();
-    partialSums.forEach((partialSum, idx) => {
+    for (const [idx, partialSum] of partialSums.entries()) {
       const nodeId = idx.toString();
-      aggregator.add(nodeId, partialSum.clone(), 1); // round 0 of next aggregation round
-    });
+      await aggregator.add(nodeId, partialSum.clone(), 1); // round 0 of next aggregation round
+    }
     await dummyPromise;
 
     const aggregationPromise3 = aggregator.getPromiseForAggregation();
@@ -98,10 +98,10 @@ describe("Secure history aggregator", function () {
     );
 
     // Add the modified partial sums to the aggregator
-    partialSums2.forEach((partialSum, idx) => {
+    for (const [idx, partialSum] of partialSums2.entries()) {
       const nodeId = idx.toString();
-      aggregator.add(nodeId, partialSum.clone(), 1);
-    });
+      await aggregator.add(nodeId, partialSum.clone(), 1);
+    }
     const sumRound2 = await aggregationPromise3;
 
     const avgPartialSum2 = avg(partialSums2);
@@ -180,9 +180,9 @@ describe("Secure history aggregator", function () {
           WeightsContainer.of([i, round]),
         );
         const p = aggregator.getPromiseForAggregation();
-        ids.forEach((id, i) =>
-          aggregator.add(id, contributions[i], round, communicationRound),
-        );
+        for (const [i, id] of ids.entries()) {
+          await aggregator.add(id, contributions[i], round, communicationRound);
+        }
         // the caller owns the aggregate, disposing it must not break the next round
         (await p).dispose();
         contributions.forEach((c) => c.dispose());

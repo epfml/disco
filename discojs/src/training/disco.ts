@@ -20,6 +20,7 @@ import type { GoldfishLossConfig } from "#models/implementations/gpt/config";
 import type { RoundLogs } from "#training/trainer";
 import { Trainer } from "#training/trainer";
 import type { RoundStatus, SummaryLogs } from "#training/types";
+import { ComputeWorkerHost } from "#training/worker_compute";
 import createDebug from "debug";
 const debug = createDebug("discojs:training:disco");
 
@@ -78,6 +79,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
 }> {
   public readonly trainer: Trainer<D, N>;
   readonly #client: clients.Client<N>;
+  readonly #computeWorker?: ComputeWorkerHost;
   readonly #logger: Logger;
   readonly #task: Task<D, N>;
   readonly #preprocessOnce: boolean;
@@ -118,7 +120,12 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
       let url, aggregator;
       if (clientConfig instanceof URL) {
         url = clientConfig;
-        aggregator = getAggregator(task, { scheme });
+        if (typeof Worker !== "undefined") {
+          this.#computeWorker = new ComputeWorkerHost(task, scheme);
+          aggregator = this.#computeWorker.aggregator;
+        } else {
+          aggregator = getAggregator(task, { scheme });
+        }
       } else {
         ({ url, aggregator } = clientConfig);
       }
@@ -241,14 +248,29 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
 
     // the client fetches the latest weights upon connection
     debug("Connecting to client and fetching initial model...");
+    await this.#computeWorker?.ensureMainThreadCpuBackend();
     // TODO unsafe cast
-    this.trainer.model = (await this.#client.connect()) as Model<D>;
-    this.#setModelDebugLabel(this.trainer.model);
-    this.#setModelTrainingOptions(this.trainer.model);
+    const model = (await this.#client.connect()) as Model<D>;
+    this.#setModelDebugLabel(model);
+    this.#setModelTrainingOptions(model);
     debug("Initial model fetched successfully");
 
-    if (tabularMetadata !== undefined)
-      this.trainer.model.metadata = tabularMetadata;
+    if (tabularMetadata !== undefined) model.metadata = tabularMetadata;
+
+    this.trainer.model =
+      this.#computeWorker !== undefined
+        ? await this.#computeWorker.wrapModel(model, {
+            debugLabel: this.#debugLabel,
+            goldfishLoss:
+              this.#task.dataType === "text"
+                ? this.#task.trainingInformation.goldfishLoss
+                : undefined,
+            learningRate:
+              this.#task.dataType === "text"
+                ? this.#task.trainingInformation.learningRate
+                : undefined,
+          })
+        : model;
 
     for await (const [roundNum, round] of enumerate(
       this.trainer.train(trainingDataset, validationDataset_),
@@ -330,8 +352,12 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
       try {
         this.trainer[Symbol.dispose]();
       } finally {
-        this.#client.aggregator.dispose();
-        this.#closed = true;
+        try {
+          this.#client.aggregator.dispose();
+        } finally {
+          this.#computeWorker?.terminate();
+          this.#closed = true;
+        }
       }
     }
   }

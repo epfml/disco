@@ -17,6 +17,7 @@ import type {
   WeightNormHistory,
   IterationTrainableTextModel,
 } from "#training/types";
+import { WorkerModel } from "#training/worker_compute";
 import createDebug from "debug";
 const debug = createDebug("discojs:training:trainer");
 
@@ -118,6 +119,9 @@ export class Trainer<D extends DataType, N extends Network> {
   releaseModel(): Model<D> | undefined {
     const model = this.#model;
     this.#model = undefined;
+    if (model instanceof WorkerModel) {
+      return model.releaseLocalModel();
+    }
     return model;
   }
 

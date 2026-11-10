@@ -43,7 +43,7 @@ for (const [name, Aggregator] of AGGREGATORS) {
       for (let i = 0; i < 3; i++)
         for (let r = 0; r < aggregator.communicationRounds; r++) {
           promises = promises.push(aggregator.getPromiseForAggregation());
-          aggregator.add(`client ${i}`, WeightsContainer.of([i]), 0, r);
+          await aggregator.add(`client ${i}`, WeightsContainer.of([i]), 0, r);
         }
       await Promise.all(promises);
       await results; // nothing to test
@@ -129,8 +129,8 @@ export async function communicate<A extends Aggregator>(
       if (contribution === undefined)
         throw new Error(`no contribution for ${id}`);
 
-      for (const [to, payload] of agg.makePayloads(contribution)) {
-        network.get(to)?.add(id, payload, aggregationRound, r);
+      for (const [to, payload] of await agg.makePayloads(contribution)) {
+        await network.get(to)?.add(id, payload, aggregationRound, r);
         payload.dispose();
       }
     }

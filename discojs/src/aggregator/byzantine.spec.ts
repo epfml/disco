@@ -33,8 +33,8 @@ describe("ByzantineRobustAggregator", () => {
     agg.setNodes(Set.of(id1, id2));
 
     const p = agg.getPromiseForAggregation();
-    agg.add(id1, WeightsContainer.of([1], [2]), 0);
-    agg.add(id2, WeightsContainer.of([3], [4]), 0);
+    await agg.add(id1, WeightsContainer.of([1], [2]), 0);
+    await agg.add(id2, WeightsContainer.of([3], [4]), 0);
 
     const out = await p;
     const arr = await WSIntoArrays(out);
@@ -47,9 +47,9 @@ describe("ByzantineRobustAggregator", () => {
     agg.setNodes(Set.of(c1, c2, bad));
 
     const p = agg.getPromiseForAggregation();
-    agg.add(c1, WeightsContainer.of([1]), 0);
-    agg.add(c2, WeightsContainer.of([1]), 0);
-    agg.add(bad, WeightsContainer.of([100]), 0);
+    await agg.add(c1, WeightsContainer.of([1]), 0);
+    await agg.add(c2, WeightsContainer.of([1]), 0);
+    await agg.add(bad, WeightsContainer.of([100]), 0);
 
     const out = await p;
     const arr = await WSIntoArrays(out);
@@ -67,9 +67,9 @@ describe("ByzantineRobustAggregator", () => {
     agg1.setNodes(Set.of(c1, c2, bad));
 
     const p1 = agg1.getPromiseForAggregation();
-    agg1.add(c1, WeightsContainer.of([0]), 0);
-    agg1.add(c2, WeightsContainer.of([0]), 0);
-    agg1.add(bad, WeightsContainer.of([10]), 0);
+    await agg1.add(c1, WeightsContainer.of([0]), 0);
+    await agg1.add(c2, WeightsContainer.of([0]), 0);
+    await agg1.add(bad, WeightsContainer.of([10]), 0);
     const out1 = await p1;
     const arr1 = await WSIntoArrays(out1);
 
@@ -77,9 +77,9 @@ describe("ByzantineRobustAggregator", () => {
     agg3.setNodes(Set.of(c1, c2, bad));
 
     const p3 = agg3.getPromiseForAggregation();
-    agg3.add(c1, WeightsContainer.of([0]), 0);
-    agg3.add(c2, WeightsContainer.of([0]), 0);
-    agg3.add(bad, WeightsContainer.of([10]), 0);
+    await agg3.add(c1, WeightsContainer.of([0]), 0);
+    await agg3.add(c2, WeightsContainer.of([0]), 0);
+    await agg3.add(bad, WeightsContainer.of([10]), 0);
     const out3 = await p3;
     const arr3 = await WSIntoArrays(out3);
 
@@ -97,20 +97,20 @@ describe("ByzantineRobustAggregator", () => {
 
     // Round 1: no previous model, aggregate the weights directly
     const p1 = agg.getPromiseForAggregation();
-    agg.add(c1, WeightsContainer.of([2]), 0);
-    agg.add(c2, WeightsContainer.of([2]), 0);
+    await agg.add(c1, WeightsContainer.of([2]), 0);
+    await agg.add(c2, WeightsContainer.of([2]), 0);
     expect((await WSIntoArrays(await p1))[0][0]).to.be.closeTo(2, 1e-6);
 
     // Round 2: g = 4 - 2 = 2, first momentum m = g = 2 → 2 + 2 = 4
     const p2 = agg.getPromiseForAggregation();
-    agg.add(c1, WeightsContainer.of([4]), 1);
-    agg.add(c2, WeightsContainer.of([4]), 1);
+    await agg.add(c1, WeightsContainer.of([4]), 1);
+    await agg.add(c2, WeightsContainer.of([4]), 1);
     expect((await WSIntoArrays(await p2))[0][0]).to.be.closeTo(4, 1e-6);
 
     // Round 3: g = 5 - 4 = 1, m = 0.5 * 1 + 0.5 * 2 = 1.5 → 4 + 1.5 = 5.5
     const p3 = agg.getPromiseForAggregation();
-    agg.add(c1, WeightsContainer.of([5]), 2);
-    agg.add(c2, WeightsContainer.of([5]), 2);
+    await agg.add(c1, WeightsContainer.of([5]), 2);
+    await agg.add(c2, WeightsContainer.of([5]), 2);
     expect((await WSIntoArrays(await p3))[0][0]).to.be.closeTo(5.5, 1e-6);
   });
 
@@ -120,8 +120,8 @@ describe("ByzantineRobustAggregator", () => {
 
     for (let round = 0; round < 5; round++) {
       const p = agg.getPromiseForAggregation();
-      agg.add("c1", WeightsContainer.of([10, -10]), round);
-      agg.add("c2", WeightsContainer.of([10, -10]), round);
+      await agg.add("c1", WeightsContainer.of([10, -10]), round);
+      await agg.add("c2", WeightsContainer.of([10, -10]), round);
       expect((await WSIntoArrays(await p))[0]).to.deep.equal([10, -10]);
     }
   });
@@ -135,8 +135,8 @@ describe("ByzantineRobustAggregator", () => {
     for (let round = 0; round < 4; round++) {
       const p = agg.getPromiseForAggregation();
       const [w1, w2] = [WeightsContainer.of([round]), WeightsContainer.of([1])];
-      agg.add("c1", w1, round);
-      agg.add("c2", w2, round);
+      await agg.add("c1", w1, round);
+      await agg.add("c2", w2, round);
       w1.dispose();
       w2.dispose();
       (await p).dispose();
@@ -155,14 +155,14 @@ describe("ByzantineRobustAggregator", () => {
     agg.setNodes(Set.of(id));
 
     const p0 = agg.getPromiseForAggregation();
-    agg.add(id, WeightsContainer.of([10]), 0);
+    await agg.add(id, WeightsContainer.of([10]), 0);
     const out0 = await p0;
     const arr0 = await WSIntoArrays(out0);
     expect(arr0[0][0]).to.equal(10);
 
     // Round 2 with cutoff=1 → contributions from round 0 should be discarded
     const p2 = agg.getPromiseForAggregation();
-    agg.add(id, WeightsContainer.of([20]), 2);
+    await agg.add(id, WeightsContainer.of([20]), 2);
     const out2 = await p2;
     const arr2 = await WSIntoArrays(out2);
     expect(arr2[0][0]).to.equal(20);
@@ -177,10 +177,12 @@ describe("ByzantineRobustAggregator", () => {
     agg.setNodes(Set(ids));
 
     const p = agg.getPromiseForAggregation();
-    honest.forEach((v, i) => agg.add(`c${i}`, WeightsContainer.of([v]), 0));
-    byzantine.forEach((v, i) =>
-      agg.add(`c${i + honest.length}`, WeightsContainer.of([v]), 0),
-    );
+    for (const [i, v] of honest.entries()) {
+      await agg.add(`c${i}`, WeightsContainer.of([v]), 0);
+    }
+    for (const [i, v] of byzantine.entries()) {
+      await agg.add(`c${i + honest.length}`, WeightsContainer.of([v]), 0);
+    }
 
     const out = await p;
     const arr = await WSIntoArrays(out);
@@ -202,10 +204,10 @@ describe("ByzantineRobustAggregator", () => {
     agg.setNodes(Set(["a", "b", "c", "d"]));
 
     const p = agg.getPromiseForAggregation();
-    agg.add("a", WeightsContainer.of([1]), 0);
-    agg.add("b", WeightsContainer.of([1]), 0);
-    agg.add("c", WeightsContainer.of([1]), 0);
-    agg.add("d", WeightsContainer.of([10]), 0);
+    await agg.add("a", WeightsContainer.of([1]), 0);
+    await agg.add("b", WeightsContainer.of([1]), 0);
+    await agg.add("c", WeightsContainer.of([1]), 0);
+    await agg.add("d", WeightsContainer.of([10]), 0);
 
     const out = await p;
     const v = (await out.weights[0].data())[0];
@@ -249,9 +251,9 @@ describe("ByzantineRobustAggregator", () => {
           aggClean.setNodes(Set(honestIds));
 
           const pClean = aggClean.getPromiseForAggregation();
-          honest.forEach((v, i) =>
-            aggClean.add(`h${i}`, WeightsContainer.of([v]), 0),
-          );
+          for (const [i, v] of honest.entries()) {
+            await aggClean.add(`h${i}`, WeightsContainer.of([v]), 0);
+          }
           const cleanOut = await pClean;
           const clean = (await cleanOut.weights[0].data())[0];
 
@@ -268,10 +270,10 @@ describe("ByzantineRobustAggregator", () => {
           aggByz.setNodes(Set(ids));
 
           const pByz = aggByz.getPromiseForAggregation();
-          honest.forEach((v, i) =>
-            aggByz.add(`h${i}`, WeightsContainer.of([v]), 0),
-          );
-          aggByz.add("byz", WeightsContainer.of([1e9]), 0);
+          for (const [i, v] of honest.entries()) {
+            await aggByz.add(`h${i}`, WeightsContainer.of([v]), 0);
+          }
+          await aggByz.add("byz", WeightsContainer.of([1e9]), 0);
 
           const byzOut = await pByz;
           const byz = (await byzOut.weights[0].data())[0];
@@ -302,7 +304,9 @@ describe("ByzantineRobustAggregator", () => {
       const agg = new ByzantineRobustAggregator(0, 3, "absolute", 1.0, 3, 0);
       agg.setNodes(Set(ids));
       const p = agg.getPromiseForAggregation();
-      ids.forEach((id, i) => agg.add(id, WeightsContainer.of([values[i]]), 0));
+      for (const [i, id] of ids.entries()) {
+        await agg.add(id, WeightsContainer.of([values[i]]), 0);
+      }
       return (await (await p).weights[0].data())[0];
     };
 
@@ -318,7 +322,9 @@ describe("ByzantineRobustAggregator", () => {
     agg.setNodes(Set(ids));
 
     const p = agg.getPromiseForAggregation();
-    ids.forEach((id) => agg.add(id, WeightsContainer.of([3.14]), 0));
+    for (const id of ids) {
+      await agg.add(id, WeightsContainer.of([3.14]), 0);
+    }
     const out = await p;
 
     const v = (await out.weights[0].data())[0];
@@ -330,10 +336,10 @@ describe("ByzantineRobustAggregator", () => {
     agg.setNodes(Set(["h1", "h2", "b1", "b2"]));
 
     const p = agg.getPromiseForAggregation();
-    agg.add("h1", WeightsContainer.of([1]), 0);
-    agg.add("h2", WeightsContainer.of([1]), 0);
-    agg.add("b1", WeightsContainer.of([100]), 0);
-    agg.add("b2", WeightsContainer.of([-100]), 0);
+    await agg.add("h1", WeightsContainer.of([1]), 0);
+    await agg.add("h2", WeightsContainer.of([1]), 0);
+    await agg.add("b1", WeightsContainer.of([100]), 0);
+    await agg.add("b2", WeightsContainer.of([-100]), 0);
 
     const out = await p;
     const v = (await out.weights[0].data())[0];
@@ -348,10 +354,10 @@ describe("ByzantineRobustAggregator", () => {
     agg.setNodes(Set(["a", "b", "c", "d"]));
 
     const p = agg.getPromiseForAggregation();
-    agg.add("a", WeightsContainer.of([0]), 0);
-    agg.add("b", WeightsContainer.of([0.5]), 0);
-    agg.add("c", WeightsContainer.of([1]), 0);
-    agg.add("d", WeightsContainer.of([100]), 0);
+    await agg.add("a", WeightsContainer.of([0]), 0);
+    await agg.add("b", WeightsContainer.of([0.5]), 0);
+    await agg.add("c", WeightsContainer.of([1]), 0);
+    await agg.add("d", WeightsContainer.of([100]), 0);
 
     const out = await p;
     const v = (await out.weights[0].data())[0];
@@ -369,8 +375,8 @@ describe("ByzantineRobustAggregator", () => {
       const agg = new ByzantineRobustAggregator(0, 2, "absolute", 1.0, 3, 0.9);
       agg.setNodes(Set(["a", "b"]));
       const p = agg.getPromiseForAggregation();
-      agg.add("a", WeightsContainer.of([1]), 0);
-      agg.add("b", WeightsContainer.of([1]), 0);
+      await agg.add("a", WeightsContainer.of([1]), 0);
+      await agg.add("b", WeightsContainer.of([1]), 0);
       return (await (await p).weights[0].data())[0];
     };
 
@@ -382,14 +388,14 @@ describe("ByzantineRobustAggregator", () => {
     agg.setNodes(Set(["a", "b"]));
 
     const p1 = agg.getPromiseForAggregation();
-    agg.add("a", WeightsContainer.of([1]), 0);
-    agg.add("b", WeightsContainer.of([1]), 0);
+    await agg.add("a", WeightsContainer.of([1]), 0);
+    await agg.add("b", WeightsContainer.of([1]), 0);
     // the caller owns the aggregate, disposing it must not break the next round
     (await p1).dispose();
 
     const p2 = agg.getPromiseForAggregation();
-    agg.add("a", WeightsContainer.of([1]), 1);
-    agg.add("b", WeightsContainer.of([1]), 1);
+    await agg.add("a", WeightsContainer.of([1]), 1);
+    await agg.add("b", WeightsContainer.of([1]), 1);
     const out = await p2;
     // g = 1 - 1 = 0, m = g = 0 → 1 + 0 = 1
     expect((await WSIntoArrays(out))[0][0]).to.be.closeTo(1, 1e-6);
@@ -411,8 +417,10 @@ describe("ByzantineRobustAggregator", () => {
       const p = agg.getPromiseForAggregation();
       // update a contribution within the same round
       const replaced = WeightsContainer.of([0, 0], [0]);
-      agg.add("a", replaced, round);
-      ids.forEach((id, i) => agg.add(id, contributions[i], round));
+      await agg.add("a", replaced, round);
+      for (const [i, id] of ids.entries()) {
+        await agg.add(id, contributions[i], round);
+      }
       (await p).dispose();
       replaced.dispose();
       contributions.forEach((c) => c.dispose());

@@ -27,9 +27,9 @@ describe("PercentileClippingAggregator", () => {
     agg.setNodes(Set(["a", "b", "c"]));
 
     const p = agg.getPromiseForAggregation();
-    agg.add("a", WeightsContainer.of([1]), 0);
-    agg.add("b", WeightsContainer.of([2]), 0);
-    agg.add("c", WeightsContainer.of([3]), 0);
+    await agg.add("a", WeightsContainer.of([1]), 0);
+    await agg.add("b", WeightsContainer.of([2]), 0);
+    await agg.add("c", WeightsContainer.of([3]), 0);
 
     const out = await p;
     const arr = await WSIntoArrays(out);
@@ -42,10 +42,10 @@ describe("PercentileClippingAggregator", () => {
     agg.setNodes(Set(["a", "b", "c", "d"]));
 
     const p = agg.getPromiseForAggregation();
-    agg.add("a", WeightsContainer.of([1]), 0);
-    agg.add("b", WeightsContainer.of([1]), 0);
-    agg.add("c", WeightsContainer.of([1]), 0);
-    agg.add("d", WeightsContainer.of([100]), 0);
+    await agg.add("a", WeightsContainer.of([1]), 0);
+    await agg.add("b", WeightsContainer.of([1]), 0);
+    await agg.add("c", WeightsContainer.of([1]), 0);
+    await agg.add("d", WeightsContainer.of([100]), 0);
 
     const out = await p;
     const v = (await out.weights[0].data())[0];
@@ -60,9 +60,9 @@ describe("PercentileClippingAggregator", () => {
     agg.setNodes(Set(["a", "b", "c", "d"]));
 
     const p = agg.getPromiseForAggregation();
-    ["a", "b", "c", "d"].forEach((id) =>
-      agg.add(id, WeightsContainer.of([5]), 0),
-    );
+    for (const id of ["a", "b", "c", "d"]) {
+      await agg.add(id, WeightsContainer.of([5]), 0);
+    }
 
     const out = await p;
     const v = (await out.weights[0].data())[0];
@@ -79,7 +79,9 @@ describe("PercentileClippingAggregator", () => {
       const agg = new PercentileClippingAggregator(0, 3, "absolute", 0.5);
       agg.setNodes(Set(ids));
       const p = agg.getPromiseForAggregation();
-      ids.forEach((id, i) => agg.add(id, WeightsContainer.of([values[i]]), 0));
+      for (const [i, id] of ids.entries()) {
+        await agg.add(id, WeightsContainer.of([values[i]]), 0);
+      }
       return (await (await p).weights[0].data())[0];
     };
 
@@ -102,10 +104,10 @@ describe("PercentileClippingAggregator", () => {
     const pLow = aggLow.getPromiseForAggregation();
     const pHigh = aggHigh.getPromiseForAggregation();
 
-    nodes.forEach((n, i) => {
-      aggLow.add(n, WeightsContainer.of([inputs[i]]), 0);
-      aggHigh.add(n, WeightsContainer.of([inputs[i]]), 0);
-    });
+    for (const [i, n] of nodes.entries()) {
+      await aggLow.add(n, WeightsContainer.of([inputs[i]]), 0);
+      await aggHigh.add(n, WeightsContainer.of([inputs[i]]), 0);
+    }
 
     const vLow = (await (await pLow).weights[0].data())[0];
     const vHigh = (await (await pHigh).weights[0].data())[0];
@@ -118,8 +120,8 @@ describe("PercentileClippingAggregator", () => {
     agg.setNodes(Set(["a", "b"]));
 
     const p = agg.getPromiseForAggregation();
-    agg.add("a", WeightsContainer.of([0]), 0);
-    agg.add("b", WeightsContainer.of([0]), 0);
+    await agg.add("a", WeightsContainer.of([0]), 0);
+    await agg.add("b", WeightsContainer.of([0]), 0);
 
     const out = await p;
     const v = (await out.weights[0].data())[0];
@@ -132,12 +134,12 @@ describe("PercentileClippingAggregator", () => {
     agg.setNodes(Set(["a"]));
 
     const p0 = agg.getPromiseForAggregation();
-    agg.add("a", WeightsContainer.of([10]), 0);
+    await agg.add("a", WeightsContainer.of([10]), 0);
     const v0 = (await (await p0).weights[0].data())[0];
     expect(v0).to.equal(10);
 
     const p2 = agg.getPromiseForAggregation();
-    agg.add("a", WeightsContainer.of([20]), 2);
+    await agg.add("a", WeightsContainer.of([20]), 2);
     const v2 = (await (await p2).weights[0].data())[0];
     expect(v2).to.equal(20);
   });
@@ -147,10 +149,10 @@ describe("PercentileClippingAggregator", () => {
     agg.setNodes(Set(["a", "b", "c", "d"]));
 
     const p = agg.getPromiseForAggregation();
-    agg.add("a", WeightsContainer.of([1]), 0);
-    agg.add("b", WeightsContainer.of([1]), 0);
-    agg.add("c", WeightsContainer.of([50]), 0);
-    agg.add("d", WeightsContainer.of([100]), 0);
+    await agg.add("a", WeightsContainer.of([1]), 0);
+    await agg.add("b", WeightsContainer.of([1]), 0);
+    await agg.add("c", WeightsContainer.of([50]), 0);
+    await agg.add("d", WeightsContainer.of([100]), 0);
 
     const out = await p;
     const v = (await out.weights[0].data())[0];
@@ -164,8 +166,8 @@ describe("PercentileClippingAggregator", () => {
       const agg = new PercentileClippingAggregator(0, 2, "absolute", 0.5);
       agg.setNodes(Set(["a", "b"]));
       const p = agg.getPromiseForAggregation();
-      agg.add("a", WeightsContainer.of([1]), 0);
-      agg.add("b", WeightsContainer.of([1]), 0);
+      await agg.add("a", WeightsContainer.of([1]), 0);
+      await agg.add("b", WeightsContainer.of([1]), 0);
       return (await (await p).weights[0].data())[0];
     };
 
@@ -177,14 +179,14 @@ describe("PercentileClippingAggregator", () => {
     agg.setNodes(Set(["a", "b"]));
 
     const p1 = agg.getPromiseForAggregation();
-    agg.add("a", WeightsContainer.of([1]), 0);
-    agg.add("b", WeightsContainer.of([1]), 0);
+    await agg.add("a", WeightsContainer.of([1]), 0);
+    await agg.add("b", WeightsContainer.of([1]), 0);
     // the caller owns the aggregate, disposing it must not break the next round
     (await p1).dispose();
 
     const p2 = agg.getPromiseForAggregation();
-    agg.add("a", WeightsContainer.of([2]), 1);
-    agg.add("b", WeightsContainer.of([2]), 1);
+    await agg.add("a", WeightsContainer.of([2]), 1);
+    await agg.add("b", WeightsContainer.of([2]), 1);
     const out = await p2;
     expect((await WSIntoArrays(out))[0][0]).to.be.closeTo(2, 1e-6);
     out.dispose();
@@ -203,7 +205,9 @@ describe("PercentileClippingAggregator", () => {
         WeightsContainer.of([i, round], [100 * i]),
       );
       const p = agg.getPromiseForAggregation();
-      ids.forEach((id, i) => agg.add(id, contributions[i], round));
+      for (const [i, id] of ids.entries()) {
+        await agg.add(id, contributions[i], round);
+      }
       (await p).dispose();
       contributions.forEach((c) => c.dispose());
     }

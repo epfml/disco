@@ -110,7 +110,7 @@ export abstract class Aggregator extends EventEmitter<{
     contribution: WeightsContainer,
     aggregationRound: number,
     communicationRound?: number,
-  ): void {
+  ): Promise<void> | void {
     if (!this.isValidContribution(nodeId, aggregationRound))
       throw new Error(
         "Tried adding an invalid contribution. Handle this case before calling add.",
@@ -287,7 +287,9 @@ export abstract class Aggregator extends EventEmitter<{
    * The payloads are owned by the caller, who has to dispose them.
    * @param base Object from which the payload is computed
    */
-  abstract makePayloads(base: WeightsContainer): Map<NodeID, WeightsContainer>;
+  abstract makePayloads(
+    base: WeightsContainer,
+  ): Promise<Map<NodeID, WeightsContainer>> | Map<NodeID, WeightsContainer>;
 
   abstract isFull(): boolean;
 

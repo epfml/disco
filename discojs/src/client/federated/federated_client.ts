@@ -156,7 +156,7 @@ export class FederatedClient extends Client<"federated"> {
     // Send our local contribution to the server
     // and receive the server global update for this round as an answer to our contribution
     // the payloads are ours to dispose
-    const payloads = this.aggregator.makePayloads(weights);
+    const payloads = await this.aggregator.makePayloads(weights);
     const round = this.aggregator.round;
     try {
       const payloadToServer = payloads.get(SERVER_NODE_ID);

@@ -44,9 +44,9 @@ describe("federated server aggregator", () => {
     aggregator.setNodes(Set.of("client 1", "client 2"));
 
     const aggregated = aggregator.getPromiseForAggregation();
-    aggregator.add("client 1", WeightsContainer.of([1]), 0);
+    await aggregator.add("client 1", WeightsContainer.of([1]), 0);
     expect(aggregator.round).to.equal(0);
-    aggregator.add("client 2", WeightsContainer.of([3]), 0);
+    await aggregator.add("client 2", WeightsContainer.of([3]), 0);
 
     expect(await WeightsContainer.of([2]).equals(await aggregated)).to.be.true;
     expect(aggregator.round).to.equal(1);
@@ -61,7 +61,7 @@ describe("federated server aggregator", () => {
     aggregator.setNodes(Set.of("client 1", "client 2"));
 
     const aggregated = aggregator.getPromiseForAggregation();
-    aggregator.add("client 1", WeightsContainer.of([1]), 0);
+    await aggregator.add("client 1", WeightsContainer.of([1]), 0);
 
     expect(await WeightsContainer.of([1]).equals(await aggregated)).to.be.true;
     expect(aggregator.round).to.equal(1);
