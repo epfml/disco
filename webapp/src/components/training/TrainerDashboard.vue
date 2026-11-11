@@ -223,7 +223,11 @@ function startTraining(): void {
     );
     networkClient = client;
     let disconnecting: Promise<void> | undefined;
-    disconnectNetwork = () => (disconnecting ??= client.disconnect());
+    disconnectNetwork = () =>
+      (disconnecting ??= client.disconnect().finally(() => {
+        // This client is owned by the page, outside the worker's Disco.close().
+        client.aggregator.dispose();
+      }));
     client.on("status", (status) => {
       if (worker === active)
         active.postMessage({
@@ -359,6 +363,7 @@ async function handleNetworkRequest(
         let result;
         try {
           result = await client.onRoundEndCommunication(local);
+          if (worker !== active) return;
           client.finishRound(result);
           response.weights = await weightsEncode(result);
         } finally {

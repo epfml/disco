@@ -1,4 +1,5 @@
 import * as fs from "node:fs/promises";
+import { Set } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 import { CONFIG } from "@/config";
 import {
@@ -297,3 +298,55 @@ it("cleans up a connection that completes after forced cancellation", async () =
     if (dispose.mock.calls.length === 0) model.dispose();
   }
 });
+
+it.each([false, true])(
+  "disposes buffered page contributions even when disconnect fails: %s",
+  async (fails) => {
+    const connect = vi
+      .spyOn(DecentralizedClient.prototype, "connect")
+      .mockImplementation(() => defaultTasks.titanic.modelCard.getModel());
+    const disconnect = vi
+      .spyOn(DecentralizedClient.prototype, "disconnect")
+      .mockImplementation(() =>
+        fails
+          ? Promise.reject(new Error("disconnect failed"))
+          : Promise.resolve(),
+      );
+    const wrapper = await setupForTask("decentralized", false);
+    try {
+      await wrapper.get("#start-training-bttn").trigger("click");
+      const worker = workers.at(-1)!;
+      worker.receive({
+        type: "network-request",
+        operation: "connect",
+        requestId: 1,
+      });
+      await vi.waitFor(() =>
+        expect(worker.messages.some((m) => m.type === "network-response")).toBe(
+          true,
+        ),
+      );
+      const client = connect.mock.contexts[0] as DecentralizedClient;
+      const aggregator = client.aggregator;
+      const dispose = vi.spyOn(aggregator, "dispose");
+      const baseline = tf.memory().numTensors;
+      aggregator.setNodes(Set(["self", "other"]));
+      const contribution = new WeightsContainer([tf.tensor([1, 2])]);
+      aggregator.add("self", contribution, 0);
+      contribution.dispose();
+      expect(tf.memory().numTensors).toBeGreaterThan(baseline);
+      worker.receive({
+        type: "network-request",
+        operation: "disconnect",
+        requestId: 2,
+      });
+      await vi.waitFor(() => expect(dispose).toHaveBeenCalledOnce());
+      expect(tf.memory().numTensors).toBe(baseline);
+      wrapper.unmount();
+      expect(disconnect).toHaveBeenCalledOnce();
+      expect(dispose).toHaveBeenCalledOnce();
+    } finally {
+      wrapper.unmount();
+    }
+  },
+);
