@@ -72,10 +72,15 @@ export { split, gather } from "./utils/async_iterator.js";
 export {
   Task,
   TrainingInformation,
+  aggregationConfigSchema,
   pushTask,
   fetchTasks,
 } from "./task/index.js";
-export type { TaskProvider } from "./task/index.js";
+export type {
+  TaskProvider,
+  AggregationConfig,
+  AggregationStrategy,
+} from "./task/index.js";
 
 export type { DataType, Network, DataFormat } from "./types/index.js";
 export { dataTypeValues, isDataType } from "./types/index.js";

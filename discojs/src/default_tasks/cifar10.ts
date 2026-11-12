@@ -46,8 +46,6 @@ export const cifar10: TaskProvider<"image", "decentralized"> = {
           "truck",
         ],
         scheme: "decentralized",
-        maxIterations: 1,
-        beta: 0.9,
         aggregationStrategy: "mean",
         privacy: {
           differentialPrivacy: {
@@ -57,7 +55,6 @@ export const cifar10: TaskProvider<"image", "decentralized"> = {
           },
         },
         minNbOfParticipants: 3,
-        maxShareValue: 100,
         tensorBackend: "tfjs",
         maxConnectionRetry: 3,
         maxPeerConnectionTime: 60_000,

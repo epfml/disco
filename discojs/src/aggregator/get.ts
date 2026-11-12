@@ -50,7 +50,9 @@ export function getAggregator(
         "secure aggregation is currently supported for decentralized only",
       );
     }
-    return new SecureAggregator(task.trainingInformation.maxShareValue);
+    const maxShareValue =
+      task.trainingInformation.aggregationParams?.maxShareValue;
+    return new SecureAggregator(maxShareValue);
   }
 
   // If options are not specified, we default to expecting a contribution from all peers, so we set the threshold to 100%
@@ -102,7 +104,7 @@ function getMultiRoundAggregator(
         clippingRadius = 1.0,
         maxIterations = 1,
         beta = 0.9,
-      } = task.trainingInformation.privacy.byzantineFaultTolerance;
+      } = task.trainingInformation.aggregationParams ?? {};
 
       return new ByzantineRobustAggregator(
         roundCutOff,

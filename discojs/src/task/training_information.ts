@@ -17,47 +17,55 @@ const privacySchema = z.object({
     .optional(),
 });
 
+const aggregationParamValueSchema = z.union([
+  z.string(),
+  z.number(),
+  z.boolean(),
+]);
+
+export const aggregationConfigSchema = z.discriminatedUnion(
+  "aggregationStrategy",
+  [
+    z.object({
+      aggregationStrategy: z.literal("mean"),
+      aggregationParams: z
+        .record(z.string(), aggregationParamValueSchema)
+        .optional(),
+    }),
+    z.object({
+      aggregationStrategy: z.literal("byzantine"),
+      aggregationParams: z
+        .object({
+          clippingRadius: z.number().positive().default(1.0),
+          maxIterations: z.number().int().positive().default(1),
+          beta: z.number().min(0).max(1).default(0.9),
+        })
+        .default({ clippingRadius: 1.0, maxIterations: 1, beta: 0.9 }),
+    }),
+    z.object({
+      aggregationStrategy: z.literal("secure"),
+      aggregationParams: z
+        .object({
+          maxShareValue: z.number().positive().int().default(100),
+        })
+        .default({ maxShareValue: 100 }),
+    }),
+  ],
+);
+
+export type AggregationConfig = z.infer<typeof aggregationConfigSchema>;
+export type AggregationStrategy = AggregationConfig["aggregationStrategy"];
+
 const nonLocalNetworkSchema = z
   .object({
     // minimum number of participants required to train collaboratively
     // In decentralized Learning the default is 3, in federated learning it is 2
     minNbOfParticipants: z.number().positive().int(),
+    privacy: privacySchema
+      .transform((o) => (o.differentialPrivacy === undefined ? undefined : o))
+      .optional(),
   })
-  .and(
-    z.union([
-      z.object({
-        aggregationStrategy: z.literal("mean"),
-        privacy: privacySchema
-          .transform((o) =>
-            o.differentialPrivacy === undefined ? undefined : o,
-          )
-          .optional(),
-      }),
-      z.object({
-        aggregationStrategy: z.literal("byzantine"),
-        privacy: z.object({
-          ...privacySchema.shape,
-          byzantineFaultTolerance: z.object({
-            // maximum weights difference between each round
-            clippingRadius: z.number().positive(),
-            maxIterations: z.number().int().positive().default(1),
-            beta: z.number().min(0).max(1).default(0.9),
-          }),
-        }),
-      }),
-      z.object({
-        aggregationStrategy: z.literal("secure"),
-        privacy: privacySchema
-          .transform((o) =>
-            o.differentialPrivacy === undefined ? undefined : o,
-          )
-          .optional(),
-        // Secure Aggregation: maximum absolute value of a number in a randomly generated share
-        // default is 100, must be a positive number, check the docs/PRIVACY.md file for more information on significance of maxShareValue selection
-        maxShareValue: z.number().positive().int().optional().default(100),
-      }),
-    ]),
-  );
+  .and(aggregationConfigSchema);
 
 export namespace TrainingInformation {
   export const baseSchema = z.object({
@@ -79,6 +87,9 @@ export namespace TrainingInformation {
     batchSize: z.number().positive().int(),
     // Tensor framework used by the model
     tensorBackend: z.enum(["gpt", "tfjs"]),
+    aggregationParams: z
+      .record(z.string(), aggregationParamValueSchema)
+      .optional(),
   });
 
   export const dataTypeToSchema = {
