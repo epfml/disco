@@ -67,8 +67,8 @@ Non-mandatory fields will automatically use values from the task specification.
 
 ### Aggregator parameters
 
-- `aggregator`: aggregator specification (`mean`, `byzantine`, `secure`)
-- `aggregatorParams`: (optional) aggregator hyperparameters as comma-separated `key=value` pairs (e.g. `clippingRadius=1.0,beta=0.8` or `maxShareValue=100`)
+- `aggregator`: aggregator specification (`mean`, `byzantine`, `secure`, `fedprox`)
+- `aggregatorParams`: (optional) aggregator hyperparameters as comma-separated `key=value` pairs (e.g. `mu=0.01` or `clippingRadius=1.0,beta=0.8` or `maxShareValue=100`)
 
 ### Differential Privacy parameters
 

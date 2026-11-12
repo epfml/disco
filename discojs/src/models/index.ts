@@ -1,5 +1,5 @@
 export { Model } from "./model.js";
-export type { ModelMetadata } from "./model.js";
+export type { ModelMetadata, RoundContext } from "./model.js";
 export { EpochLogs } from "./logs.js";
 export type { BatchLogs, ValidationMetrics } from "./logs.js";
 export { Tokenizer } from "./tokenizer.js";

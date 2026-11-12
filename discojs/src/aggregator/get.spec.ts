@@ -50,6 +50,20 @@ describe("federated server aggregator", () => {
     expect(aggregator).to.be.instanceOf(ByzantineRobustAggregator);
   });
 
+  it("builds a mean aggregator for fedprox task", async () => {
+    const task = await defaultTasks.titanic.getTask();
+    const taskWithStrategy: Task<"tabular", "federated"> = {
+      ...task,
+      trainingInformation: {
+        ...task.trainingInformation,
+        aggregationStrategy: "fedprox",
+        aggregationParams: { mu: 0.05 },
+      },
+    };
+    const aggregator = getFederatedServerAggregator(taskWithStrategy);
+    expect(aggregator).to.be.instanceOf(MeanAggregator);
+  });
+
   it("waits for every node's contribution by default", async () => {
     const task = await defaultTasks.titanic.getTask();
     const aggregator = getFederatedServerAggregator(task);

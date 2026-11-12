@@ -115,6 +115,7 @@ function getMultiRoundAggregator(
         beta,
       );
     }
+    case "fedprox":
     case "mean":
       return new MeanAggregator(roundCutOff, threshold, thresholdType);
     case "secure":

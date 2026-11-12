@@ -16,6 +16,8 @@ export {
   getFederatedServerAggregator,
 } from "./aggregator/index.js";
 
+export { getProximalRegularizer } from "./training/index.js";
+
 export {
   LocalClient,
   getClient,
