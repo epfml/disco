@@ -85,9 +85,11 @@ This directory contains JSON files defining experiment configurations
             "numberOfUsers": 3,
             "batchSize": 32,
             "aggregator": "byzantine",
-            "clippingRadius": 1,
-            "maxIterations": 1,
-            "beta": 0.9
+            "aggregatorParams": {
+                "clippingRadius": 1,
+                "maxIterations": 1,
+                "beta": 0.9
+            }
         }
     ]
 }

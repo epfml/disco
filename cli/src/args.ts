@@ -1,14 +1,79 @@
 import { parse, type ExitReason } from "ts-command-line-args";
-import { Map, Set } from "immutable";
+import { Map, Set as ImmutableSet } from "immutable";
 
-import type { DataType, Network, TaskProvider } from "@epfml/discojs";
-import { defaultTasks, GPT } from "@epfml/discojs";
+import type {
+  DataType,
+  Network,
+  TaskProvider,
+  AggregationConfig,
+  AggregationStrategy,
+} from "@epfml/discojs";
+import {
+  defaultTasks,
+  GPT,
+  aggregationConfigSchema,
+  DECENTRALIZED_AGGREGATION_STRATEGIES,
+} from "@epfml/discojs";
 
-type AggregationStrategy = "mean" | "byzantine" | "secure";
+const aggregationStrategies = new Set<AggregationStrategy>(
+  DECENTRALIZED_AGGREGATION_STRATEGIES,
+);
 
 function parseAggregator(raw: string): AggregationStrategy {
-  if (raw === "mean" || raw == "byzantine" || raw == "secure") return raw;
-  else throw new Error(`Aggregator ${raw} is not supported.`);
+  if (aggregationStrategies.has(raw as AggregationStrategy)) {
+    return raw as AggregationStrategy;
+  }
+  throw new Error(`Aggregator ${raw} is not supported.`);
+}
+
+function parseAggregatorParams(raw: string): Record<string, unknown> {
+  if (raw.trim().length === 0) {
+    throw new Error(
+      'Invalid aggregatorParams: expected comma-separated "key=value" pairs',
+    );
+  }
+
+  const params: Record<string, unknown> = {};
+  for (const pair of raw.split(",")) {
+    const trimmedPair = pair.trim();
+    if (trimmedPair.length === 0) {
+      throw new Error(
+        'Invalid aggregatorParams: empty entry, expected "key=value"',
+      );
+    }
+    const eqIdx = trimmedPair.indexOf("=");
+    if (eqIdx === -1) {
+      throw new Error(
+        `Invalid parameter format "${trimmedPair}", expected "key=value"`,
+      );
+    }
+    const key = trimmedPair.slice(0, eqIdx).trim();
+    const valStr = trimmedPair.slice(eqIdx + 1).trim();
+    if (key.length === 0) {
+      throw new Error(
+        `Invalid parameter format "${trimmedPair}", key cannot be empty`,
+      );
+    }
+    if (valStr.length === 0) {
+      throw new Error(
+        `Invalid parameter format "${trimmedPair}", value cannot be empty`,
+      );
+    }
+    if (Object.hasOwn(params, key)) {
+      throw new Error(`Duplicate parameter key "${key}"`);
+    }
+
+    const lower = valStr.toLowerCase();
+    if (lower === "true") {
+      params[key] = true;
+    } else if (lower === "false") {
+      params[key] = false;
+    } else {
+      const num = Number(valStr);
+      params[key] = Number.isFinite(num) ? num : valStr;
+    }
+  }
+  return params;
 }
 
 type ValidationMode = "before" | "after" | "both";
@@ -67,13 +132,7 @@ export interface BenchmarkArguments {
   delta?: number;
   dpDefaultClippingRadius?: number;
   // Aggregator
-  aggregator: AggregationStrategy;
-  // Byzantine aggregator
-  clippingRadius?: number;
-  maxIterations?: number;
-  beta?: number;
-  // Secure aggregator
-  maxShareValue?: number;
+  aggregationConfig: AggregationConfig;
 
   saveLogs: boolean;
   saveModel: boolean;
@@ -81,7 +140,12 @@ export interface BenchmarkArguments {
   host: URL;
 }
 
-type BenchmarkUnsafeArguments = Omit<BenchmarkArguments, "provider"> & {
+type BenchmarkUnsafeArguments = Omit<
+  BenchmarkArguments,
+  "provider" | "aggregationConfig"
+> & {
+  aggregator: AggregationStrategy;
+  aggregatorParams?: Record<string, unknown>;
   task: string;
   datasetPath?: string;
   validationDatasetPath?: string;
@@ -224,32 +288,16 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     // Aggregator
     aggregator: {
       type: parseAggregator,
-      description: "Type of weight aggregator",
+      typeLabel: "mean|byzantine|secure",
+      description: 'Type of weight aggregator ("mean", "byzantine", "secure")',
       defaultValue: "mean",
     },
 
-    // Byzantine aggregator
-    clippingRadius: {
-      type: Number,
-      description: "Clipping radius for centered clipping",
-      optional: true,
-    },
-    maxIterations: {
-      type: Number,
-      description: "Maximum centered clipping iterations",
-      optional: true,
-    },
-    beta: {
-      type: Number,
+    aggregatorParams: {
+      type: parseAggregatorParams,
+      typeLabel: "key=value,...",
       description:
-        "Momentum coefficient to smooth the aggregation over multiple rounds",
-      optional: true,
-    },
-
-    // Secure aggregator
-    maxShareValue: {
-      type: Number,
-      description: "Maximum absolute value over all the weights",
+        'Aggregator parameters as comma-separated key=value pairs (e.g. "clippingRadius=1.0,beta=0.8"). Supported keys: mean: none; byzantine: clippingRadius (number > 0, default 1.0), maxIterations (int > 0, default 1), beta (number in [0, 1], default 0.9); secure: maxShareValue (int > 0, default 100)',
       optional: true,
     },
 
@@ -294,7 +342,7 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
 
 const supportedTasks = Map(
   await Promise.all(
-    Set.of<TaskProvider<"image" | "tabular" | "text", Network>>(
+    ImmutableSet.of<TaskProvider<"image" | "tabular" | "text", Network>>(
       defaultTasks.cifar10,
       defaultTasks.lusCovid,
       defaultTasks.titanic,
@@ -316,8 +364,46 @@ if (provider === undefined) {
   throw Error(`${unsafeArgs.task} not implemented.`);
 }
 
+const {
+  aggregator: cliAggregator,
+  aggregatorParams: cliAggregatorParams,
+  ...restUnsafeArgs
+} = unsafeArgs;
+
+const baseTask = await provider.getTask();
+if (baseTask.trainingInformation.scheme === "local") {
+  if (cliAggregator !== "mean") {
+    throw new Error(
+      `${cliAggregator} aggregator is not supported for local training`,
+    );
+  }
+} else if (
+  cliAggregator === "secure" &&
+  baseTask.trainingInformation.scheme !== "decentralized"
+) {
+  throw new Error(
+    "Secure aggregation is only supported for decentralized learning",
+  );
+}
+
+// Preserve task defaults for the same strategy when CLI omits or partially overrides params
+const existingParams =
+  baseTask.trainingInformation.scheme !== "local" &&
+  baseTask.trainingInformation.aggregationStrategy === cliAggregator
+    ? baseTask.trainingInformation.aggregationParams
+    : undefined;
+
+const aggregationConfig = aggregationConfigSchema.parse({
+  aggregationStrategy: cliAggregator,
+  aggregationParams:
+    existingParams !== undefined || cliAggregatorParams !== undefined
+      ? { ...existingParams, ...cliAggregatorParams }
+      : undefined,
+});
+
 export const args: BenchmarkArguments = {
-  ...unsafeArgs,
+  ...restUnsafeArgs,
+  aggregationConfig,
   provider: {
     async getTask() {
       const task = await provider.getTask();
@@ -368,51 +454,7 @@ export const args: BenchmarkArguments = {
         task.trainingInformation.learningRate = unsafeArgs.learningRate;
       }
 
-      const { aggregator, clippingRadius, maxIterations, beta, maxShareValue } =
-        unsafeArgs;
-
-      // For aggregators
-      if (aggregator !== undefined)
-        task.trainingInformation.aggregationStrategy = aggregator;
-
-      // For byzantine aggregator
-      if (
-        clippingRadius !== undefined &&
-        maxIterations !== undefined &&
-        beta !== undefined
-      ) {
-        if (task.trainingInformation.scheme === "local")
-          throw new Error(
-            "Byzantine aggregator is not supported for local training",
-          );
-        if (task.trainingInformation.aggregationStrategy !== "byzantine")
-          throw new Error(
-            "Byzantine parameters can be set only when aggregationStrategy is byzantine",
-          );
-
-        task.trainingInformation.privacy = {
-          ...task.trainingInformation.privacy,
-          byzantineFaultTolerance: {
-            clippingRadius,
-            maxIterations,
-            beta,
-          },
-        };
-      }
-
-      // For secure aggregator
-      if (maxShareValue !== undefined) {
-        if (task.trainingInformation.scheme !== "decentralized")
-          throw new Error(
-            "Secure aggation is only supported for decentralized laerning",
-          );
-        if (task.trainingInformation.aggregationStrategy !== "secure")
-          throw new Error(
-            "maxShareValue can be set when aggregationStrategy is secure",
-          );
-
-        task.trainingInformation.maxShareValue = maxShareValue;
-      }
+      Object.assign(task.trainingInformation, aggregationConfig);
 
       // For DP
       const { dpDefaultClippingRadius, epsilon, delta } = unsafeArgs;

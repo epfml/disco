@@ -14,6 +14,7 @@ describe("end-to-end federated cifar10", () => {
         privacy: undefined,
         scheme: "federated",
         aggregationStrategy: "mean",
+        aggregationParams: undefined,
         minNbOfParticipants: 2,
         validationSplit: 0.5,
       },
