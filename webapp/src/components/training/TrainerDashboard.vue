@@ -112,7 +112,6 @@ import { computed, onUnmounted, ref, toRaw } from "vue";
 
 import type {
   BatchLogs,
-  Dataset,
   DataType,
   EpochLogs,
   Model,
@@ -123,13 +122,8 @@ import type {
 } from "@epfml/discojs";
 import {
   EpochLogs as EpochLogsClass,
-  DecentralizedClient,
-  getAggregator,
   modelDecode,
-  modelEncode,
   serializeTaskToJSON,
-  weightsDecode,
-  weightsEncode,
 } from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster";
@@ -138,14 +132,17 @@ import CustomButton from "@/components/simple/CustomButton.vue";
 import IconCard from "@/components/containers/IconCard.vue";
 import { CONFIG } from "../../config";
 import { VueSpinnerPuff, VueSpinnerGears } from "vue3-spinners";
-import type { FromWorker, RawSample, ToWorker } from "./worker_messages";
+import { servePeerTransport } from "./peer_transport";
+import type { FromWorker, ToWorker } from "./worker_messages";
+
+import type { DatasetSource } from "../dataset_input/source";
 
 const debug = createDebug("webapp:training:Trainer");
 const toaster = useToaster();
 
 const props = defineProps<{
   task: Task<D, Network>;
-  dataset?: Dataset<RawSample>;
+  dataset?: DatasetSource;
 }>();
 const emit = defineEmits<{
   model: [Model<D>];
@@ -157,11 +154,7 @@ const batchesOfEpochLogs = ref(List<BatchLogs>());
 const roundStatus = ref<[RoundStatus, string]>();
 const training = ref(false);
 let worker: Worker | undefined;
-let networkClient: DecentralizedClient | undefined;
-let disconnectNetwork: (() => Promise<void>) | undefined;
-let syncedWeights: Uint8Array | undefined;
-let syncEncoding: Promise<void> | undefined;
-const iterators = new Map<number, AsyncIterator<RawSample>>();
+let closePeerTransport: (() => void) | undefined;
 let stopTimeout: ReturnType<typeof setTimeout> | undefined;
 
 const hasValidationData = computed(
@@ -189,7 +182,7 @@ function startTraining(): void {
   // until then we only know about ourselves
   nbParticipants.value = 1;
 
-  // Vue proxy doesn't work with Dataset's private fields
+  // postMessage requires the plain source rather than Vue's reactive proxy.
   const dataset = toRaw(props.dataset);
   if (dataset === undefined) {
     toaster.error("First connect your data at the previous step.");
@@ -214,61 +207,16 @@ function startTraining(): void {
   const scheme = isTrainingLocally.value
     ? "local"
     : props.task.trainingInformation.scheme;
+  let peerPort: MessagePort | undefined;
   if (scheme === "decentralized") {
-    const task = toRaw(props.task) as Task<DataType, "decentralized">;
-    const client = new DecentralizedClient(
-      CONFIG.serverUrl,
-      task,
-      getAggregator(task),
-    );
-    networkClient = client;
-    let disconnecting: Promise<void> | undefined;
-    disconnectNetwork = () =>
-      (disconnecting ??= client.disconnect().finally(() => {
-        // This client is owned by the page, outside the worker's Disco.close().
-        client.aggregator.dispose();
-      }));
-    client.on("status", (status) => {
-      if (worker === active)
-        active.postMessage({
-          type: "network-event",
-          event: "status",
-          status,
-        } satisfies ToWorker);
-    });
-    client.on("participants", (count) => {
-      if (worker === active)
-        active.postMessage({
-          type: "network-event",
-          event: "participants",
-          count,
-        } satisfies ToWorker);
-    });
-    client.on("modelSynced", (weights) => {
-      // Event weights are borrowed only for this synchronous callback.
-      const owned = weights.clone();
-      syncEncoding = weightsEncode(owned)
-        .then((encoded) => {
-          if (networkClient === client) syncedWeights = encoded;
-        })
-        .catch((error: unknown) => {
-          if (worker !== active) return;
-          showTrainingError(error);
-          closeWorker(active);
-        })
-        .finally(() => owned.dispose());
-    });
+    const channel = new MessageChannel();
+    closePeerTransport = servePeerTransport(channel.port1);
+    peerPort = channel.port2;
   }
   active.onmessage = (event: MessageEvent<FromWorker>) => {
     if (worker !== active) return;
     const message = event.data;
     switch (message.type) {
-      case "data-request":
-        void provideData(active, dataset, message.requestId, message.streamId);
-        break;
-      case "network-request":
-        void handleNetworkRequest(active, message);
-        break;
       case "status":
         roundStatus.value = [
           message.status,
@@ -314,6 +262,7 @@ function startTraining(): void {
     }
   };
   active.onerror = (event) => {
+    if (worker !== active) return;
     showTrainingError(new Error(event.message));
     closeWorker(active);
   };
@@ -321,106 +270,14 @@ function startTraining(): void {
     type: "start",
     task: serializeTaskToJSON(toRaw(props.task) as Task<DataType, Network>),
     serverUrl: CONFIG.serverUrl.toString(),
+    dataset,
     scheme,
-  };
-  active.postMessage(start);
-}
-
-async function handleNetworkRequest(
-  active: Worker,
-  request: Extract<FromWorker, { type: "network-request" }>,
-): Promise<void> {
-  const client = networkClient;
-  if (client === undefined || worker !== active) return;
-  const response: Extract<ToWorker, { type: "network-response" }> = {
-    type: "network-response",
-    requestId: request.requestId,
+    peerPort,
   };
   try {
-    switch (request.operation) {
-      case "connect": {
-        const model = await client.connect();
-        try {
-          response.model = await modelEncode(model);
-        } finally {
-          model.dispose();
-          // connect() may finish after a forced stop has already cleaned up.
-          if (worker !== active) await client.disconnect();
-        }
-        break;
-      }
-      case "begin":
-        await client.onRoundBeginCommunication();
-        await syncEncoding;
-        // A newly joined peer may receive the current global model here.
-        response.syncedWeights = syncedWeights;
-        syncedWeights = undefined;
-        break;
-      case "end": {
-        if (request.weights === undefined)
-          throw new Error("missing local weights");
-        const local = weightsDecode(request.weights);
-        let result;
-        try {
-          result = await client.onRoundEndCommunication(local);
-          if (worker !== active) return;
-          client.finishRound(result);
-          response.weights = await weightsEncode(result);
-        } finally {
-          if (result !== local) result?.dispose();
-          local.dispose();
-        }
-        break;
-      }
-      case "disconnect":
-        await disconnectNetwork?.();
-        break;
-    }
+    active.postMessage(start, peerPort === undefined ? [] : [peerPort]);
   } catch (error) {
-    response.error = error instanceof Error ? error.message : String(error);
-    response.errorName = error instanceof Error ? error.name : undefined;
-  }
-  if (worker === active) {
-    const bytes = response.model ?? response.weights ?? response.syncedWeights;
-    active.postMessage(
-      response,
-      bytes?.buffer instanceof ArrayBuffer ? [bytes.buffer] : [],
-    );
-  }
-}
-
-async function provideData(
-  active: Worker,
-  dataset: Dataset<RawSample>,
-  requestId: number,
-  streamId: number,
-): Promise<void> {
-  try {
-    let iterator = iterators.get(streamId);
-    if (iterator === undefined) {
-      iterator = dataset[Symbol.asyncIterator]();
-      iterators.set(streamId, iterator);
-    }
-    const samples: RawSample[] = [];
-    let done = false;
-    while (samples.length < 16) {
-      const next = await iterator.next();
-      if (next.done) {
-        done = true;
-        break;
-      }
-      samples.push(next.value);
-    }
-    if (done) iterators.delete(streamId);
-    if (worker === active)
-      active.postMessage({
-        type: "data",
-        requestId,
-        samples,
-        done,
-      } satisfies ToWorker);
-  } catch (error) {
-    if (worker !== active) return;
+    peerPort?.close();
     showTrainingError(error);
     closeWorker(active);
   }
@@ -493,15 +350,9 @@ function closeWorker(active: Worker): void {
   if (stopTimeout !== undefined) clearTimeout(stopTimeout);
   stopTimeout = undefined;
   active.terminate();
-  const disconnect = disconnectNetwork;
-  disconnectNetwork = undefined;
-  networkClient = undefined;
-  syncedWeights = undefined;
-  syncEncoding = undefined;
-  if (disconnect !== undefined)
-    void disconnect().catch((error: unknown) => debug("disconnect: %o", error));
+  closePeerTransport?.();
+  closePeerTransport = undefined;
   worker = undefined;
-  iterators.clear();
   training.value = false;
 }
 

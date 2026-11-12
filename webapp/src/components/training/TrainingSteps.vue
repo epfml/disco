@@ -19,7 +19,7 @@
       v-show="trainingStore.step === 2"
       class="flex flex-col space-y-4 md:space-y-8"
     >
-      <LabeledDatasetInput v-model="dataset" :task>
+      <LabeledDatasetInput v-model="dataset" v-model:source="source" :task>
         <template #header>
           <DataDescription :task class="tuto-data-desc" />
         </template>
@@ -29,7 +29,7 @@
     <TrainerDashboard
       v-show="trainingStore.step === 3"
       :task
-      :dataset="unnamedDataset"
+      :dataset="dataset === undefined ? undefined : source"
       @model="onModel"
     />
 
@@ -44,27 +44,13 @@
 
 <script lang="ts" setup>
 import { storeToRefs } from "pinia";
-import {
-  computed,
-  onMounted,
-  onUnmounted,
-  ref,
-  shallowRef,
-  toRaw,
-  watch,
-} from "vue";
+import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { VueSpinner } from "vue3-spinners";
 
-import type {
-  Dataset,
-  DataFormat,
-  DataType,
-  Model,
-  Task,
-  Network,
-} from "@epfml/discojs";
+import type { DataType, Model, Task, Network } from "@epfml/discojs";
 
+import type { DatasetSource } from "@/components/dataset_input/source";
 import type { LabeledDataset } from "@/components/dataset_input/types.js";
 import DataDescription from "@/components/dataset_input/DataDescription.vue";
 import LabeledDatasetInput from "@/components/dataset_input/LabeledDatasetInput.vue";
@@ -135,26 +121,7 @@ watch(
 onMounted(setupTrainingStore);
 
 const dataset = ref<LabeledDataset[DataType]>();
-const unnamedDataset = computed<Dataset<DataFormat.Raw[DataType]> | undefined>(
-  () => {
-    if (task.value === undefined || dataset.value === undefined)
-      return undefined;
-
-    switch (task.value.dataType) {
-      case "image":
-        return (toRaw(dataset.value) as LabeledDataset["image"]).map(
-          ({ image, label }) => [image, label],
-        ) as Dataset<DataFormat.Raw["image"]>;
-      case "tabular":
-      case "text":
-        return dataset.value as Dataset<DataFormat.Raw["tabular" | "text"]>;
-      default: {
-        const _: never = task.value;
-        throw new Error("should never happen");
-      }
-    }
-  },
-);
+const source = ref<DatasetSource>();
 const trainedModel = shallowRef<Model<DataType>>();
 
 // free the model when replaced or when leaving

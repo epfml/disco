@@ -1,7 +1,7 @@
 import createDebug from "debug";
 import { Map, type Set, List } from "immutable";
 
-import type { SignalData } from "#client/decentralized/peer";
+import type { SignalData, PeerFactory } from "#client/decentralized/peer";
 import type { NodeID } from "#client/types";
 import { PeerConnection, type EventConnection } from "#client/event_connection";
 import { abortable, shortenId } from "#client/utils";
@@ -50,7 +50,10 @@ export class PeerPool {
   // signals are buffered here and replayed, in order, once we create our side.
   private pendingSignals = Map<NodeID, List<SignalData>>();
 
-  constructor(private readonly id: NodeID) {}
+  constructor(
+    private readonly id: NodeID,
+    private readonly createPeer?: PeerFactory,
+  ) {}
 
   async shutdown(): Promise<void> {
     debug(`[${this.id}] is shutting down all its connections`);
@@ -110,7 +113,13 @@ export class PeerPool {
     let newPeersConnections = Map<NodeID, PeerConnection>();
     for (const thatId of peersToConnect.filterNot((id) => this.peers.has(id))) {
       const connection = await createStaggered(
-        () => new PeerConnection(this.id, thatId, signallingServer),
+        () =>
+          new PeerConnection(
+            this.id,
+            thatId,
+            signallingServer,
+            this.createPeer,
+          ),
         signal,
       );
       newPeersConnections = newPeersConnections.set(thatId, connection);

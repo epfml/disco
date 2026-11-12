@@ -13,8 +13,12 @@ import { ref, watch } from "vue";
 import type { Dataset, Tabular } from "@epfml/discojs";
 import { loadCSV } from "@epfml/discojs-web";
 
+import type { DatasetSource } from "./source";
+
 import DatasetInput from "./DatasetInput.vue";
 import FileSelection from "./FileSelection.vue";
+
+const source = defineModel<DatasetSource>("source");
 
 const dataset = defineModel<Dataset<Tabular>>();
 watch(dataset, (dataset: Dataset<Tabular> | undefined) => {
@@ -24,6 +28,7 @@ watch(dataset, (dataset: Dataset<Tabular> | undefined) => {
 const files = ref<Set<File>>();
 watch(files, (files: Set<File> | undefined) => {
   if (files === undefined) {
+    source.value = undefined;
     dataset.value = files;
     return;
   }
@@ -33,6 +38,7 @@ watch(files, (files: Set<File> | undefined) => {
     // enforced by <FileSelection multiple=false />
     throw new Error("expected a single file");
 
+  source.value = { type: "tabular", file };
   dataset.value = loadCSV(file);
 });
 </script>

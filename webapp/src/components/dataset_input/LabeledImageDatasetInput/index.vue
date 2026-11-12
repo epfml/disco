@@ -39,10 +39,11 @@
     <ByGroup
       v-if="connectImagesByGroup"
       v-model="dataset"
+      v-model:source="source"
       :labels="labels"
       class="group-data-field"
     />
-    <ByCSV v-else v-model="dataset" />
+    <ByCSV v-else v-model="dataset" v-model:source="source" />
   </div>
 </template>
 
@@ -54,6 +55,7 @@ import type { Set as ImmutableSet } from "immutable";
 import { ref } from "vue";
 
 import DatasetInput from "../DatasetInput.vue";
+import type { DatasetSource } from "../source";
 import type { NamedLabeledImageDataset } from "../types.js";
 
 import ByCSV from "./ByCSV.vue";
@@ -63,6 +65,7 @@ const props = defineProps<{
   labels: ImmutableSet<string>;
 }>();
 
+const source = defineModel<DatasetSource>("source");
 const dataset = defineModel<NamedLabeledImageDataset>();
 
 const connectImagesByGroup = ref(props.labels.size <= 2);

@@ -2,7 +2,11 @@ import createDebug from "debug";
 import WebSocket from "@epfml/isomorphic-ws";
 import * as msgpack from "@msgpack/msgpack";
 import type { SignalData } from "#client/decentralized/peer";
-import { Peer } from "#client/decentralized/peer";
+import {
+  Peer,
+  type PeerFactory,
+  type PeerTransport,
+} from "#client/decentralized/peer";
 import type { NodeID } from "#client/types";
 import * as decentralizedMessages from "#client/decentralized/messages";
 import { MType } from "#client/mtype";
@@ -136,16 +140,17 @@ export class PeerConnection
   implements EventConnection
 {
   readonly #isConnectedPromise: Promise<void>;
-  readonly #peer: Peer;
+  readonly #peer: PeerTransport;
 
   constructor(
     private readonly _ownId: NodeID,
     otherId: NodeID,
     signallingServer: EventConnection,
+    createPeer: PeerFactory = (id, initiator) => new Peer(id, initiator),
   ) {
     super();
-    this.#peer = new Peer(otherId, this._ownId < otherId);
-    // creating Peer immediately emit a "signal" event
+    this.#peer = createPeer(otherId, this._ownId < otherId);
+    // Subscribe before the transport emits its first asynchronous signal.
     this.#peer.on("signal", (signal) => {
       const msg: decentralizedMessages.SignalForPeer = {
         type: MType.SignalForPeer,
