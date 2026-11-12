@@ -3,6 +3,16 @@ import sys
 import subprocess
 from pathlib import Path
 
+def flatten_params(params, prefix=""):
+    items = []
+    for k, v in params.items():
+        key = f"{prefix}.{k}" if prefix else str(k)
+        if isinstance(v, dict):
+            items.extend(flatten_params(v, prefix=key))
+        else:
+            items.append(f"{key}={v}")
+    return items
+
 def build_test_command(cfg):
     # Mandatory arguments
     cmd = [
@@ -26,14 +36,12 @@ def build_test_command(cfg):
         cmd += ["--delta", str(cfg["delta"])]
     if "dpDefaultClippingRadius" in cfg:
         cmd += ["--dpDefaultClippingRadius", str(cfg["dpDefaultClippingRadius"])]
-    if "clippingRadius" in cfg:
-        cmd += ["--clippingRadius", str(cfg["clippingRadius"])]
-    if "maxIterations" in cfg:
-        cmd += ["--maxIterations", str(cfg["maxIterations"])]
-    if "beta" in cfg:
-        cmd += ["--beta", str(cfg["beta"])]
-    if "maxShareValue" in cfg:
-        cmd += ["--maxShareValue", str(cfg["maxShareValue"])]
+    if "aggregatorParams" in cfg:
+        params = cfg["aggregatorParams"]
+        if isinstance(params, dict):
+            cmd += ["--aggregatorParams", ",".join(flatten_params(params))]
+        else:
+            cmd += ["--aggregatorParams", str(params)]
     
     return cmd
 

@@ -15,12 +15,10 @@ async function getByzantineTask(): Promise<Task<"tabular", "federated">> {
     trainingInformation: {
       ...task.trainingInformation,
       aggregationStrategy: "byzantine",
-      privacy: {
-        byzantineFaultTolerance: {
-          clippingRadius: 2,
-          maxIterations: 1,
-          beta: 0.9,
-        },
+      aggregationParams: {
+        clippingRadius: 2,
+        maxIterations: 1,
+        beta: 0.9,
       },
     },
   };
@@ -35,6 +33,20 @@ describe("federated server aggregator", () => {
 
   it("builds a byzantine aggregator from the task", async () => {
     const aggregator = getFederatedServerAggregator(await getByzantineTask());
+    expect(aggregator).to.be.instanceOf(ByzantineRobustAggregator);
+  });
+
+  it("builds a byzantine aggregator with custom aggregationParams", async () => {
+    const task = await defaultTasks.titanic.getTask();
+    const taskWithStrategy: Task<"tabular", "federated"> = {
+      ...task,
+      trainingInformation: {
+        ...task.trainingInformation,
+        aggregationStrategy: "byzantine",
+        aggregationParams: { clippingRadius: 2.5, maxIterations: 3, beta: 0.8 },
+      },
+    };
+    const aggregator = getFederatedServerAggregator(taskWithStrategy);
     expect(aggregator).to.be.instanceOf(ByzantineRobustAggregator);
   });
 

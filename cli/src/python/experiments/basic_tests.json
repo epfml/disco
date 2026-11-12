@@ -21,9 +21,11 @@
       "numberOfUsers": 3,
       "batchSize": 32,
       "aggregator": "byzantine",
-      "clippingRadius": 1,
-      "maxIterations": 1,
-      "beta": 0.9
+      "aggregatorParams": {
+        "clippingRadius": 1,
+        "maxIterations": 1,
+        "beta": 0.9
+      }
     },
     {
       "testID": "mnist_dec_sec_cnn3_p3_d600_e50_r2",
@@ -31,7 +33,9 @@
       "numberOfUsers": 3,
       "batchSize": 32,
       "aggregator": "secure",
-      "maxShareValue": 100
+      "aggregatorParams": {
+        "maxShareValue": 100
+      }
     },
     {
       "testID": "titanic_fed_mean_mlp4_p3_d297_e50_r2",
@@ -46,9 +50,11 @@
       "numberOfUsers": 3,
       "batchSize": 32,
       "aggregator": "byzantine",
-      "clippingRadius": 1,
-      "maxIterations": 1,
-      "beta": 0.9
+      "aggregatorParams": {
+        "clippingRadius": 1,
+        "maxIterations": 1,
+        "beta": 0.9
+      }
     },
 
     {
@@ -64,9 +70,11 @@
       "numberOfUsers": 3,
       "batchSize": 5,
       "aggregator": "byzantine",
-      "clippingRadius": 1,
-      "maxIterations": 1,
-      "beta": 0.9
+      "aggregatorParams": {
+        "clippingRadius": 1,
+        "maxIterations": 1,
+        "beta": 0.9
+      }
     },
 
     {
@@ -86,9 +94,11 @@
       "epochs": 200,
       "roundDuration": 5,
       "aggregator": "byzantine",
-      "clippingRadius": 1,
-      "maxIterations": 1,
-      "beta": 0.9
+      "aggregatorParams": {
+        "clippingRadius": 1,
+        "maxIterations": 1,
+        "beta": 0.9
+      }
     },
     {
       "testID": "cifar10_dec_sec_cnn4_p3_d600_e500_r5",
@@ -98,7 +108,9 @@
       "epochs": 200,
       "roundDuration": 5,
       "aggregator": "secure",
-      "maxShareValue": 100
+      "aggregatorParams": {
+        "maxShareValue": 100
+      }
     }
   ]
 }

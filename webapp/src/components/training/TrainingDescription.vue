@@ -94,23 +94,26 @@
               }}
             </td>
           </tr>
-          <tr>
+          <tr
+            v-if="task.trainingInformation.aggregationStrategy === 'byzantine'"
+          >
             <th>Byzantine Fault Tolerance: Clipping Radius</th>
             <td>
               {{
-                (task.trainingInformation.privacy === undefined
-                  ? undefined
-                  : "byzantineFaultTolerance" in
-                      task.trainingInformation.privacy
-                    ? task.trainingInformation.privacy.byzantineFaultTolerance
-                        ?.clippingRadius
-                    : undefined) ?? "Unused"
+                task.trainingInformation.aggregationParams?.[
+                  "clippingRadius"
+                ] ?? "Unused"
               }}
             </td>
           </tr>
           <tr v-if="task.trainingInformation.aggregationStrategy === 'secure'">
             <th>Maximum Value of Shares used in Secure Aggregation</th>
-            <td>{{ task.trainingInformation.maxShareValue ?? "Unused" }}</td>
+            <td>
+              {{
+                task.trainingInformation.aggregationParams?.["maxShareValue"] ??
+                "Unused"
+              }}
+            </td>
           </tr>
         </tbody>
       </table>
