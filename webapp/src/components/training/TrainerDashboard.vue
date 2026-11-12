@@ -108,12 +108,10 @@
 <script lang="ts" setup generic="D extends DataType">
 import createDebug from "debug";
 import { List } from "immutable";
-import { computed, ref, toRaw } from "vue";
+import { computed, onUnmounted, ref, toRaw } from "vue";
 
 import type {
   BatchLogs,
-  Dataset,
-  DataFormat,
   DataType,
   EpochLogs,
   Model,
@@ -122,7 +120,11 @@ import type {
   Task,
   Network,
 } from "@epfml/discojs";
-import { split, ClientCrashError, Disco } from "@epfml/discojs";
+import {
+  EpochLogs as EpochLogsClass,
+  modelDecode,
+  serializeTaskToJSON,
+} from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster";
 import TrainingInformation from "@/components/training/TrainingInformation.vue";
@@ -130,42 +132,36 @@ import CustomButton from "@/components/simple/CustomButton.vue";
 import IconCard from "@/components/containers/IconCard.vue";
 import { CONFIG } from "../../config";
 import { VueSpinnerPuff, VueSpinnerGears } from "vue3-spinners";
+import { servePeerTransport } from "./peer_transport";
+import type { FromWorker, ToWorker } from "./worker_messages";
+
+import type { DatasetSource } from "../dataset_input/source";
 
 const debug = createDebug("webapp:training:Trainer");
 const toaster = useToaster();
 
 const props = defineProps<{
   task: Task<D, Network>;
-  dataset?: Dataset<DataFormat.Raw[D]>;
+  dataset?: DatasetSource;
 }>();
 const emit = defineEmits<{
   model: [Model<D>];
 }>();
 
-const trainingGenerator =
-  ref<
-    AsyncGenerator<
-      AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>
-    >
-  >();
-const roundGenerator =
-  ref<AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>>();
-const epochGenerator = ref<AsyncGenerator<BatchLogs, EpochLogs>>();
 const roundsLogs = ref(List<RoundLogs>());
 const epochsOfRoundLogs = ref(List<EpochLogs>());
 const batchesOfEpochLogs = ref(List<BatchLogs>());
 const roundStatus = ref<[RoundStatus, string]>();
-/**
- * Store a disco cleanup callback to make sure it can be ran if users
- * manually stop the training.
- */
-const cleanupDisco = ref<() => Promise<void>>();
+const training = ref(false);
+let worker: Worker | undefined;
+let closePeerTransport: (() => void) | undefined;
+let stopTimeout: ReturnType<typeof setTimeout> | undefined;
 
 const hasValidationData = computed(
   () => props.task.trainingInformation.validationSplit > 0,
 );
 
-const isTraining = computed(() => trainingGenerator.value !== undefined);
+const isTraining = training;
 const isTrainingAlone = ref(false);
 // Whether the training involves no collaborator at all: either the user chose
 // to train alone or the task itself is a local one
@@ -176,13 +172,9 @@ const isTrainingLocally = computed(
 // number of participants in the training session
 const nbParticipants = ref(1);
 
-// value to throw in generator to stop training
-// TODO better to use an AbortController but if the training fails somehow, it never returns
-const stopper = new Error("stop training");
-
-async function startTraining(): Promise<void> {
+function startTraining(): void {
+  if (worker !== undefined) return;
   // Reset training information before starting a new training
-  trainingGenerator.value = undefined;
   roundsLogs.value = List<RoundLogs>();
   epochsOfRoundLogs.value = List<EpochLogs>();
   batchesOfEpochLogs.value = List<BatchLogs>();
@@ -190,7 +182,7 @@ async function startTraining(): Promise<void> {
   // until then we only know about ourselves
   nbParticipants.value = 1;
 
-  // Vue proxy doesn't work with Dataset's private fields
+  // postMessage requires the plain source rather than Vue's reactive proxy.
   const dataset = toRaw(props.dataset);
   if (dataset === undefined) {
     toaster.error("First connect your data at the previous step.");
@@ -199,14 +191,6 @@ async function startTraining(): Promise<void> {
 
   toaster.info("Model training started");
 
-  console.log("server URL:", CONFIG.serverUrl.toString());
-  const disco = new Disco(props.task, CONFIG.serverUrl, {
-    scheme: isTrainingLocally.value
-      ? "local"
-      : props.task.trainingInformation.scheme,
-  });
-  // set the round status displayed to the status emitted by the disco object
-  // Record rather than a Map to be told when a status has no message
   const discoStatusMessage: Record<RoundStatus, string> = {
     "not enough participants": "Waiting for more participants",
     "waiting for peers to share weights":
@@ -215,129 +199,176 @@ async function startTraining(): Promise<void> {
     "updating model": "Updating the model with other participants' models",
     "local training": "Training the model on the data you connected",
   };
-  disco.on("status", (status) => {
-    roundStatus.value = [status, discoStatusMessage[status]];
+  const active = new Worker(new URL("./training.worker.ts", import.meta.url), {
+    type: "module",
   });
-  disco.on("participants", (participants) => {
-    nbParticipants.value = participants;
-  });
-
-  // Store the cleanup function such that it can be ran if users
-  // manually interrupt the training
-  cleanupDisco.value = async () => {
-    // cleanup is called at the end of training or if interrupted
-    // in both cases, we emit the model
-    // transfer ownership before close() disposes the trainer's model
-    const model = disco.trainer.releaseModel();
-    if (model !== undefined) emit("model", model);
-    await disco.close();
-  };
-  // For the training completed message
-  let trainingCompleted = true;
-
-  try {
-    trainingGenerator.value = disco.train(dataset);
-
-    roundsLogs.value = List<RoundLogs>();
-    for await (const round of trainingGenerator.value) {
-      const [roundGen, roundLogs] = split(round);
-
-      roundGenerator.value = roundGen;
-      for await (const epoch of roundGenerator.value) {
-        const [epochGen, epochLogs] = split(epoch);
-
-        epochGenerator.value = epochGen;
-        for await (const batch of epochGenerator.value)
-          batchesOfEpochLogs.value = batchesOfEpochLogs.value.push(batch);
-
-        epochsOfRoundLogs.value = epochsOfRoundLogs.value.push(await epochLogs);
+  worker = active;
+  training.value = true;
+  const scheme = isTrainingLocally.value
+    ? "local"
+    : props.task.trainingInformation.scheme;
+  let peerPort: MessagePort | undefined;
+  if (scheme === "decentralized") {
+    const channel = new MessageChannel();
+    closePeerTransport = servePeerTransport(channel.port1);
+    peerPort = channel.port2;
+  }
+  active.onmessage = (event: MessageEvent<FromWorker>) => {
+    if (worker !== active) return;
+    const message = event.data;
+    switch (message.type) {
+      case "status":
+        roundStatus.value = [
+          message.status,
+          discoStatusMessage[message.status],
+        ];
+        break;
+      case "participants":
+        nbParticipants.value = message.count;
+        break;
+      case "batch":
+        batchesOfEpochLogs.value = batchesOfEpochLogs.value.push(message.log);
+        break;
+      case "epoch":
+        epochsOfRoundLogs.value = epochsOfRoundLogs.value.push(
+          new EpochLogsClass(
+            message.batches,
+            message.epochTime,
+            message.validation,
+          ),
+        );
         batchesOfEpochLogs.value = List<BatchLogs>();
-      }
-
-      roundsLogs.value = roundsLogs.value.push(await roundLogs);
-      epochsOfRoundLogs.value = List<EpochLogs>();
+        break;
+      case "round":
+        roundsLogs.value = roundsLogs.value.push({
+          participants: message.participants,
+          preRoundValidation: message.preRoundValidation,
+          postAggregationValidation: message.postAggregationValidation,
+          epochs: epochsOfRoundLogs.value,
+        });
+        epochsOfRoundLogs.value = List<EpochLogs>();
+        break;
+      case "finished":
+        void finishTraining(active, message);
+        break;
+      case "error":
+        showTrainingError(
+          Object.assign(new Error(message.message), {
+            name: message.errorName ?? "Error",
+          }),
+        );
+        closeWorker(active);
+        break;
     }
-  } catch (e) {
-    trainingCompleted = false;
-    if (e === stopper) {
-      toaster.info("Training stopped");
-      return;
-    } else if (
-      e instanceof ClientCrashError &&
-      e.message.includes("Failed to connect to peers of the round")
-    ) {
-      toaster.error(
-        "Client disconnected after multiple peer connection failures. Please rejoin the training.",
-      );
-    } else if (e instanceof ClientCrashError) {
-      toaster.error(
-        "The server has disconnected you due to an unexpected event.<br/> Feel free to rejoin the training.",
-      );
-    } else if (
-      e instanceof Error &&
-      e.message.includes("greater than WebGL maximum on this browser")
-    ) {
-      toaster.error(
-        "Unfortunately your browser doesn't support training this task.<br/>If you are on Firefox try using Chrome instead.",
-      );
-    } else if (
-      e instanceof Error &&
-      e.message.includes("loss is undefined or nan")
-    ) {
-      toaster.error(
-        "Training is not converging. Data potentially needs better preprocessing.",
-      );
-    } else if (
-      e instanceof Error &&
-      e.message.includes("Timeout while waiting for the latest model")
-    ) {
-      toaster.error(
-        "Timeout while waiting for the model syncing. Please rejoin the training.",
-      );
-    } else {
-      toaster.error("An error occurred during training.");
-    }
-    debug("while training: %o", e);
-  } finally {
-    await cleanupTrainingSession();
-  }
-
-  if (trainingCompleted) {
-    // printed only when the training is compeleted successfully
-    toaster.success("Training successfully completed");
-  }
-}
-
-async function cleanupTrainingSession() {
-  trainingGenerator.value = undefined;
-  // check if a cleanup callback has been initialized
-  if (cleanupDisco.value === undefined) return;
-  // create a local copy and set cleanupTrainingSessionFn to undefined
-  // to make sure we only call the cleanup function once
-  const cleanup = cleanupDisco.value;
-  cleanupDisco.value = undefined;
-  // Calling the cleanup function returns a promise
-  // awaiting the promise notifies the network that we are disconnecting
-  await cleanup();
-}
-
-async function stopTraining(): Promise<void> {
-  const ignoreStopper = (e: unknown): void => {
-    if (e !== stopper) throw e;
   };
-  // throwing stopper will be caught by startTraining and will interrupt the training
-  // but we want stopTraining to resolve successfully so we also catch it here and ignore it
-  await trainingGenerator.value?.throw(stopper).catch(ignoreStopper);
-  trainingGenerator.value = undefined;
-
-  await roundGenerator.value?.throw(stopper).catch(ignoreStopper);
-  roundGenerator.value = undefined;
-
-  await epochGenerator.value?.throw(stopper).catch(ignoreStopper);
-  epochGenerator.value = undefined;
-
-  // Cleanup the session, potentially already done if the
-  // stopper error was caught
-  await cleanupTrainingSession();
+  active.onerror = (event) => {
+    if (worker !== active) return;
+    showTrainingError(new Error(event.message));
+    closeWorker(active);
+  };
+  const start: ToWorker = {
+    type: "start",
+    task: serializeTaskToJSON(toRaw(props.task) as Task<DataType, Network>),
+    serverUrl: CONFIG.serverUrl.toString(),
+    dataset,
+    scheme,
+    peerPort,
+  };
+  try {
+    active.postMessage(start, peerPort === undefined ? [] : [peerPort]);
+  } catch (error) {
+    peerPort?.close();
+    showTrainingError(error);
+    closeWorker(active);
+  }
 }
+
+async function finishTraining(
+  active: Worker,
+  message: Extract<FromWorker, { type: "finished" }>,
+): Promise<void> {
+  try {
+    if (message.model !== undefined) {
+      const model = await modelDecode(message.model);
+      if (worker !== active) {
+        model.dispose();
+        return;
+      }
+      emit("model", model as Model<D>);
+    }
+    if (message.stopped) toaster.info("Training stopped");
+    else toaster.success("Training successfully completed");
+  } catch (error) {
+    showTrainingError(error);
+  } finally {
+    closeWorker(active);
+  }
+}
+
+function showTrainingError(e: unknown): void {
+  if (
+    e instanceof Error &&
+    e.name === "ClientCrashError" &&
+    e.message.includes("Failed to connect to peers of the round")
+  ) {
+    toaster.error(
+      "Client disconnected after multiple peer connection failures. Please rejoin the training.",
+    );
+  } else if (e instanceof Error && e.name === "ClientCrashError") {
+    toaster.error(
+      "The server has disconnected you due to an unexpected event.<br/> Feel free to rejoin the training.",
+    );
+  } else if (
+    e instanceof Error &&
+    e.message.includes("greater than WebGL maximum on this browser")
+  ) {
+    toaster.error(
+      "Unfortunately your browser doesn't support training this task.<br/>If you are on Firefox try using Chrome instead.",
+    );
+  } else if (
+    e instanceof Error &&
+    e.message.includes("loss is undefined or nan")
+  ) {
+    toaster.error(
+      "Training is not converging. Data potentially needs better preprocessing.",
+    );
+  } else if (
+    e instanceof Error &&
+    e.message.includes("Timeout while waiting for the latest model")
+  ) {
+    toaster.error(
+      "Timeout while waiting for the model syncing. Please rejoin the training.",
+    );
+  } else {
+    toaster.error("An error occurred during training.");
+  }
+  debug("while training: %o", e);
+}
+
+function closeWorker(active: Worker): void {
+  if (worker !== active) return;
+  if (stopTimeout !== undefined) clearTimeout(stopTimeout);
+  stopTimeout = undefined;
+  active.terminate();
+  closePeerTransport?.();
+  closePeerTransport = undefined;
+  worker = undefined;
+  training.value = false;
+}
+
+function stopTraining(): void {
+  const active = worker;
+  if (active === undefined || stopTimeout !== undefined) return;
+  active.postMessage({ type: "stop" } satisfies ToWorker);
+  // A peer connection can be waiting indefinitely, so release the worker if
+  // cooperative cancellation cannot reach the training loop.
+  stopTimeout = setTimeout(() => {
+    if (worker !== active) return;
+    closeWorker(active);
+    toaster.info("Training stopped");
+  }, 10_000);
+}
+onUnmounted(() => {
+  if (worker !== undefined) closeWorker(worker);
+});
 </script>

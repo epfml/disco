@@ -63,9 +63,13 @@ import { useToaster } from "@/composables/toaster";
 
 import FileSelection from "../FileSelection.vue";
 
+import type { DatasetSource } from "../source";
+
 import type { NamedLabeledImageDataset } from "../types.js";
 
 const toaster = useToaster();
+
+const source = defineModel<DatasetSource>("source");
 
 const dataset = defineModel<NamedLabeledImageDataset>();
 watch(dataset, (dataset: NamedLabeledImageDataset | undefined) => {
@@ -122,6 +126,7 @@ watch(csvFiles, async (files) => {
 // match the images to labels via the parsed CSV
 watch(images, (files) => {
   if (files === undefined) {
+    source.value = undefined;
     dataset.value = undefined;
     return;
   }
@@ -169,6 +174,10 @@ watch(images, (files) => {
     throw e;
   }
 
+  source.value = {
+    type: "image",
+    files: Array.from(fileToLabel, ([file, label]) => ({ file, label })),
+  };
   dataset.value = new Dataset(fileToLabel).map(async ([file, label]) => ({
     filename: file.name,
     image: await loadImage(file),
