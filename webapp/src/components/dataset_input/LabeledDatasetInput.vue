@@ -4,6 +4,7 @@
   <LabeledImageDatasetInput
     v-if="task.dataType === 'image'"
     v-model="imageDataset"
+    v-model:source="source"
     :labels="
       Set((task as Task<'image', Network>).trainingInformation.LABEL_LIST)
     "
@@ -11,8 +12,13 @@
   <TabularDatasetInput
     v-if="task.dataType === 'tabular'"
     v-model="tabularDataset"
+    v-model:source="source"
   />
-  <TextDatasetInput v-if="task.dataType === 'text'" v-model="textDataset" />
+  <TextDatasetInput
+    v-if="task.dataType === 'text'"
+    v-model="textDataset"
+    v-model:source="source"
+  />
 </template>
 
 <script setup lang="ts" generic="D extends DataType">
@@ -26,6 +32,7 @@ import { useToaster } from "@/composables/toaster.js";
 import LabeledImageDatasetInput from "./LabeledImageDatasetInput/index.vue";
 import TabularDatasetInput from "./TabularDatasetInput.vue";
 import TextDatasetInput from "./TextDatasetInput.vue";
+import type { DatasetSource } from "./source";
 import type { LabeledDataset } from "./types.js";
 import * as validate from "./validate.js";
 
@@ -35,11 +42,13 @@ const props = defineProps<{
   task: Task<D, Network>;
 }>();
 
+const source = defineModel<DatasetSource>("source");
 const dataset = defineModel<LabeledDataset[D]>();
 watch(dataset, (dataset: LabeledDataset[D] | undefined) => {
   // only allow unsetting dataset
   if (dataset !== undefined) return;
 
+  source.value = undefined;
   imageDataset.value = undefined;
   tabularDataset.value = undefined;
   textDataset.value = undefined;

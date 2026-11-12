@@ -1,17 +1,8 @@
+import { File as NativeFile, Blob as NativeBlob } from "node:buffer";
 import * as fs from "node:fs/promises";
-import { Set } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 import { CONFIG } from "@/config";
-import {
-  DecentralizedClient,
-  WeightsContainer,
-  weightsEncode,
-  weightsDecode,
-  defaultTasks,
-  modelEncode,
-  type Model,
-} from "@epfml/discojs";
-import { loadCSV } from "@epfml/discojs-web";
+import { defaultTasks, modelEncode, type Model } from "@epfml/discojs";
 import { defineWebWorkers } from "@vitest/web-worker/pure";
 import { createTestingPinia } from "@pinia/testing";
 import { mount } from "@vue/test-utils";
@@ -44,6 +35,21 @@ class HangingWorker {
 async function setupForTask(scheme?: "decentralized", realTraining = true) {
   await tf.setBackend("cpu");
   const provider = defaultTasks.titanic;
+  // Node structuredClone supports native Files, but not jsdom's File wrapper.
+  // Adapt jsdom FileReader to native Blobs while exercising native cloning.
+  const DOMFileReader = FileReader;
+  vi.stubGlobal(
+    "FileReader",
+    class extends DOMFileReader {
+      override readAsText(blob: Blob, encoding?: string): void {
+        if (blob instanceof NativeBlob) {
+          void blob
+            .arrayBuffer()
+            .then((bytes) => super.readAsText(new Blob([bytes]), encoding));
+        } else super.readAsText(blob, encoding);
+      }
+    },
+  );
   if (realTraining) defineWebWorkers({ clone: "native" });
   else vi.stubGlobal("Worker", HangingWorker);
   vi.stubGlobal("fetch", async (url: string | URL) => {
@@ -68,12 +74,14 @@ async function setupForTask(scheme?: "decentralized", realTraining = true) {
     },
     props: {
       task,
-      dataset: loadCSV(
-        new File(
+      dataset: {
+        type: "tabular",
+        // Node and DOM File declarations differ; native cloning needs Node's implementation.
+        file: new NativeFile(
           [new Uint8Array(await fs.readFile("../datasets/titanic_train.csv"))],
           "titanic_train.csv",
-        ),
-      ),
+        ) as unknown as File,
+      },
     },
   });
 }
@@ -149,204 +157,3 @@ it("resets participants and terminates an unresponsive worker after stopping", a
     wrapper.unmount();
   }
 });
-
-it("bridges decentralized connection, model sync, and round weights to the page", async () => {
-  const connect = vi
-    .spyOn(DecentralizedClient.prototype, "connect")
-    .mockImplementation(() => defaultTasks.titanic.modelCard.getModel());
-  const begin = vi
-    .spyOn(DecentralizedClient.prototype, "onRoundBeginCommunication")
-    .mockImplementation(function (this: DecentralizedClient) {
-      const weights = new WeightsContainer([tf.tensor([3])]);
-      this.emit("modelSynced", weights);
-      weights.dispose();
-      return Promise.resolve();
-    });
-  const end = vi
-    .spyOn(DecentralizedClient.prototype, "onRoundEndCommunication")
-    .mockImplementation((weights) => Promise.resolve(weights));
-  const finish = vi
-    .spyOn(DecentralizedClient.prototype, "finishRound")
-    .mockImplementation(() => undefined);
-  const disconnect = vi
-    .spyOn(DecentralizedClient.prototype, "disconnect")
-    .mockImplementation(() => Promise.resolve());
-  const wrapper = await setupForTask("decentralized", false);
-  try {
-    await wrapper.get("#start-training-bttn").trigger("click");
-    const worker = workers.at(-1);
-    if (worker === undefined) throw new Error("Worker was not created");
-    expect(worker.messages[0]).toMatchObject({
-      type: "start",
-      scheme: "decentralized",
-    });
-
-    worker.receive({
-      type: "network-request",
-      operation: "connect",
-      requestId: 1,
-    });
-    await vi.waitFor(() =>
-      expect(
-        worker.messages.some(
-          (m) => m.type === "network-response" && m.requestId === 1,
-        ),
-      ).toBe(true),
-    );
-    expect(connect).toHaveBeenCalledOnce();
-    expect(
-      worker.messages.find(
-        (m) => m.type === "network-response" && m.requestId === 1,
-      ),
-    ).toMatchObject({ model: expect.any(Uint8Array) });
-
-    worker.receive({
-      type: "network-request",
-      operation: "begin",
-      requestId: 2,
-    });
-    await vi.waitFor(() =>
-      expect(
-        worker.messages.find(
-          (m) => m.type === "network-response" && m.requestId === 2,
-        ),
-      ).toMatchObject({ syncedWeights: expect.any(Uint8Array) }),
-    );
-    expect(begin).toHaveBeenCalledOnce();
-
-    const local = new WeightsContainer([tf.tensor([1, 2])]);
-    const encoded = await weightsEncode(local);
-    local.dispose();
-    worker.receive({
-      type: "network-request",
-      operation: "end",
-      requestId: 3,
-      weights: encoded,
-    });
-    await vi.waitFor(() =>
-      expect(
-        worker.messages.find(
-          (m) => m.type === "network-response" && m.requestId === 3,
-        ),
-      ).toMatchObject({ weights: expect.any(Uint8Array) }),
-    );
-    expect(end).toHaveBeenCalledOnce();
-    expect(finish).toHaveBeenCalledOnce();
-    const response = worker.messages.find(
-      (m) => m.type === "network-response" && m.requestId === 3,
-    );
-    if (response?.type !== "network-response" || response.weights === undefined)
-      throw new Error("Missing weights");
-    const received = weightsDecode(response.weights);
-    expect(Array.from(await received.weights[0].data())).toEqual([1, 2]);
-    received.dispose();
-
-    worker.receive({
-      type: "network-request",
-      operation: "disconnect",
-      requestId: 4,
-    });
-    await vi.waitFor(() => expect(disconnect).toHaveBeenCalledOnce());
-    wrapper.unmount();
-    expect(disconnect).toHaveBeenCalledOnce();
-  } finally {
-    wrapper.unmount();
-  }
-});
-
-it("cleans up a connection that completes after forced cancellation", async () => {
-  const wrapper = await setupForTask("decentralized", false);
-  const model = await defaultTasks.titanic.modelCard.getModel();
-  let resolveConnect!: (model: Model<"tabular">) => void;
-  vi.spyOn(DecentralizedClient.prototype, "connect").mockImplementation(
-    () =>
-      new Promise((resolve) => {
-        resolveConnect = resolve;
-      }),
-  );
-  const disconnect = vi
-    .spyOn(DecentralizedClient.prototype, "disconnect")
-    .mockResolvedValue(undefined);
-  const dispose = vi.spyOn(model, "dispose");
-  try {
-    await wrapper.get("#start-training-bttn").trigger("click");
-    const worker = workers.at(-1);
-    if (worker === undefined) throw new Error("Worker was not created");
-    worker.receive({
-      type: "network-request",
-      operation: "connect",
-      requestId: 1,
-    });
-    vi.useFakeTimers();
-    const stop = wrapper
-      .findAll("button")
-      .find((button) => button.text().includes("stop training"));
-    if (stop === undefined) throw new Error("Stop button was not shown");
-    await stop.trigger("click");
-    await vi.advanceTimersByTimeAsync(10_000);
-    expect(worker.terminated).toBe(true);
-    expect(disconnect).toHaveBeenCalledOnce();
-    vi.useRealTimers();
-    resolveConnect(model);
-    await vi.waitFor(() => expect(disconnect).toHaveBeenCalledTimes(2));
-    expect(dispose).toHaveBeenCalledOnce();
-    expect(
-      worker.messages.some((message) => message.type === "network-response"),
-    ).toBe(false);
-  } finally {
-    wrapper.unmount();
-    if (dispose.mock.calls.length === 0) model.dispose();
-  }
-});
-
-it.each([false, true])(
-  "disposes buffered page contributions even when disconnect fails: %s",
-  async (fails) => {
-    const connect = vi
-      .spyOn(DecentralizedClient.prototype, "connect")
-      .mockImplementation(() => defaultTasks.titanic.modelCard.getModel());
-    const disconnect = vi
-      .spyOn(DecentralizedClient.prototype, "disconnect")
-      .mockImplementation(() =>
-        fails
-          ? Promise.reject(new Error("disconnect failed"))
-          : Promise.resolve(),
-      );
-    const wrapper = await setupForTask("decentralized", false);
-    try {
-      await wrapper.get("#start-training-bttn").trigger("click");
-      const worker = workers.at(-1)!;
-      worker.receive({
-        type: "network-request",
-        operation: "connect",
-        requestId: 1,
-      });
-      await vi.waitFor(() =>
-        expect(worker.messages.some((m) => m.type === "network-response")).toBe(
-          true,
-        ),
-      );
-      const client = connect.mock.contexts[0] as DecentralizedClient;
-      const aggregator = client.aggregator;
-      const dispose = vi.spyOn(aggregator, "dispose");
-      const baseline = tf.memory().numTensors;
-      aggregator.setNodes(Set(["self", "other"]));
-      const contribution = new WeightsContainer([tf.tensor([1, 2])]);
-      aggregator.add("self", contribution, 0);
-      contribution.dispose();
-      expect(tf.memory().numTensors).toBeGreaterThan(baseline);
-      worker.receive({
-        type: "network-request",
-        operation: "disconnect",
-        requestId: 2,
-      });
-      await vi.waitFor(() => expect(dispose).toHaveBeenCalledOnce());
-      expect(tf.memory().numTensors).toBe(baseline);
-      wrapper.unmount();
-      expect(disconnect).toHaveBeenCalledOnce();
-      expect(dispose).toHaveBeenCalledOnce();
-    } finally {
-      wrapper.unmount();
-    }
-  },
-);

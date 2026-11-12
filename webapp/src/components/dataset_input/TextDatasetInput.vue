@@ -14,8 +14,12 @@ import type { Text } from "@epfml/discojs";
 import type { Dataset } from "@epfml/discojs";
 import { loadText } from "@epfml/discojs-web";
 
+import type { DatasetSource } from "./source";
+
 import DatasetInput from "./DatasetInput.vue";
 import FileSelection from "./FileSelection.vue";
+
+const source = defineModel<DatasetSource>("source");
 
 const dataset = defineModel<Dataset<Text>>();
 watch(dataset, (dataset: Dataset<Text> | undefined) => {
@@ -25,6 +29,7 @@ watch(dataset, (dataset: Dataset<Text> | undefined) => {
 const files = ref<Set<File>>();
 watch(files, (files) => {
   if (files === undefined) {
+    source.value = undefined;
     dataset.value = undefined;
     return;
   }
@@ -34,6 +39,7 @@ watch(files, (files) => {
     // enforced by <FileSelection multiple=false />
     throw new Error("expected a single file");
 
+  source.value = { type: "text", file };
   dataset.value = loadText(file);
 });
 </script>
