@@ -24,6 +24,7 @@ async function makeController(
       ...baseTask.trainingInformation,
       scheme: "decentralized",
       aggregationStrategy: "mean",
+      aggregationParams: undefined,
       roundDuration: 1,
       minNbOfParticipants,
       maxConnectionRetry,

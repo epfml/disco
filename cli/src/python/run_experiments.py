@@ -3,6 +3,17 @@ import sys
 import subprocess
 from pathlib import Path
 
+def format_aggregator_params(params):
+    items = []
+    for k, v in params.items():
+        if v is None:
+            continue
+        if isinstance(v, (dict, list)):
+            raise ValueError(f"Unsupported nested value for aggregator parameter '{k}'")
+        val = str(v).lower() if isinstance(v, bool) else str(v)
+        items.append(f"{k}={val}")
+    return ",".join(items)
+
 def build_test_command(cfg):
     # Mandatory arguments
     cmd = [
@@ -26,14 +37,14 @@ def build_test_command(cfg):
         cmd += ["--delta", str(cfg["delta"])]
     if "dpDefaultClippingRadius" in cfg:
         cmd += ["--dpDefaultClippingRadius", str(cfg["dpDefaultClippingRadius"])]
-    if "clippingRadius" in cfg:
-        cmd += ["--clippingRadius", str(cfg["clippingRadius"])]
-    if "maxIterations" in cfg:
-        cmd += ["--maxIterations", str(cfg["maxIterations"])]
-    if "beta" in cfg:
-        cmd += ["--beta", str(cfg["beta"])]
-    if "maxShareValue" in cfg:
-        cmd += ["--maxShareValue", str(cfg["maxShareValue"])]
+    if "aggregatorParams" in cfg and cfg["aggregatorParams"] is not None:
+        params = cfg["aggregatorParams"]
+        if isinstance(params, dict):
+            formatted = format_aggregator_params(params)
+            if formatted:
+                cmd += ["--aggregatorParams", formatted]
+        else:
+            cmd += ["--aggregatorParams", str(params)]
     
     return cmd
 

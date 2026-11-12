@@ -45,6 +45,7 @@ describe("end-to-end federated lus_covid", () => {
         roundDuration: 10,
         minNbOfParticipants: 3,
         aggregationStrategy: "mean",
+        aggregationParams: undefined,
         privacy: {
           differentialPrivacy: {
             epsilon: 50,

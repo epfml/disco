@@ -36,15 +36,12 @@ export const mnist: TaskProvider<"image", "decentralized"> = {
         LABEL_LIST: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
         scheme: "decentralized",
         aggregationStrategy: "byzantine",
-        privacy: {
-          byzantineFaultTolerance: {
-            clippingRadius: 10,
-            maxIterations: 1,
-            beta: 0.9,
-          },
+        aggregationParams: {
+          clippingRadius: 10,
+          maxIterations: 1,
+          beta: 0.9,
         },
         minNbOfParticipants: 4,
-        maxShareValue: 100,
         tensorBackend: "tfjs",
         maxConnectionRetry: 3,
         maxPeerConnectionTime: 60_000,

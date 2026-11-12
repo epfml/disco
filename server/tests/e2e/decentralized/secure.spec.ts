@@ -29,8 +29,8 @@ describe("end-to-end decentralized secure", { timeout: 50_000 }, () => {
     async () => {
       await runTenCifar10Consensus({
         aggregationStrategy: "secure",
+        aggregationParams: { maxShareValue: 100 },
         epochs: 10,
-        maxShareValue: 100,
       });
     },
   );
