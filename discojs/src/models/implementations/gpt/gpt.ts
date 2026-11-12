@@ -12,7 +12,7 @@ import type { DataFormat } from "#types/index";
 
 import type { BatchLogs } from "#models/logs";
 import { EpochLogs } from "#models/logs";
-import { Model } from "#models/model";
+import { Model, type RoundContext } from "#models/model";
 import { GPTModel } from "#models/implementations/gpt/model";
 import evaluate from "#models/implementations/gpt/evaluate";
 import { DefaultGPTConfig } from "#models/implementations/gpt/config";
@@ -79,6 +79,7 @@ export class GPT extends Model<"text"> {
   override async *train(
     trainingDataset: Dataset<Batched<DataFormat.ModelEncoded["text"]>>,
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded["text"]>>,
+    _context?: RoundContext,
   ): AsyncGenerator<BatchLogs, EpochLogs> {
     let batchesLogs = List<BatchLogs>();
     let epochTime = performance.now();
@@ -104,6 +105,7 @@ export class GPT extends Model<"text"> {
     maxBatchCount: number,
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded["text"]>>,
     setDone?: (done: boolean) => void,
+    _context?: RoundContext,
   ): AsyncGenerator<BatchLogs, EpochLogs> {
     let batchesLogs = List<BatchLogs>();
     let epochTime = performance.now();

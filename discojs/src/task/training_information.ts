@@ -50,6 +50,14 @@ export const aggregationConfigSchema = z.discriminatedUnion(
         })
         .default({ maxShareValue: 100 }),
     }),
+    z.object({
+      aggregationStrategy: z.literal("fedprox"),
+      aggregationParams: z
+        .object({
+          mu: z.number().positive().default(0.01),
+        })
+        .default({ mu: 0.01 }),
+    }),
   ],
 );
 
@@ -136,7 +144,12 @@ export namespace TrainingInformation {
     decentralized: z
       .object({
         scheme: z.literal("decentralized"),
-        aggregationStrategy: z.literal(["byzantine", "mean", "secure"]),
+        aggregationStrategy: z.literal([
+          "byzantine",
+          "mean",
+          "secure",
+          "fedprox",
+        ]),
 
         // Maximum number of retries for connection failures
         maxConnectionRetry: z.number().nonnegative().int().default(3),
@@ -152,7 +165,7 @@ export namespace TrainingInformation {
     federated: z
       .object({
         scheme: z.literal("federated"),
-        aggregationStrategy: z.literal(["byzantine", "mean"]),
+        aggregationStrategy: z.literal(["byzantine", "mean", "fedprox"]),
       })
       .and(nonLocalNetworkSchema),
     local: z.object({

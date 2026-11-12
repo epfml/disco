@@ -6,7 +6,12 @@ import type { DataFormat, DataType, Network } from "#types/index";
 import type { Batched, Dataset } from "#dataset/index";
 import type { Task } from "#task/index";
 
-import type { BatchLogs, EpochLogs, ValidationMetrics } from "#models/index";
+import type {
+  BatchLogs,
+  EpochLogs,
+  ValidationMetrics,
+  RoundContext,
+} from "#models/index";
 import { WeightsContainer } from "#weights/index";
 import type { Client } from "#client/index";
 
@@ -17,6 +22,7 @@ import type {
   WeightNormHistory,
   IterationTrainableTextModel,
 } from "#training/types";
+import { getProximalRegularizer } from "#training/fedprox";
 import createDebug from "debug";
 const debug = createDebug("discojs:training:trainer");
 
@@ -50,6 +56,7 @@ export class Trainer<D extends DataType, N extends Network> {
       >["trainingInformation"]["privacy"]
     | undefined;
   readonly #bftClippingRadius: number | undefined;
+  readonly #fedproxMu: number | undefined;
   #model: Model<D> | undefined;
   #training?: AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
@@ -61,6 +68,7 @@ export class Trainer<D extends DataType, N extends Network> {
   // Map of weight Index and weight update
   #weightNormHistory: WeightNormHistory = List();
   #previousRoundWeights?: WeightsContainer;
+  #startingRoundWeights?: WeightsContainer;
 
   public get model(): Model<D> {
     if (this.#model === undefined)
@@ -85,6 +93,10 @@ export class Trainer<D extends DataType, N extends Network> {
     if (task.trainingInformation.aggregationStrategy === "byzantine") {
       this.#bftClippingRadius =
         task.trainingInformation.aggregationParams?.clippingRadius;
+    }
+
+    if (task.trainingInformation.aggregationStrategy === "fedprox") {
+      this.#fedproxMu = task.trainingInformation.aggregationParams?.mu ?? 0.01;
     }
 
     if (
@@ -135,6 +147,9 @@ export class Trainer<D extends DataType, N extends Network> {
     this.#previousRoundWeights?.dispose();
     this.#previousRoundWeights = undefined;
 
+    this.#startingRoundWeights?.dispose();
+    this.#startingRoundWeights = undefined;
+
     this.#model?.[Symbol.dispose]();
     this.#model = undefined;
   }
@@ -180,6 +195,11 @@ export class Trainer<D extends DataType, N extends Network> {
 
     for (let round = 0; round < totalRound; round++) {
       await this.#client.onRoundBeginCommunication();
+
+      this.#startingRoundWeights?.dispose();
+      this.#startingRoundWeights = new WeightsContainer(
+        this.model.weights.weights.map((t) => t.clone()),
+      );
 
       if (
         this.#privacy !== undefined ||
@@ -239,6 +259,11 @@ export class Trainer<D extends DataType, N extends Network> {
       let next = await trainingIterator.next();
       while (next.done !== true) {
         await this.#client.onRoundBeginCommunication();
+
+        this.#startingRoundWeights?.dispose();
+        this.#startingRoundWeights = new WeightsContainer(
+          this.model.weights.weights.map((t) => t.clone()),
+        );
 
         // Set previousRoundWeights for next round if privacy or BFT clipping is enabled
         if (
@@ -316,9 +341,24 @@ export class Trainer<D extends DataType, N extends Network> {
         ? await this.model.evaluate(preAggregationValidationDataset)
         : undefined;
 
+    const regularizer =
+      this.#fedproxMu !== undefined && this.#startingRoundWeights !== undefined
+        ? getProximalRegularizer(this.#startingRoundWeights, this.#fedproxMu)
+        : undefined;
+
+    const roundContext: RoundContext = {
+      round: totalRound,
+      startingWeights: this.#startingRoundWeights,
+      regularizer,
+    };
+
     for (let epoch = 0; epoch < this.#roundDuration; epoch++) {
       const [gen, epochLogs] = async_iterator.split(
-        this.model.train(dataset, preAggregationValidationDataset),
+        this.model.train(
+          dataset,
+          preAggregationValidationDataset,
+          roundContext,
+        ),
       );
 
       yield gen;
@@ -368,6 +408,17 @@ export class Trainer<D extends DataType, N extends Network> {
         ? await this.model.evaluate(preAggregationValidationDataset)
         : undefined;
 
+    const regularizer =
+      this.#fedproxMu !== undefined && this.#startingRoundWeights !== undefined
+        ? getProximalRegularizer(this.#startingRoundWeights, this.#fedproxMu)
+        : undefined;
+
+    const roundContext: RoundContext = {
+      round: totalRound,
+      startingWeights: this.#startingRoundWeights,
+      regularizer,
+    };
+
     const [gen, epochLogs] = async_iterator.split(
       model.trainNextBatches(
         datasetIterator as AsyncIterator<
@@ -378,6 +429,7 @@ export class Trainer<D extends DataType, N extends Network> {
           | Dataset<Batched<DataFormat.ModelEncoded["text"]>>
           | undefined,
         setDone,
+        roundContext,
       ),
     );
 
@@ -473,6 +525,8 @@ export class Trainer<D extends DataType, N extends Network> {
       if (disposeRoundWeightsAfterSend) roundWeights.dispose();
       this.#previousRoundWeights?.dispose();
       this.#previousRoundWeights = undefined;
+      this.#startingRoundWeights?.dispose();
+      this.#startingRoundWeights = undefined;
     }
   }
 }

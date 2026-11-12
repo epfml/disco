@@ -6,7 +6,7 @@ import type { DataFormat, DataType } from "#types/index";
 import { WeightsContainer } from "#weights/index";
 
 import type { BatchLogs } from "#models/logs";
-import { Model } from "#models/model";
+import { Model, type RoundContext } from "#models/model";
 import type { ModelMetadata } from "#models/model";
 import { EpochLogs } from "#models/logs";
 
@@ -41,6 +41,7 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
   override async *train(
     trainingDataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+    context?: RoundContext,
   ): AsyncGenerator<BatchLogs, EpochLogs> {
     let batchesLogs = List<BatchLogs>();
     let epochTime = performance.now();
@@ -49,7 +50,7 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     )) {
       const batchLogs = {
         batch: batchNumber,
-        ...(await this.#runBatch(batch)),
+        ...(await this.#runBatch(batch, context)),
       };
 
       yield batchLogs;
@@ -63,10 +64,15 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
 
   async #runBatch(
     batch: Batched<DataFormat.ModelEncoded[D]>,
+    context?: RoundContext,
   ): Promise<Omit<BatchLogs, "batch">> {
     const { xs, ys } = this.#batchToTF(batch);
 
     try {
+      if (context?.regularizer !== undefined) {
+        return await this.#runBatchWithRegularizer(xs, ys, context.regularizer);
+      }
+
       const { history } = await this.model.fit(xs, ys, {
         epochs: 1,
         verbose: 0, // don't pollute
@@ -92,6 +98,95 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
       xs.dispose();
       ys.dispose();
     }
+  }
+
+  async #runBatchWithRegularizer(
+    xs: tf.Tensor,
+    ys: tf.Tensor,
+    regularizer: (weights: WeightsContainer) => tf.Scalar,
+  ): Promise<Omit<BatchLogs, "batch">> {
+    let predsTensor: tf.Tensor | undefined;
+    const lossFn = (): tf.Scalar => {
+      const preds = this.model.apply(xs);
+      if (Array.isArray(preds) || preds instanceof tf.SymbolicTensor) {
+        throw new Error("only single output tensor models are supported");
+      }
+      predsTensor = tf.keep(preds);
+      const dataLoss = this.#evaluateLoss(ys, preds);
+      const regLoss = regularizer(this.weights);
+
+      return dataLoss.add(regLoss).asScalar();
+    };
+
+    const lossTensor = this.model.optimizer.minimize(lossFn, true);
+    if (lossTensor === null) {
+      throw new Error("loss tensor was null after minimize");
+    }
+
+    try {
+      const preds: tf.Tensor | undefined = predsTensor;
+      if (preds === undefined) {
+        throw new Error("predictions were not produced during forward pass");
+      }
+      const accTensor = tf.tidy(() => {
+        const lastDim = preds.shape[preds.shape.length - 1];
+        if (lastDim > 1) {
+          return tf.metrics.categoricalAccuracy(ys, preds).mean();
+        }
+        return tf.metrics.binaryAccuracy(ys, preds).mean();
+      });
+
+      try {
+        const [loss, accuracy] = await Promise.all([
+          lossTensor.array(),
+          accTensor.array(),
+        ]);
+
+        if (
+          typeof loss !== "number" ||
+          typeof accuracy !== "number" ||
+          isNaN(loss) ||
+          isNaN(accuracy)
+        ) {
+          throw new Error("training loss or accuracy is undefined or NaN");
+        }
+
+        return {
+          accuracy,
+          loss,
+          memoryUsage: tf.memory().numBytes / 1024 / 1024 / 1024,
+        };
+      } finally {
+        accTensor.dispose();
+      }
+    } finally {
+      lossTensor.dispose();
+      predsTensor?.dispose();
+    }
+  }
+
+  #evaluateLoss(ys: tf.Tensor, preds: tf.Tensor): tf.Scalar {
+    const loss = this.model.loss;
+    if (typeof loss === "function") {
+      return loss(ys, preds).asScalar();
+    }
+    if (typeof loss === "string") {
+      const metricsMap = tf.metrics as unknown as Record<
+        string,
+        (yTrue: tf.Tensor, yPred: tf.Tensor) => tf.Tensor
+      >;
+      if (loss in metricsMap) {
+        return metricsMap[loss](ys, preds).mean().asScalar();
+      }
+      const lossesMap = tf.losses as unknown as Record<
+        string,
+        (yTrue: tf.Tensor, yPred: tf.Tensor) => tf.Tensor
+      >;
+      if (loss in lossesMap) {
+        return lossesMap[loss](ys, preds).asScalar();
+      }
+    }
+    throw new Error(`Unsupported loss function: ${JSON.stringify(loss)}`);
   }
 
   override async evaluate(

@@ -1,19 +1,27 @@
 import { parse, type ExitReason } from "ts-command-line-args";
-import { Map, Set } from "immutable";
+import { Map, Set as ImmutableSet } from "immutable";
 
 import type {
   DataType,
   Network,
   TaskProvider,
   AggregationConfig,
+  AggregationStrategy,
 } from "@epfml/discojs";
 import { defaultTasks, GPT, aggregationConfigSchema } from "@epfml/discojs";
 
-type AggregationStrategy = "mean" | "byzantine" | "secure";
+const aggregationStrategies = new Set<AggregationStrategy>([
+  "mean",
+  "byzantine",
+  "secure",
+  "fedprox",
+]);
 
 function parseAggregator(raw: string): AggregationStrategy {
-  if (raw === "mean" || raw == "byzantine" || raw == "secure") return raw;
-  else throw new Error(`Aggregator ${raw} is not supported.`);
+  if (aggregationStrategies.has(raw as AggregationStrategy)) {
+    return raw as AggregationStrategy;
+  }
+  throw new Error(`Aggregator ${raw} is not supported.`);
 }
 
 function parseAggregatorParams(raw: string): Record<string, unknown> {
@@ -307,7 +315,7 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
 
 const supportedTasks = Map(
   await Promise.all(
-    Set.of<TaskProvider<"image" | "tabular" | "text", Network>>(
+    ImmutableSet.of<TaskProvider<"image" | "tabular" | "text", Network>>(
       defaultTasks.cifar10,
       defaultTasks.lusCovid,
       defaultTasks.titanic,
