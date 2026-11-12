@@ -115,6 +115,14 @@
               }}
             </td>
           </tr>
+          <tr v-if="task.trainingInformation.aggregationStrategy === 'fedprox'">
+            <th>FedProx: Proximal Regularization Parameter (μ)</th>
+            <td>
+              {{
+                task.trainingInformation.aggregationParams?.["mu"] ?? "Unused"
+              }}
+            </td>
+          </tr>
         </tbody>
       </table>
     </DropdownCard>

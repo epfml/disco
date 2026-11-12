@@ -401,12 +401,15 @@
                 as="select"
                 :disabled="scheme == 'local'"
               >
-                <!-- Federated supports mean & byzantine -->
+                <!-- Federated supports mean, byzantine & fedprox -->
                 <option v-if="scheme === 'federated'" value="mean">Mean</option>
                 <option v-if="scheme === 'federated'" value="byzantine">
                   Byzantine
                 </option>
-                <!-- Decentralized supports mean, byzantine & secure -->
+                <option v-if="scheme === 'federated'" value="fedprox">
+                  FedProx
+                </option>
+                <!-- Decentralized supports mean, byzantine, secure & fedprox -->
                 <option v-if="scheme === 'decentralized'" value="mean">
                   Mean
                 </option>
@@ -416,21 +419,82 @@
                 <option v-if="scheme === 'decentralized'" value="secure">
                   Secure
                 </option>
+                <option v-if="scheme === 'decentralized'" value="fedprox">
+                  FedProx
+                </option>
                 <!-- Local supports only mean -->
                 <option v-if="scheme === 'local'" value="mean">Mean</option>
               </FormField>
 
+              <!-- Secure Aggregator Parameters -->
               <FormLabel
-                v-show="aggregationStrategy === 'secure'"
+                v-if="aggregationStrategy === 'secure'"
                 label="Maximum absolute value over all the weights"
               >
                 <FormField
-                  name="trainingInformation.maxShareValue"
+                  name="trainingInformation.aggregationParams.maxShareValue"
                   placeholder="100"
                   as="input"
                   type="number"
+                  min="1"
                 />
               </FormLabel>
+
+              <!-- FedProx Aggregator Parameters -->
+              <FormLabel
+                v-if="aggregationStrategy === 'fedprox'"
+                label="Proximal regularization parameter (μ)"
+              >
+                <FormField
+                  name="trainingInformation.aggregationParams.mu"
+                  placeholder="0.01"
+                  as="input"
+                  type="number"
+                  min="0"
+                  step="0.001"
+                />
+              </FormLabel>
+
+              <!-- Byzantine Robust Aggregator Parameters -->
+              <div
+                v-if="aggregationStrategy === 'byzantine'"
+                class="flex flex-col"
+              >
+                <FormLabel label="Clipping radius (λ) for Centered Clipping">
+                  <FormField
+                    name="trainingInformation.aggregationParams.clippingRadius"
+                    placeholder="1.0"
+                    as="input"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                  />
+                </FormLabel>
+
+                <FormLabel label="Max Centered Clipping iterations (L)">
+                  <FormField
+                    name="trainingInformation.aggregationParams.maxIterations"
+                    placeholder="1"
+                    as="input"
+                    type="number"
+                    min="1"
+                  />
+                </FormLabel>
+
+                <FormLabel
+                  label="Momentum coefficient (β) to smooth the aggregation over multiple rounds"
+                >
+                  <FormField
+                    name="trainingInformation.aggregationParams.beta"
+                    placeholder="0.9"
+                    as="input"
+                    type="number"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                  />
+                </FormLabel>
+              </div>
             </FormLabel>
 
             <FormLabel
@@ -493,49 +557,6 @@
               />
             </FormLabel>
 
-            <!-- Byzantine Robust Aggregator Parameters -->
-            <FormLabel
-              v-show="aggregationStrategy === 'byzantine'"
-              label="Clipping radius (λ) for Centered Clipping"
-            >
-              <FormField
-                name="trainingInformation.byzantineClippingRadius"
-                placeholder="1.0"
-                as="input"
-                type="number"
-                min="0"
-                step="0.01"
-              />
-            </FormLabel>
-
-            <FormLabel
-              v-show="aggregationStrategy === 'byzantine'"
-              label="Max Centered Clipping iterations (L)"
-            >
-              <FormField
-                name="trainingInformation.maxIterations"
-                placeholder="1"
-                as="input"
-                type="number"
-                min="1"
-              />
-            </FormLabel>
-
-            <FormLabel
-              v-show="aggregationStrategy === 'byzantine'"
-              label="Momentum coefficient (β) to smooth the aggregation over multiple rounds"
-            >
-              <FormField
-                name="trainingInformation.beta"
-                placeholder="0.9"
-                as="input"
-                type="number"
-                min="0"
-                max="1"
-                step="0.01"
-              />
-            </FormLabel>
-
             <FormLabel
               label="Number of epochs before aggregating weights"
               type="required"
@@ -594,25 +615,6 @@
                   <FormField
                     name="trainingInformation.privacy.differentialPrivacy.clippingRadius"
                     placeholder="1"
-                    as="input"
-                    type="number"
-                  />
-                </FormLabel>
-              </div>
-            </FormLabel>
-            <FormLabel
-              v-model="weightClipping"
-              label="Weight clipping"
-              type="checkbox"
-            >
-              <div v-show="weightClipping" class="flex flex-col">
-                <FormLabel
-                  label="Maximum drift, measured by its norm, that can be made by the aggregated weights each round"
-                  type="required"
-                >
-                  <FormField
-                    name="trainingInformation.privacy.byzantineFaultTolerance.clippingRadius"
-                    placeholder="40"
                     as="input"
                     type="number"
                   />
@@ -766,6 +768,7 @@ import {
   Task,
   Tokenizer,
   TrainingInformation,
+  aggregationConfigSchema,
   type DataType,
   type Network,
 } from "@epfml/discojs";
@@ -791,7 +794,6 @@ const dataType = ref<DataType>("image");
 const scheme = ref<Network>("federated");
 const aggregationStrategy = ref("mean");
 const differentialPrivacy = ref(false);
-const weightClipping = ref(false);
 
 const form = useTemplateRef("form");
 
@@ -812,8 +814,16 @@ watch([dataType, form], ([dataType, form]) => {
 watch([scheme, form], ([scheme, form]) => {
   if (form === null) return;
 
-  if (scheme !== "decentralized")
+  if (scheme === "local") {
     form.setFieldValue("trainingInformation.aggregationStrategy", "mean");
+  } else if (scheme === "federated" && aggregationStrategy.value === "secure") {
+    form.setFieldValue("trainingInformation.aggregationStrategy", "mean");
+  }
+});
+
+watch(aggregationStrategy, () => {
+  if (form.value === null) return;
+  form.value.setFieldValue("trainingInformation.aggregationParams", undefined);
 });
 
 // warn user on page content loss
@@ -847,63 +857,13 @@ const nonLocalNetworkSchema = z
       .transform((o) => (o?.differentialPrivacy === undefined ? undefined : o)),
     minNbOfParticipants: z.number().positive().int(),
   })
-  .and(
-    z.union([
-      z.object({
-        aggregationStrategy: z.literal("mean"),
-      }),
-      z.object({
-        aggregationStrategy: z.literal("byzantine"),
-        privacy: privacySchema.and(
-          z
-            .object({
-              byzantineFaultTolerance: z
-                .object({
-                  clippingRadius: z.number().positive().default(1.0),
-                  maxIterations: z.number().int().positive().default(1),
-                  beta: z.number().min(0).max(1).default(0.9),
-                })
-                .optional(),
-            })
-            .transform((arg, ctx) => {
-              if (!weightClipping.value) return undefined;
-
-              function addUndefIssue(field?: string[]): void {
-                const path = field !== undefined ? field : undefined;
-                ctx.addIssue({
-                  code: "custom",
-                  message: "Required",
-                  path,
-                });
-              }
-
-              if (arg === undefined) {
-                addUndefIssue();
-                return z.NEVER;
-              }
-              const { byzantineFaultTolerance } = arg;
-              if (byzantineFaultTolerance === undefined) {
-                addUndefIssue(["byzantineFaultTolerance"]);
-                return z.NEVER;
-              }
-
-              return { byzantineFaultTolerance };
-            })
-            .optional(),
-        ),
-      }),
-      z.object({
-        aggregationStrategy: z.literal("secure"),
-        maxShareValue: z.number().positive().int(),
-      }),
-    ]),
-  );
+  .and(aggregationConfigSchema);
 
 const trainingInformationNetworks = z.union([
   z
     .object({
       scheme: z.literal("decentralized"),
-      aggregationStrategy: z.literal(["byzantine", "mean", "secure"]),
+      aggregationStrategy: z.enum(["byzantine", "mean", "secure", "fedprox"]),
 
       // Maximum number of retries for connection failures
       maxConnectionRetry: z.number().nonnegative().int().default(3),
@@ -919,7 +879,7 @@ const trainingInformationNetworks = z.union([
   z
     .object({
       scheme: z.literal("federated"),
-      aggregationStrategy: z.literal(["byzantine", "mean"]),
+      aggregationStrategy: z.enum(["byzantine", "mean", "fedprox"]),
     })
     .and(nonLocalNetworkSchema),
   z.object({
