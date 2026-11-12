@@ -6,7 +6,7 @@ import type { DataFormat, DataType } from "#types/index";
 import { WeightsContainer } from "#weights/index";
 
 import type { BatchLogs } from "#models/logs";
-import { Model } from "#models/model";
+import { Model, type Regularizer, type RoundContext } from "#models/model";
 import type { ModelMetadata } from "#models/model";
 import { EpochLogs } from "#models/logs";
 
@@ -38,9 +38,16 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     this.model.setWeights(ws.weights);
   }
 
+  override get trainableWeights(): WeightsContainer {
+    return new WeightsContainer(
+      this.model.trainableWeights.map((w) => w.read()),
+    );
+  }
+
   override async *train(
     trainingDataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+    context?: RoundContext,
   ): AsyncGenerator<BatchLogs, EpochLogs> {
     let batchesLogs = List<BatchLogs>();
     let epochTime = performance.now();
@@ -49,7 +56,7 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
     )) {
       const batchLogs = {
         batch: batchNumber,
-        ...(await this.#runBatch(batch)),
+        ...(await this.#runBatch(batch, context)),
       };
 
       yield batchLogs;
@@ -63,10 +70,15 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
 
   async #runBatch(
     batch: Batched<DataFormat.ModelEncoded[D]>,
+    context?: RoundContext,
   ): Promise<Omit<BatchLogs, "batch">> {
     const { xs, ys } = this.#batchToTF(batch);
 
     try {
+      if (context?.regularizer !== undefined) {
+        return await this.#runBatchWithRegularizer(xs, ys, context.regularizer);
+      }
+
       const { history } = await this.model.fit(xs, ys, {
         epochs: 1,
         verbose: 0, // don't pollute
@@ -92,6 +104,119 @@ export class TFJS<D extends "image" | "tabular"> extends Model<D> {
       xs.dispose();
       ys.dispose();
     }
+  }
+
+  async #runBatchWithRegularizer(
+    xs: tf.Tensor,
+    ys: tf.Tensor,
+    regularizer: Regularizer,
+  ): Promise<Omit<BatchLogs, "batch">> {
+    let predsTensor: tf.Tensor | undefined;
+    let lossTensor: tf.Scalar | null = null;
+    const trainableVariables = this.model.trainableWeights.map(
+      (w) => w.read() as tf.Variable,
+    );
+
+    const lossFn = (): tf.Scalar => {
+      const preds = this.model.apply(xs, { training: true });
+      if (Array.isArray(preds) || preds instanceof tf.SymbolicTensor) {
+        throw new Error("only single output tensor models are supported");
+      }
+      predsTensor?.dispose();
+      predsTensor = tf.keep(preds);
+      let totalLoss: tf.Tensor = this.#evaluateLoss(ys, preds);
+      for (const layerLoss of this.model.calculateLosses()) {
+        totalLoss = totalLoss.add(layerLoss);
+      }
+      const regLoss = regularizer(this.trainableWeights);
+
+      return totalLoss.add(regLoss).asScalar();
+    };
+
+    try {
+      lossTensor = this.model.optimizer.minimize(
+        lossFn,
+        true,
+        trainableVariables,
+      );
+      if (lossTensor === null) {
+        throw new Error("loss tensor was null after minimize");
+      }
+
+      const preds: tf.Tensor | undefined = predsTensor;
+      if (preds === undefined) {
+        throw new Error("predictions were not produced during forward pass");
+      }
+      const accTensor = tf.tidy(() => {
+        const lastDim = preds.shape[preds.shape.length - 1];
+        if (lastDim === 1 || this.model.loss === "binaryCrossentropy") {
+          return tf.metrics.binaryAccuracy(ys, preds).mean();
+        }
+        if (this.model.loss === "sparseCategoricalCrossentropy") {
+          return tf.metrics.sparseCategoricalAccuracy(ys, preds).mean();
+        }
+        return tf.metrics.categoricalAccuracy(ys, preds).mean();
+      });
+
+      try {
+        const [loss, accuracy] = await Promise.all([
+          lossTensor.array(),
+          accTensor.array(),
+        ]);
+
+        if (
+          typeof loss !== "number" ||
+          typeof accuracy !== "number" ||
+          isNaN(loss) ||
+          isNaN(accuracy)
+        ) {
+          throw new Error("training loss or accuracy is undefined or NaN");
+        }
+
+        return {
+          accuracy,
+          loss,
+          memoryUsage: tf.memory().numBytes / 1024 / 1024 / 1024,
+        };
+      } finally {
+        accTensor.dispose();
+      }
+    } finally {
+      lossTensor?.dispose();
+      predsTensor?.dispose();
+    }
+  }
+
+  #evaluateLoss(ys: tf.Tensor, preds: tf.Tensor): tf.Scalar {
+    type LossFn = (yTrue: tf.Tensor, yPred: tf.Tensor) => tf.Tensor;
+    // Functional LayersModel stores compiled losses on `lossFunctions`, whereas
+    // tf.Sequential delegates compilation to its inner `model.lossFunctions`.
+    const internalModel = this.model as unknown as {
+      lossFunctions?: LossFn[];
+      model?: { lossFunctions?: LossFn[] };
+    };
+    const compiledLossFn =
+      internalModel.lossFunctions?.[0] ??
+      internalModel.model?.lossFunctions?.[0];
+    if (typeof compiledLossFn === "function") {
+      return compiledLossFn(ys, preds).mean().asScalar();
+    }
+
+    const loss = this.model.loss;
+    if (typeof loss === "function") {
+      return loss(ys, preds).mean().asScalar();
+    }
+    if (typeof loss === "string") {
+      const metricsMap = tf.metrics as unknown as Record<string, LossFn>;
+      if (loss in metricsMap) {
+        return metricsMap[loss](ys, preds).mean().asScalar();
+      }
+      const lossesMap = tf.losses as unknown as Record<string, LossFn>;
+      if (loss in lossesMap) {
+        return lossesMap[loss](ys, preds).mean().asScalar();
+      }
+    }
+    throw new Error(`Unsupported loss function: ${JSON.stringify(loss)}`);
   }
 
   override async evaluate(

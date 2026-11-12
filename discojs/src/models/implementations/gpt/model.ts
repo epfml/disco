@@ -1,6 +1,8 @@
 import createDebug from "debug";
 import * as tf from "@tensorflow/tfjs";
 
+import { WeightsContainer } from "#weights/index";
+import type { Regularizer } from "#models/model";
 import type {
   GPTConfig,
   GoldfishLossConfig,
@@ -117,7 +119,10 @@ export class GPTModel extends tf.LayersModel {
 
   override async fitDataset<T>(
     dataset: Dataset<T>,
-    trainingArgs: tf.ModelFitDatasetArgs<T> & { iterationOffset?: number },
+    trainingArgs: tf.ModelFitDatasetArgs<T> & {
+      iterationOffset?: number;
+      regularizer?: Regularizer;
+    },
   ): Promise<tf.History> {
     const callbacks = trainingArgs.callbacks as tf.CustomCallbackArgs;
     const evalDataset = trainingArgs.validationData as tf.data.Dataset<{
@@ -187,15 +192,24 @@ export class GPTModel extends tf.LayersModel {
                     throw new Error("model outputs too many tensor");
                   if (logits instanceof tf.SymbolicTensor)
                     throw new Error("model outputs symbolic tensor");
-                  return goldfishMask === undefined ||
-                    goldfishLoss === undefined
-                    ? tf.losses.softmaxCrossEntropy(ys, logits)
-                    : this.#goldfishLossTensor(
-                        ys,
-                        logits,
-                        goldfishMask,
-                        goldfishLoss,
-                      );
+                  const dataLoss =
+                    goldfishMask === undefined || goldfishLoss === undefined
+                      ? tf.losses.softmaxCrossEntropy(ys, logits)
+                      : this.#goldfishLossTensor(
+                          ys,
+                          logits,
+                          goldfishMask,
+                          goldfishLoss,
+                        );
+                  if (trainingArgs.regularizer !== undefined) {
+                    const currentWeights = new WeightsContainer(
+                      this.trainableWeights.map((w) => w.read()),
+                    );
+                    return dataLoss
+                      .add(trainingArgs.regularizer(currentWeights))
+                      .asScalar();
+                  }
+                  return dataLoss.asScalar();
                 });
               const gradsClipped = clipByGlobalNormObj(grads, 1);
               this.optimizer.applyGradients(gradsClipped);

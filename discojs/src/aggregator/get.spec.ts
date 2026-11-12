@@ -51,6 +51,20 @@ describe("federated server aggregator", () => {
     expect(aggregator).to.be.instanceOf(ByzantineRobustAggregator);
   });
 
+  it("builds a mean aggregator for fedprox task", async () => {
+    const task = await defaultTasks.titanic.getTask();
+    const taskWithStrategy: Task<"tabular", "federated"> = {
+      ...task,
+      trainingInformation: {
+        ...task.trainingInformation,
+        aggregationStrategy: "fedprox",
+        aggregationParams: { mu: 0.05 },
+      },
+    };
+    const aggregator = getFederatedServerAggregator(taskWithStrategy);
+    expect(aggregator).to.be.instanceOf(MeanAggregator);
+  });
+
   it("waits for every node's contribution by default", async () => {
     const task = await defaultTasks.titanic.getTask();
     const aggregator = getFederatedServerAggregator(task);
@@ -82,7 +96,7 @@ describe("federated server aggregator", () => {
 });
 
 describe("aggregation config parsing", () => {
-  it("resolves defaults for byzantine and secure", () => {
+  it("resolves defaults for byzantine, secure, and fedprox", () => {
     expect(
       aggregationConfigSchema.parse({
         aggregationStrategy: "byzantine",
@@ -102,6 +116,15 @@ describe("aggregation config parsing", () => {
     });
 
     expect(
+      aggregationConfigSchema.parse({
+        aggregationStrategy: "fedprox",
+      }),
+    ).to.deep.equal({
+      aggregationStrategy: "fedprox",
+      aggregationParams: { mu: 0.01 },
+    });
+
+    expect(
       parseAggregationConfig({
         aggregationStrategy: "mean",
         aggregationParams: undefined,
@@ -112,11 +135,25 @@ describe("aggregation config parsing", () => {
     });
   });
 
-  it("rejects unknown or misspelled keys and params on mean", () => {
+  it("rejects unknown or misspelled keys, invalid mu, and params on mean", () => {
     expect(() =>
       aggregationConfigSchema.parse({
         aggregationStrategy: "byzantine",
         aggregationParams: { clipingRadius: 2.0 },
+      }),
+    ).to.throw();
+
+    expect(() =>
+      aggregationConfigSchema.parse({
+        aggregationStrategy: "fedprox",
+        aggregationParams: { mu: 0 },
+      }),
+    ).to.throw();
+
+    expect(() =>
+      aggregationConfigSchema.parse({
+        aggregationStrategy: "fedprox",
+        aggregationParams: { mu: 0.01, extra: 1 },
       }),
     ).to.throw();
 

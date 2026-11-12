@@ -12,7 +12,7 @@ import type { DataFormat } from "#types/index";
 
 import type { BatchLogs } from "#models/logs";
 import { EpochLogs } from "#models/logs";
-import { Model } from "#models/model";
+import { Model, type RoundContext } from "#models/model";
 import { GPTModel } from "#models/implementations/gpt/model";
 import evaluate from "#models/implementations/gpt/evaluate";
 import { DefaultGPTConfig } from "#models/implementations/gpt/config";
@@ -79,6 +79,7 @@ export class GPT extends Model<"text"> {
   override async *train(
     trainingDataset: Dataset<Batched<DataFormat.ModelEncoded["text"]>>,
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded["text"]>>,
+    context?: RoundContext,
   ): AsyncGenerator<BatchLogs, EpochLogs> {
     let batchesLogs = List<BatchLogs>();
     let epochTime = performance.now();
@@ -86,7 +87,11 @@ export class GPT extends Model<"text"> {
     for await (const [batch, _] of trainingDataset.zip(
       Range(0, this.#maxBatchCount),
     )) {
-      const batchLogs = await this.#runBatch(batch, ++this.#iterationCount);
+      const batchLogs = await this.#runBatch(
+        batch,
+        ++this.#iterationCount,
+        context,
+      );
 
       yield batchLogs;
       batchesLogs = batchesLogs.push(batchLogs);
@@ -104,6 +109,7 @@ export class GPT extends Model<"text"> {
     maxBatchCount: number,
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded["text"]>>,
     setDone?: (done: boolean) => void,
+    context?: RoundContext,
   ): AsyncGenerator<BatchLogs, EpochLogs> {
     let batchesLogs = List<BatchLogs>();
     let epochTime = performance.now();
@@ -119,6 +125,7 @@ export class GPT extends Model<"text"> {
       const batchLogs = await this.#runBatch(
         next.value,
         ++this.#iterationCount,
+        context,
       );
 
       yield batchLogs;
@@ -136,6 +143,7 @@ export class GPT extends Model<"text"> {
   async #runBatch(
     batch: Batched<DataFormat.ModelEncoded["text"]>,
     iterationNumber: number,
+    context?: RoundContext,
   ): Promise<BatchLogs> {
     const tfBatch = this.#batchToTF(batch);
 
@@ -144,6 +152,7 @@ export class GPT extends Model<"text"> {
       await this.model.fitDataset(tf.data.array([tfBatch]), {
         epochs: 1,
         iterationOffset: iterationNumber - 1,
+        regularizer: context?.regularizer,
         verbose: 0, // don't pollute
         callbacks: {
           onEpochEnd: (_, cur) => {
@@ -298,6 +307,12 @@ export class GPT extends Model<"text"> {
 
   override set weights(ws: WeightsContainer) {
     this.model.setWeights(ws.weights);
+  }
+
+  override get trainableWeights(): WeightsContainer {
+    return new WeightsContainer(
+      this.model.trainableWeights.map((w) => w.read()),
+    );
   }
 
   static deserialize(data: GPTSerialization): Model<"text"> {

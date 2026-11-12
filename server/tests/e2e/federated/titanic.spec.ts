@@ -69,4 +69,37 @@ describe("end-to-end federated titanic", () => {
       assert.isTrue(await m1.equals(m2));
     },
   );
+
+  it(
+    "two titanic users reach consensus with fedprox aggregation",
+    { timeout: 50_000 },
+    async () => {
+      const baseTask = await defaultTasks.titanic.getTask();
+      const task: Task<"tabular", "federated"> = {
+        ...baseTask,
+        trainingInformation: {
+          ...baseTask.trainingInformation,
+          aggregationStrategy: "fedprox",
+          aggregationParams: { mu: 0.1 },
+          minNbOfParticipants: 2,
+        },
+      };
+      const url = await startServer(defaultModels.TitanicClassifier, {
+        ...defaultTasks.titanic,
+        getTask: () => Promise.resolve(task),
+      });
+      const dataset = datasets.loadTitanic();
+
+      const [[m1, l1], [m2, l2]] = await Promise.all([
+        runFederatedUser(url, task, dataset),
+        runFederatedUser(url, task, dataset),
+      ]);
+
+      for (const lastEpoch of [l1, l2]) {
+        expect(lastEpoch.training.accuracy).to.be.greaterThan(0.4);
+        expect(lastEpoch.validation?.accuracy).to.be.greaterThan(0.4);
+      }
+      assert.isTrue(await m1.equals(m2));
+    },
+  );
 });
