@@ -92,6 +92,104 @@ it("submits with tabular task", () => {
     } satisfies Task<"tabular", "federated">);
 });
 
+it("submits with custom aggregation parameters (fedprox)", () => {
+  cy.intercept(
+    { hostname: "server", pathname: "tasks", method: "POST" },
+    { statusCode: 200 },
+  ).as("posted");
+
+  cy.visit("/create");
+
+  cy.get("form").should("be.visible");
+
+  cy.get("input[name='id']").type("fedprox-task");
+  cy.get("select[name='dataType']").select("tabular");
+
+  cy.get("input[name='displayInformation.title']").type("fedprox title");
+  cy.get("input[name='displayInformation.summary.preview']").type("preview");
+  cy.get("textarea[name='displayInformation.summary.overview']").type(
+    "overview",
+  );
+  cy.contains("Example tabular data").within(() => {
+    cy.contains("add example").click();
+    cy.get("input[name='displayInformation.dataExample[0].name']").type("name");
+    cy.get("input[name='displayInformation.dataExample[0].data']").type("data");
+  });
+
+  cy.get("select[name='trainingInformation.scheme']").select("federated");
+  cy.get("select[name='trainingInformation.aggregationStrategy']").select(
+    "fedprox",
+  );
+  cy.get("input[name='trainingInformation.aggregationParams.mu']").type("0.05");
+
+  cy.get("input[name='trainingInformation.epochs']").type("10");
+  cy.get("input[name='trainingInformation.batchSize']").type("5");
+  cy.get("input[name='trainingInformation.roundDuration']").type("2");
+  cy.get("input[name='trainingInformation.validationSplit']").type("0");
+  cy.get("input[name='trainingInformation.minNbOfParticipants']").type("2");
+  cy.contains("Input columns names").within(() => {
+    cy.get("input[name='trainingInformation.inputColumns[0]']").type("input");
+  });
+  cy.get("input[name='trainingInformation.outputColumn']").type("output");
+
+  const model = tf.sequential({
+    layers: [
+      tf.layers.conv2d({
+        inputShape: [32, 32, 3],
+        kernelSize: 3,
+        filters: 16,
+        activation: "relu",
+      }),
+    ],
+  });
+  model.compile({ loss: "hinge", optimizer: "sgd" });
+  cy.wrap(getArtifacts(model))
+    .then((artifacts) => JSON.stringify(artifacts))
+    .then((json) => new TextEncoder().encode(json))
+    .then((raw) =>
+      cy.get("input[type='file']").selectFile(new Uint8Array(raw), {
+        force: true,
+      }),
+    );
+  cy.get("select[name='model.loss']").select("hinge");
+  cy.get("select[name='model.optimizer.name']").select("sgd");
+  cy.get("input[name='model.optimizer.learningRate']").type("0.01");
+
+  cy.get("button[type='submit']").click();
+
+  cy.wait("@posted")
+    .its("request.body.task")
+    .then(deserializeTaskFromJSON)
+    .should("deep.equal", {
+      id: "fedprox-task",
+      dataType: "tabular",
+      displayInformation: {
+        title: "fedprox title",
+        summary: {
+          preview: "preview",
+          overview: "overview",
+        },
+        dataExample: [{ name: "name", data: "data" }],
+      },
+      trainingInformation: {
+        scheme: "federated",
+        aggregationStrategy: "fedprox",
+        aggregationParams: {
+          mu: 0.05,
+        },
+        epochs: 10,
+        batchSize: 5,
+        roundDuration: 2,
+        validationSplit: 0,
+        minNbOfParticipants: 2,
+        inputColumns: ["input"],
+        categoricalColumns: {},
+        outputColumn: "output",
+        tensorBackend: "tfjs",
+      },
+    } satisfies Task<"tabular", "federated">);
+});
+
 async function getArtifacts(
   model: tf.LayersModel,
 ): Promise<tf.io.ModelArtifacts & { weightsManifest: never[] }> {
