@@ -14,17 +14,28 @@ import { loadDataset } from "../dataset_input/source";
 import type { FromWorker, ToWorker } from "./worker_messages";
 
 const send = (message: FromWorker): void => {
-  const bytes = message.type === "finished" ? message.model : undefined;
+  const bytes =
+    message.type === "finished" || message.type === "error"
+      ? message.model
+      : undefined;
   self.postMessage(message, {
     transfer: bytes?.buffer instanceof ArrayBuffer ? [bytes.buffer] : [],
   });
 };
+const describeError = (
+  error: unknown,
+): Extract<FromWorker, { type: "error" }> => ({
+  type: "error",
+  message: error instanceof Error ? error.message : String(error),
+  errorName: error instanceof Error ? error.name : undefined,
+});
 let stopRequested = false;
 async function train(
   message: Extract<ToWorker, { type: "start" }>,
 ): Promise<void> {
   let disco: Disco<DataType, Network> | undefined;
   let stopped = false;
+  let failure: Extract<FromWorker, { type: "error" }> | undefined;
   try {
     const task = (await deserializeTaskFromJSON(message.task)) as Task<
       DataType,
@@ -83,26 +94,33 @@ async function train(
         postAggregationValidation: log.postAggregationValidation,
       });
     }
-    const model = disco.trainer.releaseModel();
-    let encoded: Uint8Array | undefined;
+  } catch (error) {
+    failure = describeError(error);
+  }
+
+  // Hand back the partial model even if training or communication failed.
+  let encoded: Uint8Array | undefined;
+  try {
+    const model = disco?.trainer.releaseModel();
     try {
       encoded = model === undefined ? undefined : await modelEncode(model);
     } finally {
       model?.dispose();
     }
-    const finishedDisco = disco;
-    disco = undefined;
-    await finishedDisco.close();
-    send({ type: "finished", stopped, model: encoded });
   } catch (error) {
-    send({
-      type: "error",
-      message: error instanceof Error ? error.message : String(error),
-      errorName: error instanceof Error ? error.name : undefined,
-    });
+    failure ??= describeError(error);
   } finally {
-    await disco?.close().catch(() => undefined);
+    try {
+      await disco?.close();
+    } catch (error) {
+      failure ??= describeError(error);
+    }
   }
+  send(
+    failure === undefined
+      ? { type: "finished", stopped, model: encoded }
+      : { ...failure, model: encoded },
+  );
 }
 
 self.onmessage = (event: MessageEvent<ToWorker>) => {

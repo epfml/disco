@@ -154,6 +154,7 @@ const batchesOfEpochLogs = ref(List<BatchLogs>());
 const roundStatus = ref<[RoundStatus, string]>();
 const training = ref(false);
 let worker: Worker | undefined;
+let finishing = false;
 let closePeerTransport: (() => void) | undefined;
 let stopTimeout: ReturnType<typeof setTimeout> | undefined;
 
@@ -249,15 +250,8 @@ function startTraining(): void {
         epochsOfRoundLogs.value = List<EpochLogs>();
         break;
       case "finished":
-        void finishTraining(active, message);
-        break;
       case "error":
-        showTrainingError(
-          Object.assign(new Error(message.message), {
-            name: message.errorName ?? "Error",
-          }),
-        );
-        closeWorker(active);
+        void finishTraining(active, message);
         break;
     }
   };
@@ -285,8 +279,12 @@ function startTraining(): void {
 
 async function finishTraining(
   active: Worker,
-  message: Extract<FromWorker, { type: "finished" }>,
+  message: Extract<FromWorker, { type: "finished" | "error" }>,
 ): Promise<void> {
+  // The worker has answered; model decoding must not race the stop watchdog.
+  finishing = true;
+  if (stopTimeout !== undefined) clearTimeout(stopTimeout);
+  stopTimeout = undefined;
   try {
     if (message.model !== undefined) {
       const model = await modelDecode(message.model);
@@ -296,7 +294,13 @@ async function finishTraining(
       }
       emit("model", model as Model<D>);
     }
-    if (message.stopped) toaster.info("Training stopped");
+    if (message.type === "error")
+      showTrainingError(
+        Object.assign(new Error(message.message), {
+          name: message.errorName ?? "Error",
+        }),
+      );
+    else if (message.stopped) toaster.info("Training stopped");
     else toaster.success("Training successfully completed");
   } catch (error) {
     showTrainingError(error);
@@ -353,12 +357,13 @@ function closeWorker(active: Worker): void {
   closePeerTransport?.();
   closePeerTransport = undefined;
   worker = undefined;
+  finishing = false;
   training.value = false;
 }
 
 function stopTraining(): void {
   const active = worker;
-  if (active === undefined || stopTimeout !== undefined) return;
+  if (active === undefined || finishing || stopTimeout !== undefined) return;
   active.postMessage({ type: "stop" } satisfies ToWorker);
   // A peer connection can be waiting indefinitely, so release the worker if
   // cooperative cancellation cannot reach the training loop.

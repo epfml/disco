@@ -35,4 +35,4 @@ export type FromWorker =
       postAggregationValidation?: ValidationMetrics;
     }
   | { type: "finished"; stopped: boolean; model?: Uint8Array }
-  | { type: "error"; message: string; errorName?: string };
+  | { type: "error"; message: string; errorName?: string; model?: Uint8Array };
