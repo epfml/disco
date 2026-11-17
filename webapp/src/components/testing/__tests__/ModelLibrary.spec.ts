@@ -15,6 +15,7 @@ import { useModelsStore } from "@/store";
 import { useTasksStore } from "@/store";
 
 import ModelLibrary from "../ModelLibrary.vue";
+import TestingBar from "@/components/progress_bars/TestingBar.vue";
 
 const TASK: Task<"text", "federated"> = {
   id: "task",
@@ -37,19 +38,25 @@ const TASK: Task<"text", "federated"> = {
   },
 };
 
-it("shows stored models", async () => {
-  const wrapper = mount(ModelLibrary, {
-    global: {
-      plugins: [
-        createTestingPinia({
-          createSpy: vi.fn,
-          stubActions: false,
-          plugins: [createPersistedStatePlugin({ persist: false })],
-        }),
-      ],
-      stubs: ["RouterLink"],
+it("shows stored language models without classification steps", async () => {
+  const wrapper = mount(
+    {
+      components: { ModelLibrary, TestingBar },
+      template: "<TestingBar /><ModelLibrary />",
     },
-  });
+    {
+      global: {
+        plugins: [
+          createTestingPinia({
+            createSpy: vi.fn,
+            stubActions: false,
+            plugins: [createPersistedStatePlugin({ persist: false })],
+          }),
+        ],
+        stubs: ["RouterLink"],
+      },
+    },
+  );
 
   const { tasks } = storeToRefs(useTasksStore());
   await flushPromises();
@@ -60,6 +67,11 @@ it("shows stored models", async () => {
   await nextTick();
 
   expect(wrapper.get("div.text-xl").text()).to.equal("task title");
+  expect(
+    wrapper.findAll("button").some((button) => button.text() === "chat"),
+  ).toBe(true);
+  expect(wrapper.text()).not.toContain("Connect Your Data");
+  expect(wrapper.text()).not.toContain("Evaluate Your Model");
 });
 
 it("allows to download server's models", async () => {

@@ -2,12 +2,12 @@
   <div class="space-y-8 mb-8">
     <h1 class="text-disco-cyan font-disco text-3xl text-center">{{ title }}</h1>
 
-    <div class="hidden md:flex mx-auto">
+    <div v-if="validationStore.step !== 0" class="hidden md:flex mx-auto">
       <ProgressIcon
         class="w-1/3"
         :has-left-line="false"
         :active="true"
-        :current-step="validationStore.step == 0"
+        :current-step="false"
         @click="handleRoute(0)"
       >
         <template #text> Choose Model </template>
