@@ -16,6 +16,8 @@ export {
   getFederatedServerAggregator,
 } from "./aggregator/index.js";
 
+export { getProximalRegularizer } from "./training/index.js";
+
 export {
   LocalClient,
   getClient,
@@ -57,6 +59,8 @@ export {
 export type {
   ValidationMetrics,
   ModelMetadata,
+  Regularizer,
+  RoundContext,
   GPTConfig,
   HellaSwagExample,
   GoldfishLossConfig,

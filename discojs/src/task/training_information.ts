@@ -42,13 +42,25 @@ export const aggregationConfigSchema = z.discriminatedUnion(
         })
         .default({ maxShareValue: 100 }),
     }),
+    z.object({
+      aggregationStrategy: z.literal("fedprox"),
+      aggregationParams: z
+        .strictObject({
+          mu: z.number().positive().default(0.01),
+        })
+        .default({ mu: 0.01 }),
+    }),
   ],
 );
 
 export type AggregationConfig = z.infer<typeof aggregationConfigSchema>;
 export type AggregationStrategy = AggregationConfig["aggregationStrategy"];
 
-export const FEDERATED_AGGREGATION_STRATEGIES = ["byzantine", "mean"] as const;
+export const FEDERATED_AGGREGATION_STRATEGIES = [
+  "byzantine",
+  "mean",
+  "fedprox",
+] as const;
 export const DECENTRALIZED_AGGREGATION_STRATEGIES = [
   ...FEDERATED_AGGREGATION_STRATEGIES,
   "secure",

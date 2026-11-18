@@ -288,8 +288,9 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     // Aggregator
     aggregator: {
       type: parseAggregator,
-      typeLabel: "mean|byzantine|secure",
-      description: 'Type of weight aggregator ("mean", "byzantine", "secure")',
+      typeLabel: "mean|byzantine|secure|fedprox",
+      description:
+        'Type of weight aggregator ("mean", "byzantine", "secure", "fedprox")',
       defaultValue: "mean",
     },
 
@@ -297,7 +298,7 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
       type: parseAggregatorParams,
       typeLabel: "key=value,...",
       description:
-        'Aggregator parameters as comma-separated key=value pairs (e.g. "clippingRadius=1.0,beta=0.8"). Supported keys: mean: none; byzantine: clippingRadius (number > 0, default 1.0), maxIterations (int > 0, default 1), beta (number in [0, 1], default 0.9); secure: maxShareValue (int > 0, default 100)',
+        'Aggregator parameters as comma-separated key=value pairs (e.g. "clippingRadius=1.0,beta=0.8"). Supported keys: mean: none; byzantine: clippingRadius (number > 0, default 1.0), maxIterations (int > 0, default 1), beta (number in [0, 1], default 0.9); secure: maxShareValue (int > 0, default 100); fedprox: mu (number > 0, default 0.01)',
       optional: true,
     },
 

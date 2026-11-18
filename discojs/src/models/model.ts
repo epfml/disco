@@ -1,13 +1,19 @@
+import type * as tf from "@tensorflow/tfjs";
 import type { WeightsContainer } from "#weights/index";
 import type { Dataset, Batched } from "#dataset/index";
 import type { DataFormat, DataType } from "#types/index";
-
 import type { StandardizationStats } from "#processing/tabular";
+import type { BatchLogs, EpochLogs, ValidationMetrics } from "#models/logs";
 
 export type ModelMetadata = {
   tabularStandardization?: StandardizationStats;
 };
-import type { BatchLogs, EpochLogs, ValidationMetrics } from "#models/logs";
+
+export type Regularizer = (weights: WeightsContainer) => tf.Scalar;
+
+export interface RoundContext {
+  regularizer?: Regularizer;
+}
 
 /**
  * Trainable predictor
@@ -25,6 +31,11 @@ export abstract class Model<D extends DataType> implements Disposable {
   /** Set training state */
   abstract set weights(ws: WeightsContainer);
 
+  /** Return strictly trainable weights (excluding non-trainable buffers such as BatchNorm running stats) */
+  get trainableWeights(): WeightsContainer {
+    return this.weights;
+  }
+
   /** Optional metadata for tabular task data standardization */
   metadata?: ModelMetadata;
 
@@ -33,11 +44,13 @@ export abstract class Model<D extends DataType> implements Disposable {
    *
    * @param trainingDataset dataset to optimize for
    * @param validationDataset dataset to measure how well it is training
+   * @param context optional round context for algorithms requiring initial weights or regularizers (e.g. FedProx)
    * @yields on every epoch, training can be stop by `return`ing or `throw`ing it
    */
   abstract train(
     trainingDataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
     validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+    context?: RoundContext,
   ): AsyncGenerator<BatchLogs, EpochLogs>;
 
   /** Predict likely values */
