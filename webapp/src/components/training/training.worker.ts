@@ -22,20 +22,23 @@ const send = (message: FromWorker): void => {
     transfer: bytes?.buffer instanceof ArrayBuffer ? [bytes.buffer] : [],
   });
 };
-const describeError = (
-  error: unknown,
-): Extract<FromWorker, { type: "error" }> => ({
-  type: "error",
-  message: error instanceof Error ? error.message : String(error),
-  errorName: error instanceof Error ? error.name : undefined,
-});
+async function releaseAndEncodeModel(
+  disco: Disco<DataType, Network> | undefined,
+): Promise<Uint8Array | undefined> {
+  const model = disco?.trainer.releaseModel();
+  try {
+    return model === undefined ? undefined : await modelEncode(model);
+  } finally {
+    model?.dispose();
+  }
+}
 let stopRequested = false;
 async function train(
   message: Extract<ToWorker, { type: "start" }>,
 ): Promise<void> {
   let disco: Disco<DataType, Network> | undefined;
   let stopped = false;
-  let failure: Extract<FromWorker, { type: "error" }> | undefined;
+  let encoded: Uint8Array | undefined;
   try {
     const task = (await deserializeTaskFromJSON(message.task)) as Task<
       DataType,
@@ -94,33 +97,23 @@ async function train(
         postAggregationValidation: log.postAggregationValidation,
       });
     }
+    encoded = await releaseAndEncodeModel(disco);
+    const finishedDisco = disco;
+    disco = undefined;
+    await finishedDisco.close();
+    send({ type: "finished", stopped, model: encoded });
   } catch (error) {
-    failure = describeError(error);
+    // A connection failure can leave useful training progress. Return the partial
+    // model so users can still save it, while reporting the original error.
+    encoded ??= await releaseAndEncodeModel(disco).catch(() => undefined);
+    await disco?.close().catch(() => undefined);
+    send({
+      type: "error",
+      message: error instanceof Error ? error.message : String(error),
+      errorName: error instanceof Error ? error.name : undefined,
+      model: encoded,
+    });
   }
-
-  // Hand back the partial model even if training or communication failed.
-  let encoded: Uint8Array | undefined;
-  try {
-    const model = disco?.trainer.releaseModel();
-    try {
-      encoded = model === undefined ? undefined : await modelEncode(model);
-    } finally {
-      model?.dispose();
-    }
-  } catch (error) {
-    failure ??= describeError(error);
-  } finally {
-    try {
-      await disco?.close();
-    } catch (error) {
-      failure ??= describeError(error);
-    }
-  }
-  send(
-    failure === undefined
-      ? { type: "finished", stopped, model: encoded }
-      : { ...failure, model: encoded },
-  );
 }
 
 self.onmessage = (event: MessageEvent<ToWorker>) => {
