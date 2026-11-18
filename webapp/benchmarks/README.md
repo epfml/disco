@@ -55,7 +55,7 @@ peer, targeting 32 MiB per case before those iteration limits. Three repetitions
 order to reduce order bias. The largest cases have only 18 RTT samples per peer
 across repetitions, so tail estimates need more runs for precise conclusions.
 
-Payload buffers are allocated and filled before timing. Length, peer/sequence
+For payload-only cases, initial caller-owned buffers are allocated and filled before timing. Copies and clones performed during exchange remain inside the timed path. Length, peer/sequence
 bytes, midpoint and last-byte probes reject truncation, stale replies and obvious
 corruption. Validation is sampled rather than a full checksum to avoid adding a
 second large memory scan. The transfer-only control captures probes before its
@@ -65,7 +65,7 @@ RTT is timed on the caller's clock; no cross-thread clock subtraction is used. V
 Throughput counts both directions and is computed from the whole measured loop,
 not by summing overlapping per-peer latencies. Adapter setup, WebRTC connection
 establishment, payload allocation, warmup, and cleanup are outside these timers.
-The direct echo's logical throughput does not represent physical data movement.
+The direct echo and transfer-only control report logical throughput, not physical memory bandwidth. RTT ends when the echoed payload arrives; the final echo receipt ACK/drain can still complete during cleanup.
 
 The adapter explicitly allocates/copies one full buffer in each direction: for a
 payload B and P peers, that is 2 × B × P bytes per round trip, in addition to
@@ -94,3 +94,8 @@ the **whole case**, including setup, allocation, warmup and cleanup, rather than
 only the timed exchanges. Long Tasks are available only in supporting browsers;
 sub-50 ms stalls still appear in timer lag. Compare this signal across repeated
 runs rather than treating the largest single stall as a stable benchmark score.
+
+## Recorded run
+
+[Chrome 154 on Linux, 18 November 2026](results/chrome-154-linux-2026-11-18.md)
+includes the raw JSON, observed overhead, training/page-lag comparison, and limits.
