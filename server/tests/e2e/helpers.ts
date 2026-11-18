@@ -218,6 +218,7 @@ export async function lusCovidDecentralized(
       ...baseTask.trainingInformation,
       scheme: "decentralized",
       aggregationStrategy: "mean",
+      aggregationParams: undefined,
       roundDuration: 1,
       minNbOfParticipants: 2,
       maxConnectionRetry: 3,
