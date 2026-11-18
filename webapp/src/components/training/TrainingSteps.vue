@@ -19,7 +19,7 @@
       v-show="trainingStore.step === 2"
       class="flex flex-col space-y-4 md:space-y-8"
     >
-      <LabeledDatasetInput v-model="dataset" v-model:source="source" :task>
+      <LabeledDatasetInput v-model="datasetSource" :task>
         <template #header>
           <DataDescription :task class="tuto-data-desc" />
         </template>
@@ -29,7 +29,7 @@
     <TrainerDashboard
       v-show="trainingStore.step === 3"
       :task
-      :dataset="dataset === undefined ? undefined : source"
+      :dataset-source="datasetSource"
       @model="onModel"
     />
 
@@ -51,7 +51,6 @@ import { VueSpinner } from "vue3-spinners";
 import type { DataType, Model, Task, Network } from "@epfml/discojs";
 
 import type { DatasetSource } from "@/components/dataset_input/source";
-import type { LabeledDataset } from "@/components/dataset_input/types.js";
 import DataDescription from "@/components/dataset_input/DataDescription.vue";
 import LabeledDatasetInput from "@/components/dataset_input/LabeledDatasetInput.vue";
 import DISCOllaborative from "@/components/simple/DISCOllaborative.vue";
@@ -120,8 +119,7 @@ watch(
 
 onMounted(setupTrainingStore);
 
-const dataset = ref<LabeledDataset[DataType]>();
-const source = ref<DatasetSource>();
+const datasetSource = ref<DatasetSource>();
 const trainedModel = shallowRef<Model<DataType>>();
 
 // free the model when replaced or when leaving

@@ -13,7 +13,7 @@ export type ToWorker =
       task: Parameters<typeof deserializeTaskFromJSON>[0];
       serverUrl: string;
       peerPort?: MessagePort;
-      dataset: DatasetSource;
+      datasetSource: DatasetSource;
       scheme: "local" | "federated" | "decentralized";
     }
   | { type: "stop" };

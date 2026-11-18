@@ -17,27 +17,19 @@ import { Map } from "immutable";
 import type { Ref, WatchHandle } from "vue";
 import { computed, ref, watch } from "vue";
 
-import { Dataset } from "@epfml/discojs";
-import { loadImage } from "@epfml/discojs-web";
-
 import IconCard from "@/components/containers/IconCard.vue";
 
 import FileSelection from "../FileSelection.vue";
 
 import type { DatasetSource } from "../source";
 
-import type { NamedLabeledImageDataset } from "../types.js";
-
 const props = defineProps<{
   labels: ImmutableSet<string>;
 }>();
 
-const source = defineModel<DatasetSource>("source");
-
-const dataset = defineModel<NamedLabeledImageDataset | undefined>();
-watch(dataset, (dataset: NamedLabeledImageDataset | undefined) => {
-  if (dataset === undefined) {
-    source.value = undefined;
+const datasetSource = defineModel<DatasetSource>();
+watch(datasetSource, (value) => {
+  if (value === undefined) {
     labelsAndFiles.value.forEach(([_, files]) => {
       files.value = undefined;
     });
@@ -83,15 +75,10 @@ function refreshWatcher() {
         expanded[i] = expanded[j];
         expanded[j] = swap;
       }
-      source.value = {
+      datasetSource.value = {
         type: "image",
         files: expanded.map(([label, file]) => ({ file, label })),
       };
-      dataset.value = new Dataset(expanded).map(async ([label, file]) => ({
-        filename: file.name,
-        image: await loadImage(file),
-        label,
-      }));
     },
   );
 }
