@@ -1,3 +1,6 @@
 # local env files
 .env.local
 .env.*.local
+
+# Locally generated benchmark reports
+/benchmarks/results/latest.json

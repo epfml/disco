@@ -1,4 +1,6 @@
 import { defineConfig } from "cypress";
+import { cpus, totalmem, platform, release, arch } from "node:os";
+import { execFileSync } from "node:child_process";
 import * as http from "node:http";
 import * as path from "node:path";
 import * as fs from "node:fs/promises";
@@ -62,9 +64,16 @@ export default defineConfig({
   hosts: scriptedServer ? { [serverUrl.hostname]: "127.0.0.1" } : {},
 
   e2e: {
+    supportFile:
+      process.env.DISCO_PEER_BENCHMARK === "1"
+        ? false
+        : "cypress/support/e2e.ts",
     baseUrl: "http://localhost:1351/",
     projectId: "aps8et", // to get recordings on Cypress Cloud
     excludeSpecPattern: [
+      ...(process.env.DISCO_PEER_BENCHMARK === "1"
+        ? []
+        : ["cypress/e2e/benchmarks/**/*.cy.ts"]),
       // Training tests run separately from the regular E2E suite
       ...(process.env.DISCO_TRAINING_E2E === "1"
         ? []
@@ -88,6 +97,17 @@ export default defineConfig({
         : undefined;
 
       on("task", {
+        benchmarkEnvironment: () => ({
+          cpu: cpus()[0]?.model,
+          logicalCpus: cpus().length,
+          memoryGiB: totalmem() / 2 ** 30,
+          os: `${platform()} ${release()}`,
+          arch: arch(),
+          node: process.version,
+          revision: execFileSync("git", ["rev-parse", "HEAD"], {
+            encoding: "utf8",
+          }).trim(),
+        }),
         readdir: async (p: string) =>
           (await fs.readdir(p)).map((filename) => path.join(p, filename)),
         scriptServer: (script: ServerScript) => {
