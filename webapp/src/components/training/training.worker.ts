@@ -30,7 +30,7 @@ async function train(
       DataType,
       Network
     >;
-    if (message.dataset.type !== task.dataType)
+    if (message.datasetSource.type !== task.dataType)
       throw new Error("Dataset type does not match task");
     const webglReady = await tf.setBackend("webgl").catch(() => false);
     if (!webglReady) await tf.setBackend("cpu");
@@ -51,7 +51,7 @@ async function train(
     disco.on("status", (status) => send({ type: "status", status }));
     disco.on("participants", (count) => send({ type: "participants", count }));
 
-    for await (const round of disco.train(loadDataset(message.dataset))) {
+    for await (const round of disco.train(loadDataset(message.datasetSource))) {
       const [roundGenerator, roundLogs] = split(round);
       for await (const epoch of roundGenerator) {
         const [epochGenerator, epochLogs] = split(epoch);

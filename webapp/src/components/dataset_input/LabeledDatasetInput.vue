@@ -3,94 +3,73 @@
 
   <LabeledImageDatasetInput
     v-if="task.dataType === 'image'"
-    v-model="imageDataset"
-    v-model:source="source"
+    v-model="selectedSource"
     :labels="
       Set((task as Task<'image', Network>).trainingInformation.LABEL_LIST)
     "
   />
   <TabularDatasetInput
     v-if="task.dataType === 'tabular'"
-    v-model="tabularDataset"
-    v-model:source="source"
+    v-model="selectedSource"
   />
-  <TextDatasetInput
-    v-if="task.dataType === 'text'"
-    v-model="textDataset"
-    v-model:source="source"
-  />
+  <TextDatasetInput v-if="task.dataType === 'text'" v-model="selectedSource" />
 </template>
 
 <script setup lang="ts" generic="D extends DataType">
 import { Set } from "immutable";
 import { ref, toRaw, watch } from "vue";
-
 import type { DataType, Network, Task } from "@epfml/discojs";
-
+import { loadCSV } from "@epfml/discojs-web";
 import { useToaster } from "@/composables/toaster.js";
-
 import LabeledImageDatasetInput from "./LabeledImageDatasetInput/index.vue";
 import TabularDatasetInput from "./TabularDatasetInput.vue";
 import TextDatasetInput from "./TextDatasetInput.vue";
 import type { DatasetSource } from "./source";
-import type { LabeledDataset } from "./types.js";
 import * as validate from "./validate.js";
 
 const toaster = useToaster();
+const props = defineProps<{ task: Task<D, Network> }>();
+const datasetSource = defineModel<DatasetSource>();
+const selectedSource = ref<DatasetSource>();
 
-const props = defineProps<{
-  task: Task<D, Network>;
-}>();
-
-const source = defineModel<DatasetSource>("source");
-const dataset = defineModel<LabeledDataset[D]>();
-watch(dataset, (dataset: LabeledDataset[D] | undefined) => {
-  // only allow unsetting dataset
-  if (dataset !== undefined) return;
-
-  source.value = undefined;
-  imageDataset.value = undefined;
-  tabularDataset.value = undefined;
-  textDataset.value = undefined;
+watch(datasetSource, (value) => {
+  if (value === undefined) selectedSource.value = undefined;
 });
-
-const imageDataset = ref<LabeledDataset["image"]>();
-const tabularDataset = ref<LabeledDataset["tabular"]>();
-const textDataset = ref<LabeledDataset["text"]>();
-watch([props, imageDataset, tabularDataset, textDataset], async () => {
-  switch (props.task.dataType) {
-    case "image":
-      dataset.value = toRaw(imageDataset.value) as LabeledDataset[D];
-      break;
-    case "tabular": {
-      const task = props.task as Task<"tabular", Network>;
-
-      if (tabularDataset.value === undefined) {
-        dataset.value = undefined;
+watch(
+  [() => props.task, selectedSource],
+  async ([task, source], _, onCleanup) => {
+    let cancelled = false;
+    onCleanup(() => {
+      cancelled = true;
+    });
+    if (source !== undefined && source.type !== task.dataType) {
+      selectedSource.value = undefined;
+      datasetSource.value = undefined;
+      return;
+    }
+    if (source?.type === "tabular" && task.dataType === "tabular") {
+      try {
+        const { inputColumns, outputColumn } = (
+          task as Task<"tabular", Network>
+        ).trainingInformation;
+        // Parse once for early feedback; the training dataset is built in the worker.
+        await validate.tabular(
+          Set(inputColumns).add(outputColumn),
+          loadCSV(source.file),
+        );
+      } catch (error) {
+        if (cancelled) return;
+        toaster.error(
+          error instanceof Error
+            ? `Error when loading CSV: ${error.message}`
+            : "Error when loading CSV",
+        );
+        selectedSource.value = undefined;
+        datasetSource.value = undefined;
         return;
       }
-
-      try {
-        await validate.tabular(
-          Set(task.trainingInformation.inputColumns).add(
-            task.trainingInformation.outputColumn,
-          ),
-          toRaw(tabularDataset.value),
-        );
-      } catch (e) {
-        let msg = "Error when loading CSV";
-        if (e instanceof Error) msg = `${msg}: ${e.message}`;
-        toaster.error(msg);
-
-        tabularDataset.value = undefined;
-      }
-
-      dataset.value = toRaw(tabularDataset.value) as LabeledDataset[D];
-      break;
     }
-    case "text":
-      dataset.value = textDataset.value as LabeledDataset[D];
-      break;
-  }
-});
+    if (!cancelled) datasetSource.value = toRaw(source);
+  },
+);
 </script>

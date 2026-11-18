@@ -74,7 +74,7 @@ async function setupForTask(scheme?: "decentralized", realTraining = true) {
     },
     props: {
       task,
-      dataset: {
+      datasetSource: {
         type: "tabular",
         // Node and DOM File declarations differ; native cloning needs Node's implementation.
         file: new NativeFile(

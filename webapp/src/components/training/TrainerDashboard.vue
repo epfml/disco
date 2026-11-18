@@ -142,7 +142,7 @@ const toaster = useToaster();
 
 const props = defineProps<{
   task: Task<D, Network>;
-  dataset?: DatasetSource;
+  datasetSource?: DatasetSource;
 }>();
 const emit = defineEmits<{
   model: [Model<D>];
@@ -183,8 +183,8 @@ function startTraining(): void {
   nbParticipants.value = 1;
 
   // postMessage requires the plain source rather than Vue's reactive proxy.
-  const dataset = toRaw(props.dataset);
-  if (dataset === undefined) {
+  const datasetSource = toRaw(props.datasetSource);
+  if (datasetSource === undefined) {
     toaster.error("First connect your data at the previous step.");
     return;
   }
@@ -270,7 +270,7 @@ function startTraining(): void {
     type: "start",
     task: serializeTaskToJSON(toRaw(props.task) as Task<DataType, Network>),
     serverUrl: CONFIG.serverUrl.toString(),
-    dataset,
+    datasetSource,
     scheme,
     peerPort,
   };
