@@ -48,12 +48,15 @@ export type PeerEvents = {
 // with ACK_CHUNK_ID so the sender can drain before closing the connection.
 /** Platform-neutral peer transport; implementations must emit events asynchronously. */
 export interface PeerTransport {
+  /** When true, the consumer may detach received buffers after emission. */
+  readonly transferableData?: boolean;
   on<K extends keyof PeerEvents>(
     event: K,
     listener: (value: PeerEvents[K]) => void,
   ): void;
   signal(signal: SignalData): void;
-  send(data: Uint8Array): void;
+  /** With transfer enabled, the caller gives up ownership of the buffer. */
+  send(data: Uint8Array, options?: { transfer?: boolean }): void;
   drain(timeout?: number): Promise<void>;
   destroy(): Promise<void>;
 }
@@ -61,6 +64,7 @@ export interface PeerTransport {
 export type PeerFactory = (id: NodeID, isInitiator: boolean) => PeerTransport;
 
 export class Peer extends EventEmitter<PeerEvents> implements PeerTransport {
+  readonly transferableData = true;
   private readonly pc: RTCPeerConnection;
   private channel?: RTCDataChannel;
   private isDestroyed = false;

@@ -9,6 +9,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { servePeerTransport, workerPeerFactory } from "../peer_transport";
 
 class TestPeer extends EventEmitter<PeerEvents> {
+  transferableData = false;
   signal = vi.fn<(signal: SignalData) => void>();
   send = vi.fn<(data: Uint8Array) => void>();
   drain = vi.fn(async (_timeout?: number) => {});
@@ -32,31 +33,68 @@ function setup() {
   return { create, natives, close, remote: workerPeerFactory(port2) };
 }
 
-it("forwards signaling and exact byte slices without detaching caller-owned buffers", async () => {
-  const { remote, natives, create } = setup();
-  const peer = remote("peer-a" as NodeID, true);
-  const received = vi.fn();
-  const connected = vi.fn();
-  peer.on("data", received);
-  peer.on("connect", connected);
-  await vi.waitFor(() => expect(natives).toHaveLength(1));
-  expect(create).toHaveBeenCalledWith("peer-a", true);
-  const signal: SignalData = { type: "offer", sdp: "offer" };
-  peer.signal(signal);
-  const backing = new Uint8Array([99, 1, 2, 99]);
-  peer.send(backing.subarray(1, 3));
-  await vi.waitFor(() => expect(natives[0].send).toHaveBeenCalled());
-  expect(natives[0].signal).toHaveBeenCalledWith(signal);
-  expect(Array.from(natives[0].send.mock.calls[0][0])).toEqual([1, 2]);
-  expect(Array.from(backing)).toEqual([99, 1, 2, 99]);
-  natives[0].emit("connect", undefined);
-  const pooled = Buffer.from([99, 3, 4, 99]);
-  natives[0].emit("data", pooled.subarray(1, 3));
-  await vi.waitFor(() => expect(received).toHaveBeenCalled());
-  expect(Array.from(received.mock.calls[0][0] as Uint8Array)).toEqual([3, 4]);
-  expect(Array.from(pooled)).toEqual([99, 3, 4, 99]);
-  expect(connected).toHaveBeenCalledOnce();
-});
+it.each([false, true])(
+  "forwards exact byte slices without detaching shared backing stores (transferable: %s)",
+  async (transferable) => {
+    const { remote, natives, create } = setup();
+    const peer = remote("peer-a" as NodeID, true);
+    const received = vi.fn();
+    const connected = vi.fn();
+    peer.on("data", received);
+    peer.on("connect", connected);
+    await vi.waitFor(() => expect(natives).toHaveLength(1));
+    expect(create).toHaveBeenCalledWith("peer-a", true);
+    natives[0].transferableData = transferable;
+    const signal: SignalData = { type: "offer", sdp: "offer" };
+    peer.signal(signal);
+    const backing = new Uint8Array([99, 1, 2, 99]);
+    peer.send(backing.subarray(1, 3), { transfer: transferable });
+    await vi.waitFor(() => expect(natives[0].send).toHaveBeenCalled());
+    expect(natives[0].signal).toHaveBeenCalledWith(signal);
+    expect(Array.from(natives[0].send.mock.calls[0][0])).toEqual([1, 2]);
+    expect(Array.from(backing)).toEqual([99, 1, 2, 99]);
+    natives[0].emit("connect", undefined);
+    const pooled = Buffer.from([99, 3, 4, 99]);
+    natives[0].emit("data", pooled.subarray(1, 3));
+    await vi.waitFor(() => expect(received).toHaveBeenCalled());
+    expect(Array.from(received.mock.calls[0][0] as Uint8Array)).toEqual([3, 4]);
+    expect(Array.from(pooled)).toEqual([99, 3, 4, 99]);
+    expect(connected).toHaveBeenCalledOnce();
+  },
+);
+
+it.each([false, true])(
+  "honors outgoing ownership transfer (transfer: %s)",
+  async (transfer) => {
+    const { remote, natives } = setup();
+    const peer = remote("peer-a" as NodeID, true);
+    await vi.waitFor(() => expect(natives).toHaveLength(1));
+    const data = new Uint8Array([1, 2, 3]);
+    peer.send(data, { transfer });
+    expect(data.byteLength).toBe(transfer ? 0 : 3);
+    await vi.waitFor(() => expect(natives[0].send).toHaveBeenCalledOnce());
+    expect(Array.from(natives[0].send.mock.calls[0][0])).toEqual([1, 2, 3]);
+  },
+);
+
+it.each([false, true])(
+  "honors ownership of received buffers (transferable: %s)",
+  async (transferable) => {
+    const { remote, natives } = setup();
+    const peer = remote("peer-a" as NodeID, true);
+    const received = vi.fn();
+    peer.on("data", received);
+    await vi.waitFor(() => expect(natives).toHaveLength(1));
+    natives[0].transferableData = transferable;
+    const data = new Uint8Array(1024 * 1024).fill(42);
+    natives[0].emit("data", data);
+    expect(data.byteLength).toBe(transferable ? 0 : 1024 * 1024);
+    await vi.waitFor(() => expect(received).toHaveBeenCalledOnce());
+    const bytes = received.mock.calls[0][0] as Uint8Array;
+    expect(bytes.byteLength).toBe(1024 * 1024);
+    expect(bytes.every((byte) => byte === 42)).toBe(true);
+  },
+);
 
 it("waits for drain acknowledgements and isolates retries to the same participant", async () => {
   const { remote, natives } = setup();
