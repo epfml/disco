@@ -1,6 +1,7 @@
 import "@/buffer-polyfill";
 import * as tf from "@tensorflow/tfjs";
 import {
+  ClientDisconnectedError,
   DecentralizedClient,
   Disco,
   deserializeTaskFromJSON,
@@ -33,6 +34,7 @@ async function releaseAndEncodeModel(
   }
 }
 let stopRequested = false;
+let activeDisco: Disco<DataType, Network> | undefined;
 async function train(
   message: Extract<ToWorker, { type: "start" }>,
 ): Promise<void> {
@@ -62,6 +64,8 @@ async function train(
       );
     }
     disco = new Disco(task, client ?? url, { scheme: message.scheme });
+    activeDisco = disco;
+    if (stopRequested) disco.requestStop();
     disco.on("status", (status) => send({ type: "status", status }));
     disco.on("participants", (count) => send({ type: "participants", count }));
 
@@ -98,26 +102,39 @@ async function train(
       });
     }
     encoded = await releaseAndEncodeModel(disco);
-    const finishedDisco = disco;
-    disco = undefined;
-    await finishedDisco.close();
     send({ type: "finished", stopped, model: encoded });
   } catch (error) {
     // A connection failure can leave useful training progress. Return the partial
     // model so users can still save it, while reporting the original error.
     encoded ??= await releaseAndEncodeModel(disco).catch(() => undefined);
-    await disco?.close().catch(() => undefined);
-    send({
-      type: "error",
-      message: error instanceof Error ? error.message : String(error),
-      errorName: error instanceof Error ? error.name : undefined,
-      model: encoded,
-    });
+    if (stopRequested && error instanceof ClientDisconnectedError)
+      send({ type: "finished", stopped: true, model: encoded });
+    else
+      send({
+        type: "error",
+        message: error instanceof Error ? error.message : String(error),
+        errorName: error instanceof Error ? error.name : undefined,
+        model: encoded,
+      });
+  } finally {
+    // Return the model before slow peer cleanup, then let the page terminate us.
+    let cleanupError: string | undefined;
+    try {
+      await disco?.close();
+    } catch (error) {
+      cleanupError = error instanceof Error ? error.message : String(error);
+    }
+    activeDisco = undefined;
+    send({ type: "closed", error: cleanupError });
   }
 }
 
 self.onmessage = (event: MessageEvent<ToWorker>) => {
   const message = event.data;
   if (message.type === "start") void train(message);
-  else if (message.type === "stop") stopRequested = true;
+  else if (message.type === "stop") {
+    stopRequested = true;
+    activeDisco?.requestStop();
+    send({ type: "stopping" });
+  }
 };

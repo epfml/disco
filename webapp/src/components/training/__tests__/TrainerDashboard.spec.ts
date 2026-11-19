@@ -294,6 +294,7 @@ it.each(["finished", "error"] as const)(
           ? { type, stopped: true, model: new Uint8Array([1]) }
           : { type, message: "connection failed", model: new Uint8Array([1]) },
       );
+      active.receive({ type: "closed" });
       expect(modelDecode).toHaveBeenCalledOnce();
       // Further stop clicks during decoding must not rearm the watchdog.
       await stop.trigger("click");
@@ -318,3 +319,66 @@ it.each(["finished", "error"] as const)(
     }
   },
 );
+
+it("keeps an acknowledged stop alive and hands back the model before slow cleanup", async () => {
+  const wrapper = await setupForTask(undefined, false);
+  const dispose = vi.fn();
+  const model = { dispose } as unknown as Model<"tabular">;
+  vi.mocked(modelDecode).mockResolvedValueOnce(model);
+  try {
+    await wrapper.get("#start-training-bttn").trigger("click");
+    vi.useFakeTimers();
+    const active = workers.at(-1)!;
+    const stop = wrapper
+      .findAll("button")
+      .find((button) => button.text().includes("stop training"))!;
+    await stop.trigger("click");
+    active.receive({ type: "stopping" });
+    await vi.advanceTimersByTimeAsync(20_000);
+    expect(active.terminated).toBe(false);
+    active.receive({
+      type: "finished",
+      stopped: true,
+      model: new Uint8Array([1]),
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(wrapper.emitted("model")?.at(-1)).toEqual([model]);
+    await vi.advanceTimersByTimeAsync(10_500);
+    expect(active.terminated).toBe(false);
+    expect(wrapper.getComponent(TrainingInformation).props("isTraining")).toBe(
+      true,
+    );
+    active.receive({ type: "closed" });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(active.terminated).toBe(true);
+    expect(dispose).not.toHaveBeenCalled();
+    expect(toaster.info).toHaveBeenCalledWith("Training stopped");
+    expect(toaster.error).not.toHaveBeenCalled();
+  } finally {
+    wrapper.unmount();
+  }
+});
+
+it("retains the model even when cleanup never acknowledges completion", async () => {
+  const wrapper = await setupForTask(undefined, false);
+  const model = { dispose: vi.fn() } as unknown as Model<"tabular">;
+  vi.mocked(modelDecode).mockResolvedValueOnce(model);
+  try {
+    await wrapper.get("#start-training-bttn").trigger("click");
+    vi.useFakeTimers();
+    const active = workers.at(-1)!;
+    active.receive({
+      type: "finished",
+      stopped: false,
+      model: new Uint8Array([1]),
+    });
+    await vi.advanceTimersByTimeAsync(12_000);
+    expect(wrapper.emitted("model")?.at(-1)).toEqual([model]);
+    expect(active.terminated).toBe(true);
+    expect(wrapper.getComponent(TrainingInformation).props("isTraining")).toBe(
+      false,
+    );
+  } finally {
+    wrapper.unmount();
+  }
+});
