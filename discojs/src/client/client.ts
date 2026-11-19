@@ -70,7 +70,7 @@ export abstract class Client<N extends Network> extends EventEmitter<{
    */
   #disconnectController = new AbortController();
   /**
-   * Aborted on a crash or a disconnection, whichever comes first.
+   * Aborted on a crash, disconnection, or explicit stop, whichever comes first.
    */
   #stopSignal = AbortSignal.any([
     this.#crashController.signal,
@@ -106,6 +106,11 @@ export abstract class Client<N extends Network> extends EventEmitter<{
    */
   async connect(): Promise<Model<DataType>> {
     return this.getLatestModel();
+  }
+
+  /** Interrupt network waits without disposing the trainer's partial model. */
+  requestStop(): void {
+    this.#disconnectController.abort(new ClientDisconnectedError());
   }
 
   /**

@@ -78,6 +78,7 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
 }> {
   public readonly trainer: Trainer<D, N>;
   readonly #client: clients.Client<N>;
+  readonly #stopController = new AbortController();
   readonly #logger: Logger;
   readonly #task: Task<D, N>;
   readonly #preprocessOnce: boolean;
@@ -250,6 +251,15 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
     if (tabularMetadata !== undefined)
       this.trainer.model.metadata = tabularMetadata;
 
+    // Finish startup before honoring Stop. Once the model belongs to the
+    // trainer, cancellation can interrupt network waits without losing it.
+    this.#stopController.signal.addEventListener(
+      "abort",
+      () => this.#client.requestStop(),
+      { once: true },
+    );
+    if (this.#stopController.signal.aborted) this.#client.requestStop();
+
     for await (const [roundNum, round] of enumerate(
       this.trainer.train(trainingDataset, validationDataset_),
     )) {
@@ -312,6 +322,11 @@ export class Disco<D extends DataType, N extends Network> extends EventEmitter<{
       }.bind(this)();
     }
     this.#logger.success("Training finished");
+  }
+
+  /** Interrupt network waits while keeping the model available to the caller. */
+  requestStop(): void {
+    this.#stopController.abort();
   }
 
   /**

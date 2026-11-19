@@ -157,6 +157,7 @@ let worker: Worker | undefined;
 let finishing = false;
 let closePeerTransport: (() => void) | undefined;
 let stopTimeout: ReturnType<typeof setTimeout> | undefined;
+let resolveClosed: ((error?: string) => void) | undefined;
 
 const hasValidationData = computed(
   () => props.task.trainingInformation.validationSplit > 0,
@@ -204,6 +205,9 @@ function startTraining(): void {
     type: "module",
   });
   worker = active;
+  const closed = new Promise<string | undefined>((resolve) => {
+    resolveClosed = resolve;
+  });
   training.value = true;
   const scheme = isTrainingLocally.value
     ? "local"
@@ -218,6 +222,13 @@ function startTraining(): void {
     if (worker !== active) return;
     const message = event.data;
     switch (message.type) {
+      case "stopping":
+        // A responsive worker can finish its current operation without being killed.
+        clearTimeout(stopTimeout);
+        break;
+      case "closed":
+        resolveClosed?.(message.error);
+        break;
       case "status":
         roundStatus.value = [
           message.status,
@@ -251,12 +262,16 @@ function startTraining(): void {
         break;
       case "finished":
       case "error":
-        void finishTraining(active, message);
+        void finishTraining(active, message, closed);
         break;
     }
   };
   active.onerror = (event) => {
     if (worker !== active) return;
+    if (finishing) {
+      resolveClosed?.(event.message);
+      return;
+    }
     showTrainingError(new Error(event.message));
     closeWorker(active);
   };
@@ -280,11 +295,24 @@ function startTraining(): void {
 async function finishTraining(
   active: Worker,
   message: Extract<FromWorker, { type: "finished" | "error" }>,
+  closed: Promise<string | undefined>,
 ): Promise<void> {
   // The worker has answered; model decoding must not race the stop watchdog.
   finishing = true;
   if (stopTimeout !== undefined) clearTimeout(stopTimeout);
   stopTimeout = undefined;
+  // Peer draining is bounded at 10 seconds. Allow cleanup to finish after the
+  // model has been returned, then terminate even if cleanup gets stuck.
+  let cleanupTimeout: ReturnType<typeof setTimeout> | undefined;
+  const cleanup = Promise.race([
+    closed,
+    new Promise<string>((resolve) => {
+      cleanupTimeout = setTimeout(
+        () => resolve("Worker cleanup timed out"),
+        12_000,
+      );
+    }),
+  ]);
   try {
     if (message.model !== undefined) {
       const model = await modelDecode(message.model);
@@ -294,17 +322,23 @@ async function finishTraining(
       }
       emit("model", model as Model<D>);
     }
+    const cleanupError = await cleanup;
+    if (worker !== active) return;
     if (message.type === "error")
       showTrainingError(
         Object.assign(new Error(message.message), {
           name: message.errorName ?? "Error",
         }),
       );
+    else if (cleanupError !== undefined)
+      showTrainingError(new Error(cleanupError));
     else if (message.stopped) toaster.info("Training stopped");
     else toaster.success("Training successfully completed");
   } catch (error) {
     showTrainingError(error);
   } finally {
+    await cleanup;
+    clearTimeout(cleanupTimeout);
     closeWorker(active);
   }
 }
@@ -353,6 +387,8 @@ function closeWorker(active: Worker): void {
   if (worker !== active) return;
   if (stopTimeout !== undefined) clearTimeout(stopTimeout);
   stopTimeout = undefined;
+  resolveClosed?.();
+  resolveClosed = undefined;
   active.terminate();
   closePeerTransport?.();
   closePeerTransport = undefined;
@@ -365,8 +401,7 @@ function stopTraining(): void {
   const active = worker;
   if (active === undefined || finishing || stopTimeout !== undefined) return;
   active.postMessage({ type: "stop" } satisfies ToWorker);
-  // A peer connection can be waiting indefinitely, so release the worker if
-  // cooperative cancellation cannot reach the training loop.
+  // Only force termination if the worker cannot acknowledge the stop request.
   stopTimeout = setTimeout(() => {
     if (worker !== active) return;
     closeWorker(active);
