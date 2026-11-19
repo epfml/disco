@@ -24,21 +24,23 @@ DISCO is a TypeScript pnpm monorepo for federated and decentralized learning. [D
 Comments explain _why_, not _what_. Add one wherever the reason isn't obvious: workarounds, magic values, the choice or split of test data, skipped work, sensitive parameters that are necessary for correctness.
 
 Example of good comments are:
+
 ```ts
 process.kill(-child.pid, "SIGTERM"); // negative PID also kills the spawned browser
 ```
 
 Or:
+
 ```yml
 steps:
-    - uses: actions/checkout@v7
-    - uses: ./.github/actions/setup-node
-    - uses: ./.github/actions/pull-dataset-artifacts
-    - uses: actions/download-artifact@v8
+  - uses: actions/checkout@v7
+  - uses: ./.github/actions/setup-node
+  - uses: ./.github/actions/pull-dataset-artifacts
+  - uses: actions/download-artifact@v8
     with: { name: all-builds }
-    # --shard splits E2E files across runners to stay within GitHub's 20-worker cap.
-    # --no-file-parallelism runs files sequentially per runner to avoid CPU contention during training.
-    - run: pnpm exec vitest --run --project=server server/tests/e2e --no-file-parallelism --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+  # --shard splits E2E files across runners to stay within GitHub's 20-worker cap.
+  # --no-file-parallelism runs files sequentially per runner to avoid CPU contention during training.
+  - run: pnpm exec vitest --run --project=server server/tests/e2e --no-file-parallelism --shard=${{ matrix.shard }}/${{ strategy.job-total }}
 ```
 
 Give new class attributes and exported functions a short JSDoc. When behaviour changes, update the comments around it.
