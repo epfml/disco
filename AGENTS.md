@@ -1,6 +1,6 @@
 # AGENTS.md
 
-DISCO is a TypeScript pnpm monorepo for federated and decentralized learning. [DEV.md](./DEV.md) describes the packages and how to run them.
+DISCO is a TypeScript pnpm monorepo for federated and decentralized learning, either running in the browser or in Node.js. [DEV.md](./DEV.md) describes the packages and how to run them.
 
 ## Commands
 
