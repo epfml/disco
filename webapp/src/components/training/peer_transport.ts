@@ -24,6 +24,21 @@ type Reply =
   | { type: "error"; connection: number; message: string }
   | { type: "drained"; connection: number; request: number };
 
+function prepareTransfer(
+  data: Uint8Array,
+  takeOwnership: boolean,
+): Uint8Array<ArrayBuffer> {
+  // A slice may share its backing store with unrelated data, including a Buffer pool.
+  if (
+    takeOwnership &&
+    data.buffer instanceof ArrayBuffer &&
+    data.byteOffset === 0 &&
+    data.byteLength === data.buffer.byteLength
+  )
+    return new Uint8Array(data.buffer);
+  return Uint8Array.from(data);
+}
+
 /** Runs on the page. It handles opaque bytes, never models or training rounds. */
 export function servePeerTransport(
   port: MessagePort,
@@ -31,11 +46,10 @@ export function servePeerTransport(
 ): () => void {
   const peers = new Map<number, PeerTransport>();
   let closed = false;
-  const reply = (message: Reply) => {
+  const reply = (message: Reply, takeOwnership = false) => {
     if (closed) return;
     if (message.type === "data") {
-      // A Buffer may share a pooled backing store. Transfer only our own copy.
-      const data = Uint8Array.from(message.data);
+      const data = prepareTransfer(message.data, takeOwnership);
       port.postMessage({ ...message, data }, [data.buffer]);
     } else port.postMessage(message);
   };
@@ -61,7 +75,9 @@ export function servePeerTransport(
         peer.on("signal", (signal) =>
           reply({ type: "signal", connection, signal }),
         );
-        peer.on("data", (data) => reply({ type: "data", connection, data }));
+        peer.on("data", (data) =>
+          reply({ type: "data", connection, data }, peer.transferableData),
+        );
         peer.on("error", (error) => fail(connection, error));
         return;
       }
@@ -120,19 +136,18 @@ export function workerPeerFactory(port: MessagePort): PeerFactory {
     constructor(private readonly connection: number) {
       super();
     }
-    private post(command: Command): void {
+    private post(command: Command, takeOwnership = false): void {
       if (this.destroyed) return;
       if (command.type === "send") {
-        // Callers retain ownership of their input, just as with Peer.send().
-        const data = Uint8Array.from(command.data);
+        const data = prepareTransfer(command.data, takeOwnership);
         port.postMessage({ ...command, data }, [data.buffer]);
       } else port.postMessage(command);
     }
     signal(signal: SignalData): void {
       this.post({ type: "signal", connection: this.connection, signal });
     }
-    send(data: Uint8Array): void {
-      this.post({ type: "send", connection: this.connection, data });
+    send(data: Uint8Array, { transfer = false } = {}): void {
+      this.post({ type: "send", connection: this.connection, data }, transfer);
     }
     async drain(timeout?: number): Promise<void> {
       if (this.destroyed) return;
