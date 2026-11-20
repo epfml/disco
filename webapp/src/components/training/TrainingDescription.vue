@@ -94,23 +94,44 @@
               }}
             </td>
           </tr>
-          <tr>
-            <th>Byzantine Fault Tolerance: Clipping Radius</th>
-            <td>
-              {{
-                (task.trainingInformation.privacy === undefined
-                  ? undefined
-                  : "byzantineFaultTolerance" in
-                      task.trainingInformation.privacy
-                    ? task.trainingInformation.privacy.byzantineFaultTolerance
-                        ?.clippingRadius
-                    : undefined) ?? "Unused"
-              }}
-            </td>
-          </tr>
+          <template
+            v-if="task.trainingInformation.aggregationStrategy === 'byzantine'"
+          >
+            <tr>
+              <th>Byzantine Fault Tolerance: Clipping Radius</th>
+              <td>
+                {{
+                  task.trainingInformation.aggregationParams?.clippingRadius ??
+                  "Unused"
+                }}
+              </td>
+            </tr>
+            <tr>
+              <th>Byzantine Fault Tolerance: Max Iterations</th>
+              <td>
+                {{
+                  task.trainingInformation.aggregationParams?.maxIterations ??
+                  "Unused"
+                }}
+              </td>
+            </tr>
+            <tr>
+              <th>Byzantine Fault Tolerance: Momentum (Beta)</th>
+              <td>
+                {{
+                  task.trainingInformation.aggregationParams?.beta ?? "Unused"
+                }}
+              </td>
+            </tr>
+          </template>
           <tr v-if="task.trainingInformation.aggregationStrategy === 'secure'">
             <th>Maximum Value of Shares used in Secure Aggregation</th>
-            <td>{{ task.trainingInformation.maxShareValue ?? "Unused" }}</td>
+            <td>
+              {{
+                task.trainingInformation.aggregationParams?.maxShareValue ??
+                "Unused"
+              }}
+            </td>
           </tr>
         </tbody>
       </table>

@@ -5,6 +5,7 @@ import type { Model } from "#models/index";
 import type { DataFormat, DataType, Network } from "#types/index";
 import type { Batched, Dataset } from "#dataset/index";
 import type { Task } from "#task/index";
+import { parseAggregationConfig } from "#task/index";
 
 import type { BatchLogs, EpochLogs, ValidationMetrics } from "#models/index";
 import { WeightsContainer } from "#weights/index";
@@ -49,6 +50,7 @@ export class Trainer<D extends DataType, N extends Network> {
         "decentralized" | "federated"
       >["trainingInformation"]["privacy"]
     | undefined;
+  readonly #bftClippingRadius: number | undefined;
   #model: Model<D> | undefined;
   #training?: AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
@@ -80,6 +82,12 @@ export class Trainer<D extends DataType, N extends Network> {
     this.#validationMode = task.trainingInformation.validationMode ?? "before";
     if ("privacy" in task.trainingInformation)
       this.#privacy = task.trainingInformation.privacy;
+
+    const aggregationConfig = parseAggregationConfig(task.trainingInformation);
+    if (aggregationConfig.aggregationStrategy === "byzantine") {
+      this.#bftClippingRadius =
+        aggregationConfig.aggregationParams.clippingRadius;
+    }
 
     if (
       this.#roundIterations !== undefined &&
@@ -175,7 +183,10 @@ export class Trainer<D extends DataType, N extends Network> {
     for (let round = 0; round < totalRound; round++) {
       await this.#client.onRoundBeginCommunication();
 
-      if (this.#privacy !== undefined) {
+      if (
+        this.#privacy !== undefined ||
+        this.#bftClippingRadius !== undefined
+      ) {
         // Store the clean weight before starting the communication
         this.#previousRoundWeights?.dispose();
         this.#previousRoundWeights = new WeightsContainer(
@@ -231,8 +242,11 @@ export class Trainer<D extends DataType, N extends Network> {
       while (next.done !== true) {
         await this.#client.onRoundBeginCommunication();
 
-        // Set previousRoundWeights for next round if privacy is enabled
-        if (this.#privacy !== undefined) {
+        // Set previousRoundWeights for next round if privacy or BFT clipping is enabled
+        if (
+          this.#privacy !== undefined ||
+          this.#bftClippingRadius !== undefined
+        ) {
           this.#previousRoundWeights?.dispose();
           this.#previousRoundWeights = new WeightsContainer(
             this.model.weights.weights.map((t) => t.clone()),
@@ -408,7 +422,10 @@ export class Trainer<D extends DataType, N extends Network> {
     let disposeRoundWeightsAfterSend = false;
 
     try {
-      if (this.#privacy !== undefined) {
+      if (
+        this.#privacy !== undefined ||
+        this.#bftClippingRadius !== undefined
+      ) {
         if (this.#previousRoundWeights === undefined)
           throw new Error("previous round weights were not set");
 
@@ -432,6 +449,7 @@ export class Trainer<D extends DataType, N extends Network> {
           this.#privacy,
           this.#weightNormHistory,
           totalRound,
+          this.#bftClippingRadius,
         );
         roundWeights = privateRoundWeights;
         disposeRoundWeightsAfterSend = true;
@@ -465,18 +483,21 @@ export class Trainer<D extends DataType, N extends Network> {
 async function applyOptimalPrivacy(
   previous: WeightsContainer | undefined,
   current: WeightsContainer,
-  options: Exclude<
-    Task<
-      DataType,
-      "decentralized" | "federated"
-    >["trainingInformation"]["privacy"],
-    undefined
-  >,
+  options:
+    | Exclude<
+        Task<
+          DataType,
+          "decentralized" | "federated"
+        >["trainingInformation"]["privacy"],
+        undefined
+      >
+    | undefined,
   weightNormHistory: WeightNormHistory,
   totalRound: number,
+  bftClippingRadius?: number,
 ): Promise<WeightsContainer> {
   let ret = current;
-  const dpOptions = options.differentialPrivacy;
+  const dpOptions = options?.differentialPrivacy;
 
   // Adding Gaussian noise for DP
   if (dpOptions !== undefined) {
@@ -493,10 +514,8 @@ async function applyOptimalPrivacy(
 
     /** Need to use tighter clipping radius for noise calibration */
     const effectiveRadius =
-      "byzantineFaultTolerance" in options
-        ? dpClippingRadius.map((r) =>
-            Math.min(r, options.byzantineFaultTolerance.clippingRadius),
-          )
+      bftClippingRadius !== undefined
+        ? dpClippingRadius.map((r) => Math.min(r, bftClippingRadius))
         : dpClippingRadius;
 
     const sigmas = effectiveRadius.map(
@@ -536,7 +555,7 @@ async function applyOptimalPrivacy(
     }
   }
   // Clipping radius for BFT if DP didn't already clip
-  else if ("byzantineFaultTolerance" in options) {
+  else if (bftClippingRadius !== undefined) {
     // might need to change the variable name
     const previousRoundWeights =
       previous ?? current.map((w) => tf.zerosLike(w));
@@ -545,7 +564,7 @@ async function applyOptimalPrivacy(
       try {
         const clippedProgress = await privacy.clipNorm(
           weightsProgress,
-          Repeat(options.byzantineFaultTolerance.clippingRadius)
+          Repeat(bftClippingRadius)
             .take(weightsProgress.weights.length)
             .toArray(),
         );

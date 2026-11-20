@@ -8,14 +8,12 @@ describe("end-to-end decentralized byzantine", { timeout: 50_000 }, () => {
     async () => {
       await runTenCifar10Consensus({
         aggregationStrategy: "byzantine",
-        epochs: 3,
-        privacy: {
-          byzantineFaultTolerance: {
-            clippingRadius: 10,
-            maxIterations: 1,
-            beta: 0.9,
-          },
+        aggregationParams: {
+          clippingRadius: 10,
+          maxIterations: 1,
+          beta: 0.9,
         },
+        epochs: 3,
       });
     },
   );
