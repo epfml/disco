@@ -19,6 +19,8 @@ export type ToWorker =
   | { type: "stop" };
 
 export type FromWorker =
+  | { type: "stopping" }
+  | { type: "closed"; error?: string }
   | { type: "status"; status: RoundStatus }
   | { type: "participants"; count: number }
   | { type: "batch"; log: BatchLogs }
@@ -35,4 +37,4 @@ export type FromWorker =
       postAggregationValidation?: ValidationMetrics;
     }
   | { type: "finished"; stopped: boolean; model?: Uint8Array }
-  | { type: "error"; message: string; errorName?: string };
+  | { type: "error"; message: string; errorName?: string; model?: Uint8Array };

@@ -36,7 +36,10 @@ it("stops training and keeps the partial model", () => {
   cy.contains("button", "next").click();
   cy.contains("button", "locally").click();
   cy.contains("button", "Start training").click();
-  cy.contains("h6", "current batch").next().should("not.have.text", "0");
+  // A fresh worker may need to compile WebGL shaders before its first batch.
+  cy.contains("h6", "current batch")
+    .next({ timeout: 30_000 })
+    .should("not.have.text", "0");
   cy.contains("button", "stop training").click();
   cy.contains("Training stopped", { timeout: 30_000 }).should("be.visible");
   cy.contains("button", "Start training").should("be.visible");

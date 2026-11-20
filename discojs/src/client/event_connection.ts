@@ -202,7 +202,8 @@ export class PeerConnection
         `can't send this type of message: ${JSON.stringify(msg)}`,
       );
     }
-    this.#peer.send(Buffer.from(msgpack.encode(msg)));
+    // The encoding is fresh, so transports can consume its buffer directly.
+    this.#peer.send(msgpack.encode(msg), { transfer: true });
   }
 
   async disconnect(gracePeriod = 0): Promise<void> {

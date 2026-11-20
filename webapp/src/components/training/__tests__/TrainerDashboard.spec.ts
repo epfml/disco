@@ -2,7 +2,17 @@ import { File as NativeFile, Blob as NativeBlob } from "node:buffer";
 import * as fs from "node:fs/promises";
 import * as tf from "@tensorflow/tfjs";
 import { CONFIG } from "@/config";
-import { defaultTasks, modelEncode, type Model } from "@epfml/discojs";
+import {
+  ClientCrashError,
+  Disco,
+  defaultTasks,
+  modelDecode,
+  modelEncode,
+  type Model,
+  type DataType,
+  type Network,
+} from "@epfml/discojs";
+import type * as DiscoJS from "@epfml/discojs";
 import { defineWebWorkers } from "@vitest/web-worker/pure";
 import { createTestingPinia } from "@pinia/testing";
 import { mount } from "@vue/test-utils";
@@ -11,6 +21,17 @@ import { directive as Tippy } from "vue-tippy";
 import TrainerDashboard from "../TrainerDashboard.vue";
 import TrainingInformation from "../TrainingInformation.vue";
 import type { FromWorker, ToWorker } from "../worker_messages";
+
+vi.mock("@epfml/discojs", async (importOriginal) => {
+  const actual = await importOriginal<typeof DiscoJS>();
+  return { ...actual, modelDecode: vi.fn(actual.modelDecode) };
+});
+const toaster = vi.hoisted(() => ({
+  error: vi.fn(),
+  info: vi.fn(),
+  success: vi.fn(),
+}));
+vi.mock("@/composables/toaster", () => ({ useToaster: () => toaster }));
 
 const workers: HangingWorker[] = [];
 class HangingWorker {
@@ -89,6 +110,8 @@ async function setupForTask(scheme?: "decentralized", realTraining = true) {
 afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
+  vi.mocked(modelDecode).mockReset();
+  vi.clearAllMocks();
   vi.unstubAllGlobals();
   workers.length = 0;
 });
@@ -153,6 +176,208 @@ it("resets participants and terminates an unresponsive worker after stopping", a
     await vi.advanceTimersByTimeAsync(10_000);
     expect(workers.at(-1)?.terminated).toBe(true);
     expect(infos.props("isTraining")).toBe(false);
+  } finally {
+    wrapper.unmount();
+  }
+});
+
+it.each(["training", "cleanup"] as const)(
+  "keeps a saveable partial model when %s fails",
+  { timeout: 20_000 },
+  async (phase) => {
+    // Retain the original method and call it with the current instance below.
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const close = Disco.prototype.close;
+    vi.spyOn(Disco.prototype, "close").mockImplementation(async function (
+      this: Disco<DataType, Network>,
+    ) {
+      await close.call(this);
+      throw new Error("cleanup failure");
+    });
+    if (phase === "training") {
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      const train = Disco.prototype.train;
+      vi.spyOn(Disco.prototype, "train").mockImplementation(async function* (
+        this: Disco<DataType, Network>,
+        dataset,
+        validationDataset,
+      ) {
+        for await (const round of train.call(
+          this,
+          dataset,
+          validationDataset,
+        )) {
+          yield round;
+          throw new ClientCrashError(
+            "connection failed after a completed round",
+          );
+        }
+      });
+    }
+    const wrapper = await setupForTask();
+    let model: Model<"tabular"> | undefined;
+    try {
+      await wrapper.get("#train-locally-bttn").trigger("click");
+      await wrapper.get("#start-training-bttn").trigger("click");
+      const infos = wrapper.getComponent(TrainingInformation);
+      await vi.waitFor(
+        () => expect(infos.props("rounds").isEmpty()).toBe(false),
+        {
+          timeout: 15_000,
+        },
+      );
+      await vi.waitFor(() => expect(infos.props("isTraining")).toBe(false));
+      model = wrapper.emitted<[Model<"tabular">]>("model")?.at(-1)?.[0];
+      if (model === undefined) throw new Error("Partial model was lost");
+      expect((await modelEncode(model)).length).toBeGreaterThan(0);
+      expect(toaster.error).toHaveBeenCalledExactlyOnceWith(
+        phase === "training"
+          ? "The server has disconnected you due to an unexpected event.<br/> Feel free to rejoin the training."
+          : "An error occurred during training.",
+      );
+      expect(toaster.success).not.toHaveBeenCalled();
+    } finally {
+      model?.dispose();
+      wrapper.unmount();
+    }
+  },
+);
+
+it("reports startup failures without requiring a partial model", async () => {
+  const wrapper = await setupForTask();
+  vi.stubGlobal("fetch", () => Promise.reject(new Error("server unavailable")));
+  try {
+    await wrapper.get("#train-locally-bttn").trigger("click");
+    await wrapper.get("#start-training-bttn").trigger("click");
+    await vi.waitFor(() =>
+      expect(
+        wrapper.getComponent(TrainingInformation).props("isTraining"),
+      ).toBe(false),
+    );
+    expect(wrapper.emitted("model")).toBeUndefined();
+    expect(toaster.error).toHaveBeenCalledExactlyOnceWith(
+      "An error occurred during training.",
+    );
+    expect(toaster.success).not.toHaveBeenCalled();
+  } finally {
+    wrapper.unmount();
+  }
+});
+
+it.each(["finished", "error"] as const)(
+  "keeps the returned model when %s decoding crosses the stop deadline",
+  async (type) => {
+    const wrapper = await setupForTask(undefined, false);
+    const dispose = vi.fn();
+    const model = { dispose } as unknown as Model<"tabular">;
+    let resolveDecode!: (model: Model<"tabular">) => void;
+    vi.mocked(modelDecode).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveDecode = resolve;
+        }),
+    );
+    try {
+      await wrapper.get("#train-locally-bttn").trigger("click");
+      await wrapper.get("#start-training-bttn").trigger("click");
+      vi.useFakeTimers();
+      const stop = wrapper
+        .findAll("button")
+        .find((button) => button.text().includes("stop training"));
+      if (stop === undefined) throw new Error("Stop button was not shown");
+      await stop.trigger("click");
+      await vi.advanceTimersByTimeAsync(9_900);
+      const active = workers.at(-1);
+      if (active === undefined) throw new Error("Worker was not started");
+      active.receive(
+        type === "finished"
+          ? { type, stopped: true, model: new Uint8Array([1]) }
+          : { type, message: "connection failed", model: new Uint8Array([1]) },
+      );
+      active.receive({ type: "closed" });
+      expect(modelDecode).toHaveBeenCalledOnce();
+      // Further stop clicks during decoding must not rearm the watchdog.
+      await stop.trigger("click");
+      await vi.advanceTimersByTimeAsync(10_100);
+      expect(active.terminated).toBe(false);
+      expect(
+        active.messages.filter((message) => message.type === "stop"),
+      ).toHaveLength(1);
+      resolveDecode(model);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(wrapper.emitted("model")?.at(-1)).toEqual([model]);
+      expect(dispose).not.toHaveBeenCalled();
+      expect(active.terminated).toBe(true);
+      expect(
+        wrapper.getComponent(TrainingInformation).props("isTraining"),
+      ).toBe(false);
+      expect(toaster.success).not.toHaveBeenCalled();
+      if (type === "error") expect(toaster.error).toHaveBeenCalledOnce();
+      else expect(toaster.info).toHaveBeenCalledWith("Training stopped");
+    } finally {
+      wrapper.unmount();
+    }
+  },
+);
+
+it("keeps an acknowledged stop alive and hands back the model before slow cleanup", async () => {
+  const wrapper = await setupForTask(undefined, false);
+  const dispose = vi.fn();
+  const model = { dispose } as unknown as Model<"tabular">;
+  vi.mocked(modelDecode).mockResolvedValueOnce(model);
+  try {
+    await wrapper.get("#start-training-bttn").trigger("click");
+    vi.useFakeTimers();
+    const active = workers.at(-1)!;
+    const stop = wrapper
+      .findAll("button")
+      .find((button) => button.text().includes("stop training"))!;
+    await stop.trigger("click");
+    active.receive({ type: "stopping" });
+    await vi.advanceTimersByTimeAsync(20_000);
+    expect(active.terminated).toBe(false);
+    active.receive({
+      type: "finished",
+      stopped: true,
+      model: new Uint8Array([1]),
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(wrapper.emitted("model")?.at(-1)).toEqual([model]);
+    await vi.advanceTimersByTimeAsync(10_500);
+    expect(active.terminated).toBe(false);
+    expect(wrapper.getComponent(TrainingInformation).props("isTraining")).toBe(
+      true,
+    );
+    active.receive({ type: "closed" });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(active.terminated).toBe(true);
+    expect(dispose).not.toHaveBeenCalled();
+    expect(toaster.info).toHaveBeenCalledWith("Training stopped");
+    expect(toaster.error).not.toHaveBeenCalled();
+  } finally {
+    wrapper.unmount();
+  }
+});
+
+it("retains the model even when cleanup never acknowledges completion", async () => {
+  const wrapper = await setupForTask(undefined, false);
+  const model = { dispose: vi.fn() } as unknown as Model<"tabular">;
+  vi.mocked(modelDecode).mockResolvedValueOnce(model);
+  try {
+    await wrapper.get("#start-training-bttn").trigger("click");
+    vi.useFakeTimers();
+    const active = workers.at(-1)!;
+    active.receive({
+      type: "finished",
+      stopped: false,
+      model: new Uint8Array([1]),
+    });
+    await vi.advanceTimersByTimeAsync(12_000);
+    expect(wrapper.emitted("model")?.at(-1)).toEqual([model]);
+    expect(active.terminated).toBe(true);
+    expect(wrapper.getComponent(TrainingInformation).props("isTraining")).toBe(
+      false,
+    );
   } finally {
     wrapper.unmount();
   }
