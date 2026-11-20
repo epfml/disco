@@ -85,7 +85,6 @@
           <!-- Stop training button -->
           <div>
             <CustomButton
-              id="stop-training-bttn"
               :disabled="phase.kind !== 'training'"
               @click="stopTraining()"
             >
@@ -166,7 +165,6 @@ const batchesOfEpochLogs = ref(List<BatchLogs>());
 const roundStatus = ref<[RoundStatus, string]>();
 interface Session {
   worker: Worker;
-  peerPort?: MessagePort;
   closePeerTransport?: () => void;
   closed: Promise<string | undefined>;
   resolveClosed: (error?: string) => void;
@@ -221,32 +219,20 @@ function startTraining(): void {
   const scheme = isTrainingLocally.value
     ? "local"
     : props.task.trainingInformation.scheme;
-  const session = initWorker(scheme);
-  const start: ToWorker = {
+  initWorker({
     type: "start",
     task: serializeTaskToJSON(toRaw(props.task) as Task<DataType, Network>),
     serverUrl: CONFIG.serverUrl.toString(),
     datasetSource,
     scheme,
-    peerPort: session.peerPort,
-  };
-  try {
-    session.worker.postMessage(
-      start,
-      session.peerPort === undefined ? [] : [session.peerPort],
-    );
-  } catch (error) {
-    session.peerPort?.close();
-    showTrainingError(error);
-    closeWorker(session);
-  }
+  });
 }
 
 function isCurrentSession(session: Session): boolean {
   return phase.value.kind !== "idle" && phase.value.session === session;
 }
 
-function initWorker(scheme: Network): Session {
+function initWorker(start: Extract<ToWorker, { type: "start" }>): void {
   const discoStatusMessage: Record<RoundStatus, string> = {
     "not enough participants": "Waiting for more participants",
     "waiting for peers to share weights":
@@ -263,10 +249,11 @@ function initWorker(scheme: Network): Session {
     resolveClosed = resolve;
   });
   const session: Session = { worker: active, closed, resolveClosed };
-  if (scheme === "decentralized") {
+  let peerPort: MessagePort | undefined;
+  if (start.scheme === "decentralized") {
     const channel = new MessageChannel();
     session.closePeerTransport = servePeerTransport(channel.port1);
-    session.peerPort = channel.port2;
+    peerPort = channel.port2;
   }
   phase.value = { kind: "training", session };
   active.onmessage = (event: MessageEvent<FromWorker>) => {
@@ -329,7 +316,16 @@ function initWorker(scheme: Network): Session {
     showTrainingError(new Error(event.message));
     closeWorker(session);
   };
-  return session;
+  try {
+    active.postMessage(
+      { ...start, peerPort },
+      peerPort === undefined ? [] : [peerPort],
+    );
+  } catch (error) {
+    peerPort?.close();
+    showTrainingError(error);
+    closeWorker(session);
+  }
 }
 
 async function finishTraining(
@@ -337,7 +333,6 @@ async function finishTraining(
   message: Extract<FromWorker, { type: "finished" | "error" }>,
 ): Promise<void> {
   // The worker has answered; model decoding must not race the stop watchdog.
-  if (phase.value.kind === "finishing") return;
   if (phase.value.kind === "stopping") clearTimeout(phase.value.timeout);
   phase.value = { kind: "finishing", session };
   // Report the training failure before decoding a possibly invalid partial model.
