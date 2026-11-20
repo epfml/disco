@@ -1,3 +1,9 @@
+/**
+ * Bridges opaque WebRTC bytes and signaling between training and the page.
+ * The page owns RTCPeerConnections; the worker owns training and aggregation.
+ * Each side exposes the PeerTransport API over a MessagePort, transferring owned
+ * buffers directly and copying buffers whose backing storage must be preserved.
+ */
 import {
   EventEmitter,
   Peer,

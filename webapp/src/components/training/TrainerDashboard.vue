@@ -84,7 +84,19 @@
           </div>
           <!-- Stop training button -->
           <div>
-            <CustomButton @click="stopTraining()"> stop training </CustomButton>
+            <CustomButton
+              id="stop-training-bttn"
+              :disabled="phase.kind !== 'training'"
+              @click="stopTraining()"
+            >
+              {{
+                phase.kind === "training"
+                  ? "stop training"
+                  : phase.kind === "stopping"
+                    ? "Stopping..."
+                    : "Finishing..."
+              }}
+            </CustomButton>
           </div>
         </div>
       </IconCard>
@@ -108,7 +120,7 @@
 <script lang="ts" setup generic="D extends DataType">
 import createDebug from "debug";
 import { List } from "immutable";
-import { computed, onUnmounted, ref, toRaw } from "vue";
+import { computed, onUnmounted, ref, shallowRef, toRaw } from "vue";
 
 import type {
   BatchLogs,
@@ -152,18 +164,31 @@ const roundsLogs = ref(List<RoundLogs>());
 const epochsOfRoundLogs = ref(List<EpochLogs>());
 const batchesOfEpochLogs = ref(List<BatchLogs>());
 const roundStatus = ref<[RoundStatus, string]>();
-const training = ref(false);
-let worker: Worker | undefined;
-let finishing = false;
-let closePeerTransport: (() => void) | undefined;
-let stopTimeout: ReturnType<typeof setTimeout> | undefined;
-let resolveClosed: ((error?: string) => void) | undefined;
+interface Session {
+  worker: Worker;
+  peerPort?: MessagePort;
+  closePeerTransport?: () => void;
+  closed: Promise<string | undefined>;
+  resolveClosed: (error?: string) => void;
+}
+
+type Phase =
+  | { kind: "idle" }
+  | { kind: "training"; session: Session }
+  | {
+      kind: "stopping";
+      session: Session;
+      timeout?: ReturnType<typeof setTimeout>;
+    }
+  | { kind: "finishing"; session: Session };
+
+const phase = shallowRef<Phase>({ kind: "idle" });
 
 const hasValidationData = computed(
   () => props.task.trainingInformation.validationSplit > 0,
 );
 
-const isTraining = training;
+const isTraining = computed(() => phase.value.kind !== "idle");
 const isTrainingAlone = ref(false);
 // Whether the training involves no collaborator at all: either the user chose
 // to train alone or the task itself is a local one
@@ -175,7 +200,7 @@ const isTrainingLocally = computed(
 const nbParticipants = ref(1);
 
 function startTraining(): void {
-  if (worker !== undefined) return;
+  if (phase.value.kind !== "idle") return;
   // Reset training information before starting a new training
   roundsLogs.value = List<RoundLogs>();
   epochsOfRoundLogs.value = List<EpochLogs>();
@@ -193,6 +218,35 @@ function startTraining(): void {
 
   toaster.info("Model training started");
 
+  const scheme = isTrainingLocally.value
+    ? "local"
+    : props.task.trainingInformation.scheme;
+  const session = initWorker(scheme);
+  const start: ToWorker = {
+    type: "start",
+    task: serializeTaskToJSON(toRaw(props.task) as Task<DataType, Network>),
+    serverUrl: CONFIG.serverUrl.toString(),
+    datasetSource,
+    scheme,
+    peerPort: session.peerPort,
+  };
+  try {
+    session.worker.postMessage(
+      start,
+      session.peerPort === undefined ? [] : [session.peerPort],
+    );
+  } catch (error) {
+    session.peerPort?.close();
+    showTrainingError(error);
+    closeWorker(session);
+  }
+}
+
+function isCurrentSession(session: Session): boolean {
+  return phase.value.kind !== "idle" && phase.value.session === session;
+}
+
+function initWorker(scheme: Network): Session {
   const discoStatusMessage: Record<RoundStatus, string> = {
     "not enough participants": "Waiting for more participants",
     "waiting for peers to share weights":
@@ -204,30 +258,30 @@ function startTraining(): void {
   const active = new Worker(new URL("./training.worker.ts", import.meta.url), {
     type: "module",
   });
-  worker = active;
+  let resolveClosed!: Session["resolveClosed"];
   const closed = new Promise<string | undefined>((resolve) => {
     resolveClosed = resolve;
   });
-  training.value = true;
-  const scheme = isTrainingLocally.value
-    ? "local"
-    : props.task.trainingInformation.scheme;
-  let peerPort: MessagePort | undefined;
+  const session: Session = { worker: active, closed, resolveClosed };
   if (scheme === "decentralized") {
     const channel = new MessageChannel();
-    closePeerTransport = servePeerTransport(channel.port1);
-    peerPort = channel.port2;
+    session.closePeerTransport = servePeerTransport(channel.port1);
+    session.peerPort = channel.port2;
   }
+  phase.value = { kind: "training", session };
   active.onmessage = (event: MessageEvent<FromWorker>) => {
-    if (worker !== active) return;
+    if (!isCurrentSession(session)) return;
     const message = event.data;
     switch (message.type) {
       case "stopping":
         // A responsive worker can finish its current operation without being killed.
-        clearTimeout(stopTimeout);
+        if (phase.value.kind === "stopping") {
+          clearTimeout(phase.value.timeout);
+          phase.value = { kind: "stopping", session };
+        }
         break;
       case "closed":
-        resolveClosed?.(message.error);
+        session.resolveClosed(message.error);
         break;
       case "status":
         roundStatus.value = [
@@ -262,50 +316,42 @@ function startTraining(): void {
         break;
       case "finished":
       case "error":
-        void finishTraining(active, message, closed);
+        void finishTraining(session, message);
         break;
     }
   };
   active.onerror = (event) => {
-    if (worker !== active) return;
-    if (finishing) {
-      resolveClosed?.(event.message);
+    if (!isCurrentSession(session)) return;
+    if (phase.value.kind === "finishing") {
+      session.resolveClosed(event.message);
       return;
     }
     showTrainingError(new Error(event.message));
-    closeWorker(active);
+    closeWorker(session);
   };
-  const start: ToWorker = {
-    type: "start",
-    task: serializeTaskToJSON(toRaw(props.task) as Task<DataType, Network>),
-    serverUrl: CONFIG.serverUrl.toString(),
-    datasetSource,
-    scheme,
-    peerPort,
-  };
-  try {
-    active.postMessage(start, peerPort === undefined ? [] : [peerPort]);
-  } catch (error) {
-    peerPort?.close();
-    showTrainingError(error);
-    closeWorker(active);
-  }
+  return session;
 }
 
 async function finishTraining(
-  active: Worker,
+  session: Session,
   message: Extract<FromWorker, { type: "finished" | "error" }>,
-  closed: Promise<string | undefined>,
 ): Promise<void> {
   // The worker has answered; model decoding must not race the stop watchdog.
-  finishing = true;
-  if (stopTimeout !== undefined) clearTimeout(stopTimeout);
-  stopTimeout = undefined;
+  if (phase.value.kind === "finishing") return;
+  if (phase.value.kind === "stopping") clearTimeout(phase.value.timeout);
+  phase.value = { kind: "finishing", session };
+  // Report the training failure before decoding a possibly invalid partial model.
+  if (message.type === "error")
+    showTrainingError(
+      Object.assign(new Error(message.message), {
+        name: message.errorName ?? "Error",
+      }),
+    );
   // Peer draining is bounded at 10 seconds. Allow cleanup to finish after the
   // model has been returned, then terminate even if cleanup gets stuck.
   let cleanupTimeout: ReturnType<typeof setTimeout> | undefined;
   const cleanup = Promise.race([
-    closed,
+    session.closed,
     new Promise<string>((resolve) => {
       cleanupTimeout = setTimeout(
         () => resolve("Worker cleanup timed out"),
@@ -316,30 +362,25 @@ async function finishTraining(
   try {
     if (message.model !== undefined) {
       const model = await modelDecode(message.model);
-      if (worker !== active) {
+      if (!isCurrentSession(session)) {
         model.dispose();
         return;
       }
       emit("model", model as Model<D>);
     }
     const cleanupError = await cleanup;
-    if (worker !== active) return;
-    if (message.type === "error")
-      showTrainingError(
-        Object.assign(new Error(message.message), {
-          name: message.errorName ?? "Error",
-        }),
-      );
-    else if (cleanupError !== undefined)
-      showTrainingError(new Error(cleanupError));
+    if (!isCurrentSession(session) || message.type === "error") return;
+    if (cleanupError !== undefined) showTrainingError(new Error(cleanupError));
     else if (message.stopped) toaster.info("Training stopped");
     else toaster.success("Training successfully completed");
   } catch (error) {
-    showTrainingError(error);
+    if (message.type === "error")
+      debug("while recovering partial model: %o", error);
+    else showTrainingError(error);
   } finally {
     await cleanup;
     clearTimeout(cleanupTimeout);
-    closeWorker(active);
+    closeWorker(session);
   }
 }
 
@@ -383,32 +424,29 @@ function showTrainingError(e: unknown): void {
   debug("while training: %o", e);
 }
 
-function closeWorker(active: Worker): void {
-  if (worker !== active) return;
-  if (stopTimeout !== undefined) clearTimeout(stopTimeout);
-  stopTimeout = undefined;
-  resolveClosed?.();
-  resolveClosed = undefined;
-  active.terminate();
-  closePeerTransport?.();
-  closePeerTransport = undefined;
-  worker = undefined;
-  finishing = false;
-  training.value = false;
+function closeWorker(session: Session): void {
+  if (!isCurrentSession(session)) return;
+  if (phase.value.kind === "stopping") clearTimeout(phase.value.timeout);
+  session.resolveClosed();
+  session.worker.terminate();
+  session.closePeerTransport?.();
+  phase.value = { kind: "idle" };
 }
 
 function stopTraining(): void {
-  const active = worker;
-  if (active === undefined || finishing || stopTimeout !== undefined) return;
-  active.postMessage({ type: "stop" } satisfies ToWorker);
+  if (phase.value.kind !== "training") return;
+  const { session } = phase.value;
   // Only force termination if the worker cannot acknowledge the stop request.
-  stopTimeout = setTimeout(() => {
-    if (worker !== active) return;
-    closeWorker(active);
+  const timeout = setTimeout(() => {
+    if (!isCurrentSession(session)) return;
+    closeWorker(session);
     toaster.info("Training stopped");
   }, 10_000);
+  phase.value = { kind: "stopping", session, timeout };
+  session.worker.postMessage({ type: "stop" } satisfies ToWorker);
 }
+
 onUnmounted(() => {
-  if (worker !== undefined) closeWorker(worker);
+  if (phase.value.kind !== "idle") closeWorker(phase.value.session);
 });
 </script>

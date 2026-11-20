@@ -14,7 +14,7 @@ import { workerPeerFactory } from "./peer_transport";
 import { loadDataset } from "../dataset_input/source";
 import type { FromWorker, ToWorker } from "./worker_messages";
 
-const send = (message: FromWorker): void => {
+function send(message: FromWorker): void {
   const bytes =
     message.type === "finished" || message.type === "error"
       ? message.model
@@ -22,7 +22,8 @@ const send = (message: FromWorker): void => {
   self.postMessage(message, {
     transfer: bytes?.buffer instanceof ArrayBuffer ? [bytes.buffer] : [],
   });
-};
+}
+
 async function releaseAndEncodeModel(
   disco: Disco<DataType, Network> | undefined,
 ): Promise<Uint8Array | undefined> {
@@ -33,8 +34,10 @@ async function releaseAndEncodeModel(
     model?.dispose();
   }
 }
+
 let stopRequested = false;
 let activeDisco: Disco<DataType, Network> | undefined;
+
 async function train(
   message: Extract<ToWorker, { type: "start" }>,
 ): Promise<void> {
@@ -69,17 +72,18 @@ async function train(
     disco.on("status", (status) => send({ type: "status", status }));
     disco.on("participants", (count) => send({ type: "participants", count }));
 
-    for await (const round of disco.train(loadDataset(message.datasetSource))) {
+    training: for await (const round of disco.train(
+      loadDataset(message.datasetSource),
+    )) {
       const [roundGenerator, roundLogs] = split(round);
       for await (const epoch of roundGenerator) {
         const [epochGenerator, epochLogs] = split(epoch);
         for await (const log of epochGenerator) {
           send({ type: "batch", log });
-          if (stopRequested) break;
-        }
-        if (stopRequested) {
-          stopped = true;
-          break;
+          if (stopRequested) {
+            stopped = true;
+            break training;
+          }
         }
         const log = await epochLogs;
         send({
@@ -91,7 +95,7 @@ async function train(
       }
       if (stopRequested) {
         stopped = true;
-        break;
+        break training;
       }
       const log = await roundLogs;
       send({

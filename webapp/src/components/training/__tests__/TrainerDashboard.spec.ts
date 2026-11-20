@@ -171,6 +171,8 @@ it("resets participants and terminates an unresponsive worker after stopping", a
     if (stop === undefined) throw new Error("Stop button was not shown");
     vi.useFakeTimers();
     await stop.trigger("click");
+    expect(stop.text()).toBe("Stopping...");
+    expect(stop.attributes("disabled")).toBeDefined();
     expect(workers.at(-1)?.messages.at(-1)).toEqual({ type: "stop" });
     expect(workers.at(-1)?.terminated).toBe(false);
     await vi.advanceTimersByTimeAsync(10_000);
@@ -259,6 +261,35 @@ it("reports startup failures without requiring a partial model", async () => {
       "An error occurred during training.",
     );
     expect(toaster.success).not.toHaveBeenCalled();
+  } finally {
+    wrapper.unmount();
+  }
+});
+
+it("reports the original worker error even when its partial model cannot be decoded", async () => {
+  const wrapper = await setupForTask(undefined, false);
+  vi.mocked(modelDecode).mockRejectedValueOnce(new Error("invalid model"));
+  try {
+    await wrapper.get("#start-training-bttn").trigger("click");
+    const active = workers.at(-1)!;
+    active.receive({
+      type: "error",
+      errorName: "ClientCrashError",
+      message: "Failed to connect to peers of the round",
+      model: new Uint8Array([1]),
+    });
+    // Report the training failure immediately, without waiting for recovery/cleanup.
+    expect(toaster.error).toHaveBeenCalledExactlyOnceWith(
+      "Client disconnected after multiple peer connection failures. Please rejoin the training.",
+    );
+    active.receive({ type: "closed" });
+    await vi.waitFor(() => expect(active.terminated).toBe(true));
+    expect(toaster.error).toHaveBeenCalledOnce();
+    expect(toaster.success).not.toHaveBeenCalled();
+    expect(wrapper.emitted("model")).toBeUndefined();
+    expect(wrapper.getComponent(TrainingInformation).props("isTraining")).toBe(
+      false,
+    );
   } finally {
     wrapper.unmount();
   }

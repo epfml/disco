@@ -1,11 +1,32 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as msgpack from "@msgpack/msgpack";
 
 import type { EventConnection } from "#client/event_connection";
-import { sendAndWaitWithRetry } from "#client/event_connection";
+import {
+  PeerConnection,
+  sendAndWaitWithRetry,
+  WebSocketServer,
+} from "#client/event_connection";
+import type { PeerTransport } from "#client/decentralized/peer";
+import * as decentralizedMessages from "#client/decentralized/messages";
 import type { Message, NarrowMessage } from "#client/messages";
 import { MType } from "#client/mtype";
 import type * as federatedMessages from "#client/federated/messages";
 import { EventEmitter } from "#utils/event_emitter";
+
+const { sockets, FakeWebSocket } = vi.hoisted(() => {
+  const sockets: FakeWebSocket[] = [];
+  class FakeWebSocket {
+    binaryType = "";
+    onmessage?: (event: { data: unknown }) => void;
+    onopen?: () => void;
+    constructor() {
+      sockets.push(this);
+    }
+  }
+  return { sockets, FakeWebSocket };
+});
+vi.mock("@epfml/isomorphic-ws", () => ({ default: FakeWebSocket }));
 
 /**
  * In-memory fake EventConnection
@@ -27,6 +48,69 @@ class FakeConnection
 
 const CLIENT_CONNECTED: Message = { type: MType.ClientConnected };
 const RETRY_DELAY_MS = 1_000;
+
+describe("incoming message validation", () => {
+  it("ignores malformed peer messages and still delivers the next valid message", () => {
+    let receive!: (data: Uint8Array) => void;
+    const peer: PeerTransport = {
+      on(type, listener) {
+        if (type === "data") receive = listener;
+      },
+      signal: vi.fn(),
+      send: vi.fn(),
+      drain: vi.fn(async () => {}),
+      destroy: vi.fn(async () => {}),
+    };
+    const connection = new PeerConnection(
+      "local",
+      "remote",
+      new FakeConnection(),
+      () => peer,
+    );
+    const received = vi.fn();
+    connection.on(MType.SharedModel, received);
+
+    for (const invalid of [
+      new Uint8Array([0xc1]), // Invalid MessagePack.
+      new Uint8Array([0x81]), // Truncated MessagePack.
+      msgpack.encode({ type: MType.SharedModel, model: "invalid" }),
+    ]) {
+      expect(() => receive(invalid)).not.toThrow();
+    }
+    expect(received).not.toHaveBeenCalled();
+    const message = { type: MType.SharedModel, model: new Uint8Array([1]) };
+    receive(msgpack.encode(message));
+    expect(received).toHaveBeenCalledExactlyOnceWith(message);
+  });
+
+  it("ignores malformed server messages and still delivers the next valid message", async () => {
+    const connecting = WebSocketServer.connect(
+      new URL("ws://localhost"),
+      decentralizedMessages.isMessageFromServer,
+      () => true,
+    );
+    const socket = sockets.at(-1)!;
+    socket.onopen?.();
+    const server = await connecting;
+    const received = vi.fn();
+    server.on(MType.EnoughParticipants, received);
+
+    for (const data of [
+      "not an ArrayBuffer",
+      new Uint8Array([0xc1]).buffer,
+      new Uint8Array([0x81]).buffer,
+      Uint8Array.from(msgpack.encode({ type: "invalid" })).buffer,
+    ]) {
+      expect(() => socket.onmessage?.({ data })).not.toThrow();
+    }
+    expect(received).not.toHaveBeenCalled();
+    const message = { type: MType.EnoughParticipants };
+    socket.onmessage?.({
+      data: Uint8Array.from(msgpack.encode(message)).buffer,
+    });
+    expect(received).toHaveBeenCalledExactlyOnceWith(message);
+  });
+});
 
 /**
  * Builds a NewFederatedNodeInfo message.
