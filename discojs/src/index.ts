@@ -86,3 +86,11 @@ export { extractColumn, isMissingValue } from "./processing/index.js";
 export * as defaultTasks from "./default_tasks/index.js";
 export { cards as defaultModels } from "./models/index.js";
 export { ClientCrashError, ClientDisconnectedError } from "./errors.js";
+
+export { Peer } from "./client/decentralized/peer.js";
+export type {
+  PeerFactory,
+  PeerTransport,
+  PeerEvents,
+  SignalData,
+} from "./client/decentralized/peer.js";
