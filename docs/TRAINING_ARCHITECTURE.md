@@ -336,15 +336,15 @@ Note that unlike Python Keras, TensorFlow.js (`@tensorflow/tfjs-layers` 4.22) do
 
 Below are the **three candidate mechanisms** for wiring `TrainingHook.computeLoss` (and future gradient hooks) into `TFJS` and `GPT`, so we can align on the right robustness vs. generality trade-off:
 
-| Option | Mechanism | `TFJS` keeps `model.fit()`? | Monkey-patches TFJS? | Supports gradient hooks (SCAFFOLD, DP-SGD)? |
+| Option | Mechanism | `TFJS` keeps `model.fit()`? | Modifies TFJS runtime API? | Supports gradient hooks (SCAFFOLD, DP-SGD)? |
 | :--- | :--- | :---: | :---: | :---: |
-| **Option 1 (Recommended default)** | `TFJS` wraps the compiled loss via public `model.compile({ loss })`; `GPTModel` calls `hooks.computeLoss` directly in its existing `computeGradients` loop. | **Yes** | **No** | Loss hooks only (fallback to explicit step only if a gradient hook is active) |
-| **Option 2 (Unified explicit step)** | Both `TFJS` and `GPT` share one ~40-line `runTFJSStep` helper using `optimizer.computeGradients` $\rightarrow$ `transformGradients` $\rightarrow$ `applyGradients`. | **No** | **No** | **Yes** (uniformly for `TFJS` and `GPT`) |
-| **Option 3 (Not recommended)** | Temporarily overwrite `optimizer.computeGradients` on the `tf.Optimizer` instance during a round. | **Yes** | **Yes** | **Yes** |
+| **Option 1** | `TFJS` wraps the compiled loss via public `model.compile({ loss })`; `GPTModel` calls `hooks.computeLoss` directly in its existing `computeGradients` loop. | **Yes** | **No** | Loss hooks only (requires a separate path if a gradient hook is active) |
+| **Option 2** | Both `TFJS` and `GPT` share one ~40-line `runTFJSStep` helper using `optimizer.computeGradients` $\rightarrow$ `transformGradients` $\rightarrow$ `applyGradients`. | **No** | **No** | **Yes** (uniformly for `TFJS` and `GPT`) |
+| **Option 3** | Temporarily wrap `optimizer.computeGradients` on the `tf.Optimizer` instance for the duration of a round. | **Yes** | **Yes** | **Yes** (uniformly for `TFJS` and `GPT`) |
 
 ---
 
-#### Option 1 (Recommended Default): Public `model.compile({ loss })` in `TFJS` + Direct Call in `GPTModel`
+#### Option 1: Public `model.compile({ loss })` in `TFJS` + Direct Call in `GPTModel`
 
 - **How it works:**
   - When no hook implements `computeLoss` (standard FedAvg, local training, Byzantine, DP), `TFJS` calls `this.model.fit(xs, ys, { epochs: 1, verbose: 0 })` completely untouched.
@@ -364,11 +364,11 @@ Below are the **three candidate mechanisms** for wiring `TrainingHook.computeLos
     ```
   - `GPTModel` (`discojs/src/models/implementations/gpt/model.ts`) already executes its own explicit `optimizer.computeGradients(...)` loop, so it invokes `hook.computeLoss(totalLoss, ctx)` directly inside that closure with no `compile` re-wrapping.
 - **Pros:**
-  - **Maximum robustness for `TFJS`:** keeps `this.model.fit(xs, ys)` in the loop for all standard and loss-regularized tasks—preserving TFJS's battle-tested handling of `{ training: true }`, `calculateLosses()`, compiled metrics, and tensor disposal.
-  - **Zero monkey-patching** of TFJS internals.
+  - Keeps `this.model.fit(xs, ys)` in the loop for `TFJS`, preserving TFJS's built-in handling of `{ training: true }`, `calculateLosses()`, compiled metrics, and tensor disposal.
+  - Uses only public TFJS APIs (no runtime method patching).
 - **Cons:**
-  - Only covers **loss-level** hooks (like FedProx) inside `model.fit()`. If a future algorithm needs raw **gradient** access (`transformGradients`, e.g., SCAFFOLD or DP-SGD) on `TFJS`, `TFJS` would either fall back to an explicit `computeGradients` step *only* when a gradient hook is active, or migrate to Option 2.
-  - `TFJS` and `GPT` remain two separate training-step implementations.
+  - Handles different cases differently (`TFJS` vs. `GPT`, and loss hooks vs. future gradient hooks), adding branching complexity.
+  - Only covers **loss-level** hooks inside `model.fit()`; supporting raw **gradient** hooks (`transformGradients`, e.g., SCAFFOLD or DP-SGD) on `TFJS` would still require a separate fallback step or migrating to Option 2.
 
 ---
 
@@ -397,20 +397,22 @@ Below are the **three candidate mechanisms** for wiring `TrainingHook.computeLos
     ```
   - `TFJS` supplies its compiled loss + accuracy metric; `GPT` supplies next-token cross-entropy (+ optional Goldfish masking), its `AdamW` optimizer, and a global-norm clipping hook—allowing the `GPTModel.fitDataset` override and 1-batch-dataset indirection to be removed.
 - **Pros:**
-  - **Zero monkey-patching** of TFJS internals.
-  - **First-class support for both loss and gradient hooks** (FedProx, SCAFFOLD, DP-SGD, gradient clipping) identically across `TFJS` and `GPT`.
-  - **Less duplicated code overall** by unifying `TFJS` and `GPTModel.fitDataset` around one step primitive.
+  - Uses only public TFJS APIs (no runtime method patching).
+  - Handles training generically and uniformly across `TFJS` and `GPT` for both loss and gradient hooks (FedProx, SCAFFOLD, DP-SGD, gradient clipping).
+  - Reduces duplicated training-loop code by unifying `TFJS` and `GPTModel.fitDataset` around one step primitive.
 - **Cons:**
-  - **Robustness trade-off for `TFJS`:** replacing `model.fit()` means Disco explicitly owns `{ training: true }` (Dropout/BatchNorm), `model.calculateLosses()` (layer L1/L2 regularizers), compiled loss lookup, and batch metric calculation. While straightforward (~40 lines and unit-testable), it carries higher regression risk for custom user-supplied Keras models than delegating to `model.fit()`.
+  - **Robustness trade-off for `TFJS`:** replacing `model.fit()` means Disco explicitly owns `{ training: true }` (Dropout/BatchNorm), `model.calculateLosses()` (layer L1/L2 regularizers), compiled loss lookup, and batch metric calculation, which may be less battle-tested on exotic custom Keras models than `model.fit()`.
 
 ---
 
-#### Option 3 (Not Recommended): Scoped Runtime Wrapping of `optimizer.computeGradients`
+#### Option 3: Scoped Runtime Wrapping of `optimizer.computeGradients`
 
 - **How it works:**
   - Temporarily reassign `layersModel.optimizer.computeGradients = ...` for the duration of a round via a `Disposable` scope, intercepting both `TFJS.model.fit()` (via `optimizer.minimize` $\rightarrow$ `computeGradients`) and `GPTModel.fitDataset()`.
-- **Why we lean against it:**
-  - Although it keeps `model.fit()` untouched, mutating a method on a `@tensorflow/tfjs-core` `tf.Optimizer` instance at runtime is fragile monkey-patching that couples Disco to TFJS internal call chains (`Sequential` vs. functional `LayersModel` optimizer forwarding, `varList` defaults, etc.).
+- **Pros:**
+  - Keeps `model.fit()` untouched for `TFJS` while handling both `TFJS` and `GPT` (and both loss and gradient hooks) uniformly in one place.
+- **Cons:**
+  - **API- and internals-dependent:** mutates a method on a `@tensorflow/tfjs-core` `tf.Optimizer` instance at runtime and relies on TFJS's internal call chain (`Sequential` vs. functional `LayersModel` optimizer forwarding, `minimize` $\rightarrow$ `computeGradients`).
 
 #### Critical TensorFlow.js Invariants (Relevant Across Options)
 
@@ -467,7 +469,7 @@ To keep the architecture honest and avoid over-promising what a client-only hook
 ## 5. Phased Implementation Plan
 
 1. **Phase 1 — `TrainingHook` Pipeline & Autograd Loss Hook (`discojs`):**
-   - Align on Section 3.3 (**Option 1** `model.compile({ loss })` keeping `model.fit()` vs. **Option 2** shared explicit `runTFJSStep`).
+   - Align on Section 3.3 (**Option 1** vs. **Option 2** vs. **Option 3**).
    - Introduce `TrainingHook` and `HookContext` in `discojs/src/training/`.
    - Extract `DifferentialPrivacyHook`, `UpdateClippingHook`, and `FedProxHook` out of `Trainer`.
    - Unify `Trainer`'s `#runRoundsByEpoch` and `#runRoundsByIteration` around a single `#executeRound` lifecycle method.
