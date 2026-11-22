@@ -336,11 +336,11 @@ Note that unlike Python Keras, TensorFlow.js (`@tensorflow/tfjs-layers` 4.22) do
 
 Below are the **three candidate mechanisms** for wiring `TrainingHook.computeLoss` (and future gradient hooks) into `TFJS` and `GPT`, so we can align on the right robustness vs. generality trade-off:
 
-| Option | Mechanism | `TFJS` keeps `model.fit()`? | Modifies TFJS runtime API? | Supports gradient hooks (SCAFFOLD, DP-SGD)? |
-| :--- | :--- | :---: | :---: | :---: |
-| **Option 1** | `TFJS` wraps the compiled loss via public `model.compile({ loss })`; `GPTModel` calls `hooks.computeLoss` directly in its existing `computeGradients` loop. | **Yes** | **No** | Loss hooks only (requires a separate path if a gradient hook is active) |
-| **Option 2** | Both `TFJS` and `GPT` share one ~40-line `runTFJSStep` helper using `optimizer.computeGradients` $\rightarrow$ `transformGradients` $\rightarrow$ `applyGradients`. | **No** | **No** | **Yes** (uniformly for `TFJS` and `GPT`) |
-| **Option 3** | Temporarily wrap `optimizer.computeGradients` on the `tf.Optimizer` instance for the duration of a round. | **Yes** | **Yes** | **Yes** (uniformly for `TFJS` and `GPT`) |
+| Option       | Mechanism                                                                                                                                                           | `TFJS` keeps `model.fit()`? | Modifies TFJS runtime API? |               Supports gradient hooks (SCAFFOLD, DP-SGD)?               |
+| :----------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :-------------------------: | :------------------------: | :---------------------------------------------------------------------: |
+| **Option 1** | `TFJS` wraps the compiled loss via public `model.compile({ loss })`; `GPTModel` calls `hooks.computeLoss` directly in its existing `computeGradients` loop.         |           **Yes**           |           **No**           | Loss hooks only (requires a separate path if a gradient hook is active) |
+| **Option 2** | Both `TFJS` and `GPT` share one ~40-line `runTFJSStep` helper using `optimizer.computeGradients` $\rightarrow$ `transformGradients` $\rightarrow$ `applyGradients`. |           **No**            |           **No**           |                **Yes** (uniformly for `TFJS` and `GPT`)                 |
+| **Option 3** | Temporarily wrap `optimizer.computeGradients` on the `tf.Optimizer` instance for the duration of a round.                                                           |           **Yes**           |          **Yes**           |                **Yes** (uniformly for `TFJS` and `GPT`)                 |
 
 ---
 
@@ -376,6 +376,7 @@ Below are the **three candidate mechanisms** for wiring `TrainingHook.computeLos
 
 - **How it works:**
   - Because both `TFJS` and `GPT` wrap a `tf.LayersModel`, extract a single ~40-line helper that runs the autograd step directly for both models:
+
     ```ts
     const { value: loss, grads } = optimizer.computeGradients(() => {
       const preds = tfModel.apply(xs, { training: true }) as tf.Tensor;
@@ -395,7 +396,9 @@ Below are the **three candidate mechanisms** for wiring `TrainingHook.computeLos
     }
     optimizer.applyGradients(finalGrads);
     ```
+
   - `TFJS` supplies its compiled loss + accuracy metric; `GPT` supplies next-token cross-entropy (+ optional Goldfish masking), its `AdamW` optimizer, and a global-norm clipping hook—allowing the `GPTModel.fitDataset` override and 1-batch-dataset indirection to be removed.
+
 - **Pros:**
   - Uses only public TFJS APIs (no runtime method patching).
   - Handles training generically and uniformly across `TFJS` and `GPT` for both loss and gradient hooks (FedProx, SCAFFOLD, DP-SGD, gradient clipping).
