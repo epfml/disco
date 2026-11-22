@@ -52,7 +52,7 @@ Currently on `main`, `TrainingInformation` (`discojs/src/task/training_informati
 
 In `discojs/src/training/trainer.ts` and `discojs/src/privacy.ts`, `ByzantineRobustAggregator`'s configuration leaks directly into client-side execution inside `Trainer`:
 
-1. **Misplaced clipping responsibility:** `ByzantineRobustAggregator` (`discojs/src/aggregator/byzantine.ts`) performs Centered Clipping on the receiving server or peer—which is where Byzantine fault tolerance must be enforced, because malicious peers do not obey client-side clipping. However, `Trainer` also extracts `byzantineFaultTolerance.clippingRadius` and calls `applyOptimalPrivacy` at the end of every client round to pre-clip outgoing weights even when Differential Privacy is disabled.
+1. **Coupled clipping responsibility:** `ByzantineRobustAggregator` (`discojs/src/aggregator/byzantine.ts`) performs Centered Clipping on the receiving server or peer—which is where Byzantine fault tolerance must be enforced, because malicious peers do not obey client-side clipping. While standalone client-side update clipping (without Differential Privacy) is a valid feature on its own, `Trainer` currently couples it to `byzantineFaultTolerance.clippingRadius` and executes it inside `applyOptimalPrivacy` whenever BFT is enabled, rather than exposing it as an independent client-side update transform.
 2. **Mathematical norm mismatch:** `ByzantineRobustAggregator` clips by the **global Euclidean ($L_2$) norm** across all weight tensors:
    $$\text{norm}(\Delta w) = \sqrt{\sum_{l=1}^{L} \|\Delta w_l\|_F^2}$$
    Conversely, `Trainer` passes `Repeat(bftClippingRadius).take(numLayers)` into `privacy.clipNorm` (`discojs/src/privacy.ts`), which clips **each layer's Frobenius norm individually** to `bftClippingRadius`. (Notably, the doc comment in `discojs/src/privacy.ts:81` claims _"If `radius.length === 1`, interpret `radius[0]` as a global clipping radius (BFT)"_, but line 85 immediately throws `Error("Layers and radius length failed to match")` if `radius.length !== layers.length`.)
@@ -107,7 +107,7 @@ flowchart LR
 
     subgraph Execution["3. Algorithm-Agnostic Trainer & Model"]
         TR["Trainer<br/>Unified #executeRound() loop"]
-        OPT["TFJS / GPT Optimizer Hook<br/>optimizer.computeGradients (Autograd)"]
+        OPT["TFJS / GPT Autograd Step<br/>TrainingHook.computeLoss (see Section 3.3 options)"]
         CL["Client & Aggregator"]
         TR --> OPT
         TR --> CL
@@ -326,91 +326,100 @@ export interface TrainingHook<D extends DataType = DataType>
 
 ---
 
-### 3.3. Executing `TrainingHook.computeLoss` via Autograd (`optimizer.computeGradients`)
+### 3.3. Executing `TrainingHook.computeLoss` via Autograd: Design Options
 
 A key requirement of this architecture is:
 
-> **The user/task defines the model architecture (`tf.LayersModel` or `GPT`), base loss, and optimizer. When a collaborative training algorithm adds a loss regularizer (such as FedProx), Disco must add it to the loss and SGD/optimizer update automatically via autograd—without forcing every `Model` subclass to re-implement its training loop.**
+> **The user/task defines the model architecture (`tf.LayersModel` or `GPT`), base loss, and optimizer. When a collaborative training algorithm adds a differentiable loss regularizer (such as FedProx), Disco must fold it into the loss and differentiate it via TensorFlow.js autograd—without hardcoding algorithm-specific logic into `Model` or `Trainer`.**
 
-#### How TensorFlow.js Executes Gradient Updates Across Both `TFJS` and `GPT`
+Note that unlike Python Keras, TensorFlow.js (`@tensorflow/tfjs-layers` 4.22) does **not** support model-level `model.addLoss(fn)` during `model.fit()`: `Container.prototype.calculateLosses()` only collects losses from child layers (`// TODO(cais): Add any unconditional model-level losses?`).
 
-Both `TFJS` (`discojs/src/models/tfjs.ts`) and `GPT` (`discojs/src/models/implementations/gpt/gpt.ts`) wrap a `tf.LayersModel` (`this.model`):
+Below are the **three candidate mechanisms** for wiring `TrainingHook.computeLoss` (and future gradient hooks) into `TFJS` and `GPT`, so we can align on the right robustness vs. generality trade-off:
 
-1. In `TFJS`, `this.model.fit(xs, ys)` calls `LayersModel.makeTrainFunction()`, which runs `this.model.optimizer.minimize(totalLossFunction, true, trainableVars)`. The first line of `tf.Optimizer.prototype.minimize` calls `this.computeGradients(f, varList)`.
-2. In `GPTModel`, `this.model.fitDataset(...)` directly calls `this.optimizer.computeGradients(f)` on every batch before global norm clipping (`clipByGlobalNormObj`) and `this.optimizer.applyGradients(...)`.
-3. In `@tensorflow/tfjs-core`, `optimizer.computeGradients(f, varList)` calls `tf.variableGrads(f, varList)`, which opens an **autograd tape**, executes `f()`, differentiates the returned `tf.Scalar` with respect to `varList`, and disposes all intermediate tensors via `tf.tidy`.
+| Option | Mechanism | `TFJS` keeps `model.fit()`? | Monkey-patches TFJS? | Supports gradient hooks (SCAFFOLD, DP-SGD)? |
+| :--- | :--- | :---: | :---: | :---: |
+| **Option 1 (Recommended default)** | `TFJS` wraps the compiled loss via public `model.compile({ loss })`; `GPTModel` calls `hooks.computeLoss` directly in its existing `computeGradients` loop. | **Yes** | **No** | Loss hooks only (fallback to explicit step only if a gradient hook is active) |
+| **Option 2 (Unified explicit step)** | Both `TFJS` and `GPT` share one ~40-line `runTFJSStep` helper using `optimizer.computeGradients` $\rightarrow$ `transformGradients` $\rightarrow$ `applyGradients`. | **No** | **No** | **Yes** (uniformly for `TFJS` and `GPT`) |
+| **Option 3 (Not recommended)** | Temporarily overwrite `optimizer.computeGradients` on the `tf.Optimizer` instance during a round. | **Yes** | **Yes** | **Yes** |
 
-Therefore, intercepting `optimizer.computeGradients` on the model's `tf.Optimizer` instance wraps the loss function `f()` **inside the autograd tape** for both `TFJS.model.fit` and `GPTModel.fitDataset` with **zero custom training loop code in `TFJS` or `GPT`**:
+---
 
-```ts
-import * as tf from "@tensorflow/tfjs";
-import type { DataType } from "#types/index";
-import type { HookContext, TrainingHook } from "#training/hooks";
+#### Option 1 (Recommended Default): Public `model.compile({ loss })` in `TFJS` + Direct Call in `GPTModel`
 
-/**
- * Scoped helper that wraps `layersModel.optimizer.computeGradients` for the duration
- * of a training round so every hook implementing `computeLoss` adds its differentiable
- * penalty inside TensorFlow.js's `tf.variableGrads` autograd tape.
- */
-export function installOptimizerLossHooks<D extends DataType>(
-  layersModel: tf.LayersModel,
-  hooks: readonly TrainingHook<D>[],
-  getContext: () => HookContext<D>,
-): Disposable {
-  const lossHooks = hooks.filter(
-    (
-      h,
-    ): h is TrainingHook<D> & Required<Pick<TrainingHook<D>, "computeLoss">> =>
-      typeof h.computeLoss === "function",
-  );
-  if (lossHooks.length === 0) {
-    return { [Symbol.dispose]() {} };
-  }
+- **How it works:**
+  - When no hook implements `computeLoss` (standard FedAvg, local training, Byzantine, DP), `TFJS` calls `this.model.fit(xs, ys, { epochs: 1, verbose: 0 })` completely untouched.
+  - When one or more hooks implement `computeLoss`, `TFJS` wraps the model's existing loss function using TFJS's public `model.compile(...)` API while passing the existing `this.model.optimizer` instance (in `@tensorflow/tfjs-layers`, passing a `tf.Optimizer` instance assigns `this.optimizer_ = args.optimizer` directly, preserving Adam moments and iteration count):
+    ```ts
+    this.model.compile({
+      optimizer: this.model.optimizer,
+      loss: (yTrue: tf.Tensor, yPred: tf.Tensor) => {
+        let totalLoss = baseLoss(yTrue, yPred).asScalar();
+        for (const hook of lossHooks) {
+          totalLoss = hook.computeLoss(totalLoss, getContext());
+        }
+        return totalLoss;
+      },
+      metrics: this.model.metrics,
+    });
+    ```
+  - `GPTModel` (`discojs/src/models/implementations/gpt/model.ts`) already executes its own explicit `optimizer.computeGradients(...)` loop, so it invokes `hook.computeLoss(totalLoss, ctx)` directly inside that closure with no `compile` re-wrapping.
+- **Pros:**
+  - **Maximum robustness for `TFJS`:** keeps `this.model.fit(xs, ys)` in the loop for all standard and loss-regularized tasks—preserving TFJS's battle-tested handling of `{ training: true }`, `calculateLosses()`, compiled metrics, and tensor disposal.
+  - **Zero monkey-patching** of TFJS internals.
+- **Cons:**
+  - Only covers **loss-level** hooks (like FedProx) inside `model.fit()`. If a future algorithm needs raw **gradient** access (`transformGradients`, e.g., SCAFFOLD or DP-SGD) on `TFJS`, `TFJS` would either fall back to an explicit `computeGradients` step *only* when a gradient hook is active, or migrate to Option 2.
+  - `TFJS` and `GPT` remain two separate training-step implementations.
 
-  const optimizer = layersModel.optimizer;
-  const originalComputeGradients = optimizer.computeGradients.bind(optimizer);
+---
 
-  optimizer.computeGradients = (
-    f: () => tf.Scalar,
-    varList?: tf.Variable[],
-  ) => {
-    // Always scope variableGrads to this model's own trainable variables so
-    // multi-client simulations in one process never differentiate across models.
-    const trainableVars =
-      varList ??
-      layersModel.trainableWeights.map((w) => w.read() as tf.Variable);
+#### Option 2: Shared Explicit TFJS Training Step (`runTFJSStep`) for Both `TFJS` and `GPT`
 
-    return originalComputeGradients(() => {
-      const ctx = getContext();
-      let totalLoss = f();
+- **How it works:**
+  - Because both `TFJS` and `GPT` wrap a `tf.LayersModel`, extract a single ~40-line helper that runs the autograd step directly for both models:
+    ```ts
+    const { value: loss, grads } = optimizer.computeGradients(() => {
+      const preds = tfModel.apply(xs, { training: true }) as tf.Tensor;
+      let totalLoss = computeDataLoss(ys, preds).asScalar();
+      for (const reg of tfModel.calculateLosses()) {
+        totalLoss = totalLoss.add(reg).asScalar();
+      }
       for (const hook of lossHooks) {
         totalLoss = hook.computeLoss(totalLoss, ctx);
       }
       return totalLoss;
     }, trainableVars);
-  };
 
-  return {
-    [Symbol.dispose]() {
-      optimizer.computeGradients = originalComputeGradients;
-    },
-  };
-}
-```
+    let finalGrads = grads;
+    for (const hook of gradHooks) {
+      finalGrads = hook.transformGradients(finalGrads, ctx);
+    }
+    optimizer.applyGradients(finalGrads);
+    ```
+  - `TFJS` supplies its compiled loss + accuracy metric; `GPT` supplies next-token cross-entropy (+ optional Goldfish masking), its `AdamW` optimizer, and a global-norm clipping hook—allowing the `GPTModel.fitDataset` override and 1-batch-dataset indirection to be removed.
+- **Pros:**
+  - **Zero monkey-patching** of TFJS internals.
+  - **First-class support for both loss and gradient hooks** (FedProx, SCAFFOLD, DP-SGD, gradient clipping) identically across `TFJS` and `GPT`.
+  - **Less duplicated code overall** by unifying `TFJS` and `GPTModel.fitDataset` around one step primitive.
+- **Cons:**
+  - **Robustness trade-off for `TFJS`:** replacing `model.fit()` means Disco explicitly owns `{ training: true }` (Dropout/BatchNorm), `model.calculateLosses()` (layer L1/L2 regularizers), compiled loss lookup, and batch metric calculation. While straightforward (~40 lines and unit-testable), it carries higher regression risk for custom user-supplied Keras models than delegating to `model.fit()`.
 
-#### Critical TensorFlow.js Invariants Handled by This Design:
+---
 
-1. **`tf.Sequential` vs. Functional `tf.LayersModel`:**
-   In `@tensorflow/tfjs-layers`, `Sequential.compile()` sets `this.optimizer_ = this.model.optimizer` and delegates `fit()` to the inner `this.model`. Replacing `layersModel.optimizer = wrapper` only updates the outer `Sequential` property and is silently ignored by `fit()`. Patching `computeGradients` as an own property on the shared `optimizer` instance intercepts both `Sequential` and functional `LayersModel`, and deleting/restoring it in `[Symbol.dispose]()` leaves `model.serialize({ includeOptimizer: true })` completely unaffected.
+#### Option 3 (Not Recommended): Scoped Runtime Wrapping of `optimizer.computeGradients`
+
+- **How it works:**
+  - Temporarily reassign `layersModel.optimizer.computeGradients = ...` for the duration of a round via a `Disposable` scope, intercepting both `TFJS.model.fit()` (via `optimizer.minimize` $\rightarrow$ `computeGradients`) and `GPTModel.fitDataset()`.
+- **Why we lean against it:**
+  - Although it keeps `model.fit()` untouched, mutating a method on a `@tensorflow/tfjs-core` `tf.Optimizer` instance at runtime is fragile monkey-patching that couples Disco to TFJS internal call chains (`Sequential` vs. functional `LayersModel` optimizer forwarding, `varList` defaults, etc.).
+
+#### Critical TensorFlow.js Invariants (Relevant Across Options)
+
+1. **Multi-Client Process Isolation (`varList`):**
+   When calling `optimizer.computeGradients(f, varList)` directly (in `GPTModel` or Option 2), always pass `layersModel.trainableWeights.map(w => w.read() as tf.Variable)` rather than leaving `varList` undefined (which causes `tf.variableGrads` to sweep every registered `tf.Variable` in the global TFJS engine, including other clients' models in CLI simulations).
 2. **Interaction with `AdamW` and Gradient Clipping in `GPTModel`:**
-   In `discojs/src/models/implementations/gpt/optimizers.ts`, `AdamW` overrides `applyGradients` for decoupled weight decay, and `GPTModel.fitDataset` clips the global gradient norm between `computeGradients` and `applyGradients`. Wrapping `computeGradients` (rather than `applyGradients`) ensures the autograd gradients of `totalLoss` flow properly through global norm clipping and `AdamW`.
-3. **Multi-Client Process Isolation (`varList`):**
-   `LayersModel.fit()` passes `collectedTrainableWeights` as `varList`, whereas `GPTModel.fitDataset` passes `varList = undefined` (which causes `tf.variableGrads` to sweep every registered `tf.Variable` in the global TFJS engine, including other clients' models in CLI simulations). Explicitly defaulting `varList` to `layersModel.trainableWeights.map(w => w.read() as tf.Variable)` isolates differentiation to the current model's trainable variables.
-4. **Per-Round Installation After Model Configuration:**
-   `GPTModel.setLearningRate()` disposes and recreates `this.optimizer`. Installing `installOptimizerLossHooks` via `using` inside `Trainer.#executeRound` (after `Disco` configures initial model options) guarantees the active optimizer instance is always wrapped for the round and restored in `finally` (including on `stopTraining()` or error).
-5. **What Gets Removed from `TFJS` and `GPT`:**
-   - `TFJS` (`discojs/src/models/tfjs.ts`) uses its standard `this.model.fit(xs, ys, { epochs: 1, verbose: 0 })` path for all tasks—no `#runBatchWithRegularizer` or `#evaluateLoss` is needed.
-   - `GPT` (`gpt.ts`) and `GPTModel.fitDataset` (`gpt/model.ts`) require no `RoundContext` or `regularizer` arguments.
+   In `discojs/src/models/implementations/gpt/optimizers.ts`, `AdamW` overrides `applyGradients` for decoupled weight decay, and `GPTModel` clips the global gradient norm between `computeGradients` and `applyGradients`. Adding `hooks.computeLoss` inside `computeGradients` guarantees that regularized gradients flow properly through global norm clipping and `AdamW`.
+3. **Trainable-Only Regularization:**
+   Hooks such as `FedProxHook` must compute penalties over `model.trainableWeights` (excluding non-trainable `BatchNormalization` moving statistics) so running-stat drift is never penalized.
 
 ---
 
@@ -428,9 +437,8 @@ sequenceDiagram
     T->>C: onRoundBeginCommunication()
     T->>H: onRoundBegin(ctx)
     T->>M: Pre-round evaluate(validationDataset) (if configured)
-    Note over T,M: using _lossHooks = installOptimizerLossHooks(model, hooks, () => ctx)
-    T->>M: Run round training (epochs or iterations)
-    Note over M,H: On each batch: optimizer.computeGradients folds hook.computeLoss(baseLoss, ctx) via autograd
+    T->>M: Run round training (epochs or iterations) with active hooks
+    Note over M,H: On each batch: autograd folds hook.computeLoss(baseLoss, ctx) (Section 3.3)
     T->>H: Chain onBeforeCommunication(weights, ctx)
     T->>C: onRoundEndCommunication(transformedWeights)
     C-->>T: networkWeights
@@ -458,11 +466,12 @@ To keep the architecture honest and avoid over-promising what a client-only hook
 
 ## 5. Phased Implementation Plan
 
-1. **Phase 1 — `TrainingHook` Pipeline & Optimizer-Level Autograd Loss Hook (`discojs`):**
-   - Introduce `TrainingHook`, `HookContext`, and `installOptimizerLossHooks` in `discojs/src/training/`.
+1. **Phase 1 — `TrainingHook` Pipeline & Autograd Loss Hook (`discojs`):**
+   - Align on Section 3.3 (**Option 1** `model.compile({ loss })` keeping `model.fit()` vs. **Option 2** shared explicit `runTFJSStep`).
+   - Introduce `TrainingHook` and `HookContext` in `discojs/src/training/`.
    - Extract `DifferentialPrivacyHook`, `UpdateClippingHook`, and `FedProxHook` out of `Trainer`.
    - Unify `Trainer`'s `#runRoundsByEpoch` and `#runRoundsByIteration` around a single `#executeRound` lifecycle method.
-   - Remove `#runBatchWithRegularizer`, `#evaluateLoss`, `RoundContext`, and `GPTModel.fitDataset` `regularizer` plumbing from `discojs/src/models/`, restoring `TFJS` to standard `this.model.fit(xs, ys)`.
+   - Expose `Model.trainableWeights` across `Model`, `TFJS`, and `GPT`.
 2. **Phase 2 — Decouple `trainingStrategy` from `aggregationStrategy` (`discojs`, `server`, `cli`, `webapp`):**
    - Add `trainingStrategy: trainingStrategySchema` to `TrainingInformation` so `fedprox` is configured independently of `aggregationStrategy` (`mean`, `byzantine`, `secure`).
    - Add a backward-compatibility `z.preprocess` migration layer for persisted task JSON and update the CLI and webapp task creation form.
@@ -470,6 +479,6 @@ To keep the architecture honest and avoid over-promising what a client-only hook
    - Move optional client-side update clipping to `updateClippingSchema` so `byzantine.aggregationParams.clippingRadius` configures `ByzantineRobustAggregator` Centered Clipping exclusively.
    - Restrict Differential Privacy noise injection and update clipping to trainable parameters (or expose `weightSpecs(): { name: string; trainable: boolean }[]`) so non-trainable `BatchNormalization` running variances are never corrupted by Gaussian noise.
 4. **Verification & Test Plan:**
-   - Golden equivalence tests verifying that `FedProxHook` via `installOptimizerLossHooks` produces identical weight updates and losses to analytical proximal SGD across `tf.Sequential`, functional `tf.LayersModel`, `BatchNormalization` + `Dropout` models, and `GPT`.
+   - Golden equivalence tests verifying that `FedProxHook` produces identical weight updates and losses to analytical proximal SGD across `tf.Sequential`, functional `tf.LayersModel`, `BatchNormalization` + `Dropout` models, and `GPT`.
    - Composition tests running `FedProxHook` + `ByzantineRobustAggregator`, `FedProxHook` + `SecureAggregator`, and `FedProxHook` + `DifferentialPrivacyHook`.
    - Strict tensor leak assertions (`tf.memory().numTensors`) across normal round completion, mid-round error, and `stopTraining()`.
