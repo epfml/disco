@@ -219,20 +219,32 @@ function startTraining(): void {
   const scheme = isTrainingLocally.value
     ? "local"
     : props.task.trainingInformation.scheme;
-  initWorker({
+  const { session, peerPort } = initWorker(scheme);
+  const start: ToWorker = {
     type: "start",
     task: serializeTaskToJSON(toRaw(props.task) as Task<DataType, Network>),
     serverUrl: CONFIG.serverUrl.toString(),
     datasetSource,
     scheme,
-  });
+    peerPort,
+  };
+  try {
+    session.worker.postMessage(start, peerPort === undefined ? [] : [peerPort]);
+  } catch (error) {
+    peerPort?.close();
+    showTrainingError(error);
+    closeWorker(session);
+  }
 }
 
 function isCurrentSession(session: Session): boolean {
   return phase.value.kind !== "idle" && phase.value.session === session;
 }
 
-function initWorker(start: Extract<ToWorker, { type: "start" }>): void {
+function initWorker(scheme: Network): {
+  session: Session;
+  peerPort?: MessagePort;
+} {
   const discoStatusMessage: Record<RoundStatus, string> = {
     "not enough participants": "Waiting for more participants",
     "waiting for peers to share weights":
@@ -250,7 +262,7 @@ function initWorker(start: Extract<ToWorker, { type: "start" }>): void {
   });
   const session: Session = { worker: active, closed, resolveClosed };
   let peerPort: MessagePort | undefined;
-  if (start.scheme === "decentralized") {
+  if (scheme === "decentralized") {
     const channel = new MessageChannel();
     session.closePeerTransport = servePeerTransport(channel.port1);
     peerPort = channel.port2;
@@ -316,16 +328,7 @@ function initWorker(start: Extract<ToWorker, { type: "start" }>): void {
     showTrainingError(new Error(event.message));
     closeWorker(session);
   };
-  try {
-    active.postMessage(
-      { ...start, peerPort },
-      peerPort === undefined ? [] : [peerPort],
-    );
-  } catch (error) {
-    peerPort?.close();
-    showTrainingError(error);
-    closeWorker(session);
-  }
+  return { session, peerPort };
 }
 
 async function finishTraining(
