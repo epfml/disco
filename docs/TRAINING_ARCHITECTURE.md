@@ -48,27 +48,40 @@ Currently on `main`, `TrainingInformation` (`discojs/src/task/training_informati
 - Modeling a client-side optimizer like FedProx as an `aggregationStrategy` is a category error: it forces `getAggregator` to map `"fedprox"` to `MeanAggregator` and **makes it impossible to compose FedProx with `ByzantineRobustAggregator` or `SecureAggregator`**.
 - Conversely, the approach taken in [PR #1290](https://github.com/epfml/disco/pull/1290) is also not scalable: adding one-off methods or arguments to `Model` for each new algorithm (`context?: RoundContext`, `attachRegularizer`, `setLearningRate`, `setGoldfishLoss`) forces every `Model` subclass (`TFJS`, `GPT`) and `Trainer` to be modified whenever a new algorithm is introduced.
 
-### 2.2. Coupled Client Clipping and Byzantine Fault Tolerance
+### 2.2. Responsibility Leak Between `ByzantineRobustAggregator` and `Trainer`
 
-Byzantine-robust aggregation (`ByzantineRobustAggregator`) must enforce clipping on the receiving server or peer, since malicious peers do not obey client-side clipping. While standalone client-side update clipping is useful on its own, `Trainer` currently couples it to `byzantineFaultTolerance.clippingRadius`, routes it through the Differential Privacy helper even when DP is disabled, and applies a different norm than the aggregator (per-layer Frobenius clipping on the client vs. global $L_2$ Centered Clipping on the aggregator).
+In `discojs/src/training/trainer.ts` and `discojs/src/privacy.ts`, `ByzantineRobustAggregator`'s configuration leaks directly into client-side execution inside `Trainer`:
 
-### 2.3. Monolithic `Trainer` State and Duplicated Round Loops
+1. **Coupled clipping responsibility:** `ByzantineRobustAggregator` (`discojs/src/aggregator/byzantine.ts`) performs Centered Clipping on the receiving server or peer—which is where Byzantine fault tolerance must be enforced, because malicious peers do not obey client-side clipping. While standalone client-side update clipping (without Differential Privacy) is a valid feature on its own, `Trainer` currently couples it to `byzantineFaultTolerance.clippingRadius` and executes it inside `applyOptimalPrivacy` whenever BFT is enabled, rather than exposing it as an independent client-side update transform.
+2. **Mathematical norm mismatch:** `ByzantineRobustAggregator` clips by the **global Euclidean ($L_2$) norm** across all weight tensors:
+   $$\text{norm}(\Delta w) = \sqrt{\sum_{l=1}^{L} \|\Delta w_l\|_F^2}$$
+   Conversely, `Trainer` passes `Repeat(bftClippingRadius).take(numLayers)` into `privacy.clipNorm` (`discojs/src/privacy.ts`), which clips **each layer's Frobenius norm individually** to `bftClippingRadius`. (Notably, the doc comment in `discojs/src/privacy.ts:81` claims _"If `radius.length === 1`, interpret `radius[0]` as a global clipping radius (BFT)"_, but line 85 immediately throws `Error("Layers and radius length failed to match")` if `radius.length !== layers.length`.)
+3. **Conflated `applyOptimalPrivacy` helper:** `applyOptimalPrivacy` in `discojs/src/training/trainer.ts` runs even when Differential Privacy is disabled, coupling ALDP-FL adaptive noise calibration with client update clipping.
 
-`Trainer` accumulates feature-specific state and lifecycle branches for every client-side capability (privacy, update history, previous-round weight snapshots), so each new algorithm requires modifying `Trainer` directly. In addition, epoch-based and iteration-based training duplicate the same round-boundary lifecycle, and `Trainer`/`Disco` rely on duck-typed casts to reach `GPT`-only methods.
+### 2.3. Monolithic `Trainer` State and Duplicated Round Lifecycle
 
-### 2.4. Rigid `Model` Contract and Non-Trainable Buffers
+`Trainer` (`discojs/src/training/trainer.ts`) violates the Open-Closed Principle by accumulating private fields and lifecycle branches for each feature:
 
-- **No general hook boundary during local training:** Passing algorithm-specific options into `Model.train()` forces every model implementation (`TFJS`, `GPT`) to add custom training-loop branches for each new algorithm instead of keeping standard training paths intact.
-- **Trainable weights mixed with non-trainable buffers:** `Model.weights` exposes both trainable parameters and non-trainable buffers (such as `BatchNormalization` moving mean/variance). Regularizers end up penalizing running-stat drift, and Differential Privacy adds Gaussian noise to non-trainable variance buffers (which can drive `moving_variance` negative and cause `NaN` during inference).
+- `#privacy`, `#weightNormHistory`, and `#previousRoundWeights` live directly on `Trainer`.
+- Every new client-side algorithm forces additional private fields, constructor checks, and round-boundary branches into `Trainer`.
+- **Duplicated round loops:** `#runRoundsByEpoch` / `#runRoundByEpoch` and `#runRoundsByIteration` / `#runRoundByIteration` duplicate round-begin communication, `#previousRoundWeights` tensor cloning, pre-aggregation validation, and `#finishRoundCommunication` invocation.
+- **Unsafe duck-typed model casts:** `Trainer` casts `this.model as unknown as IterationTrainableTextModel` (`discojs/src/training/trainer.ts`), and `Disco` (`discojs/src/training/disco.ts`) performs similar duck-typed casts for `setDebugLabel`, `setGoldfishLoss`, and `setLearningRate`.
 
-<details>
-<summary>Code-level details (file references &amp; known bugs on <code>main</code>)</summary>
+### 2.4. `Model` Contract, Non-Trainable Buffers (`BatchNormalization`), and Autograd
 
-- **Norm mismatch (`discojs/src/training/trainer.ts`, `discojs/src/privacy.ts`):** `ByzantineRobustAggregator` (`discojs/src/aggregator/byzantine.ts`) clips by the global Euclidean ($L_2$) norm $\sqrt{\sum_{l=1}^{L} \|\Delta w_l\|_F^2}$, whereas `Trainer` passes `Repeat(bftClippingRadius).take(numLayers)` into `privacy.clipNorm`, clipping each layer's Frobenius norm individually. (`privacy.ts:81` documents global clipping when `radius.length === 1`, but line 85 throws if `radius.length !== layers.length`.)
-- **Monolithic `Trainer` (`discojs/src/training/trainer.ts`, `discojs/src/training/disco.ts`):** `#privacy`, `#weightNormHistory`, and `#previousRoundWeights` live directly on `Trainer`; `#runRoundsByEpoch` / `#runRoundByEpoch` and `#runRoundsByIteration` / `#runRoundByIteration` duplicate round-begin communication, snapshot cloning, validation, and `#finishRoundCommunication`; `Trainer` and `Disco` cast to `IterationTrainableTextModel` and `GPT`-only setters (`setDebugLabel`, `setGoldfishLoss`, `setLearningRate`).
-- **Differential Privacy accounting (`discojs/src/privacy.ts`):** `addOptimalNoise` calibrates per-layer noise to $r_l / \epsilon$ (spending $L \cdot \epsilon$ across $L$ layers rather than calibrating to global $L_2$ sensitivity $\sqrt{\sum_l r_l^2}$), `getClippingRadius` computes adaptive quantiles from un-noised `#weightNormHistory`, and per-round budgets use basic linear composition ($\epsilon / T, \delta / T$).
+The `Model<D>` abstraction (`discojs/src/models/model.ts`) and its implementations (`TFJS` in `discojs/src/models/tfjs.ts` and `GPT` in `discojs/src/models/implementations/gpt/gpt.ts`) have three critical design issues when supporting collaborative training algorithms:
 
-</details>
+1. **Passing algorithm options into `Model.train(..., options)` forces every model to re-implement training loops:**
+   - Standard `TFJS` training delegates to `this.model.fit(xs, ys, { epochs: 1, verbose: 0 })`, which natively handles `{ training: true }` forward passes (`Dropout`, `BatchNormalization`), all 14 Keras loss functions, layer regularizers (`calculateLosses()`), and compiled metrics.
+   - If local objectives (such as FedProx's proximal penalty) are passed as arguments to `model.train(..., context)`, `TFJS` is forced to bypass `this.model.fit` and maintain a separate manual training loop (`optimizer.minimize` + manual loss/metric lookup), while `GPTModel.fitDataset` must also be modified with custom parameters. Every new model × algorithm combination multiplies this maintenance burden.
+2. **`Model.weights` mixes trainable parameters with non-trainable buffers:**
+   - In TensorFlow.js (`tf.LayersModel`), `this.model.weights` includes both `trainableWeights` (kernels, biases) and `nonTrainableWeights` (such as `BatchNormalization`'s `moving_mean` and `moving_variance`).
+   - **Impact on local regularizers:** Computing proximal penalties over `Model.weights` during `{ training: true }` forward passes includes `BatchNormalization` running-statistic drift in the scalar loss and wastes tensor ops on non-trainable buffers every batch.
+   - **Impact on Differential Privacy & clipping:** `applyOptimalPrivacy` in `Trainer` currently clips and adds Gaussian noise to **all** of `this.model.weights`, including non-trainable `moving_variance` tensors—which can drive `moving_variance` negative and cause `BatchNormalization` to produce `NaN` during inference.
+3. **Current Differential Privacy accounting gaps (`discojs/src/privacy.ts` & `trainer.ts`):**
+   - `addOptimalNoise` noises each layer $l$ independently with noise scale calibrated to $r_l / \epsilon$, which by composition spends $L \cdot \epsilon$ across $L$ layers unless calibrated to the global $L_2$ sensitivity $\sqrt{\sum_{l=1}^L r_l^2}$.
+   - Adaptive quantile clipping radii (`getClippingRadius`) are computed from un-noised historical update norms (`#weightNormHistory`).
+   - Per-round budget allocation uses basic linear composition ($\epsilon / T, \delta / T$).
 
 ---
 
