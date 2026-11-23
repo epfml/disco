@@ -54,7 +54,11 @@ Byzantine-robust aggregation (`ByzantineRobustAggregator`) must enforce clipping
 
 ### 2.3. Monolithic `Trainer` State and Duplicated Round Lifecycle
 
-`Trainer` violates the Open-Closed Principle by accumulating feature-specific state and lifecycle branches directly on the class (`#privacy`, `#weightNormHistory`, `#previousRoundWeights`), so each new client-side algorithm requires modifying `Trainer` itself. In addition, epoch-based and iteration-based training duplicate the same round-boundary lifecycle, and `Trainer`/`Disco` rely on duck-typed casts to reach `GPT`-only methods.
+`Trainer` violates the Open-Closed principle by accumulating feature-specific state and lifecycle branches directly on the class. This means that **implementing a new algorithm needs changing the trainer code**. Specific examples of smells are:
+
+- **Algorithm state on `Trainer`:** `#privacy`, `#weightNormHistory`, and `#previousRoundWeights` live directly on `Trainer`, so each new client-side algorithm requires adding new private fields, constructor checks, and round-boundary branches.
+- **Duplicated round loops:** `#runRoundsByEpoch` / `#runRoundByEpoch` and `#runRoundsByIteration` / `#runRoundByIteration` duplicate round-begin communication, `#previousRoundWeights` tensor cloning, pre-aggregation validation, and `#finishRoundCommunication`.
+- **Duck-typed model casts:** `Trainer` casts `this.model` to `IterationTrainableTextModel`, and `Disco` (`discojs/src/training/disco.ts`) performs similar casts for `GPT`-only setters (`setDebugLabel`, `setGoldfishLoss`, `setLearningRate`).
 
 ### 2.4. Rigid `Model` Contract and Non-Trainable Buffers
 
