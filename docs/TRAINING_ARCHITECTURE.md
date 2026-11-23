@@ -212,7 +212,7 @@ export const privacySchema = z.strictObject({
 
 ### 3.2. Unified `TrainingHook` Lifecycle
 
-Instead of adding algorithm-specific fields to `Trainer` or algorithm-specific methods (`attachRegularizer`, `adaptLearningRate`, etc.) to `Model`, **every client-side training algorithm is expressed as a `TrainingHook`**.
+Instead of adding algorithm-specific fields to `Trainer` or algorithm-specific methods (`attachRegularizer`, `adaptLearningRate`, etc.) to `Model`, **every client-side training algorithm is expressed as a `TrainingHook`**. This is similar to other frameworks suchas **Flower's `Strategy`** and **PyTorch Lightning / Keras `Callback`.
 
 ```ts
 import type * as tf from "@tensorflow/tfjs";
@@ -464,24 +464,3 @@ The three-axis decomposition and `TrainingHook` lifecycle do not need to be rede
 1. **Typed round envelope (`RoundPayload`):** Extend `Client` and `Aggregator` to exchange `{ weights: WeightsContainer; metadata?: Record<string, number | WeightsContainer> }` in both directions instead of a bare `WeightsContainer` (and define whether auxiliary scalars/vectors are secret-shared or sent separately under `SecureAggregator`).
 2. **Metadata-aware hook boundaries:** Pass `RoundPayload` through `onBeforeCommunication(payload, ctx)` (so hooks can attach uplink metadata such as $n_i$, $\tau_i$, or $\Delta c_i$) and `onAfterAggregation(payload, ctx)` (so hooks can read downlink metadata such as updated global $c$).
 3. **Metadata-aware aggregation:** Allow `Aggregator` implementations (or server-side hooks) to combine `payload.metadata` alongside `payload.weights`.
-
----
-
-## 5. Phased Implementation Plan
-
-1. **Phase 1 — `TrainingHook` Pipeline & Autograd Loss Hook (`discojs`):**
-   - Align on Section 3.3 (**Option 1** vs. **Option 2** vs. **Option 3**).
-   - Introduce `TrainingHook` and `HookContext` in `discojs/src/training/`.
-   - Extract `DifferentialPrivacyHook`, `UpdateClippingHook`, and `FedProxHook` out of `Trainer`.
-   - Unify `Trainer`'s `#runRoundsByEpoch` and `#runRoundsByIteration` around a single `#executeRound` lifecycle method.
-   - Expose `Model.trainableWeights` across `Model`, `TFJS`, and `GPT`.
-2. **Phase 2 — Decouple `trainingStrategy` from `aggregation` (`discojs`, `server`, `cli`, `webapp`):**
-   - Nest aggregation under `aggregation: { strategy, params }` and add `trainingStrategy: { strategy, params }` to `TrainingInformation` so `fedprox` is configured independently of `aggregation.strategy` (`mean`, `byzantine`, `secure`).
-   - Add a backward-compatibility `z.preprocess` migration layer for persisted task JSON and update the CLI and webapp task creation form.
-3. **Phase 3 — Decouple Client Update Clipping from `ByzantineRobustAggregator` & Fix DP Buffer Noise:**
-   - Move optional client-side update clipping to `updateClippingSchema` so `aggregation.params.clippingRadius` (for `strategy: "byzantine"`) configures `ByzantineRobustAggregator` Centered Clipping exclusively.
-   - Restrict Differential Privacy noise injection and update clipping to trainable parameters (or expose `weightSpecs(): { name: string; trainable: boolean }[]`) so non-trainable `BatchNormalization` running variances are never corrupted by Gaussian noise.
-4. **Verification & Test Plan:**
-   - Golden equivalence tests verifying that `FedProxHook` produces identical weight updates and losses to analytical proximal SGD across `tf.Sequential`, functional `tf.LayersModel`, `BatchNormalization` + `Dropout` models, and `GPT`.
-   - Composition tests running `FedProxHook` + `ByzantineRobustAggregator`, `FedProxHook` + `SecureAggregator`, and `FedProxHook` + `DifferentialPrivacyHook`.
-   - Strict tensor leak assertions (`tf.memory().numTensors`) across normal round completion, mid-round error, and `stopTraining()`.
