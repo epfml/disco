@@ -212,7 +212,7 @@ export const privacySchema = z.strictObject({
 
 ### 3.2. Unified `TrainingHook` Lifecycle
 
-Instead of adding algorithm-specific fields to `Trainer` or algorithm-specific methods (`attachRegularizer`, `adaptLearningRate`, etc.) to `Model`, **every client-side training algorithm is expressed as a `TrainingHook`**. This is similar to other frameworks suchas **Flower's `Strategy`** and **PyTorch Lightning / Keras `Callback`.
+Instead of adding algorithm-specific fields to `Trainer` or algorithm-specific methods (`attachRegularizer`, `adaptLearningRate`, etc.) to `Model`, **every client-side training algorithm is expressed as a `TrainingHook`**. This is similar to other frameworks suchas **Flower's `Strategy`** and \*\*PyTorch Lightning / Keras `Callback`.
 
 ```ts
 import type * as tf from "@tensorflow/tfjs";
