@@ -48,19 +48,16 @@ Currently on `main`, `TrainingInformation` (`discojs/src/task/training_informati
 - Modeling a client-side optimizer like FedProx as an `aggregationStrategy` is a category error: it forces `getAggregator` to map `"fedprox"` to `MeanAggregator` and **makes it impossible to compose FedProx with `ByzantineRobustAggregator` or `SecureAggregator`**.
 - Conversely, the approach taken in [PR #1290](https://github.com/epfml/disco/pull/1290) is also not scalable: adding one-off methods or arguments to `Model` for each new algorithm (`context?: RoundContext`, `attachRegularizer`, `setLearningRate`, `setGoldfishLoss`) forces every `Model` subclass (`TFJS`, `GPT`) and `Trainer` to be modified whenever a new algorithm is introduced.
 
-### 2.2. Responsibility Leak Between `ByzantineRobustAggregator` and `Trainer`
-
-Byzantine-robust aggregation (`ByzantineRobustAggregator`) must enforce clipping on the receiving server or peer, because malicious peers do not obey client-side clipping. While standalone client-side update clipping (without Differential Privacy) is a valid feature on its own, `Trainer` currently couples it to `byzantineFaultTolerance.clippingRadius` and routes it through `applyOptimalPrivacy` even when Differential Privacy is disabled, rather than exposing it as an independent client-side update transform. (See also [#1300](https://github.com/epfml/disco/issues/1300) for the related client vs. aggregator norm mismatch.)
-
-### 2.3. Monolithic `Trainer` State and Duplicated Round Lifecycle
+### 2.2. Monolithic `Trainer` State, Coupled Responsibilities, and Duplicated Round Lifecycle
 
 `Trainer` violates the Open-Closed principle by accumulating feature-specific state and lifecycle branches directly on the class. This means that **implementing a new algorithm needs changing the trainer code**. Specific examples of smells are:
 
 - **Algorithm state on `Trainer`:** `#privacy`, `#weightNormHistory`, and `#previousRoundWeights` live directly on `Trainer`, so each new client-side algorithm requires adding new private fields, constructor checks, and round-boundary branches.
+- **Coupled BFT and client-side clipping:** `ByzantineRobustAggregator` must enforce clipping on the receiving server or peer (malicious peers do not obey client-side clipping). While standalone client-side update clipping is valid on its own, `Trainer` currently couples it to `byzantineFaultTolerance.clippingRadius` and routes it through `applyOptimalPrivacy` even when Differential Privacy is disabled, rather than exposing it as an independent client-side update transform (see also [#1300](https://github.com/epfml/disco/issues/1300) for the related client vs. aggregator norm mismatch).
 - **Duplicated round loops:** `#runRoundsByEpoch` / `#runRoundByEpoch` and `#runRoundsByIteration` / `#runRoundByIteration` duplicate round-begin communication, `#previousRoundWeights` tensor cloning, pre-aggregation validation, and `#finishRoundCommunication`.
 - **Duck-typed model casts:** `Trainer` casts `this.model` to `IterationTrainableTextModel`, and `Disco` (`discojs/src/training/disco.ts`) performs similar casts for `GPT`-only setters (`setDebugLabel`, `setGoldfishLoss`, `setLearningRate`).
 
-### 2.4. Rigid `Model` Contract and Non-Trainable Buffers
+### 2.3. Rigid `Model` Contract and Non-Trainable Buffers
 
 - **No general hook boundary during local training:** Passing algorithm-specific options into `Model.train()` forces every `Model` subclass (`TFJS`, `GPT`) to maintain custom training-loop branches for each new algorithm instead of keeping standard training paths intact.
 - **Trainable weights mixed with non-trainable buffers:** `Model.weights` includes both trainable parameters and non-trainable buffers (such as `BatchNormalization` moving statistics), so local regularizers and client-side privacy transforms cannot target trainable parameters cleanly (see also [#1301](https://github.com/epfml/disco/issues/1301) for related Differential Privacy bugs).
