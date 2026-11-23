@@ -11,7 +11,7 @@ This design document analyzes the architectural limitations in `discojs` today a
 
 ---
 
-## 2. Problem Statement: Current Architectural Limitations (`main` Baseline)
+## 2. Current Architectural Limitations
 
 ```mermaid
 flowchart TD
@@ -46,7 +46,7 @@ In collaborative and federated learning, a training algorithm decomposes along *
 Currently on `main`, `TrainingInformation` (`discojs/src/task/training_information.ts`) scatters aggregator parameters across `aggregationStrategy`, root-level `maxShareValue`, and `privacy.byzantineFaultTolerance`, and has no axis for client-side local training strategies:
 
 - Modeling a client-side optimizer like FedProx as an `aggregationStrategy` is a category error: it forces `getAggregator` to map `"fedprox"` to `MeanAggregator` and **makes it impossible to compose FedProx with `ByzantineRobustAggregator` or `SecureAggregator`**.
-- Conversely, adding one-off methods or arguments to `Model` for each new algorithm (`context?: RoundContext`, `attachRegularizer`, `setLearningRate`, `setGoldfishLoss`) forces every `Model` subclass (`TFJS`, `GPT`) and `Trainer` to be modified whenever a new algorithm is introduced.
+- Conversely, the approach taken in [PR #1290](https://github.com/epfml/disco/pull/1290) is also not scalable: adding one-off methods or arguments to `Model` for each new algorithm (`context?: RoundContext`, `attachRegularizer`, `setLearningRate`, `setGoldfishLoss`) forces every `Model` subclass (`TFJS`, `GPT`) and `Trainer` to be modified whenever a new algorithm is introduced.
 
 ### 2.2. Responsibility Leak Between `ByzantineRobustAggregator` and `Trainer`
 
@@ -125,8 +125,8 @@ flowchart LR
 
 We separate task configuration into three orthogonal, strictly validated (`z.strictObject`) axes with uniform structure:
 
-1. **`aggregation` (`aggregationStrategy` + `aggregationParams`):** Inter-client weight aggregation on the server or peers (`"mean" | "byzantine" | "secure"`).
-2. **`trainingStrategy`:** Intra-round local client optimization strategy (`"standard" | "fedprox"`), composable with any `aggregationStrategy`.
+1. **`aggregation` (`{ strategy, params }`):** Inter-client weight aggregation on the server or peers (`"mean" | "byzantine" | "secure"`).
+2. **`trainingStrategy` (`{ strategy, params }`):** Intra-round local client optimization strategy (`"standard" | "fedprox"`), composable with any `aggregation.strategy`.
 3. **`updateTransforms` & `privacy`:** Post-round client update transformations executed in a canonical mathematical order before communication (`updateClipping` $\rightarrow$ `differentialPrivacy`).
 
 ```ts
@@ -134,15 +134,17 @@ import { z } from "zod";
 
 // ---------------------------------------------------------------------------
 // Axis 1: Inter-Client Weight Aggregation (Server / Peer-to-Peer ONLY)
+// Configured on TrainingInformation as:
+//   aggregation: { strategy: "secure", params: { maxShareValue: 100 } }
 // ---------------------------------------------------------------------------
 export const meanAggregationConfigSchema = z.strictObject({
-  aggregationStrategy: z.literal("mean"),
-  aggregationParams: z.undefined().optional(),
+  strategy: z.literal("mean"),
+  params: z.undefined().optional(),
 });
 
 export const byzantineAggregationConfigSchema = z.strictObject({
-  aggregationStrategy: z.literal("byzantine"),
-  aggregationParams: z
+  strategy: z.literal("byzantine"),
+  params: z
     .strictObject({
       clippingRadius: z.number().positive().default(1.0),
       maxIterations: z.number().int().positive().default(1),
@@ -152,8 +154,8 @@ export const byzantineAggregationConfigSchema = z.strictObject({
 });
 
 export const secureAggregationConfigSchema = z.strictObject({
-  aggregationStrategy: z.literal("secure"),
-  aggregationParams: z
+  strategy: z.literal("secure"),
+  params: z
     .strictObject({
       maxShareValue: z.number().positive().int().default(100),
     })
@@ -161,12 +163,12 @@ export const secureAggregationConfigSchema = z.strictObject({
 });
 
 export const federatedAggregationConfigSchema = z.discriminatedUnion(
-  "aggregationStrategy",
+  "strategy",
   [meanAggregationConfigSchema, byzantineAggregationConfigSchema],
 );
 
 export const decentralizedAggregationConfigSchema = z.discriminatedUnion(
-  "aggregationStrategy",
+  "strategy",
   [
     meanAggregationConfigSchema,
     byzantineAggregationConfigSchema,
@@ -177,21 +179,32 @@ export const decentralizedAggregationConfigSchema = z.discriminatedUnion(
 export type AggregationConfig = z.infer<
   typeof decentralizedAggregationConfigSchema
 >;
-export type AggregationStrategy = AggregationConfig["aggregationStrategy"];
+export type AggregationStrategy = AggregationConfig["strategy"];
 
 // ---------------------------------------------------------------------------
 // Axis 2: Intra-Round Local Training Strategy (Client Optimization)
-// Composable with ANY AggregationConfig!
+// Same { strategy, params } discriminated-union shape, composable with ANY aggregation!
+// Configured on TrainingInformation as:
+//   trainingStrategy: { strategy: "fedprox", params: { mu: 0.01 } }
 // ---------------------------------------------------------------------------
+export const standardTrainingStrategySchema = z.strictObject({
+  strategy: z.literal("standard"),
+  params: z.undefined().optional(),
+});
+
+export const fedproxTrainingStrategySchema = z.strictObject({
+  strategy: z.literal("fedprox"),
+  params: z
+    .strictObject({
+      mu: z.number().positive().default(0.01),
+    })
+    .default({ mu: 0.01 }),
+});
+
 export const trainingStrategySchema = z
   .discriminatedUnion("strategy", [
-    z.strictObject({
-      strategy: z.literal("standard"),
-    }),
-    z.strictObject({
-      strategy: z.literal("fedprox"),
-      mu: z.number().positive().default(0.01),
-    }),
+    standardTrainingStrategySchema,
+    fedproxTrainingStrategySchema,
   ])
   .default({ strategy: "standard" });
 
@@ -218,7 +231,7 @@ export const privacySchema = z.strictObject({
 
 ---
 
-### 3.2. Unified `TrainingHook` Lifecycle (Flower `Strategy` + Keras/Lightning `Callback` Pattern)
+### 3.2. Unified `TrainingHook` Lifecycle
 
 Instead of adding algorithm-specific fields to `Trainer` or algorithm-specific methods (`attachRegularizer`, `adaptLearningRate`, etc.) to `Model`, **every client-side training algorithm is expressed as a `TrainingHook`**.
 
@@ -477,11 +490,11 @@ To keep the architecture honest and avoid over-promising what a client-only hook
    - Extract `DifferentialPrivacyHook`, `UpdateClippingHook`, and `FedProxHook` out of `Trainer`.
    - Unify `Trainer`'s `#runRoundsByEpoch` and `#runRoundsByIteration` around a single `#executeRound` lifecycle method.
    - Expose `Model.trainableWeights` across `Model`, `TFJS`, and `GPT`.
-2. **Phase 2 — Decouple `trainingStrategy` from `aggregationStrategy` (`discojs`, `server`, `cli`, `webapp`):**
-   - Add `trainingStrategy: trainingStrategySchema` to `TrainingInformation` so `fedprox` is configured independently of `aggregationStrategy` (`mean`, `byzantine`, `secure`).
+2. **Phase 2 — Decouple `trainingStrategy` from `aggregation` (`discojs`, `server`, `cli`, `webapp`):**
+   - Nest aggregation under `aggregation: { strategy, params }` and add `trainingStrategy: { strategy, params }` to `TrainingInformation` so `fedprox` is configured independently of `aggregation.strategy` (`mean`, `byzantine`, `secure`).
    - Add a backward-compatibility `z.preprocess` migration layer for persisted task JSON and update the CLI and webapp task creation form.
 3. **Phase 3 — Decouple Client Update Clipping from `ByzantineRobustAggregator` & Fix DP Buffer Noise:**
-   - Move optional client-side update clipping to `updateClippingSchema` so `byzantine.aggregationParams.clippingRadius` configures `ByzantineRobustAggregator` Centered Clipping exclusively.
+   - Move optional client-side update clipping to `updateClippingSchema` so `aggregation.params.clippingRadius` (for `strategy: "byzantine"`) configures `ByzantineRobustAggregator` Centered Clipping exclusively.
    - Restrict Differential Privacy noise injection and update clipping to trainable parameters (or expose `weightSpecs(): { name: string; trainable: boolean }[]`) so non-trainable `BatchNormalization` running variances are never corrupted by Gaussian noise.
 4. **Verification & Test Plan:**
    - Golden equivalence tests verifying that `FedProxHook` produces identical weight updates and losses to analytical proximal SGD across `tf.Sequential`, functional `tf.LayersModel`, `BatchNormalization` + `Dropout` models, and `GPT`.
