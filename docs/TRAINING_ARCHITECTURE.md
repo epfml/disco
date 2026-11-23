@@ -470,15 +470,21 @@ sequenceDiagram
 
 ---
 
-## 4. Scope Boundaries: Client-Only Hooks vs. Protocol Extensions & Non-Goals
+## 4. Future Extensions
 
-To keep the architecture honest and avoid over-promising what a client-only hook can do, we categorize algorithms into three tiers:
+The `TrainingHook` pipeline above covers all **client-only** algorithms that require no wire-protocol changes (such as **FedProx**, **Client Update Clipping**, **ALDP-FL Differential Privacy**, and **Learning Rate Schedules**).
 
-| Tier                                                                           | Algorithms                                                                                                                                                                       | Architectural Requirements                                                                                                                                                                                                                            |
-| :----------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Tier 1: Client-Only `TrainingHook`s (In Scope)**                             | **FedProx**, **Client Update Clipping**, **ALDP-FL Differential Privacy**, **Learning Rate Schedules**                                                                           | Require only local round/batch lifecycle hooks (`onRoundBegin`, `computeLoss`, `onBeforeCommunication`, `onAfterAggregation`, `onRoundEnd`) and zero wire-protocol changes.                                                                           |
-| **Tier 2: Protocol-Extended Hooks (Future Protocol Work)**                     | **Sample-Weighted FedAvg** ($n_i$), **FedNova** (step count $\tau_i$ for server $\tau_{\text{eff}}$ rescaling), **SCAFFOLD** (control variate delta $\Delta c_i$ and global $c$) | Cannot be implemented by weight-only client hooks alone. Require extending the `Client` / `Aggregator` wire payload with typed metadata (`RoundPayload { weights, metadata }`) and defining how `SecureAggregator` handles auxiliary scalars/vectors. |
-| **Tier 3: Multi-Model / Activation Algorithms (Non-Goals for `TrainingHook`)** | **Ditto** (personalized secondary model), **MOON** (intermediate representation contrastive loss)                                                                                | Require maintaining a second personalized `Model` instance or extracting intermediate layer activations; outside the scope of `TrainingHook`.                                                                                                         |
+Some collaborative algorithms also require exchanging auxiliary metadata alongside model weights between clients and the server/peers—for example:
+
+- **Sample-Weighted FedAvg:** Clients send their local sample count $n_i$ so the aggregator computes $\sum_i \frac{n_i}{\sum_j n_j} w_i$ instead of an unweighted average.
+- **FedNova:** Clients send their local step count $\tau_i$ alongside their normalized update so the server can rescale the aggregated update by $\tau_{\text{eff}} = \sum_i p_i \tau_i$.
+- **SCAFFOLD:** Clients and the server exchange control variates in both directions (downlink global $c$ and uplink $\Delta c_i$) alongside model weights.
+
+The three-axis decomposition and `TrainingHook` lifecycle do not need to be redesigned to support these algorithms—they can be accommodated later by extending the communication boundary:
+
+1. **Typed round envelope (`RoundPayload`):** Extend `Client` and `Aggregator` to exchange `{ weights: WeightsContainer; metadata?: Record<string, number | WeightsContainer> }` in both directions instead of a bare `WeightsContainer` (and define whether auxiliary scalars/vectors are secret-shared or sent separately under `SecureAggregator`).
+2. **Metadata-aware hook boundaries:** Pass `RoundPayload` through `onBeforeCommunication(payload, ctx)` (so hooks can attach uplink metadata such as $n_i$, $\tau_i$, or $\Delta c_i$) and `onAfterAggregation(payload, ctx)` (so hooks can read downlink metadata such as updated global $c$).
+3. **Metadata-aware aggregation:** Allow `Aggregator` implementations (or server-side hooks) to combine `payload.metadata` alongside `payload.weights`.
 
 ---
 
