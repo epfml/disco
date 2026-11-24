@@ -38,6 +38,24 @@ it("submits with tabular task", () => {
     } satisfies Task<"tabular", "federated">);
 });
 
+it("shows the link of a private task instead of the form", () => {
+  visitAndFillTabularTaskBasics("private-task", "simple", {
+    token: "the-token",
+  });
+  cy.get("select[name='trainingInformation.scheme']").select("federated");
+  cy.contains("label", "Private").find("input[type='checkbox']").check();
+  cy.contains("Only the people you give it to");
+  fillRemainingTabularFieldsAndSubmit();
+
+  cy.wait("@posted").its("request.body.private").should("equal", true);
+  cy.get("#private-link").should(
+    "have.value",
+    `${Cypress.config().baseUrl}private-task#token=the-token`,
+  );
+  // the link is shown once, the form isn't there to submit the task twice
+  cy.get("form").should("not.be.visible");
+});
+
 for (const aggregation of [
   {
     scheme: "federated",
@@ -260,10 +278,18 @@ for (const aggregation of [
   });
 }
 
-function visitAndFillTabularTaskBasics(id: string, title: string): void {
+/**
+ * Open the creation form, stubbing the server's answer to its POST with the
+ * given body, and fill the fields shared by every tabular task
+ */
+function visitAndFillTabularTaskBasics(
+  id: string,
+  title: string,
+  answer?: object,
+): void {
   cy.intercept(
     { hostname: "server", pathname: "tasks", method: "POST" },
-    { statusCode: 200 },
+    { statusCode: 200, body: answer },
   ).as("posted");
 
   cy.visit("/create");

@@ -6,8 +6,10 @@
     <title>DISCO</title>
     <script>
       // GitHub Pages SPA redirect workaround
-      // Save the current path before reloading
-      sessionStorage.redirect = location.pathname + location.search;
+      // Save the current path before reloading, with the fragment that
+      // carries the token of a private task's link
+      sessionStorage.redirect =
+        location.pathname + location.search + location.hash;
       location.href = "/";
     </script>
   </head>

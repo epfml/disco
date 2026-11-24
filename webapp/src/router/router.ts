@@ -1,6 +1,9 @@
 import createDebug from "debug";
 import { createRouter, createWebHistory } from "vue-router";
 import { scrollToTop } from "@/utils";
+import { useToaster } from "@/composables/toaster";
+import { tokenFromHash } from "@/private_link";
+import { useTasksStore } from "@/store";
 
 import TrainingBar from "@/components/progress_bars/TrainingBar.vue";
 import TestingBar from "@/components/progress_bars/TestingBar.vue";
@@ -84,6 +87,24 @@ const router = createRouter({
       component: NotFound,
     },
   ],
+});
+
+// A private task isn't listed, it is fetched with the token of its link
+router.beforeEach(async (to) => {
+  const token = tokenFromHash(to.hash);
+  const id = to.params.id;
+  if (token === undefined || typeof id !== "string") return;
+
+  const tasksStore = useTasksStore();
+  if (tasksStore.tokens.get(id) === token) return; // already fetched
+
+  try {
+    await tasksStore.addPrivateTask(id, token);
+  } catch (e) {
+    // the task page then redirects to not-found
+    debug("while fetching private task %s: %o", id, e);
+    useToaster().error("This private link is invalid");
+  }
 });
 
 // Handle router errors

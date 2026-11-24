@@ -154,6 +154,8 @@ const toaster = useToaster();
 const props = defineProps<{
   task: Task<D, Network>;
   datasetSource?: DatasetSource;
+  /** Token of the task, if private */
+  token?: string;
 }>();
 const emit = defineEmits<{
   model: [Model<D>];
@@ -227,6 +229,8 @@ function startTraining(): void {
     datasetSource,
     scheme,
     peerPort,
+    // the worker builds the client, which needs the token of a private task
+    token: props.token,
   };
   try {
     session.worker.postMessage(start, peerPort === undefined ? [] : [peerPort]);

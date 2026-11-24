@@ -186,7 +186,7 @@ import PredictSteps from "./PredictSteps.vue";
 const debug = createDebug("webapp:ModelLibrary");
 const validationStore = useValidationStore();
 const models = useModelsStore();
-const { tasks } = storeToRefs(useTasksStore());
+const { tasks, tokens } = storeToRefs(useTasksStore());
 const toaster = useToaster();
 const router = useRouter();
 
@@ -280,6 +280,7 @@ async function downloadModel(task: Task<DataType, Network>): Promise<void> {
         },
       } as Task<DataType, "local">,
       getAggregator(task),
+      tokens.value.get(task.id),
     );
     const model = await client.getLatestModel();
     // the store keeps an encoded copy

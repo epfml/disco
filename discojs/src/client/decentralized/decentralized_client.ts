@@ -41,9 +41,11 @@ export class DecentralizedClient extends Client<"decentralized"> {
     url: URL,
     task: Task<DataType, "decentralized">,
     aggregator: Aggregator,
+    /** Token of a private task, to download its model and join its training */
+    token?: string,
     private readonly createPeer?: PeerFactory,
   ) {
-    super(url, task, aggregator);
+    super(url, task, aggregator, token);
   }
 
   /**
