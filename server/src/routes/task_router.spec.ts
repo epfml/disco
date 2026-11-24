@@ -75,16 +75,27 @@ async function postPrivateTask(url: URL, id: string): Promise<string> {
   return ((await res.json()) as { token: string }).token;
 }
 
-/** GET a single task, with the given Authorization header if any */
-async function getTask(
+/** GET the given path, with the given Authorization header if any */
+async function get(
   url: URL,
-  id: string,
+  path: string,
   authorization?: string,
 ): Promise<Response> {
-  return await fetch(new URL(`tasks/${id}`, url), {
+  return await fetch(new URL(path, url), {
     headers:
       authorization === undefined ? {} : { Authorization: authorization },
   });
+}
+
+/**
+ * Authorization headers that don't grant access to a private task: none,
+ * another task's token, and its own token under the wrong scheme
+ */
+function wrongAuthorizations(
+  token: string,
+  otherToken: string,
+): (string | undefined)[] {
+  return [undefined, `Bearer ${otherToken}`, `Basic ${token}`];
 }
 
 describe("POST /tasks", () => {
@@ -163,7 +174,7 @@ describe("GET /tasks/:id", () => {
     const { url } = await startRouter();
     expect((await postTask(url, "public-task")).status).toBe(200);
 
-    const res = await getTask(url, "public-task");
+    const res = await get(url, "tasks/public-task");
 
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ id: "public-task" });
@@ -173,7 +184,7 @@ describe("GET /tasks/:id", () => {
     const { url } = await startRouter();
     const token = await postPrivateTask(url, "private-task");
 
-    const res = await getTask(url, "private-task", `Bearer ${token}`);
+    const res = await get(url, "tasks/private-task", `Bearer ${token}`);
 
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ id: "private-task" });
@@ -185,12 +196,8 @@ describe("GET /tasks/:id", () => {
     const otherToken = await postPrivateTask(url, "other-task");
 
     // answered like an unknown task, so that private IDs can't be probed for
-    for (const authorization of [
-      undefined,
-      `Bearer ${otherToken}`,
-      `Basic ${token}`,
-    ])
-      expect((await getTask(url, "private-task", authorization)).status).toBe(
+    for (const authorization of wrongAuthorizations(token, otherToken))
+      expect((await get(url, "tasks/private-task", authorization)).status).toBe(
         404,
       );
   });
@@ -198,6 +205,52 @@ describe("GET /tasks/:id", () => {
   it("answers 404 for an unknown task", async () => {
     const { url } = await startRouter();
 
-    expect((await getTask(url, "unknown-task")).status).toBe(404);
+    expect((await get(url, "tasks/unknown-task")).status).toBe(404);
+  });
+});
+
+describe("GET /tasks/:id/:file", () => {
+  const files = ["model.json", "weights.bin"];
+
+  it("serves a public task's model without a token", async () => {
+    const { url } = await startRouter();
+    expect((await postTask(url, "public-task")).status).toBe(200);
+
+    for (const file of files) {
+      const res = await get(url, `tasks/public-task/${file}`);
+
+      expect(res.status).toBe(200);
+      // the dummy bytes of titanicModelSet
+      expect(new Uint8Array(await res.arrayBuffer())).toEqual(
+        Uint8Array.of(1, 2, 3),
+      );
+    }
+  });
+
+  it("serves a private task's model to the holder of its token", async () => {
+    const { url } = await startRouter();
+    const token = await postPrivateTask(url, "private-task");
+
+    for (const file of files) {
+      const res = await get(
+        url,
+        `tasks/private-task/${file}`,
+        `Bearer ${token}`,
+      );
+
+      expect(res.status).toBe(200);
+    }
+  });
+
+  it("hides a private task's model from requests without its token", async () => {
+    const { url } = await startRouter();
+    const token = await postPrivateTask(url, "private-task");
+    const otherToken = await postPrivateTask(url, "other-task");
+
+    for (const file of files)
+      for (const authorization of wrongAuthorizations(token, otherToken))
+        expect(
+          (await get(url, `tasks/private-task/${file}`, authorization)).status,
+        ).toBe(404);
   });
 });

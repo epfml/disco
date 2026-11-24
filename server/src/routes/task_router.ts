@@ -193,8 +193,8 @@ export class TaskRouter {
    * Request handler called when a client sends a GET request asking for the
    * TFJS model files of a given task. The files consist of the model's
    * architecture file model.json and its layer weights file weights.bin.
-   * It requires no prior connection to the server and is thus publicly available
-   * data.
+   * It requires no prior connection to the server: public tasks' models are
+   * available to anyone, private ones only with the task's token.
    * @param request received from client
    * @param response sent to client
    */
@@ -210,8 +210,11 @@ export class TaskRouter {
       response.status(404).end();
       return;
     }
-    const taskAndModel = this.#taskSet.tasks.find(([t, _]) => t.id === id);
-    if (taskAndModel === undefined) {
+    const taskAndModel = this.#taskSet.tasks.get(id);
+    if (
+      taskAndModel === undefined ||
+      !this.#taskSet.canAccess(id, bearerToken(request))
+    ) {
       response.status(404).end();
       return;
     }
