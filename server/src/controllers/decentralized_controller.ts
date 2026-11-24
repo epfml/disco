@@ -67,6 +67,13 @@ export class DecentralizedController<
           this.crashClient(ws, peerId, "Invalid message received");
           return debug("invalid message received: %o", msg);
         }
+        // check the token before the switch below adds the client to the session
+        if (
+          msg.type === MessageTypes.ClientConnected &&
+          !this.authorize(ws, peerId, msg.token)
+        )
+          return;
+
         // If the client has not yet established a connection
         // and the message is not a ClientConnected message,
         // we consider it as coming from an unconnected client
@@ -247,6 +254,13 @@ export class DecentralizedController<
     });
     // Setup callback for client leaving the session
     ws.on("close", () => {
+      // a client that never joined, such as one without a valid token,
+      // only has its id to free: the participants never heard of it
+      if (!this.connections.has(peerId)) {
+        this.disconnectClient(peerId);
+        return;
+      }
+
       // Whether it left while the peers of the round connect to each other
       const leftWhileConnecting = this.#connectFinishedNodes.has(peerId);
 

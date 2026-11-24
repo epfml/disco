@@ -79,7 +79,8 @@ sequenceDiagram
     rect rgb(240,240,240)
         Note over T,S: 1. Connecting
         T->>C: connect()
-        C->>S: WebSocket connect + ClientConnected
+        C->>S: WebSocket connect + ClientConnected { token? }
+        Note over S: closes the socket with code 4403 if the task<br/>is private and the token isn't its own
         S-->>C: NewDecentralizedNodeInfo { id, nbOfParticipants,<br/>waitForMoreParticipants, joinedMidTraining }
         C-->>T: base model
     end

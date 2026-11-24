@@ -50,9 +50,11 @@ All endpoints listed below are implemented as messages on a WebSocket, mounted o
 
 | Message               | From   | To     | Body                 | Action                                                  |
 | --------------------- | ------ | ------ | -------------------- | ------------------------------------------------------- |
-| `clientConnected`     | Client | Server | —                    | Connect client `clientID` to task `taskID`              |
+| `clientConnected`     | Client | Server | `token`, optional    | Connect client `clientID` to task `taskID`              |
 | `postWeightsToServer` | Client | Server | Model weight updates | Send model weight updates                               |
 | `latestServerRound`   | Both   | Both   | —                    | Get the current training round and model weight updates |
+
+Joining a private task requires its token in the `token` field of `clientConnected`. It is sent in the message rather than in the WebSocket URL, which ends up in proxy and access logs. Without a valid token, the server closes the socket with code 4403 (`mtype.INVALID_TOKEN_CLOSE_CODE`) before the client joins, so the other participants never hear about it. The same goes for decentralized learning.
 
 ### Decentralized Learning
 
@@ -60,9 +62,9 @@ The server receives neither weight updates nor data, but keeps a list of availab
 
 All endpoints listed below are implemented as messages on a WebSocket, mounted on the `/decentralized/:taskID/:clientID/` route. It means the endpoints trigger their actions for task `taskID` as client `clientID`.
 
-| Message           | From   | To     | Body | Action                                     |
-| ----------------- | ------ | ------ | ---- | ------------------------------------------ |
-| `clientConnected` | Client | Server | —    | Connect client `clientID` to task `taskID` |
+| Message           | From   | To     | Body              | Action                                     |
+| ----------------- | ------ | ------ | ----------------- | ------------------------------------------ |
+| `clientConnected` | Client | Server | `token`, optional | Connect client `clientID` to task `taskID` |
 | `SignalForPeer`   | Client | Server |
 | `PeerIsReady`     | Client | Server |
 | `PeerID`          | Server | Client |

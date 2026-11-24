@@ -1,6 +1,8 @@
 import type * as http from "node:http";
 
-import { afterEach, describe, expect, it } from "vitest";
+import * as msgpack from "@msgpack/msgpack";
+import { afterEach, assert, describe, expect, it, vi } from "vitest";
+import { WebSocket } from "ws";
 import { z } from "zod";
 
 import type {
@@ -18,6 +20,7 @@ import {
   pushTask,
   modelDecode,
   modelEncode,
+  mtype,
   serializeTaskToJSON,
   TFJS,
 } from "@epfml/discojs";
@@ -455,5 +458,86 @@ describe("POST /tasks", { timeout: 20_000 }, () => {
     expect((await fetchModels(url)).keySeq().toArray()).toEqual([
       defaultModels.TitanicClassifier.card.id,
     ]);
+  });
+});
+
+describe("WebSocket /federated/:id", { timeout: 20_000 }, () => {
+  /** Join a task, resolving with how the server answered */
+  async function join(
+    url: URL,
+    id: string,
+    token?: string,
+  ): Promise<{ answer: mtype.MType } | { closeCode: number }> {
+    const wsURL = new URL(`federated/${id}`, url);
+    wsURL.protocol = "ws:";
+    const ws = new WebSocket(wsURL);
+
+    try {
+      return await new Promise((resolve, reject) => {
+        ws.once("error", reject);
+        ws.once("open", () => {
+          const msg: mtype.ClientConnected = {
+            type: mtype.MType.ClientConnected,
+            // left out rather than undefined, which msgpack would send as null
+            ...(token === undefined ? {} : { token }),
+          };
+          ws.send(msgpack.encode(msg));
+        });
+        ws.once("message", (data: Buffer) =>
+          resolve({
+            answer: (msgpack.decode(data) as { type: mtype.MType }).type,
+          }),
+        );
+        ws.once("close", (closeCode) => resolve({ closeCode }));
+      });
+    } finally {
+      ws.terminate();
+    }
+  }
+
+  it("lets only the holders of a private task's token join it", async () => {
+    const url = await startServer(
+      [defaultModels.TitanicClassifier],
+      [defaultTasks.titanic],
+    );
+    const res = await postTask(url, {
+      task: serializeTaskToJSON({
+        ...(await defaultTasks.titanic.getTask()),
+        id: "private-titanic",
+      }),
+      model: defaultModels.TitanicClassifier.card.id,
+      private: true,
+    });
+    assert(res.ok);
+    const { token } = (await res.json()) as { token: string };
+
+    // the route only exists once the task's model is decoded
+    await vi.waitFor(async () =>
+      expect(await join(url, "private-titanic", token)).toEqual({
+        answer: mtype.MType.NewFederatedNodeInfo,
+      }),
+    );
+
+    // not without a token
+    expect(await join(url, "private-titanic")).toEqual({
+      closeCode: mtype.INVALID_TOKEN_CLOSE_CODE,
+    });
+    // nor with a token that isn't the task's
+    expect(await join(url, "private-titanic", "another-token")).toEqual({
+      closeCode: mtype.INVALID_TOKEN_CLOSE_CODE,
+    });
+  });
+
+  it("lets anyone join a public task", async () => {
+    const url = await startServer(
+      [defaultModels.TitanicClassifier],
+      [defaultTasks.titanic],
+    );
+
+    await vi.waitFor(async () =>
+      expect(await join(url, "titanic")).toEqual({
+        answer: mtype.MType.NewFederatedNodeInfo,
+      }),
+    );
   });
 });

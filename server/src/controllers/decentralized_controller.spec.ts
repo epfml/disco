@@ -16,6 +16,7 @@ import { TrainingController } from "./index.js";
 async function makeController(
   maxConnectionRetry: number,
   minNbOfParticipants: number,
+  canJoin: (token: string | undefined) => boolean = () => true,
 ): Promise<DecentralizedController<"image">> {
   const baseTask = await defaultTasks.cifar10.getTask();
   const task: Task<"image", "decentralized"> = {
@@ -33,15 +34,20 @@ async function makeController(
     },
   };
 
-  return new DecentralizedController(task);
+  return new DecentralizedController(task, canJoin);
 }
 
 function connect(
   controller: DecentralizedController<"image">,
   ws: DecentralizedFakeWebSocket,
+  token?: string,
 ): void {
   controller.handle(ws);
-  ws.emitMessage({ type: MessageTypes.ClientConnected });
+  ws.emitMessage({
+    type: MessageTypes.ClientConnected,
+    // left out rather than undefined, which msgpack would send as null
+    ...(token === undefined ? {} : { token }),
+  });
 }
 
 function connectAndJoinRound(
@@ -82,6 +88,47 @@ function expectNotCrashed(ws: DecentralizedFakeWebSocket): void {
   expect(lastMessageOfType(ws, MessageTypes.CrashClient)).toBe(undefined);
   expect(ws.nbOfTerminations).toBe(0);
 }
+
+describe("Joining a private task", () => {
+  const token = "the-task-token";
+  const canJoin = (t: string | undefined) => t === token;
+
+  it("closes the socket of a peer without the task's token", async () => {
+    const controller = await makeController(3, 2, canJoin);
+
+    for (const sent of [undefined, "another-token"]) {
+      const ws = makeDecentralizedFakeWebSocket();
+      connect(controller, ws, sent);
+
+      expect(ws.closeCode).toBe(mtype.INVALID_TOKEN_CLOSE_CODE);
+      expect(ws.sentMessages).toEqual([]);
+    }
+  });
+
+  it("doesn't count a rejected peer as a participant", async () => {
+    const controller = await makeController(3, 2, canJoin);
+    const [member, intruder, joiner] = [
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+      makeDecentralizedFakeWebSocket(),
+    ];
+    connect(controller, member, token);
+    const seenByMember = member.sentMessages.length;
+
+    const closed = new Promise((resolve) => intruder.once("close", resolve));
+    connect(controller, intruder, "another-token");
+    await closed;
+    // neither its attempt nor its leaving reached the participants
+    expect(member.sentMessages).toHaveLength(seenByMember);
+
+    connect(controller, joiner, token);
+    expect(joiner.closeCode).toBeUndefined();
+    expect(
+      expectLastMessageOfType(joiner, MessageTypes.NewDecentralizedNodeInfo)
+        .nbOfParticipants,
+    ).toBe(2);
+  });
+});
 
 describe("DecentralizedController peer connection retry", () => {
   beforeEach(() => {

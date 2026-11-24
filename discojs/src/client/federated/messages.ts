@@ -67,6 +67,7 @@ export function isMessageToServer(raw: unknown): raw is MessageToServer {
 
   switch (raw.type) {
     case MType.ClientConnected:
+      return raw.token === undefined || typeof raw.token === "string";
     case MType.SendPayload:
       return true;
   }

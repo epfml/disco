@@ -158,7 +158,7 @@ export function isMessageToServer(o: unknown): o is MessageToServer {
 
   switch (o.type) {
     case MType.ClientConnected:
-      return true;
+      return o.token === undefined || typeof o.token === "string";
     case MType.SignalForPeer:
       return "peer" in o && isNodeID(o.peer) && "signal" in o;
     case MType.JoinRound:
