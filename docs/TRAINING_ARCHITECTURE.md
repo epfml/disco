@@ -64,18 +64,16 @@ Currently, `TrainingInformation` scatters aggregator parameters across top-level
 flowchart LR
     subgraph Config["1. Three-Axis Task Configuration"]
         TS["trainingStrategy<br/>(standard | fedprox)"]
-        UT["updateTransforms / privacy<br/>(updateClipping, DP)"]
+        UT["privacy<br/>(differentialPrivacy)"]
         AG["aggregation<br/>(mean | byzantine | secure)"]
     end
 
     subgraph HookPipeline["2. Unified TrainingHook Pipeline"]
         HF["createTrainingHooks(task)"]
         H1["FedProxHook"]
-        H2["UpdateClippingHook"]
-        H3["DifferentialPrivacyHook"]
+        H2["DifferentialPrivacyHook"]
         HF --> H1
         HF --> H2
-        HF --> H3
     end
 
     subgraph Execution["3. Algorithm-Agnostic Execution"]
@@ -91,10 +89,9 @@ flowchart LR
     AG --> CL
     H1 --> TR
     H2 --> TR
-    H3 --> TR
 ```
 
-As illustrated above, task configuration splits cleanly into three axes (**1**): client-side axes (`trainingStrategy` and `updateTransforms / privacy`) are instantiated into a `TrainingHook` pipeline (**2**) consumed by an algorithm-agnostic `Trainer` and `Model` (**3**), while `aggregation` configures `Client & Aggregator` independently.
+As illustrated above, task configuration splits cleanly into three axes (**1**): client-side axes (`trainingStrategy` and `privacy`) are instantiated into a `TrainingHook` pipeline (**2**) consumed by an algorithm-agnostic `Trainer` and `Model` (**3**), while `aggregation` configures `Client & Aggregator` independently.
 
 ### 3.1. Three-Axis Task Configuration
 
@@ -102,7 +99,7 @@ Task configuration is separated into three orthogonal axes, with `aggregation` a
 
 1. **`aggregation`:** Inter-client weight aggregation on the server or peers (`mean`, `byzantine`, `secure`).
 2. **`trainingStrategy`:** Intra-round local client optimization (`standard`, `fedprox`), composable with any `aggregation` strategy.
-3. **`updateTransforms` & `privacy`:** Post-round client update transformations executed in a canonical order before communication (`updateClipping`, then `differentialPrivacy`).
+3. **`privacy`:** Post-round client privacy mechanisms applied before communication (`differentialPrivacy`).
 
 <details>
 <summary>Axis 1: <code>aggregation</code> shape</summary>
@@ -128,10 +125,9 @@ Task configuration is separated into three orthogonal axes, with `aggregation` a
 </details>
 
 <details>
-<summary>Axis 3: <code>updateTransforms</code> &amp; <code>privacy</code> shape</summary>
+<summary>Axis 3: <code>privacy</code> shape</summary>
 
 ```ts
-updateClipping?: { clippingRadius: ..., scope: "global" | "per-layer" }
 privacy?: {
   differentialPrivacy?: { clippingRadius: ..., epsilon: ..., delta: ... }
 }
@@ -190,13 +186,12 @@ How existing and planned client-side algorithms map onto `TrainingHook`:
 
 - **FedProx:** Captures `roundStartTrainableWeights()` on `onRoundBegin` and adds the proximal penalty in `computeLoss`.
 - **Learning Rate Schedule:** Updates the learning rate in `onRoundBegin` or `onEpochBegin` as a function of the global round or epoch.
-- **Client Update Clipping:** Clips the local weight update relative to `roundStartWeights()` in `onBeforeCommunication`.
 - **Differential Privacy:** Encapsulates its own norm history, clips trainable updates, and adds calibrated Gaussian noise in `onBeforeCommunication`.
 
 Key architectural properties of this design:
 
 - **Shared lazy snapshots:** Round-start weight snapshots are cloned lazily at most once per round and shared across all active hooks (important for large models like LLMs).
-- **Canonical ordering:** Hooks are constructed from task config in a deterministic order (`FedProx` $\rightarrow$ `UpdateClipping` $\rightarrow$ `DifferentialPrivacy`).
+- **Canonical ordering:** Hooks are constructed from task config in a deterministic order (e.g., local training hooks before pre-communication privacy hooks).
 - **WebWorker-friendly:** Hooks are constructed from serialized task config inside the worker; no closures or hook instances cross worker boundaries.
 
 ---
@@ -259,7 +254,7 @@ sequenceDiagram
 
 ## 4. Expected Limitations & Future Extensions
 
-The `TrainingHook` pipeline covers all **client-only** algorithms that require no wire-protocol changes (such as **FedProx**, **Client Update Clipping**, **Differential Privacy**, and **Learning Rate Schedules**).
+The `TrainingHook` pipeline covers all **client-only** algorithms that require no wire-protocol changes (such as **FedProx**, **Differential Privacy**, and **Learning Rate Schedules**). If additional pre-communication client transforms (such as standalone update clipping, compression, or sparsification) are introduced later, Axis 3 (`privacy`) can naturally be generalized into a broader `updateTransforms` / `mods` configuration while reusing the same `onBeforeCommunication` hook.
 
 However, algorithms that require exchanging auxiliary metadata alongside model weights between clients and the server/peers cannot be implemented by weight-only client hooks alone—for example:
 
