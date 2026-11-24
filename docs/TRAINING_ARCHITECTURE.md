@@ -33,19 +33,17 @@ Currently, the `TrainingInformation` object of the task scatters algorithm param
 
 - Modeling a client-side optimizer like FedProx ([PR #1289](https://github.com/epfml/disco/pull/1289)) as an `aggregationStrategy` is a category error: it forces `getAggregator` to map `"fedprox"` to `MeanAggregator` and **makes it impossible to compose FedProx with `ByzantineRobustAggregator` or `SecureAggregator`**.
 - Local optimization settings that do exist (such as `learningRate` and `goldfishLoss`) live inside data-type schemas (e.g. `text`) instead of a dedicated local-training axis, while `Trainer` and `Model` lack a general hook boundary to consume them cleanly (detailed in Sections 2.2 and 2.3).
-- Nesting `byzantineFaultTolerance` under `privacy` couples aggregation config to client-side privacy, leading `Trainer` to route client-side clipping through its privacy helper even when Differential Privacy is disabled.
+- Nesting `byzantineFaultTolerance` under `privacy` couples aggregation config to client-side privacy, leading `Trainer` to route client-side clipping through its privacy helper even when Differential Privacy is disabled. This really just shows how the independence of these three axis is violated currently.
 
 ### 2.2. Monolithic `Trainer` State, Coupled Responsibilities, and Duplicated Round Lifecycle
 
 `Trainer` violates the Open-Closed principle by accumulating feature-specific state and lifecycle branches directly on the class. This means that **implementing a new algorithm needs changing the trainer code**. Specific examples of smells are:
 
-- **Algorithm state on `Trainer`:** `#privacy`, `#weightNormHistory`, and `#previousRoundWeights` live directly on `Trainer`, so each new client-side algorithm requires adding new private fields, constructor checks, and round-boundary branches.
+- **Algorithm state on `Trainer`:** DP-related settings such as `#privacy` and `#weightNormHistory` live directly on `Trainer`, and are there even when DP is not used. This reflects the approach that has been taken so far to implement new algorithm setttings: each new client-side algorithm requires adding new private fields, constructor checks, and round-boundary branches.
 - **Duplicated round loops:** `#runRoundsByEpoch` / `#runRoundByEpoch` and `#runRoundsByIteration` / `#runRoundByIteration` duplicate round-begin communication, `#previousRoundWeights` tensor cloning, pre-aggregation validation, and `#finishRoundCommunication`.
-- **Duck-typed model casts:** `Trainer` casts `this.model` to `IterationTrainableTextModel`, and `Disco` (`discojs/src/training/disco.ts`) performs similar casts for `GPT`-only setters (`setDebugLabel`, `setGoldfishLoss`, `setLearningRate`).
-
-### 2.3. Rigid `Model` Contract
 
 - **No general hook boundary during local training:** Passing algorithm-specific options into `Model.train()` forces every `Model` subclass (`TFJS`, `GPT`) to maintain custom training-loop branches for each new algorithm instead of keeping standard training paths intact.
+- **Duck-typed model casts:** `Trainer` casts `this.model` to `IterationTrainableTextModel`, and `Disco` (`discojs/src/training/disco.ts`) performs similar casts for `GPT`-only setters (`setDebugLabel`, `setGoldfishLoss`, `setLearningRate`).
 
 ---
 
@@ -54,7 +52,7 @@ Currently, the `TrainingInformation` object of the task scatters algorithm param
 ```mermaid
 flowchart LR
     subgraph Config["1. Three-Axis Task Configuration"]
-        TS["trainingStrategy<br/>(standard | fedprox)"]
+        TS["training<br/>(strategy, lr, ...)"]
         UT["updateTransforms / privacy<br/>(updateClipping, differentialPrivacy)"]
         AG["aggregation<br/>(mean | byzantine | secure)"]
     end
@@ -90,7 +88,7 @@ flowchart LR
 We separate task configuration into three orthogonal, strictly validated (`z.strictObject`) axes with uniform structure:
 
 1. **`aggregation` (`{ strategy, params }`):** Inter-client weight aggregation on the server or peers (`"mean" | "byzantine" | "secure"`).
-2. **`trainingStrategy` (`{ strategy, params }`):** Intra-round local client optimization strategy (`"standard" | "fedprox"`), composable with any `aggregation.strategy`.
+2. **`training`:** Intra-round local client optimization (`strategy: { name: "standard" | "fedprox", params }` plus composable options like `lr`, `learningRateSchedule`, `goldfishLoss`), composable with any `aggregation.strategy`.
 3. **`updateTransforms` & `privacy`:** Post-round client update transformations executed in a canonical mathematical order before communication (`updateClipping` $\rightarrow$ `differentialPrivacy`).
 
 <details>
@@ -106,12 +104,18 @@ We separate task configuration into three orthogonal, strictly validated (`z.str
 </details>
 
 <details>
-<summary>Axis 2: <code>trainingStrategy</code></summary>
+<summary>Axis 2: <code>training</code></summary>
 
 ```ts
-// One of:
-{ strategy: "standard" }
-{ strategy: "fedprox", params: { mu: ... } }
+training?: {
+  strategy?:
+    | { name: "standard" }
+    | { name: "fedprox", params: { mu: ... } },
+  lr?: ...,
+  learningRateSchedule?: ...,
+  goldfishLoss?: ...,
+  // ...other orthogonal intra-round options
+}
 ```
 
 </details>
