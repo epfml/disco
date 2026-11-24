@@ -13,20 +13,6 @@ This design document analyzes the architectural limitations in `discojs` today a
 
 ## 2. Current Architectural Limitations
 
-```mermaid
-flowchart TD
-    subgraph Current["Current Architecture (main)"]
-        TI["TrainingInformation<br/>aggregationStrategy, maxShareValue,<br/>privacy.differentialPrivacy, privacy.byzantineFaultTolerance"]
-        TR["Trainer<br/>#privacy, #weightNormHistory, #previousRoundWeights<br/>applyOptimalPrivacy(), duplicated epoch/iteration loops"]
-        AGG["Aggregator<br/>MeanAggregator | ByzantineRobustAggregator | SecureAggregator"]
-        MDL["Model (TFJS / GPT)<br/>weights (trainable + non-trainable buffers)"]
-
-        TI --> TR
-        TI --> AGG
-        TR --> MDL
-    end
-```
-
 ### 2.1. Conflation of Three Orthogonal Algorithmic Axes
 
 In collaborative and federated learning, a training algorithm decomposes along **three independent axes**:
@@ -43,10 +29,10 @@ In collaborative and federated learning, a training algorithm decomposes along *
    - Iterative Centered Clipping with momentum (`ByzantineRobustAggregator`)
    - Multi-round additive secret sharing (`SecureAggregator`)
 
-Currently on `main`, `TrainingInformation` (`discojs/src/task/training_information.ts`) scatters aggregator parameters across `aggregationStrategy`, root-level `maxShareValue`, and `privacy.byzantineFaultTolerance`, and has no axis for client-side local training strategies:
+Currently, the `TrainingInformation` object of the task scatters algorithm parameters across `aggregationStrategy`, root-level `maxShareValue`, and `privacy.byzantineFaultTolerance`. [PR #1290](https://github.com/epfml/disco/pull/1290) is a first step in correcting this as it reserves a place for the parameters of the different aggregators, so for example, `byzantineFaultTolerance` becomes a parameter of the byzantine aggregator rather than `privacy`. Yet even after those changes, a fundamental problem remains: Disco does not currently have configuration dedicated to local training—it assumes local training rounds happen via standard ERM. This causes problems such as the following:
 
-- Modeling a client-side optimizer like FedProx as an `aggregationStrategy` is a category error: it forces `getAggregator` to map `"fedprox"` to `MeanAggregator` and **makes it impossible to compose FedProx with `ByzantineRobustAggregator` or `SecureAggregator`**.
-- Conversely, the approach taken in [PR #1290](https://github.com/epfml/disco/pull/1290) is also not scalable: adding one-off methods or arguments to `Model` for each new algorithm (`context?: RoundContext`, `attachRegularizer`, `setLearningRate`, `setGoldfishLoss`) forces every `Model` subclass (`TFJS`, `GPT`) and `Trainer` to be modified whenever a new algorithm is introduced.
+- Modeling a client-side optimizer like FedProx ([PR #1289](https://github.com/epfml/disco/pull/1289)) as an `aggregationStrategy` is a category error: it forces `getAggregator` to map `"fedprox"` to `MeanAggregator` and **makes it impossible to compose FedProx with `ByzantineRobustAggregator` or `SecureAggregator`**.
+- Local optimization settings that do exist (such as `learningRate` and `goldfishLoss`) live inside data-type schemas (e.g. `text`) instead of a dedicated local-training axis, while `Trainer` and `Model` lack a general hook boundary to consume them cleanly (detailed in Sections 2.2 and 2.3).
 
 ### 2.2. Monolithic `Trainer` State, Coupled Responsibilities, and Duplicated Round Lifecycle
 
