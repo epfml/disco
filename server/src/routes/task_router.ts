@@ -11,8 +11,9 @@ import {
   modelDecode,
 } from "@epfml/discojs";
 
-import type { TaskSet } from "../task_set.js";
+import type { AccessPolicy, TaskSet } from "../task_set.js";
 import type { ModelSet } from "../model_set.js";
+import { generateToken, hashToken } from "../access_token.js";
 import { z } from "zod";
 
 const debug = createDebug("server:router:task_router");
@@ -75,6 +76,7 @@ export class TaskRouter {
               z.array(z.number()).transform((bytes) => Uint8Array.from(bytes)),
             ]),
             task: z.any().transform(deserializeTaskFromJSON),
+            private: z.boolean().default(false),
           })
           .safeParseAsync(req.body);
 
@@ -83,7 +85,7 @@ export class TaskRouter {
           res.status(400).end();
           return;
         }
-        const { model, task } = parsed.data;
+        const { model, task, private: isPrivate } = parsed.data;
 
         // reject a duplicate before registering an uploaded model, as models
         // cannot be removed from the set once added
@@ -92,23 +94,32 @@ export class TaskRouter {
           return;
         }
 
+        // the server only keeps the hash, so this is the token's only copy
+        const token = isPrivate ? generateToken() : undefined;
+        const policy: AccessPolicy =
+          token === undefined
+            ? { visibility: "public" }
+            : { visibility: "private", tokenHash: hashToken(token) };
+
         try {
           const modelID =
             typeof model === "string"
               ? model
               : await this.registerUploadedModel(task, model);
 
-          this.#taskSet.addTask(task, modelID);
+          this.#taskSet.addTask(task, modelID, policy);
         } catch (e) {
           debug("add task failed with: %o", e);
           res.status(statusForAddTaskError(e)).end();
           return;
         }
+
+        if (token === undefined) res.status(200).end("Successful task upload");
+        // prevent caching the token
+        else res.set("Cache-Control", "no-store").status(200).json({ token });
       } catch (_) {
         res.status(400).end();
-        return;
       }
-      res.status(200).end("Successful task upload");
     });
 
     this.#taskSet.on("newTask", ([task]) => {

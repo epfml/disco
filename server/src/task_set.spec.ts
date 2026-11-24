@@ -3,30 +3,22 @@ import { assert, describe, expect, it } from "vitest";
 import type { Task } from "@epfml/discojs";
 import { defaultTasks, serializeTaskToJSON } from "@epfml/discojs";
 
-import { ModelSet } from "./model_set.js";
 import type { AccessPolicy } from "./task_set.js";
 import { TaskSet } from "./task_set.js";
+import { titanicModelSet } from "../tests/utils.js";
 
 const tokenHash = "a-token-hash";
 
-/** TaskSet holding the titanic task's model, encoded as dummy bytes */
+/** TaskSet able to hold the titanic task */
 async function setup(): Promise<{
   taskSet: TaskSet;
   task: Task<"tabular", "federated">;
   modelID: string;
 }> {
-  const modelSet = new ModelSet();
-  const modelID = defaultTasks.titanic.modelCard.card.id;
-  // the bytes are never decoded, so a real model isn't needed
-  await modelSet.addModel([
-    defaultTasks.titanic.modelCard.card,
-    Uint8Array.of(1, 2, 3),
-  ]);
-
   return {
-    taskSet: new TaskSet(modelSet),
+    taskSet: new TaskSet(await titanicModelSet()),
     task: await defaultTasks.titanic.getTask(),
-    modelID,
+    modelID: defaultTasks.titanic.modelCard.card.id,
   };
 }
 

@@ -37,6 +37,10 @@ Adding a new task server-side can be done in several ways. See [TASK.md](https:/
 
 (\*) See the [task documentation](https://github.com/epfml/disco/tree/main/docs/TASK.md) for the exact requirements.
 
+The body of `POST /tasks` is a JSON object with the serialized `task` and its `model`, either the ID of a model listed by `GET /models` or an encoded model to upload. Anyone can create a task.
+
+Add `"private": true` to create a private task. The response is then `{ "token": "…" }`, a random 256-bit token granting access to the task. The server only keeps a SHA-256 hash of it, so this response is the only time the token is given: whoever creates the task has to share it with the participants. Like every task added at runtime, private tasks are kept in memory only and are lost when the server restarts.
+
 ### Federated Learning
 
 The server receives model weight updates from participants (clients), but never receives any training data. For every task, it keeps track of connected clients and weight updates, and periodically aggregates and serves the most recent weight updates.
