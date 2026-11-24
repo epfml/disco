@@ -108,105 +108,41 @@ We separate task configuration into three orthogonal, strictly validated (`z.str
 2. **`trainingStrategy` (`{ strategy, params }`):** Intra-round local client optimization strategy (`"standard" | "fedprox"`), composable with any `aggregation.strategy`.
 3. **`updateTransforms` & `privacy`:** Post-round client update transformations executed in a canonical mathematical order before communication (`updateClipping` $\rightarrow$ `differentialPrivacy`).
 
+<details>
+<summary>Axis 1: <code>aggregation</code></summary>
+
 ```ts
-import { z } from "zod";
-
-// ---------------------------------------------------------------------------
-// Axis 1: Inter-Client Weight Aggregation (Server / Peer-to-Peer ONLY)
-// Configured on TrainingInformation as:
-//   aggregation: { strategy: "secure", params: { maxShareValue: 100 } }
-// ---------------------------------------------------------------------------
-export const meanAggregationConfigSchema = z.strictObject({
-  strategy: z.literal("mean"),
-  params: z.undefined().optional(),
-});
-
-export const byzantineAggregationConfigSchema = z.strictObject({
-  strategy: z.literal("byzantine"),
-  params: z
-    .strictObject({
-      clippingRadius: z.number().positive().default(1.0),
-      maxIterations: z.number().int().positive().default(1),
-      beta: z.number().min(0).max(1).default(0.9),
-    })
-    .default({ clippingRadius: 1.0, maxIterations: 1, beta: 0.9 }),
-});
-
-export const secureAggregationConfigSchema = z.strictObject({
-  strategy: z.literal("secure"),
-  params: z
-    .strictObject({
-      maxShareValue: z.number().positive().int().default(100),
-    })
-    .default({ maxShareValue: 100 }),
-});
-
-export const federatedAggregationConfigSchema = z.discriminatedUnion(
-  "strategy",
-  [meanAggregationConfigSchema, byzantineAggregationConfigSchema],
-);
-
-export const decentralizedAggregationConfigSchema = z.discriminatedUnion(
-  "strategy",
-  [
-    meanAggregationConfigSchema,
-    byzantineAggregationConfigSchema,
-    secureAggregationConfigSchema,
-  ],
-);
-
-export type AggregationConfig = z.infer<
-  typeof decentralizedAggregationConfigSchema
->;
-export type AggregationStrategy = AggregationConfig["strategy"];
-
-// ---------------------------------------------------------------------------
-// Axis 2: Intra-Round Local Training Strategy (Client Optimization)
-// Same { strategy, params } discriminated-union shape, composable with ANY aggregation!
-// Configured on TrainingInformation as:
-//   trainingStrategy: { strategy: "fedprox", params: { mu: 0.01 } }
-// ---------------------------------------------------------------------------
-export const standardTrainingStrategySchema = z.strictObject({
-  strategy: z.literal("standard"),
-  params: z.undefined().optional(),
-});
-
-export const fedproxTrainingStrategySchema = z.strictObject({
-  strategy: z.literal("fedprox"),
-  params: z
-    .strictObject({
-      mu: z.number().positive().default(0.01),
-    })
-    .default({ mu: 0.01 }),
-});
-
-export const trainingStrategySchema = z
-  .discriminatedUnion("strategy", [
-    standardTrainingStrategySchema,
-    fedproxTrainingStrategySchema,
-  ])
-  .default({ strategy: "standard" });
-
-export type TrainingStrategyConfig = z.infer<typeof trainingStrategySchema>;
-
-// ---------------------------------------------------------------------------
-// Axis 3: Post-Round Client Update Transforms & Privacy
-// ---------------------------------------------------------------------------
-export const updateClippingSchema = z.strictObject({
-  clippingRadius: z.number().positive(),
-  scope: z.enum(["global", "per-layer"]).default("global"),
-});
-
-export const privacySchema = z.strictObject({
-  differentialPrivacy: z
-    .strictObject({
-      clippingRadius: z.number().positive().default(1),
-      epsilon: z.number().positive(),
-      delta: z.number().gt(0).lt(1),
-    })
-    .optional(),
-});
+// One of:
+{ strategy: "mean" }
+{ strategy: "byzantine", params: { clippingRadius: ..., maxIterations: ..., beta: ... } }
+{ strategy: "secure", params: { maxShareValue: ... } }
 ```
+
+</details>
+
+<details>
+<summary>Axis 2: <code>trainingStrategy</code></summary>
+
+```ts
+// One of:
+{ strategy: "standard" }
+{ strategy: "fedprox", params: { mu: ... } }
+```
+
+</details>
+
+<details>
+<summary>Axis 3: <code>updateTransforms</code> &amp; <code>privacy</code></summary>
+
+```ts
+updateClipping?: { clippingRadius: ..., scope: "global" | "per-layer" }
+
+privacy?: {
+  differentialPrivacy?: { clippingRadius: ..., epsilon: ..., delta: ... }
+}
+```
+
+</details>
 
 ---
 
@@ -215,79 +151,33 @@ export const privacySchema = z.strictObject({
 Instead of adding algorithm-specific fields to `Trainer` or algorithm-specific methods (`attachRegularizer`, `adaptLearningRate`, etc.) to `Model`, **every client-side training algorithm is expressed as a `TrainingHook`**. This is similar to other frameworks suchas **Flower's `Strategy`** and \*\*PyTorch Lightning / Keras `Callback`.
 
 ```ts
-import type * as tf from "@tensorflow/tfjs";
-import type { DataType } from "#types/index";
-import type { WeightsContainer } from "#weights/index";
-import type { BatchLogs, EpochLogs, Model } from "#models/index";
-
-/**
- * Execution context passed to TrainingHooks across round, epoch, and batch steps.
- * Round-start weight snapshots are lazily cloned at most ONCE per round on first access
- * and disposed automatically by Trainer at the end of the round.
- */
-export interface HookContext<D extends DataType = DataType> {
+interface HookContext<D extends DataType = DataType> {
   readonly model: Model<D>;
   readonly round: number;
   readonly totalRounds?: number;
   readonly epoch?: number;
   readonly batch?: number;
-
-  /** Lazily clones and memoizes `model.weights` at the start of the current round. */
   roundStartWeights(): WeightsContainer;
-
-  /** Lazily clones and memoizes `model.trainableWeights` at the start of the current round. */
   roundStartTrainableWeights(): WeightsContainer;
 }
 
-/**
- * Unified lifecycle hook covering both round boundaries (orchestrated by Trainer)
- * and local optimization steps (orchestrated via the Model's optimizer).
- */
-export interface TrainingHook<D extends DataType = DataType>
+interface TrainingHook<D extends DataType = DataType>
   extends Partial<Disposable> {
-  // -------------------------------------------------------------------------
-  // 1. Round Lifecycle (Invoked by Trainer)
-  // -------------------------------------------------------------------------
   onRoundBegin?(ctx: HookContext<D>): Promise<void> | void;
-
-  /**
-   * Transforms outgoing model weights after local training completes and
-   * before `client.onRoundEndCommunication()` sends them to the server/peers.
-   *
-   * Ownership rule: A hook MUST NOT dispose its input `weights` container.
-   * It returns either a newly allocated `WeightsContainer` or `weights` unchanged.
-   * Trainer automatically disposes all intermediate containers in a `finally` block.
-   */
   onBeforeCommunication?(
     weights: WeightsContainer,
     ctx: HookContext<D>,
   ): Promise<WeightsContainer> | WeightsContainer;
-
-  /**
-   * Invoked after `client.onRoundEndCommunication()` returns the aggregated weights
-   * and `model.weights` has been updated.
-   */
   onAfterAggregation?(
     aggregatedWeights: WeightsContainer,
     ctx: HookContext<D>,
   ): Promise<void> | void;
-
   onRoundEnd?(ctx: HookContext<D>): Promise<void> | void;
 
-  // -------------------------------------------------------------------------
-  // 2. Intra-Round Local Training Lifecycle (Invoked during Model.train)
-  // -------------------------------------------------------------------------
   onEpochBegin?(ctx: HookContext<D>): Promise<void> | void;
   onEpochEnd?(logs: EpochLogs, ctx: HookContext<D>): Promise<void> | void;
-
   onBatchBegin?(ctx: HookContext<D>): Promise<void> | void;
   onBatchEnd?(logs: BatchLogs, ctx: HookContext<D>): Promise<void> | void;
-
-  /**
-   * Invoked inside TensorFlow.js's autograd scope (`optimizer.computeGradients`)
-   * on every training step. Any differentiable penalty added to `baseLoss` is
-   * automatically differentiated with respect to the model's trainable variables.
-   */
   computeLoss?(baseLoss: tf.Scalar, ctx: HookContext<D>): tf.Scalar;
 }
 ```
