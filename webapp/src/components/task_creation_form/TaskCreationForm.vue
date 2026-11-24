@@ -445,6 +445,7 @@
                     placeholder="1.0"
                     as="input"
                     type="number"
+                    min="0"
                     step="any"
                   />
                 </FormLabel>
@@ -797,7 +798,12 @@ watch([scheme, form], ([scheme, form]) => {
 
   if (scheme === "local") {
     form.setFieldValue("trainingInformation.aggregationStrategy", "mean");
-  } else if (scheme === "federated" && aggregationStrategy.value === "secure") {
+  } else if (
+    scheme === "federated" &&
+    !(
+      FEDERATED_AGGREGATION_STRATEGIES as readonly AggregationStrategy[]
+    ).includes(aggregationStrategy.value)
+  ) {
     form.setFieldValue("trainingInformation.aggregationStrategy", "mean");
   }
 });
