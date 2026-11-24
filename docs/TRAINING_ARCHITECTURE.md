@@ -43,10 +43,9 @@ Currently, the `TrainingInformation` object of the task scatters algorithm param
 - **Duplicated round loops:** `#runRoundsByEpoch` / `#runRoundByEpoch` and `#runRoundsByIteration` / `#runRoundByIteration` duplicate round-begin communication, `#previousRoundWeights` tensor cloning, pre-aggregation validation, and `#finishRoundCommunication`.
 - **Duck-typed model casts:** `Trainer` casts `this.model` to `IterationTrainableTextModel`, and `Disco` (`discojs/src/training/disco.ts`) performs similar casts for `GPT`-only setters (`setDebugLabel`, `setGoldfishLoss`, `setLearningRate`).
 
-### 2.3. Rigid `Model` Contract and Non-Trainable Buffers
+### 2.3. Rigid `Model` Contract
 
 - **No general hook boundary during local training:** Passing algorithm-specific options into `Model.train()` forces every `Model` subclass (`TFJS`, `GPT`) to maintain custom training-loop branches for each new algorithm instead of keeping standard training paths intact.
-- **Trainable weights mixed with non-trainable buffers:** `Model.weights` includes both trainable parameters and non-trainable buffers (such as `BatchNormalization` moving statistics), so local regularizers and client-side privacy transforms cannot target trainable parameters cleanly (see also [#1301](https://github.com/epfml/disco/issues/1301) for related Differential Privacy bugs).
 
 ---
 
