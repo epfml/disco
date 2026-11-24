@@ -68,6 +68,25 @@ async function postTask(
   });
 }
 
+/** POST a private task under the given ID, returning its token */
+async function postPrivateTask(url: URL, id: string): Promise<string> {
+  const res = await postTask(url, id, { private: true });
+  assert(res.ok);
+  return ((await res.json()) as { token: string }).token;
+}
+
+/** GET a single task, with the given Authorization header if any */
+async function getTask(
+  url: URL,
+  id: string,
+  authorization?: string,
+): Promise<Response> {
+  return await fetch(new URL(`tasks/${id}`, url), {
+    headers:
+      authorization === undefined ? {} : { Authorization: authorization },
+  });
+}
+
 describe("POST /tasks", () => {
   it("keeps tasks public unless asked otherwise", async () => {
     const { taskSet, url } = await startRouter();
@@ -95,8 +114,7 @@ describe("POST /tasks", () => {
   it("stores only the token's hash", async () => {
     const { taskSet, url } = await startRouter();
 
-    const res = await postTask(url, "private-task", { private: true });
-    const { token } = (await res.json()) as { token: string };
+    const token = await postPrivateTask(url, "private-task");
 
     const policy = taskSet.policies.get("private-task");
     expect(policy).toEqual({
@@ -110,10 +128,7 @@ describe("POST /tasks", () => {
     const { url } = await startRouter();
 
     const tokens = await Promise.all(
-      ["first-task", "second-task"].map(async (id) => {
-        const res = await postTask(url, id, { private: true });
-        return ((await res.json()) as { token: string }).token;
-      }),
+      ["first-task", "second-task"].map((id) => postPrivateTask(url, id)),
     );
 
     expect(tokens[0]).not.toEqual(tokens[1]);
@@ -126,5 +141,63 @@ describe("POST /tasks", () => {
 
     expect(res.status).toBe(400);
     expect(taskSet.tasks.has("private-task")).toBe(false);
+  });
+});
+
+describe("GET /tasks", () => {
+  it("lists public tasks but not private ones", async () => {
+    const { url } = await startRouter();
+    expect((await postTask(url, "public-task")).status).toBe(200);
+    await postPrivateTask(url, "private-task");
+
+    const res = await fetch(new URL("tasks", url));
+
+    expect(res.status).toBe(200);
+    const ids = ((await res.json()) as { id: string }[]).map((t) => t.id);
+    expect(ids).toEqual(["public-task"]);
+  });
+});
+
+describe("GET /tasks/:id", () => {
+  it("returns a public task without a token", async () => {
+    const { url } = await startRouter();
+    expect((await postTask(url, "public-task")).status).toBe(200);
+
+    const res = await getTask(url, "public-task");
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ id: "public-task" });
+  });
+
+  it("returns a private task to the holder of its token", async () => {
+    const { url } = await startRouter();
+    const token = await postPrivateTask(url, "private-task");
+
+    const res = await getTask(url, "private-task", `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ id: "private-task" });
+  });
+
+  it("hides a private task from requests without its token", async () => {
+    const { url } = await startRouter();
+    const token = await postPrivateTask(url, "private-task");
+    const otherToken = await postPrivateTask(url, "other-task");
+
+    // answered like an unknown task, so that private IDs can't be probed for
+    for (const authorization of [
+      undefined,
+      `Bearer ${otherToken}`,
+      `Basic ${token}`,
+    ])
+      expect((await getTask(url, "private-task", authorization)).status).toBe(
+        404,
+      );
+  });
+
+  it("answers 404 for an unknown task", async () => {
+    const { url } = await startRouter();
+
+    expect((await getTask(url, "unknown-task")).status).toBe(404);
   });
 });

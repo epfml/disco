@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 
 // 256 bits
 const TOKEN_BYTES = 32;
@@ -17,4 +17,13 @@ export function generateToken(): string {
  */
 export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
+}
+
+/** Whether the token is the one whose hash is given */
+export function matchesHash(token: string, hash: string): boolean {
+  // constant time, so that response times don't tell how close a guess is
+  return timingSafeEqual(
+    Buffer.from(hashToken(token), "hex"),
+    Buffer.from(hash, "hex"),
+  );
 }

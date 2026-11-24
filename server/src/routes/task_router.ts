@@ -35,6 +35,12 @@ function statusForAddTaskError(e: unknown): number {
   }
 }
 
+/** Token sent as `Authorization: Bearer <token>`, if any */
+function bearerToken(request: Request): string | undefined {
+  // the scheme is case-insensitive (RFC 9110)
+  return /^Bearer +(\S+)$/i.exec(request.get("Authorization") ?? "")?.[1];
+}
+
 export class TaskRouter {
   readonly #expressRouter: express.Router;
   readonly #taskSet: TaskSet;
@@ -45,10 +51,11 @@ export class TaskRouter {
     this.#modelSet = modelSet;
     this.#expressRouter = express.Router();
 
-    // Return available tasks upon GET requests
+    // Return public tasks upon GET requests, private ones are only given by ID
     this.#expressRouter.get("/", (_, res) => {
       res.status(200).send(
         this.#taskSet.tasks
+          .filter((_, id) => this.#taskSet.canAccess(id))
           .valueSeq()
           .map(([t, _]) => serializeTaskToJSON(t))
           .toArray(),
@@ -60,6 +67,20 @@ export class TaskRouter {
       res
         .status(200)
         .send(Task.schema.toJSONSchema({ unrepresentable: "any" }));
+    });
+
+    // Return a single task, which is how clients get a private one
+    this.#expressRouter.get("/:id", (req, res) => {
+      const id = req.params.id;
+      const taskAndModel = this.#taskSet.tasks.get(id);
+      if (
+        taskAndModel === undefined ||
+        !this.#taskSet.canAccess(id, bearerToken(req))
+      ) {
+        res.status(404).end();
+        return;
+      }
+      res.status(200).send(serializeTaskToJSON(taskAndModel[0]));
     });
 
     this.#expressRouter.use(express.json());

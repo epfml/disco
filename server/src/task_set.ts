@@ -4,6 +4,7 @@ import "@tensorflow/tfjs-node";
 import type { DataType, Network, Task, Encoded } from "@epfml/discojs";
 import { EventEmitter } from "@epfml/discojs";
 import type { ModelSet } from "./model_set.js";
+import { matchesHash } from "./access_token.js";
 
 type EncodedModel = Encoded;
 type TaskAndModel = [Task<DataType, Network>, EncodedModel];
@@ -51,6 +52,22 @@ export class TaskSet extends EventEmitter<{
   /** Access policy of each task, keyed like {@link tasks} */
   get policies(): Map<Task.ID, AccessPolicy> {
     return this.#policies;
+  }
+
+  /**
+   * Whether a client holding the given token, if any, may access the task.
+   * Public tasks need no token and unknown ones are never accessible.
+   */
+  canAccess(id: Task.ID, token?: string): boolean {
+    const policy = this.#policies.get(id);
+    switch (policy?.visibility) {
+      case undefined:
+        return false;
+      case "public":
+        return true;
+      case "private":
+        return token !== undefined && matchesHash(token, policy.tokenHash);
+    }
   }
 
   // send known tasks to new listener

@@ -6,6 +6,7 @@ import { defaultTasks, serializeTaskToJSON } from "@epfml/discojs";
 import type { AccessPolicy } from "./task_set.js";
 import { TaskSet } from "./task_set.js";
 import { titanicModelSet } from "../tests/utils.js";
+import { generateToken, hashToken } from "./access_token.js";
 
 const tokenHash = "a-token-hash";
 
@@ -77,5 +78,36 @@ describe("TaskSet", () => {
       "added task already exists",
     );
     expect(taskSet.policies.get(task.id)).to.equal(policy);
+  });
+
+  describe("canAccess", () => {
+    it("denies unknown tasks", async () => {
+      const { taskSet } = await setup();
+
+      expect(taskSet.canAccess("unknown-task", generateToken())).to.be.false;
+    });
+
+    it("allows anyone on a public task", async () => {
+      const { taskSet, task, modelID } = await setup();
+      taskSet.addTask(task, modelID);
+
+      expect(taskSet.canAccess(task.id)).to.be.true;
+      expect(taskSet.canAccess(task.id, generateToken())).to.be.true;
+    });
+
+    it("allows a private task only with its token", async () => {
+      const { taskSet, task, modelID } = await setup();
+      const token = generateToken();
+      taskSet.addTask(task, modelID, {
+        visibility: "private",
+        tokenHash: hashToken(token),
+      });
+
+      expect(taskSet.canAccess(task.id, token)).to.be.true;
+      expect(taskSet.canAccess(task.id)).to.be.false;
+      expect(taskSet.canAccess(task.id, generateToken())).to.be.false;
+      // the stored hash isn't a token of its own
+      expect(taskSet.canAccess(task.id, hashToken(token))).to.be.false;
+    });
   });
 });
