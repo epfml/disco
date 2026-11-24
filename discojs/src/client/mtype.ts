@@ -87,8 +87,8 @@ export interface ClientConnected {
   token?: string;
 }
 
-/** 
- * Close code of a WebSocket whose ClientConnected has no valid token 
+/**
+ * Close code of a WebSocket whose ClientConnected has no valid token
  * 4xxx is the WebSocket range for application usage
  * Convention is to reuse HTTP codes like 403 Forbidden
  * */

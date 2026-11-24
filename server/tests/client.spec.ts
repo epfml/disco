@@ -5,6 +5,7 @@ import type {
   DataType,
   Model,
   Network,
+  Task,
   TaskProvider,
   ModelCard,
   decentralizedMessages,
@@ -20,10 +21,23 @@ import {
   defaultModels,
   ClientCrashError,
   ClientDisconnectedError,
+  pushTask,
 } from "@epfml/discojs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Server } from "../src/index.js";
 import { TrainingController } from "../src/controllers/index.js";
+
+/** Push a private copy of the given task, returning it with its token */
+async function pushPrivateCopy<D extends DataType, N extends Network>(
+  url: URL,
+  provider: TaskProvider<D, N>,
+): Promise<[Task<D, N>, string]> {
+  const task = { ...(await provider.getTask()), id: "private-copy" };
+  const token = await pushTask(url, task, provider.modelCard.card.id, {
+    private: true,
+  });
+  return [task, token];
+}
 
 describe("decentralized client", () => {
   let handle: http.Server;
@@ -73,6 +87,31 @@ describe("decentralized client", () => {
     );
 
     await expect(client.connect()).rejects.toThrow();
+  });
+
+  it("joins a private task with its token", async () => {
+    const url = await startServer([defaultModels.CIFAR10Classifier], []);
+    const [task, token] = await pushPrivateCopy(url, defaultTasks.cifar10);
+
+    const client = new DecentralizedClient(
+      url,
+      task,
+      new MeanAggregator(),
+      token,
+    );
+
+    await client.connect();
+    await client.disconnect();
+  });
+
+  it("can't join a private task without its token", async () => {
+    const url = await startServer([defaultModels.CIFAR10Classifier], []);
+    const [task] = await pushPrivateCopy(url, defaultTasks.cifar10);
+
+    const client = new DecentralizedClient(url, task, new MeanAggregator());
+
+    // the server hides the task's model before anything else
+    await expect(client.connect()).rejects.toThrow("HTTP status 404");
   });
 
   it("is disconnected by the server crashing it", async () => {
@@ -163,6 +202,26 @@ describe("federated client", () => {
 
     await client.connect();
     await client.disconnect();
+  });
+
+  it("joins a private task with its token", async () => {
+    const url = await startServer([defaultModels.TitanicClassifier], []);
+    const [task, token] = await pushPrivateCopy(url, defaultTasks.titanic);
+
+    const client = new FederatedClient(url, task, new MeanAggregator(), token);
+
+    await client.connect();
+    await client.disconnect();
+  });
+
+  it("can't join a private task without its token", async () => {
+    const url = await startServer([defaultModels.TitanicClassifier], []);
+    const [task] = await pushPrivateCopy(url, defaultTasks.titanic);
+
+    const client = new FederatedClient(url, task, new MeanAggregator());
+
+    // the server hides the task's model before anything else
+    await expect(client.connect()).rejects.toThrow("HTTP status 404");
   });
 
   it("is disconnected by the server crashing it", async () => {

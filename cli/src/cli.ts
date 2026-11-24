@@ -85,7 +85,7 @@ async function runUser<D extends DataType, N extends Network>(
   debug(`Starting runUser for client ${userIndex}`);
   const trainingScheme = task.trainingInformation.scheme as N;
   const aggregator = getAggregator(task);
-  const client = getClient(trainingScheme, url, task, aggregator);
+  const client = getClient(trainingScheme, url, task, aggregator, args.token);
   const disco = new Disco(task, client, {
     scheme: trainingScheme,
     preprocessOnce: false,

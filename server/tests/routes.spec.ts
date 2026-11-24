@@ -16,6 +16,7 @@ import {
   defaultModels,
   defaultTasks,
   fetchModels,
+  fetchTask,
   fetchTasks,
   pushTask,
   modelDecode,
@@ -440,6 +441,25 @@ describe("POST /tasks", { timeout: 20_000 }, () => {
     ).resolves.toBeUndefined();
 
     expect((await fetchTasks(url)).keySeq().toArray()).toContain(task.id);
+  });
+
+  it("gives the discojs client the token of a private task", async () => {
+    const url = await startServer(
+      [defaultModels.TitanicClassifier],
+      [defaultTasks.titanic],
+    );
+    const task = await newTask();
+
+    const token = await pushTask(
+      url,
+      task,
+      defaultModels.TitanicClassifier.card.id,
+      { private: true },
+    );
+
+    expect((await fetchTask(url, task.id, token)).id).toBe(task.id);
+    await expect(fetchTask(url, task.id)).rejects.toThrow("HTTP status 404");
+    expect((await fetchTasks(url)).has(task.id)).toBe(false);
   });
 
   it("accepts a model ID from the discojs client", async () => {

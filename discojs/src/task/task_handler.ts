@@ -1,4 +1,5 @@
 import { Map, Seq } from "immutable";
+import { z } from "zod";
 
 import type { DataType, Network } from "#types/index";
 import type { Model, ModelCardInfo } from "#models/index";
@@ -22,12 +23,27 @@ function urlToTasks(base: URL): URL {
  *
  * The model is either one to upload along with the task, or the ID of a model
  * the server already knows about, as listed by `fetchModels`.
+ *
+ * A private task is only listed, served and joinable with the returned token.
+ * The server only keeps its hash, so this is the only time it is given.
  */
 export async function pushTask<D extends DataType>(
   base: URL,
   task: Task<D, Network>,
   model: Model<D> | ModelCardInfo.ID,
-): Promise<void> {
+): Promise<void>;
+export async function pushTask<D extends DataType>(
+  base: URL,
+  task: Task<D, Network>,
+  model: Model<D> | ModelCardInfo.ID,
+  options: { private: true },
+): Promise<string>;
+export async function pushTask<D extends DataType>(
+  base: URL,
+  task: Task<D, Network>,
+  model: Model<D> | ModelCardInfo.ID,
+  options?: { private: true },
+): Promise<string | void> {
   const response = await fetch(urlToTasks(base), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -35,9 +51,39 @@ export async function pushTask<D extends DataType>(
       task: serializeTaskToJSON(task),
       model:
         typeof model === "string" ? model : [...(await modelEncode(model))],
+      private: options?.private ?? false,
     }),
   });
   if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`);
+
+  if (options?.private !== true) return;
+  const parsed = z
+    .object({ token: z.string() })
+    .safeParse(await response.json());
+  if (!parsed.success)
+    throw new Error("invalid task creation response: expected a token");
+  return parsed.data.token;
+}
+
+/**
+ * Fetch a single task, which is the only way to get a private one.
+ *
+ * @param token of the task, if private
+ */
+export async function fetchTask(
+  base: URL,
+  id: Task.ID,
+  token?: string,
+): Promise<Task<DataType, Network>> {
+  const url = urlToTasks(base);
+  url.pathname += `/${encodeURIComponent(id)}`;
+
+  const response = await fetch(url, {
+    headers: token === undefined ? {} : { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`);
+
+  return await deserializeTaskFromJSON((await response.json()) as JSONLike);
 }
 
 export async function fetchTasks(

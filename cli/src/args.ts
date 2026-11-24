@@ -138,6 +138,8 @@ export interface BenchmarkArguments {
   saveModel: boolean;
   saveCheckpoints: boolean;
   host: URL;
+  /** Token of the task, when it is private on the host */
+  token?: string;
 }
 
 type BenchmarkUnsafeArguments = Omit<
@@ -283,6 +285,12 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
       typeLabel: "URL",
       description: "Host to connect to",
       defaultValue: new URL("http://localhost:8080"),
+    },
+    token: {
+      type: String,
+      description:
+        "Token of the task, when it is private on the host, as returned when creating it",
+      optional: true,
     },
 
     // Aggregator

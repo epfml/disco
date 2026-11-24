@@ -37,6 +37,7 @@ Non-mandatory fields will automatically use values from the task specification.
 - `task`: (mandatory) pre-defined task (adding a new task is described in the next section)
 - `numberOfUsers`: number of users participating in the learning round
 - `host`: URL of the server to connect to, defaults to `http://localhost:8080`
+- `token`: token of the task when it is private on the server, as returned when creating it. Like any argument, it is visible to other users of the machine through the process list.
 - `outputPath`: path to save logs and models, defaults to `./<testID>`
 - `saveLogs`: whether to save the logs of the test run
 - `saveModel`: whether to save the trained model to disk

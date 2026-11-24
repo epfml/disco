@@ -5,7 +5,7 @@ import type { DataType } from "#types/index";
 import type { WeightsContainer } from "#weights/index";
 import { weightsEncode, weightsDecode } from "#serialization/index";
 import { Client } from "#client/client";
-import { MType, type ClientConnected } from "#client/mtype";
+import { MType } from "#client/mtype";
 import {
   sendAndWaitWithRetry,
   waitMessage,
@@ -65,9 +65,7 @@ export class FederatedClient extends Client<"federated"> {
 
     this.aggregator.registerNode(SERVER_NODE_ID);
 
-    const msg: ClientConnected = {
-      type: MType.ClientConnected,
-    };
+    const msg = this.clientConnectedMessage();
     const { id, waitForMoreParticipants, payload, round, nbOfParticipants } =
       await sendAndWaitWithRetry(this.server, msg, MType.NewFederatedNodeInfo, {
         signal: this.stopSignal,
