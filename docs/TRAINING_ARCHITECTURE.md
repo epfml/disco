@@ -83,14 +83,14 @@ flowchart LR
     H3 --> TR
 ```
 
-### 3.1. Three-Axis Task Configuration Schema (`discojs/src/task/training_information.ts`)
+### 3.1. Three-Axis Task Configuration Schema
 
 We separate task configuration into three orthogonal axes with uniform structure:
 
-1. **aggregation:** Inter-client weight aggregation on the server or peers. Examples could be *mean* which is standard FedAvg or *median* which is a byzantine robust aggregation. Current ones are mean, byzantine and secure.
+1. **aggregation:** Inter-client weight aggregation on the server or peers. Examples could be _mean_ which is standard FedAvg or _median_ which is a byzantine robust aggregation. Current ones are mean, byzantine and secure.
 
 2. **training:** Intra-round local client optimization strategies plus composable options like `lr`, `learningRateSchedule`, `goldfishLoss`, composable with any `aggregation.strategy`.
-3. **communication transforms** Post-round client update transformations executed in a canonical mathematical order before communication such as *differential privacy*, or model compression.
+3. **communication transforms** Post-round client update transformations executed in a canonical mathematical order before communication such as _differential privacy_, or model compression.
 
 **Pro**: This removes the problems mentioned in 2.1, it dedicates a place in the config for training-only options, without cluttering aggregation configs. So for example, `FedProx`, being only a training strategy, would be composable with byzantine aggregators. It also adds space for other pre-communication strategy different than privacy, such as compression, or client-side clipping and so on, without having to put them under a specific aggregator.
 
@@ -112,6 +112,7 @@ We separate task configuration into three orthogonal axes with uniform structure
   }
 }
 ```
+
 </details>
 
 <details>
@@ -153,9 +154,11 @@ training?: {
 ---
 
 ### 3.2. Unified `TrainingHook` Lifecycle
+
 Even after having a dedicated place for training settings in the config, we still need to make `Trainer` scalable and independent of the specific strategies, so we don't have to change it every time we add a new strategy. Instead of adding algorithm-specific fields to `Trainer` or algorithm-specific methods (`attachRegularizer`, `adaptLearningRate`, etc.) to `Model`, **every client-side training algorithm is expressed as a TrainingHook**. This is similar to other frameworks suchas **Flower's `Strategy`** and \*\*PyTorch Lightning / Keras `Callback`.
 
 An example of what a training hook could look like is the following:
+
 ```ts
 interface HookContext<D extends DataType = DataType> {
   readonly model: Model<D>;
@@ -189,115 +192,28 @@ interface TrainingHook<D extends DataType = DataType>
 ```
 
 #### How these hooks solve the current trainer and model bloat:
+
 No algorithm-specific methods anymore. For example the following could be implemented like this:
-   - **FedProx -> FedProxHook:**: uses `onRoundBegin(ctx)` to get `ctx.roundStartTrainableWeights()` and in `computeLoss`, it adds the proximal loss to the base loss.
-   - **Adding a LR Schedule -> LearningRateScheduleHook:** can update the LR by attaching to `onRoundBegin(ctx)` or `onEpochBegin(ctx)` and can model learning rate as a function of `ctx.round` / `ctx.epoch`.
-   - **Differential Privacy -> DifferentialPrivacyHook:** Can privately encapsulates `#weightNormHistory` without it lying on the trainer, and can use `onBeforeCommunication(weights, ctx)` to compute update norms, clips trainable updates, adds calibrated Gaussian noise, and returns the noisy weights.
 
+- **FedProx -> FedProxHook:**: uses `onRoundBegin(ctx)` to get `ctx.roundStartTrainableWeights()` and in `computeLoss`, it adds the proximal loss to the base loss.
+- **Adding a LR Schedule -> LearningRateScheduleHook:** can update the LR by attaching to `onRoundBegin(ctx)` or `onEpochBegin(ctx)` and can model learning rate as a function of `ctx.round` / `ctx.epoch`.
+- **Differential Privacy -> DifferentialPrivacyHook:** Can privately encapsulates `#weightNormHistory` without it lying on the trainer, and can use `onBeforeCommunication(weights, ctx)` to compute update norms, clips trainable updates, adds calibrated Gaussian noise, and returns the noisy weights.
 
-A possible *complexity* however is ensuring the hooks are self-consistent with each other, and they're executed in a deterministic order. But this should just come down to making sure the config is valid.
+A possible _complexity_ however is ensuring the hooks are self-consistent with each other, and they're executed in a deterministic order. But this should just come down to making sure the config is valid.
 How would this be combined with **WebWorkers**? Workers receive serialized `Task` JSON and instantiate `Disco` and `Trainer` inside the worker thread, so we can directly create the hooks in the workers with `createTrainingHooks(task.trainingInformation)`.
----
-
-### 3.3. Executing `TrainingHook.computeLoss` via Autograd: Design Options
-
-A key requirement of this architecture is:
-
-> **The user/task defines the model architecture (`tf.LayersModel` or `GPT`), base loss, and optimizer. When a collaborative training algorithm adds a differentiable loss regularizer (such as FedProx), Disco must fold it into the loss and differentiate it via TensorFlow.js autograd—without hardcoding algorithm-specific logic into `Model` or `Trainer`.**
-
-Note that unlike Python Keras, TensorFlow.js (`@tensorflow/tfjs-layers` 4.22) does **not** support model-level `model.addLoss(fn)` during `model.fit()`: `Container.prototype.calculateLosses()` only collects losses from child layers (`// TODO(cais): Add any unconditional model-level losses?`).
-
-Below are the **three candidate mechanisms** for wiring `TrainingHook.computeLoss` (and future gradient hooks) into `TFJS` and `GPT`, so we can align on the right robustness vs. generality trade-off:
-
-| Option       | Mechanism                                                                                                                                                           | `TFJS` keeps `model.fit()`? | Modifies TFJS runtime API? |               Supports gradient hooks (SCAFFOLD, DP-SGD)?               |
-| :----------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :-------------------------: | :------------------------: | :---------------------------------------------------------------------: |
-| **Option 1** | `TFJS` wraps the compiled loss via public `model.compile({ loss })`; `GPTModel` calls `hooks.computeLoss` directly in its existing `computeGradients` loop.         |           **Yes**           |           **No**           | Loss hooks only (requires a separate path if a gradient hook is active) |
-| **Option 2** | Both `TFJS` and `GPT` share one ~40-line `runTFJSStep` helper using `optimizer.computeGradients` $\rightarrow$ `transformGradients` $\rightarrow$ `applyGradients`. |           **No**            |           **No**           |                **Yes** (uniformly for `TFJS` and `GPT`)                 |
-| **Option 3** | Temporarily wrap `optimizer.computeGradients` on the `tf.Optimizer` instance for the duration of a round.                                                           |           **Yes**           |          **Yes**           |                **Yes** (uniformly for `TFJS` and `GPT`)                 |
 
 ---
 
-#### Option 1: Public `model.compile({ loss })` in `TFJS` + Direct Call in `GPTModel`
+### 3.3. Backend-Agnostic `Model` Boundary
 
-- **How it works:**
-  - When no hook implements `computeLoss` (standard FedAvg, local training, Byzantine, DP), `TFJS` calls `this.model.fit(xs, ys, { epochs: 1, verbose: 0 })` completely untouched.
-  - When one or more hooks implement `computeLoss`, `TFJS` wraps the model's existing loss function using TFJS's public `model.compile(...)` API while passing the existing `this.model.optimizer` instance (in `@tensorflow/tfjs-layers`, passing a `tf.Optimizer` instance assigns `this.optimizer_ = args.optimizer` directly, preserving Adam moments and iteration count):
-    ```ts
-    this.model.compile({
-      optimizer: this.model.optimizer,
-      loss: (yTrue: tf.Tensor, yPred: tf.Tensor) => {
-        let totalLoss = baseLoss(yTrue, yPred).asScalar();
-        for (const hook of lossHooks) {
-          totalLoss = hook.computeLoss(totalLoss, getContext());
-        }
-        return totalLoss;
-      },
-      metrics: this.model.metrics,
-    });
-    ```
-  - `GPTModel` (`discojs/src/models/implementations/gpt/model.ts`) already executes its own explicit `optimizer.computeGradients(...)` loop, so it invokes `hook.computeLoss(totalLoss, ctx)` directly inside that closure with no `compile` re-wrapping.
-- **Pros:**
-  - Keeps `this.model.fit(xs, ys)` in the loop for `TFJS`, preserving TFJS's built-in handling of `{ training: true }`, `calculateLosses()`, compiled metrics, and tensor disposal.
-  - Uses only public TFJS APIs (no runtime method patching).
-- **Cons:**
-  - Handles different cases differently (`TFJS` vs. `GPT`, and loss hooks vs. future gradient hooks), adding branching complexity.
-  - Only covers **loss-level** hooks inside `model.fit()`; supporting raw **gradient** hooks (`transformGradients`, e.g., SCAFFOLD or DP-SGD) on `TFJS` would still require a separate fallback step or migrating to Option 2.
+To keep `Trainer` and `TrainingHook` independent of any specific ML backend (e.g., TensorFlow.js today, or Burn/others in the future), `Model` only needs four capabilities—each directly addressing the coupling identified in Section 2:
 
----
+1. **In-loop hook execution:** Drive `onEpochBegin` / `onEpochEnd` / `onBatchBegin` / `onBatchEnd`, compose `computeLoss` into the autograd loss before backpropagation, and (for gradient-level algorithms) apply `transformGradients` before the optimizer update. This removes algorithm-specific branches from `Model.train()`.
+2. **Stateful hyperparameter updates:** Expose a backend-agnostic way to update training hyperparameters (such as `setLearningRate`) in place without resetting optimizer state (e.g., Adam moments), eliminating duck-typed model-specific setters in `Disco`.
+3. **Uniform round-training boundary:** Execute a round's local training uniformly across models whether bounded by epochs or iterations/batches, eliminating `IterationTrainableTextModel` casts in `Trainer`.
+4. **Trainable parameters vs. non-trainable buffers:** Expose trainable parameters separately from full weights so regularizers (like FedProx) and privacy transforms only target learned parameters rather than running statistics (such as `BatchNormalization` moving averages).
 
-#### Option 2: Shared Explicit TFJS Training Step (`runTFJSStep`) for Both `TFJS` and `GPT`
-
-- **How it works:**
-  - Because both `TFJS` and `GPT` wrap a `tf.LayersModel`, extract a single ~40-line helper that runs the autograd step directly for both models:
-
-    ```ts
-    const { value: loss, grads } = optimizer.computeGradients(() => {
-      const preds = tfModel.apply(xs, { training: true }) as tf.Tensor;
-      let totalLoss = computeDataLoss(ys, preds).asScalar();
-      for (const reg of tfModel.calculateLosses()) {
-        totalLoss = totalLoss.add(reg).asScalar();
-      }
-      for (const hook of lossHooks) {
-        totalLoss = hook.computeLoss(totalLoss, ctx);
-      }
-      return totalLoss;
-    }, trainableVars);
-
-    let finalGrads = grads;
-    for (const hook of gradHooks) {
-      finalGrads = hook.transformGradients(finalGrads, ctx);
-    }
-    optimizer.applyGradients(finalGrads);
-    ```
-
-  - `TFJS` supplies its compiled loss + accuracy metric; `GPT` supplies next-token cross-entropy (+ optional Goldfish masking), its `AdamW` optimizer, and a global-norm clipping hook—allowing the `GPTModel.fitDataset` override and 1-batch-dataset indirection to be removed.
-
-- **Pros:**
-  - Uses only public TFJS APIs (no runtime method patching).
-  - Handles training generically and uniformly across `TFJS` and `GPT` for both loss and gradient hooks (FedProx, SCAFFOLD, DP-SGD, gradient clipping).
-  - Reduces duplicated training-loop code by unifying `TFJS` and `GPTModel.fitDataset` around one step primitive.
-- **Cons:**
-  - **Robustness trade-off for `TFJS`:** replacing `model.fit()` means Disco explicitly owns `{ training: true }` (Dropout/BatchNorm), `model.calculateLosses()` (layer L1/L2 regularizers), compiled loss lookup, and batch metric calculation, which may be less battle-tested on exotic custom Keras models than `model.fit()`.
-
----
-
-#### Option 3: Scoped Runtime Wrapping of `optimizer.computeGradients`
-
-- **How it works:**
-  - Temporarily reassign `layersModel.optimizer.computeGradients = ...` for the duration of a round via a `Disposable` scope, intercepting both `TFJS.model.fit()` (via `optimizer.minimize` $\rightarrow$ `computeGradients`) and `GPTModel.fitDataset()`.
-- **Pros:**
-  - Keeps `model.fit()` untouched for `TFJS` while handling both `TFJS` and `GPT` (and both loss and gradient hooks) uniformly in one place.
-- **Cons:**
-  - **API- and internals-dependent:** mutates a method on a `@tensorflow/tfjs-core` `tf.Optimizer` instance at runtime and relies on TFJS's internal call chain (`Sequential` vs. functional `LayersModel` optimizer forwarding, `minimize` $\rightarrow$ `computeGradients`).
-
-#### Critical TensorFlow.js Invariants (Relevant Across Options)
-
-1. **Multi-Client Process Isolation (`varList`):**
-   When calling `optimizer.computeGradients(f, varList)` directly (in `GPTModel` or Option 2), always pass `layersModel.trainableWeights.map(w => w.read() as tf.Variable)` rather than leaving `varList` undefined (which causes `tf.variableGrads` to sweep every registered `tf.Variable` in the global TFJS engine, including other clients' models in CLI simulations).
-2. **Interaction with `AdamW` and Gradient Clipping in `GPTModel`:**
-   In `discojs/src/models/implementations/gpt/optimizers.ts`, `AdamW` overrides `applyGradients` for decoupled weight decay, and `GPTModel` clips the global gradient norm between `computeGradients` and `applyGradients`. Adding `hooks.computeLoss` inside `computeGradients` guarantees that regularized gradients flow properly through global norm clipping and `AdamW`.
-3. **Trainable-Only Regularization:**
-   Hooks such as `FedProxHook` must compute penalties over `model.trainableWeights` (excluding non-trainable `BatchNormalization` moving statistics) so running-stat drift is never penalized.
+For the TensorFlow.js-specific design options for wiring `TrainingHook` into `TFJS` and `GPT` (since `@tensorflow/tfjs-layers` does not evaluate model-level `addLoss` during `model.fit()`), see [TFJS_TRAINING_HOOKS.md](./TFJS_TRAINING_HOOKS.md).
 
 ---
 
