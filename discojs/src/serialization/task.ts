@@ -5,7 +5,10 @@ import { Tokenizer } from "#models/index";
 
 import type { JSONLike } from "#serialization/json_like";
 
-export function serializeToJSON(task: Task<DataType, Network>): JSONLike {
+/** Serialize a task, or the definition of one yet to be created (without ID yet) */
+export function serializeToJSON(
+  task: Task<DataType, Network> | Task.Definition<DataType, Network>,
+): JSONLike {
   switch (task.dataType) {
     case "image":
     case "tabular":

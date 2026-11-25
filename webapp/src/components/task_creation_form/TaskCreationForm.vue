@@ -61,15 +61,6 @@
         <IconCard>
           <template #title> General </template>
 
-          <FormLabel label="Unique identifier" type="required">
-            <FormField
-              name="id"
-              placeholder="my-task-identifier"
-              as="input"
-              size="20"
-            />
-          </FormLabel>
-
           <FormLabel label="Data type" type="required">
             <FormField
               v-model="dataType"
@@ -1103,7 +1094,7 @@ async function onSubmit(form: unknown): Promise<void> {
   const { model: rawModel, ...rawTask }: Partial<Record<string, unknown>> =
     form;
 
-  const task = await Task.schema.parseAsync(rawTask);
+  const task = await Task.definitionSchema.parseAsync(rawTask);
 
   if (typeof rawModel !== "object" || rawModel === null)
     throw new Error("zod validated model info isn't one");
@@ -1175,16 +1166,20 @@ async function onSubmit(form: unknown): Promise<void> {
     return;
   }
 
+  let created: Task<DataType, Network>;
   let token: string | undefined;
   try {
     if (isPrivate.value)
-      token = await pushTask(CONFIG.serverUrl, task, model, { private: true });
-    else await pushTask(CONFIG.serverUrl, task, model);
+      ({ task: created, token } = await pushTask(
+        CONFIG.serverUrl,
+        task,
+        model,
+        { private: true },
+      ));
+    else created = await pushTask(CONFIG.serverUrl, task, model);
   } catch (e) {
     debug("while pushing task to server: %o", e);
-    if (e instanceof Error && e.message.endsWith("HTTP status 409"))
-      toaster.error("This identifier is already taken");
-    else toaster.error("An error occured server-side");
+    toaster.error("An error occured server-side");
     return;
   } finally {
     // the server keeps its own copy
@@ -1193,15 +1188,15 @@ async function onSubmit(form: unknown): Promise<void> {
 
   if (typeof tasks.value === "string")
     debug("tasks store not available, skipping adding task to it");
-  else tasks.value = tasks.value.set(task.id, task);
+  else tasks.value = tasks.value.set(created.id, created);
 
   if (token === undefined) {
     await router.push("/list");
     return;
   }
   // so that the creator can join without the link
-  tokens.value = tokens.value.set(task.id, token);
-  privateLink.value = privateTaskLink(task.id, token);
+  tokens.value = tokens.value.set(created.id, token);
+  privateLink.value = privateTaskLink(created.id, token);
   scrollToTop();
 }
 

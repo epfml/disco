@@ -20,33 +20,36 @@ function urlToTasks(base: URL): URL {
 }
 
 /**
- * Add a task to a server.
+ * Add a task to a server, which gives it a random ID.
  *
  * The model is either one to upload along with the task, or the ID of a model
  * the server already knows about, as listed by `fetchModels`.
  *
  * A private task is only listed, served and joinable with the returned token.
  * The server only keeps its hash, so this is the only time it is given.
+ *
+ * @returns the created task, with its ID
  */
 export async function pushTask<D extends DataType>(
   base: URL,
-  task: Task<D, Network>,
+  task: Task.Definition<D, Network>,
   model: Model<D> | ModelCardInfo.ID,
-): Promise<void>;
+): Promise<Task<D, Network>>;
 export async function pushTask<D extends DataType>(
   base: URL,
-  task: Task<D, Network>,
+  task: Task.Definition<D, Network>,
   model: Model<D> | ModelCardInfo.ID,
   options: { private: true },
-): Promise<string>;
+): Promise<{ task: Task<D, Network>; token: string }>;
 export async function pushTask<D extends DataType>(
   base: URL,
-  task: Task<D, Network>,
+  task: Task.Definition<D, Network>,
   model: Model<D> | ModelCardInfo.ID,
   options?: { private: true },
-): Promise<string | void> {
+): Promise<Task<D, Network> | { task: Task<D, Network>; token: string }> {
+  const isPrivate = options?.private === true;
   // the server answers with the token
-  if (options?.private === true) assertCanSendToken(base);
+  if (isPrivate) assertCanSendToken(base);
 
   const response = await fetch(urlToTasks(base), {
     method: "POST",
@@ -55,18 +58,23 @@ export async function pushTask<D extends DataType>(
       task: serializeTaskToJSON(task),
       model:
         typeof model === "string" ? model : [...(await modelEncode(model))],
-      private: options?.private ?? false,
+      private: isPrivate,
     }),
   });
   if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`);
 
-  if (options?.private !== true) return;
   const parsed = z
-    .object({ token: z.string() })
+    .object({ id: z.string(), token: z.string().optional() })
     .safeParse(await response.json());
   if (!parsed.success)
+    throw new Error("invalid task creation response: expected an ID");
+  const { id, token } = parsed.data;
+  const created = { ...task, id };
+
+  if (!isPrivate) return created;
+  if (token === undefined)
     throw new Error("invalid task creation response: expected a token");
-  return parsed.data.token;
+  return { task: created, token };
 }
 
 /**

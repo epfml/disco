@@ -1,4 +1,5 @@
 import createDebug from "debug";
+import { randomUUID } from "node:crypto";
 import type { Request, Response } from "express";
 import express from "express";
 import { Set } from "immutable";
@@ -96,7 +97,12 @@ export class TaskRouter {
               z.string(),
               z.array(z.number()).transform((bytes) => Uint8Array.from(bytes)),
             ]),
-            task: z.any().transform(deserializeTaskFromJSON),
+            // the server generates the ID
+            task: z
+              .record(z.string(), z.json())
+              .transform((definition) =>
+                deserializeTaskFromJSON({ ...definition, id: randomUUID() }),
+              ),
             private: z.boolean().default(false),
           })
           .safeParseAsync(req.body);
@@ -107,13 +113,6 @@ export class TaskRouter {
           return;
         }
         const { model, task, private: isPrivate } = parsed.data;
-
-        // reject a duplicate before registering an uploaded model, as models
-        // cannot be removed from the set once added
-        if (this.#taskSet.tasks.has(task.id)) {
-          res.status(409).end();
-          return;
-        }
 
         // the server only keeps the hash, so this is the token's only copy
         const token = isPrivate ? generateToken() : undefined;
@@ -135,9 +134,13 @@ export class TaskRouter {
           return;
         }
 
-        if (token === undefined) res.status(200).end("Successful task upload");
+        if (token === undefined) res.status(200).json({ id: task.id });
         // prevent caching the token
-        else res.set("Cache-Control", "no-store").status(200).json({ token });
+        else
+          res
+            .set("Cache-Control", "no-store")
+            .status(200)
+            .json({ id: task.id, token });
       } catch (_) {
         res.status(400).end();
       }

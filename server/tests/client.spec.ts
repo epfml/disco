@@ -32,11 +32,15 @@ async function pushPrivateCopy<D extends DataType, N extends Network>(
   url: URL,
   provider: TaskProvider<D, N>,
 ): Promise<[Task<D, N>, string]> {
-  const task = { ...(await provider.getTask()), id: "private-copy" };
-  const token = await pushTask(url, task, provider.modelCard.card.id, {
-    private: true,
-  });
-  return [task, token];
+  const original = await provider.getTask();
+  const { task, token } = await pushTask(
+    url,
+    original,
+    provider.modelCard.card.id,
+    { private: true },
+  );
+  // the copy has its own ID, the rest is the original's
+  return [{ ...original, id: task.id }, token];
 }
 
 describe("decentralized client", () => {
