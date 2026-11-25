@@ -20,10 +20,12 @@ class WaitingClient extends LocalClient {
 
 async function setup() {
   const task = await titanic.getTask();
+  const { aggregationParams: _, ...trainingInformation } =
+    task.trainingInformation;
   const localTask = {
     ...task,
     trainingInformation: {
-      ...task.trainingInformation,
+      ...trainingInformation,
       scheme: "local" as const,
       aggregationStrategy: "mean" as const,
       validationSplit: 0,
