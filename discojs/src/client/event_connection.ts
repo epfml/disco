@@ -164,10 +164,17 @@ export class PeerConnection
     });
 
     this.#peer.on("data", (data) => {
-      const msg: unknown = msgpack.decode(data);
-
-      if (!decentralizedMessages.isPeerMessage(msg)) {
-        throw new Error(`invalid message received: ${JSON.stringify(msg)}`);
+      let msg: decentralizedMessages.PeerMessage;
+      try {
+        const decoded: unknown = msgpack.decode(data);
+        if (!decentralizedMessages.isPeerMessage(decoded)) {
+          debug("ignoring invalid peer message: %o", decoded);
+          return;
+        }
+        msg = decoded;
+      } catch (error) {
+        debug("ignoring undecodable peer message: %o", error);
+        return;
       }
 
       this.emit(msg.type, msg);
@@ -202,7 +209,8 @@ export class PeerConnection
         `can't send this type of message: ${JSON.stringify(msg)}`,
       );
     }
-    this.#peer.send(Buffer.from(msgpack.encode(msg)));
+    // The encoding is fresh, so transports can consume its buffer directly.
+    this.#peer.send(msgpack.encode(msg), { transfer: true });
   }
 
   async disconnect(gracePeriod = 0): Promise<void> {
@@ -236,14 +244,21 @@ export class WebSocketServer
 
     ws.onmessage = (event) => {
       if (!(event.data instanceof ArrayBuffer)) {
-        throw new Error("server did not send an ArrayBuffer");
+        debug("ignoring server message: expected an ArrayBuffer");
+        return;
       }
 
-      const msg: unknown = msgpack.decode(new Uint8Array(event.data));
-
-      // Validate message format
-      if (!validateReceived(msg)) {
-        throw new Error(`invalid message received: ${JSON.stringify(msg)}`);
+      let msg: Message;
+      try {
+        const decoded: unknown = msgpack.decode(new Uint8Array(event.data));
+        if (!validateReceived(decoded)) {
+          debug("ignoring invalid server message: %o", decoded);
+          return;
+        }
+        msg = decoded;
+      } catch (error) {
+        debug("ignoring undecodable server message: %o", error);
+        return;
       }
 
       server.emit(msg.type, msg);
