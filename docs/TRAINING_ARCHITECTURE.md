@@ -24,10 +24,7 @@ In collaborative and federated learning, a training algorithm decomposes along *
 2. **Post-Round Client Update Transformation & Privacy (Pre-Communication):** How a client transforms its local weight progress $\Delta w_i^{(t)} = w_i^{(t, K)} - w^{(t)}$ after completing local epochs/iterations and before transmitting weights to the server or peers:
    - Explicit global or per-layer update norm clipping
    - Adaptive layer-wise Frobenius norm clipping + Gaussian noise injection (ALDP-FL Differential Privacy)
-3. **Inter-Client Weight Aggregation & Protocol (Server / Peer Combination):** How updates from multiple participants are combined across the network:
-   - Unweighted arithmetic mean (`MeanAggregator`, via `weights/aggregation.ts` `avg`)
-   - Iterative Centered Clipping with momentum (`ByzantineRobustAggregator`)
-   - Multi-round additive secret sharing (`SecureAggregator`)
+3. **Inter-Client Weight Aggregation & Protocol (Server / Peer Combination):** How updates from multiple participants are combined across the network (e.g mean, byzantine, ...)
 
 Currently, the `TrainingInformation` object of the task scatters algorithm parameters across `aggregationStrategy`, root-level `maxShareValue`, and `privacy.byzantineFaultTolerance`. [PR #1290](https://github.com/epfml/disco/pull/1290) is a first step in correcting this as it reserves a place for the parameters of the different aggregators, so for example, `byzantineFaultTolerance` becomes a parameter of the byzantine aggregator rather than `privacy`. Yet even after those changes, a fundamental problem remains: Disco does not currently have configuration dedicated to local training—it assumes local training rounds happen via standard ERM. This causes problems such as the following:
 
@@ -204,22 +201,21 @@ How would this be combined with **WebWorkers**? Workers receive serialized `Task
 
 ---
 
-### 3.3. Backend-Agnostic `Model` Boundary
+### 3.3. The model class
 
-To keep `Trainer` and `TrainingHook` independent of any specific ML backend (e.g., TensorFlow.js today, or Burn/others in the future), `Model` only needs four capabilities—each directly addressing the coupling identified in Section 2:
+The **model** class only needs four capabilities—each directly addressing the coupling identified in Section 2:
 
 1. **In-loop hook execution:** Drive `onEpochBegin` / `onEpochEnd` / `onBatchBegin` / `onBatchEnd`, compose `computeLoss` into the autograd loss before backpropagation, and (for gradient-level algorithms) apply `transformGradients` before the optimizer update. This removes algorithm-specific branches from `Model.train()`.
-2. **Stateful hyperparameter updates:** Expose a backend-agnostic way to update training hyperparameters (such as `setLearningRate`) in place without resetting optimizer state (e.g., Adam moments), eliminating duck-typed model-specific setters in `Disco`.
+2. **Stateful hyperparameter updates:** Expose a way to update training hyperparameters (such as `setLearningRate`) in place without resetting optimizer state (e.g., Adam moments), eliminating duck-typed model-specific setters in `Disco`.
 3. **Uniform round-training boundary:** Execute a round's local training uniformly across models whether bounded by epochs or iterations/batches, eliminating `IterationTrainableTextModel` casts in `Trainer`.
-4. **Trainable parameters vs. non-trainable buffers:** Expose trainable parameters separately from full weights so regularizers (like FedProx) and privacy transforms only target learned parameters rather than running statistics (such as `BatchNormalization` moving averages).
+4. **Trainable parameters vs. non-trainable buffers:** Pretty straightforward but currently main does not expose trainable vs non-trainable so this has to be changed (see [issue #1301](https://github.com/epfml/disco/issues/1301)).We expose trainable parameters separately from full weights so regularizers (like FedProx) and privacy transforms only target learned parameters.
 
-For the TensorFlow.js-specific design options for wiring `TrainingHook` into `TFJS` and `GPT` (since `@tensorflow/tfjs-layers` does not evaluate model-level `addLoss` during `model.fit()`), see [TFJS_TRAINING_HOOKS.md](./TFJS_TRAINING_HOOKS.md).
+Due to limitations of TFJS, a question remains on how the Hook's `computeLoss` should be integrated in the model loss. A few opitons are discussed in [TFJS_TRAINING_HOOKS.md](./TFJS_TRAINING_HOOKS.md).
 
 ---
 
-### 3.4. Unified Round Execution in `Trainer`
-
-`Trainer` (`discojs/src/training/trainer.ts`) becomes an algorithm-agnostic orchestrator with a single `#executeRound` method shared by both epoch-based and iteration-based training:
+### 3.4. Proposed round execution
+With this architecture, the trainer becomes an algorithm-agnostic orchestrator with a single `#executeRound` method shared by both epoch-based and iteration-based training:
 
 ```mermaid
 sequenceDiagram
