@@ -2,6 +2,7 @@ import { Set } from "immutable";
 import { describe, expect, it } from "vitest";
 
 import type { Task } from "#task/index";
+import { aggregationConfigSchema, parseAggregationConfig } from "#task/index";
 import { defaultTasks } from "#root/index";
 import { WeightsContainer } from "#weights/index";
 import { MeanAggregator } from "#aggregator/mean";
@@ -15,12 +16,10 @@ async function getByzantineTask(): Promise<Task<"tabular", "federated">> {
     trainingInformation: {
       ...task.trainingInformation,
       aggregationStrategy: "byzantine",
-      privacy: {
-        byzantineFaultTolerance: {
-          clippingRadius: 2,
-          maxIterations: 1,
-          beta: 0.9,
-        },
+      aggregationParams: {
+        clippingRadius: 2,
+        maxIterations: 1,
+        beta: 0.9,
       },
     },
   };
@@ -35,6 +34,20 @@ describe("federated server aggregator", () => {
 
   it("builds a byzantine aggregator from the task", async () => {
     const aggregator = getFederatedServerAggregator(await getByzantineTask());
+    expect(aggregator).to.be.instanceOf(ByzantineRobustAggregator);
+  });
+
+  it("builds a byzantine aggregator with custom aggregationParams", async () => {
+    const task = await defaultTasks.titanic.getTask();
+    const taskWithStrategy: Task<"tabular", "federated"> = {
+      ...task,
+      trainingInformation: {
+        ...task.trainingInformation,
+        aggregationStrategy: "byzantine",
+        aggregationParams: { clippingRadius: 2.5, maxIterations: 3, beta: 0.8 },
+      },
+    };
+    const aggregator = getFederatedServerAggregator(taskWithStrategy);
     expect(aggregator).to.be.instanceOf(ByzantineRobustAggregator);
   });
 
@@ -65,5 +78,53 @@ describe("federated server aggregator", () => {
 
     expect(await WeightsContainer.of([1]).equals(await aggregated)).to.be.true;
     expect(aggregator.round).to.equal(1);
+  });
+});
+
+describe("aggregation config parsing", () => {
+  it("resolves defaults for byzantine and secure", () => {
+    expect(
+      aggregationConfigSchema.parse({
+        aggregationStrategy: "byzantine",
+      }),
+    ).to.deep.equal({
+      aggregationStrategy: "byzantine",
+      aggregationParams: { clippingRadius: 1.0, maxIterations: 1, beta: 0.9 },
+    });
+
+    expect(
+      aggregationConfigSchema.parse({
+        aggregationStrategy: "secure",
+      }),
+    ).to.deep.equal({
+      aggregationStrategy: "secure",
+      aggregationParams: { maxShareValue: 100 },
+    });
+
+    expect(
+      parseAggregationConfig({
+        aggregationStrategy: "mean",
+        aggregationParams: undefined,
+      }),
+    ).to.deep.equal({
+      aggregationStrategy: "mean",
+      aggregationParams: undefined,
+    });
+  });
+
+  it("rejects unknown or misspelled keys and params on mean", () => {
+    expect(() =>
+      aggregationConfigSchema.parse({
+        aggregationStrategy: "byzantine",
+        aggregationParams: { clipingRadius: 2.0 },
+      }),
+    ).to.throw();
+
+    expect(() =>
+      aggregationConfigSchema.parse({
+        aggregationStrategy: "mean",
+        aggregationParams: { clippingRadius: 1.0 },
+      }),
+    ).to.throw();
   });
 });

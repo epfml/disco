@@ -33,6 +33,7 @@ async function makeController(
       ...baseTask.trainingInformation,
       scheme: "federated",
       aggregationStrategy: "mean",
+      aggregationParams: undefined,
       roundDuration: 1,
       minNbOfParticipants,
     },

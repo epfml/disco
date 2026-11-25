@@ -43,14 +43,12 @@ describe("end-to-end federated titanic", () => {
         trainingInformation: {
           ...baseTask.trainingInformation,
           aggregationStrategy: "byzantine",
-          minNbOfParticipants: 2,
-          privacy: {
-            byzantineFaultTolerance: {
-              clippingRadius: 10,
-              maxIterations: 1,
-              beta: 0.9,
-            },
+          aggregationParams: {
+            clippingRadius: 10,
+            maxIterations: 1,
+            beta: 0.9,
           },
+          minNbOfParticipants: 2,
         },
       };
       const url = await startServer(defaultModels.TitanicClassifier, {

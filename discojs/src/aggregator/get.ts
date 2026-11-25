@@ -1,5 +1,6 @@
 import type { DataType, Network } from "#types/index";
-import type { Task } from "#task/index";
+import type { AggregationConfig, Task } from "#task/index";
+import { parseAggregationConfig } from "#task/index";
 import type { Aggregator } from "#aggregator/aggregator";
 import type { MultiRoundAggregator } from "#aggregator/multiround";
 import { MeanAggregator } from "#aggregator/mean";
@@ -43,14 +44,17 @@ export function getAggregator(
   options: AggregatorOptions = {},
 ): Aggregator {
   const scheme = options.scheme ?? task.trainingInformation.scheme;
+  const aggregationConfig = parseAggregationConfig(task.trainingInformation);
 
-  if (task.trainingInformation.aggregationStrategy === "secure") {
+  if (aggregationConfig.aggregationStrategy === "secure") {
     if (scheme !== "decentralized") {
       throw new Error(
         "secure aggregation is currently supported for decentralized only",
       );
     }
-    return new SecureAggregator(task.trainingInformation.maxShareValue);
+    return new SecureAggregator(
+      aggregationConfig.aggregationParams.maxShareValue,
+    );
   }
 
   // If options are not specified, we default to expecting a contribution from all peers, so we set the threshold to 100%
@@ -59,7 +63,7 @@ export function getAggregator(
   // so we set the aggregation threshold to 1 contribution
   // If scheme == 'local' then we only expect our own contribution
 
-  return getMultiRoundAggregator(task, {
+  return getMultiRoundAggregator(aggregationConfig, {
     roundCutOff: 0,
     threshold: 1,
     thresholdType: scheme === "decentralized" ? "relative" : "absolute",
@@ -82,7 +86,9 @@ export function getFederatedServerAggregator(
   task: Task<DataType, "federated">,
   options: Partial<MultiRoundOptions> = {},
 ): MultiRoundAggregator {
-  return getMultiRoundAggregator(task, {
+  const aggregationConfig = parseAggregationConfig(task.trainingInformation);
+
+  return getMultiRoundAggregator(aggregationConfig, {
     roundCutOff: 0,
     threshold: 1,
     thresholdType: "relative",
@@ -91,18 +97,15 @@ export function getFederatedServerAggregator(
 }
 
 function getMultiRoundAggregator(
-  task: Task<DataType, Network>,
+  aggregationConfig: AggregationConfig,
   options: MultiRoundOptions,
 ): MultiRoundAggregator {
   const { roundCutOff, threshold, thresholdType } = options;
 
-  switch (task.trainingInformation.aggregationStrategy) {
+  switch (aggregationConfig.aggregationStrategy) {
     case "byzantine": {
-      const {
-        clippingRadius = 1.0,
-        maxIterations = 1,
-        beta = 0.9,
-      } = task.trainingInformation.privacy.byzantineFaultTolerance;
+      const { clippingRadius, maxIterations, beta } =
+        aggregationConfig.aggregationParams;
 
       return new ByzantineRobustAggregator(
         roundCutOff,
