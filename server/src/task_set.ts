@@ -1,7 +1,13 @@
 import { Map } from "immutable";
 import "@tensorflow/tfjs-node";
 
-import type { DataType, Network, Task, Encoded } from "@epfml/discojs";
+import type {
+  DataType,
+  Encoded,
+  ModelCardInfo,
+  Network,
+  Task,
+} from "@epfml/discojs";
 import { EventEmitter } from "@epfml/discojs";
 import type { ModelSet } from "./model_set.js";
 import { matchesHash } from "./access_token.js";
@@ -81,11 +87,13 @@ export class TaskSet extends EventEmitter<{
 
   /**
    * Method to add a new task, public unless an access policy is given.
+   * Its model is either the ID of one in the ModelSet, or an encoded model
+   * that only this task uses, whose data type the caller has checked.
    * The method emits a 'newTask' event with the resulting Task.
    */
   addTask<D extends DataType>(
     task: Task<D, Network>,
-    model_id: string,
+    model: ModelCardInfo.ID | EncodedModel,
     policy: AccessPolicy = { visibility: "public" },
   ): void {
     if (this.#tasks.has(task.id)) {
@@ -93,16 +101,19 @@ export class TaskSet extends EventEmitter<{
       throw new Error("added task already exists");
     }
 
-    const model = this.#modelSet.models.get(model_id);
-    if (model === undefined) {
-      // Note: Error message is being matched in task_router.ts
-      throw new Error("referenced model unavailable");
-    }
-    if (model[0].dataType !== task.dataType) {
-      // Note: Error message is being matched in task_router.ts
-      throw new Error("task and model data types do not match");
-    }
-    const encodedModel = model[1];
+    let encodedModel: EncodedModel;
+    if (typeof model === "string") {
+      const available = this.#modelSet.models.get(model);
+      if (available === undefined) {
+        // Note: Error message is being matched in task_router.ts
+        throw new Error("referenced model unavailable");
+      }
+      if (available[0].dataType !== task.dataType) {
+        // Note: Error message is being matched in task_router.ts
+        throw new Error("task and model data types do not match");
+      }
+      encodedModel = available[1];
+    } else encodedModel = model;
 
     this.#policies = this.#policies.set(task.id, policy);
     this.#tasks = this.#tasks.set(task.id, [task, encodedModel]);

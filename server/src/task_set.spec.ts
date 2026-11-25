@@ -66,6 +66,18 @@ describe("TaskSet", () => {
     expect(JSON.stringify(emitted)).not.to.include(tokenHash);
   });
 
+  it("serves a model given directly without adding it to the ModelSet", async () => {
+    const { task } = await setup();
+    const modelSet = await titanicModelSet();
+    const taskSet = new TaskSet(modelSet);
+    const encoded = Uint8Array.of(4, 5, 6);
+
+    taskSet.addTask(task, encoded);
+
+    expect(taskSet.tasks.get(task.id)?.[1]).to.equal(encoded);
+    expect(modelSet.models.size).to.equal(1); // only titanic's
+  });
+
   it("doesn't change the policy when adding a duplicate task", async () => {
     const { taskSet, task, modelID } = await setup();
     const policy: AccessPolicy = {

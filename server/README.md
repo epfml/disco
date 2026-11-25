@@ -40,7 +40,7 @@ Adding a new task server-side can be done in several ways. See [TASK.md](https:/
 
 The body of `POST /tasks` is a JSON object with the serialized `task` and its `model`, either the ID of a model listed by `GET /models` or an encoded model to upload. Anyone can create a task.
 
-Add `"private": true` to create a private task. The response is then `{ "token": "…" }`, a random 256-bit token granting access to the task. A private task isn't listed by `GET /tasks`: clients get it from `GET /tasks/:taskID`, and its model files from `GET /tasks/:taskID/model.json` and `GET /tasks/:taskID/:weightsFile`, by sending the token in an `Authorization: Bearer <token>` header.
+Add `"private": true` to create a private task. The response is then `{ "id": "…", "token": "…" }`, with a random 256-bit token granting access to the task. A model uploaded with a private task stays with that task: `GET /models` doesn't list it and other tasks can't reference it. A private task isn't listed by `GET /tasks`: clients get it from `GET /tasks/:taskID`, and its model files from `GET /tasks/:taskID/model.json` and `GET /tasks/:taskID/:weightsFile`, by sending the token in an `Authorization: Bearer <token>` header.
 
 ### Federated Learning
 

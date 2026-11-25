@@ -350,6 +350,43 @@ describe("POST /tasks", { timeout: 20_000 }, () => {
     expect(served.status).toBe(200);
   });
 
+  it("keeps a private task's uploaded model to the task", async () => {
+    const url = await startServer(
+      [defaultModels.TitanicClassifier],
+      [defaultTasks.titanic],
+    );
+    const encoded = await modelEncode(
+      await defaultModels.TitanicClassifier.getModel(),
+    );
+
+    const res = await postTask(url, {
+      task: serializeTaskToJSON(await newTask()),
+      model: [...encoded],
+      private: true,
+    });
+    expect(res.status).toBe(200);
+    const { id, token } = z
+      .object({ id: z.string(), token: z.string() })
+      .parse(await res.json());
+
+    // the listing would give away the task's ID and title
+    expect((await fetchModels(url)).keySeq().toArray()).toEqual([
+      defaultModels.TitanicClassifier.card.id,
+    ]);
+    // a public task reusing it would serve its weights to anyone
+    const reuse = await postTask(url, {
+      task: serializeTaskToJSON(await newTask()),
+      model: `${id}-model`,
+    });
+    expect(reuse.status).toBe(409);
+
+    const served = await fetch(new URL(`tasks/${id}/model.json`, url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(served.status).toBe(200);
+    expect(new Uint8Array(await served.arrayBuffer())).toEqual(encoded);
+  });
+
   it("answers 400 when the model is missing or undecodable", async () => {
     const url = await startServer(
       [defaultModels.TitanicClassifier],

@@ -36,6 +36,30 @@ function statusForAddTaskError(e: unknown): number {
   }
 }
 
+/**
+ * Check that a model uploaded along with a task is one the task can train.
+ * Its data type is read from the model itself rather than taken from
+ * the request, so it cannot disagree with what the model actually is.
+ */
+async function checkUploadedModel(
+  task: Task<DataType, Network>,
+  encoded: Encoded,
+): Promise<void> {
+  let uploaded;
+  try {
+    uploaded = await modelDecode(encoded);
+  } catch (e) {
+    debug("posted model isn't a valid encoded model: %o", e);
+    throw new Error("uploaded model is invalid");
+  }
+  try {
+    if (uploaded.datatype !== task.dataType)
+      throw new Error("task and model data types do not match");
+  } finally {
+    uploaded.dispose();
+  }
+}
+
 /** Token sent as `Authorization: Bearer <token>`, if any */
 function bearerToken(request: Request): string | undefined {
   // the scheme is case-insensitive (RFC 9110)
@@ -122,12 +146,15 @@ export class TaskRouter {
             : { visibility: "private", tokenHash: hashToken(token) };
 
         try {
-          const modelID =
-            typeof model === "string"
+          if (typeof model !== "string") await checkUploadedModel(task, model);
+          // GET /models lists the ModelSet's models to anyone and any new task
+          // can reuse them, so a private task's model is kept with it only
+          const taskModel =
+            typeof model === "string" || isPrivate
               ? model
               : await this.registerUploadedModel(task, model);
 
-          this.#taskSet.addTask(task, modelID, policy);
+          this.#taskSet.addTask(task, taskModel, policy);
         } catch (e) {
           debug("add task failed with: %o", e);
           res.status(statusForAddTaskError(e)).end();
@@ -158,11 +185,10 @@ export class TaskRouter {
   }
 
   /**
-   * Register a model uploaded along with a task, returning its new ID.
+   * Register a public task's uploaded model, returning its new ID.
    *
    * An upload is anonymous bytes, so we derive its card from the task it came
-   * with. Its data type is read from the model itself rather than taken from
-   * the request, so it cannot disagree with what the model actually is.
+   * with.
    *
    * The model is stored still encoded, as that is what gets sent to clients.
    */
@@ -170,21 +196,10 @@ export class TaskRouter {
     task: Task<DataType, Network>,
     encoded: Encoded,
   ): Promise<ModelCardInfo.ID> {
-    let uploaded;
-    try {
-      uploaded = await modelDecode(encoded);
-    } catch (e) {
-      debug("posted model isn't a valid encoded model: %o", e);
-      throw new Error("uploaded model is invalid");
-    }
-
-    if (uploaded.datatype !== task.dataType)
-      throw new Error("task and model data types do not match");
-
     const info: ModelCardInfo<DataType> = {
       id: `${task.id}-model`,
       name: task.displayInformation.title,
-      dataType: uploaded.datatype,
+      dataType: task.dataType,
     };
 
     await this.#modelSet.addModel([info, encoded]);

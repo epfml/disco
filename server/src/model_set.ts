@@ -15,7 +15,8 @@ type AvailableModel = [ModelCardInfo<DataType>, EncodedModel];
 
 /**
  * The ModelSet stores available encoded models along with their information.
- * Models can then be fed to Tasks.
+ * Models can then be fed to Tasks. Note that models associated with private tasks
+ * are not included in the model set for privacy reasons.
  *
  * We work with EncodedModels rather than Models because they are sent encoded
  * to clients. Since the server doesn't need to use the Model, we
