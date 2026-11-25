@@ -215,6 +215,7 @@ Due to limitations of TFJS, a question remains on how the Hook's `computeLoss` s
 ---
 
 ### 3.4. Proposed round execution
+
 With this architecture, the trainer becomes an algorithm-agnostic orchestrator with a single `#executeRound` method shared by both epoch-based and iteration-based training:
 
 ```mermaid
