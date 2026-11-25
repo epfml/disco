@@ -4,14 +4,14 @@ Companion document to [TRAINING_ARCHITECTURE.md](./TRAINING_ARCHITECTURE.md#33-b
 
 ## Overview & Motivation
 
-The [target architecture](./TRAINING_ARCHITECTURE.md) introduces a backend-agnostic `TrainingHook` lifecycle so collaborative algorithms—such as FedProx loss regularization, gradient clipping, or SCAFFOLD—can participate in local training without adding algorithm-specific branches to `Trainer` or `Model`.
+The [target architecture](./TRAINING_ARCHITECTURE.md) introduces a `TrainingHook` lifecycle so collaborative algorithms—such as FedProx loss regularization, gradient clipping, or SCAFFOLD—can participate in local training without adding algorithm-specific branches to `Trainer` or `Model`.
 
 In Disco today, both model implementations (`TFJS` and `GPT`) are backed by TensorFlow.js, yet they run local training differently:
 
 - **`TFJS`** delegates batches to `tf.LayersModel.fit()`, which hides the forward/backward pass and optimizer step behind Keras-style configuration.
 - **`GPT`** already runs an explicit `optimizer.computeGradients` $\rightarrow$ `applyGradients` loop.
 
-In Python TensorFlow/Keras, an `addLoss` API is available to attach regularizers dynamically and still train with `model.fit()`. However, TensorFlow.js does not provide equivalent model-level `addLoss` support during `model.fit()`. Any integration must therefore fold `TrainingHook.computeLoss` (and, if needed, gradient transforms) into TensorFlow.js autograd while preserving the user's model architecture, base loss, and optimizer state.
+In Python TensorFlow/Keras, an `addLoss` API is available to attach regularizers dynamically and still train with `model.fit()`. However, TensorFlow.js does not provide equivalent model-level `addLoss` support during `model.fit()`. Any integration must therefore connect `TrainingHook.computeLoss` (and, if needed, gradient transforms) into TensorFlow.js autograd while preserving the user's model architecture, base loss, and optimizer state.
 
 ## Design Options
 
