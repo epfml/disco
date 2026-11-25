@@ -85,11 +85,14 @@ flowchart LR
 
 ### 3.1. Three-Axis Task Configuration Schema (`discojs/src/task/training_information.ts`)
 
-We separate task configuration into three orthogonal, strictly validated (`z.strictObject`) axes with uniform structure:
+We separate task configuration into three orthogonal axes with uniform structure:
 
-1. **`aggregation` (`{ strategy, params }`):** Inter-client weight aggregation on the server or peers (`"mean" | "byzantine" | "secure"`).
-2. **`training`:** Intra-round local client optimization (`strategy: { name: "standard" | "fedprox", params }` plus composable options like `lr`, `learningRateSchedule`, `goldfishLoss`), composable with any `aggregation.strategy`.
-3. **`updateTransforms` & `privacy`:** Post-round client update transformations executed in a canonical mathematical order before communication (`updateClipping` $\rightarrow$ `differentialPrivacy`).
+1. **aggregation:** Inter-client weight aggregation on the server or peers. Examples could be *mean* which is standard FedAvg or *median* which is a byzantine robust aggregation. Current ones are mean, byzantine and secure.
+
+2. **training:** Intra-round local client optimization strategies plus composable options like `lr`, `learningRateSchedule`, `goldfishLoss`, composable with any `aggregation.strategy`.
+3. **communication transforms** Post-round client update transformations executed in a canonical mathematical order before communication such as *differential privacy*, or model compression.
+
+**Pro**: This removes the problems mentioned in 2.1, it dedicates a place in the config for training-only options, without cluttering aggregation configs. So for example, `FedProx`, being only a training strategy, would be composable with byzantine aggregators. It also adds space for other pre-communication strategy different than privacy, such as compression, or client-side clipping and so on, without having to put them under a specific aggregator.
 
 <details>
 <summary>Axis 1: <code>aggregation</code></summary>
@@ -99,8 +102,16 @@ We separate task configuration into three orthogonal, strictly validated (`z.str
 { strategy: "mean" }
 { strategy: "byzantine", params: { clippingRadius: ..., maxIterations: ..., beta: ... } }
 { strategy: "secure", params: { maxShareValue: ... } }
-```
 
+// We could have in the trainingInformation something like this
+{
+  ...,
+  aggregation: {
+    strategy: "mean",
+    params: {...}
+  }
+}
+```
 </details>
 
 <details>
@@ -121,13 +132,19 @@ training?: {
 </details>
 
 <details>
-<summary>Axis 3: <code>updateTransforms</code> &amp; <code>privacy</code></summary>
+<summary>Axis 3: <code>communication transforms</code> &amp; <code>privacy</code></summary>
 
 ```ts
-updateClipping?: { clippingRadius: ..., scope: "global" | "per-layer" }
-
-privacy?: {
-  differentialPrivacy?: { clippingRadius: ..., epsilon: ..., delta: ... }
+// In training information
+{
+  precommunication: {
+    privacy: {
+      clippingRadius: ...,
+      ...,
+    },
+    // Other possible feature
+    compression: { ... }
+  }
 }
 ```
 
@@ -136,9 +153,9 @@ privacy?: {
 ---
 
 ### 3.2. Unified `TrainingHook` Lifecycle
+Even after having a dedicated place for training settings in the config, we still need to make `Trainer` scalable and independent of the specific strategies, so we don't have to change it every time we add a new strategy. Instead of adding algorithm-specific fields to `Trainer` or algorithm-specific methods (`attachRegularizer`, `adaptLearningRate`, etc.) to `Model`, **every client-side training algorithm is expressed as a TrainingHook**. This is similar to other frameworks suchas **Flower's `Strategy`** and \*\*PyTorch Lightning / Keras `Callback`.
 
-Instead of adding algorithm-specific fields to `Trainer` or algorithm-specific methods (`attachRegularizer`, `adaptLearningRate`, etc.) to `Model`, **every client-side training algorithm is expressed as a `TrainingHook`**. This is similar to other frameworks suchas **Flower's `Strategy`** and \*\*PyTorch Lightning / Keras `Callback`.
-
+An example of what a training hook could look like is the following:
 ```ts
 interface HookContext<D extends DataType = DataType> {
   readonly model: Model<D>;
@@ -171,30 +188,15 @@ interface TrainingHook<D extends DataType = DataType>
 }
 ```
 
-#### Why `TrainingHook` Solves Both `Trainer` and `Model` Bloat:
+#### How these hooks solve the current trainer and model bloat:
+No algorithm-specific methods anymore. For example the following could be implemented like this:
+   - **FedProx -> FedProxHook:**: uses `onRoundBegin(ctx)` to get `ctx.roundStartTrainableWeights()` and in `computeLoss`, it adds the proximal loss to the base loss.
+   - **Adding a LR Schedule -> LearningRateScheduleHook:** can update the LR by attaching to `onRoundBegin(ctx)` or `onEpochBegin(ctx)` and can model learning rate as a function of `ctx.round` / `ctx.epoch`.
+   - **Differential Privacy -> DifferentialPrivacyHook:** Can privately encapsulates `#weightNormHistory` without it lying on the trainer, and can use `onBeforeCommunication(weights, ctx)` to compute update norms, clips trainable updates, adds calibrated Gaussian noise, and returns the noisy weights.
 
-1. **`Model` and `Trainer` never gain algorithm-specific methods:**
-   - **FedProx (`FedProxHook`):**
-     - `onRoundBegin(ctx)`: calls `ctx.roundStartTrainableWeights()` to ensure the round-start snapshot is captured before the first gradient step.
-     - `computeLoss(baseLoss, ctx)`: computes `proximalLoss = getProximalPenalty(ctx.model.trainableWeights, ctx.roundStartTrainableWeights(), this.#mu)` and returns `baseLoss.add(proximalLoss).asScalar()`.
-   - **Learning Rate Schedule (`LearningRateScheduleHook`):**
-     - `onRoundBegin(ctx)` or `onEpochBegin(ctx)`: updates learning rate as a function of `ctx.round` / `ctx.epoch`.
-   - **Client Update Clipping (`UpdateClippingHook`):**
-     - `onRoundBegin(ctx)`: calls `ctx.roundStartWeights()`.
-     - `onBeforeCommunication(weights, ctx)`: clips $\Delta w = \text{weights} - \text{ctx.roundStartWeights()}$ by global $L_2$ or per-layer Frobenius norm.
-   - **Differential Privacy (`DifferentialPrivacyHook`):**
-     - Privately encapsulates `#weightNormHistory`.
-     - `onRoundBegin(ctx)`: calls `ctx.roundStartWeights()`.
-     - `onBeforeCommunication(weights, ctx)`: computes update norms, clips trainable updates, adds calibrated Gaussian noise, and returns the noisy weights.
-2. **Shared Memoized Round-Start Snapshots (Memory Efficiency):**
-   - If both `FedProxHook` and `DifferentialPrivacyHook` are active in the same round, `roundStartWeights()` and `roundStartTrainableWeights()` are allocated lazily at most once per round (crucial for large models like GPT where a full weight clone is $\ge 0.5\text{ GB}$) and disposed in `Trainer`'s `finally` block.
-3. **Canonical Hook Ordering:**
-   - `createTrainingHooks(task.trainingInformation)` constructs hooks in a deterministic canonical order:
-     $$\text{FedProxHook} \rightarrow \text{UpdateClippingHook} \rightarrow \text{DifferentialPrivacyHook}$$
-   - When both `updateClipping` and `differentialPrivacy` are configured, `DifferentialPrivacyHook` calibrates noise to $\min(\text{updateClipping.clippingRadius}, \text{dpClippingRadius})$.
-4. **WebWorker Compatibility:**
-   - Because workers receive serialized `Task` JSON and instantiate `Disco` and `Trainer` inside the worker thread, `createTrainingHooks(task.trainingInformation)` runs entirely inside the worker—no closures or hook instances ever cross `postMessage`.
 
+A possible *complexity* however is ensuring the hooks are self-consistent with each other, and they're executed in a deterministic order. But this should just come down to making sure the config is valid.
+How would this be combined with **WebWorkers**? Workers receive serialized `Task` JSON and instantiate `Disco` and `Trainer` inside the worker thread, so we can directly create the hooks in the workers with `createTrainingHooks(task.trainingInformation)`.
 ---
 
 ### 3.3. Executing `TrainingHook.computeLoss` via Autograd: Design Options
