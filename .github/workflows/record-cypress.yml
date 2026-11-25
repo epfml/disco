@@ -32,5 +32,5 @@ jobs:
           # https://docs.cypress.io/guides/cloud/projects#Set-up-a-project-to-record
           record: true
         env:
-          VITE_SERVER_URL: http://server
+          VITE_SERVER_URL: https://server
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}

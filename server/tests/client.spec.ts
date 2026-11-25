@@ -340,6 +340,22 @@ const settled = () => new Promise((resolve) => setImmediate(resolve));
  * recent count which the join answer must not overwrite.
  *
  */
+describe("client with a private task's token", () => {
+  it("refuses to send it to a remote server without TLS", async () => {
+    const task = await defaultTasks.titanic.getTask();
+
+    expect(
+      () =>
+        new FederatedClient(
+          new URL("http://disco.example"),
+          task,
+          new MeanAggregator(),
+          "a-token",
+        ),
+    ).toThrow("without TLS");
+  });
+});
+
 describe("client joining while the participants change", () => {
   // sent because another participant joined right after this one asked to join
   const enoughParticipants: mtype.EnoughParticipants = {

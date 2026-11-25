@@ -156,7 +156,7 @@ The end-to-end training test suite uses the following environment variables:
 - `DISCO_TRAINING_E2E`: Set to `1` to include training specs (`cypress/e2e/training/{local,federated,decentralized}/**/*.cy.ts`), which are otherwise excluded by default from the general test suite.
 - `DISCO_SCRIPTED_SERVER_E2E`: Set to `1` to include scripted server specs (`cypress/e2e/training/scripted/**/*.cy.ts`) and resolve the `server` test host to `127.0.0.1`.
 - `DISCO_E2E_FEDERATED_TASK`: Controls which task(s) the federated peer serves and trains: `titanic`, `lus_covid`, or `all` (defaults to `titanic`).
-- `VITE_SERVER_URL`: Sets the DISCO server endpoint that the webapp connects to (e.g., `http://server` for mock tests or `http://localhost:8080` for real server tests).
+- `VITE_SERVER_URL`: Sets the DISCO server endpoint that the webapp connects to (e.g., `https://server` for mock tests or `http://localhost:8080` for real server tests).
 
 #### Cypress and Github Actions
 

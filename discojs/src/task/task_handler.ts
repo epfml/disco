@@ -11,6 +11,7 @@ import {
 } from "#serialization/index";
 
 import type { Task } from "#task/task";
+import { assertCanSendToken } from "#utils/token_transport";
 
 function urlToTasks(base: URL): URL {
   const ret = new URL(base);
@@ -44,6 +45,9 @@ export async function pushTask<D extends DataType>(
   model: Model<D> | ModelCardInfo.ID,
   options?: { private: true },
 ): Promise<string | void> {
+  // the server answers with the token
+  if (options?.private === true) assertCanSendToken(base);
+
   const response = await fetch(urlToTasks(base), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -75,6 +79,8 @@ export async function fetchTask(
   id: Task.ID,
   token?: string,
 ): Promise<Task<DataType, Network>> {
+  if (token !== undefined) assertCanSendToken(base);
+
   const url = urlToTasks(base);
   url.pathname += `/${encodeURIComponent(id)}`;
 

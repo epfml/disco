@@ -7,6 +7,7 @@ import type { WeightsContainer } from "#weights/index";
 import type { Aggregator } from "#aggregator/index";
 import type { RoundStatus } from "#training/types";
 import { EventEmitter } from "#utils/event_emitter";
+import { assertCanSendToken } from "#utils/token_transport";
 
 import { modelDecode } from "#serialization/index";
 
@@ -86,6 +87,8 @@ export abstract class Client<N extends Network> extends EventEmitter<{
     protected readonly token?: string,
   ) {
     super();
+    // fail before any connection
+    if (token !== undefined) assertCanSendToken(url);
   }
 
   /**
