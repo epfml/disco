@@ -3,7 +3,7 @@
     v-show="validationStore.step === 1"
     class="flex flex-col space-y-4 md:space-y-8"
   >
-    <LabeledDatasetInput v-model="dataset" :task>
+    <LabeledDatasetInput v-model="datasetSource" :task>
       <template #header>
         <IconCard class="mx-auto w-full max-w-card">
           <template #title> Model Validation </template>
@@ -156,6 +156,11 @@ import { computed, onUnmounted, ref, toRaw } from "vue";
 
 import type { DataType, Image, Model, Network, Task } from "@epfml/discojs";
 import { Validator } from "@epfml/discojs";
+import { loadCSV, loadText } from "@epfml/discojs-web";
+import {
+  loadNamedImageDataset,
+  type DatasetSource,
+} from "@/components/dataset_input/source";
 
 import { useToaster } from "@/composables/toaster";
 import { useValidationStore } from "@/store";
@@ -206,7 +211,7 @@ interface Tested {
   text: List<{ output: { correct: boolean } }>;
 }
 
-const dataset = ref<LabeledDataset[D]>();
+const datasetSource = ref<DatasetSource>();
 const controller = ref<AbortController>();
 const tested = ref<Tested[D]>();
 
@@ -300,33 +305,34 @@ const currentAccuracy = computed<string>(() => {
 });
 
 async function startTest(): Promise<void> {
-  if (dataset.value === undefined) {
+  const source = toRaw(datasetSource.value);
+  if (source === undefined) {
     toaster.error("Upload a dataset first");
     return;
   }
 
   toaster.info("Model testing started");
   try {
-    switch (props.task.dataType) {
+    switch (source.type) {
       case "image":
         await startImageTest(
           toRaw(props.task) as Task<"image", Network>,
           toRaw(props.model) as Model<"image">,
-          toRaw(dataset.value) as LabeledDataset["image"],
+          loadNamedImageDataset(source),
         );
         break;
       case "tabular":
         await startTabularTest(
           toRaw(props.task) as Task<"tabular", Network>,
           toRaw(props.model) as Model<"tabular">,
-          toRaw(dataset.value) as LabeledDataset["tabular"],
+          loadCSV(source.file),
         );
         break;
       case "text":
         await startTextTest(
           toRaw(props.task) as Task<"text", Network>,
           toRaw(props.model) as Model<"text">,
-          toRaw(dataset.value) as LabeledDataset["text"],
+          loadText(source.file),
         );
         break;
     }
