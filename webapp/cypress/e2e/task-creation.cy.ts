@@ -1,18 +1,34 @@
-import { deserializeTaskFromJSON, type Task } from "@epfml/discojs";
+import {
+  deserializeTaskFromJSON,
+  type DataType,
+  type Network,
+  type Task,
+} from "@epfml/discojs";
 
 import * as tf from "@tensorflow/tfjs";
 
+/** ID that the stubbed server gives to the created task */
+const serverID = "the-id";
+
+/** Deserialize a posted task, which has no ID, with the one the server gives */
+async function withServerID(
+  definition: object,
+): Promise<Task<DataType, Network>> {
+  expect(definition).not.to.have.property("id"); // the server picks it
+  return await deserializeTaskFromJSON({ ...definition, id: serverID });
+}
+
 it("submits with tabular task", () => {
-  visitAndFillTabularTaskBasics("id", "simple");
+  visitAndFillTabularTaskBasics("simple");
 
   cy.get("select[name='trainingInformation.scheme']").select("federated");
   fillRemainingTabularFieldsAndSubmit();
 
   cy.wait("@posted")
     .its("request.body.task")
-    .then(deserializeTaskFromJSON)
+    .then(withServerID)
     .should("deep.equal", {
-      id: "id",
+      id: serverID,
       dataType: "tabular",
       displayInformation: {
         title: "simple",
@@ -38,6 +54,25 @@ it("submits with tabular task", () => {
     } satisfies Task<"tabular", "federated">);
 });
 
+it("shows the link of a private task instead of the form", () => {
+  visitAndFillTabularTaskBasics("simple", {
+    id: serverID,
+    token: "the-token",
+  });
+  cy.get("select[name='trainingInformation.scheme']").select("federated");
+  cy.contains("label", "Private").find("input[type='checkbox']").check();
+  cy.contains("Only the people you give it to");
+  fillRemainingTabularFieldsAndSubmit();
+
+  cy.wait("@posted").its("request.body.private").should("equal", true);
+  cy.get("#private-link").should(
+    "have.value",
+    `${Cypress.config().baseUrl}${serverID}#token=the-token`,
+  );
+  // the link is shown once, the form isn't there to submit the task twice
+  cy.get("form").should("not.be.visible");
+});
+
 for (const aggregation of [
   {
     scheme: "federated",
@@ -54,7 +89,7 @@ for (const aggregation of [
   },
 ] as const) {
   it(`submits with custom aggregation parameters (${aggregation.aggregationStrategy})`, () => {
-    visitAndFillTabularTaskBasics("aggregation-task", "aggregation title");
+    visitAndFillTabularTaskBasics("aggregation title");
 
     cy.get("select[name='trainingInformation.scheme']").select("decentralized");
     cy.get("select[name='trainingInformation.aggregationStrategy']").select(
@@ -100,9 +135,9 @@ for (const aggregation of [
 
     cy.wait("@posted")
       .its("request.body.task")
-      .then(deserializeTaskFromJSON)
+      .then(withServerID)
       .should("deep.equal", {
-        id: "aggregation-task",
+        id: serverID,
         dataType: "tabular",
         displayInformation: {
           title: "aggregation title",
@@ -129,10 +164,7 @@ for (const aggregation of [
 }
 
 it("does not submit aggregationParams when switching from byzantine to mean", () => {
-  visitAndFillTabularTaskBasics(
-    "aggregation-reset-task",
-    "aggregation reset title",
-  );
+  visitAndFillTabularTaskBasics("aggregation reset title");
 
   cy.get("select[name='trainingInformation.scheme']").select("federated");
   cy.get("select[name='trainingInformation.aggregationStrategy']").select(
@@ -163,9 +195,9 @@ it("does not submit aggregationParams when switching from byzantine to mean", ()
 
   cy.get("@posted")
     .its("request.body.task")
-    .then(deserializeTaskFromJSON)
+    .then(withServerID)
     .should("deep.equal", {
-      id: "aggregation-reset-task",
+      id: serverID,
       dataType: "tabular",
       displayInformation: {
         title: "aggregation reset title",
@@ -207,10 +239,7 @@ for (const aggregation of [
   },
 ] as const) {
   it(`falls back to default aggregation parameters (${aggregation.aggregationStrategy})`, () => {
-    visitAndFillTabularTaskBasics(
-      "aggregation-default-task",
-      "aggregation default title",
-    );
+    visitAndFillTabularTaskBasics("aggregation default title");
 
     cy.get("select[name='trainingInformation.scheme']").select(
       aggregation.scheme,
@@ -232,9 +261,9 @@ for (const aggregation of [
 
     cy.get("@posted")
       .its("request.body.task")
-      .then(deserializeTaskFromJSON)
+      .then(withServerID)
       .should("deep.equal", {
-        id: "aggregation-default-task",
+        id: serverID,
         dataType: "tabular",
         displayInformation: {
           title: "aggregation default title",
@@ -260,17 +289,23 @@ for (const aggregation of [
   });
 }
 
-function visitAndFillTabularTaskBasics(id: string, title: string): void {
+/**
+ * Open the creation form, stubbing the server's answer to its POST with the
+ * given body, and fill the fields shared by every tabular task
+ */
+function visitAndFillTabularTaskBasics(
+  title: string,
+  answer: object = { id: serverID },
+): void {
   cy.intercept(
     { hostname: "server", pathname: "tasks", method: "POST" },
-    { statusCode: 200 },
+    { statusCode: 200, body: answer },
   ).as("posted");
 
   cy.visit("/create");
 
   cy.get("form").should("be.visible"); // Wait for the form to be fully loaded
 
-  cy.get("input[name='id']").type(id);
   cy.get("select[name='dataType']").select("tabular");
 
   cy.get("input[name='displayInformation.title']").type(title);

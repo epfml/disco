@@ -1,4 +1,5 @@
 import createDebug from "debug";
+import { randomUUID } from "node:crypto";
 import type { Request, Response } from "express";
 import express from "express";
 import { Set } from "immutable";
@@ -11,8 +12,9 @@ import {
   modelDecode,
 } from "@epfml/discojs";
 
-import type { TaskSet } from "../task_set.js";
+import type { AccessPolicy, TaskSet } from "../task_set.js";
 import type { ModelSet } from "../model_set.js";
+import { generateToken, hashToken } from "../access_token.js";
 import { z } from "zod";
 
 const debug = createDebug("server:router:task_router");
@@ -34,6 +36,36 @@ function statusForAddTaskError(e: unknown): number {
   }
 }
 
+/**
+ * Check that a model uploaded along with a task is one the task can train.
+ * Its data type is read from the model itself rather than taken from
+ * the request, so it cannot disagree with what the model actually is.
+ */
+async function checkUploadedModel(
+  task: Task<DataType, Network>,
+  encoded: Encoded,
+): Promise<void> {
+  let uploaded;
+  try {
+    uploaded = await modelDecode(encoded);
+  } catch (e) {
+    debug("posted model isn't a valid encoded model: %o", e);
+    throw new Error("uploaded model is invalid");
+  }
+  try {
+    if (uploaded.datatype !== task.dataType)
+      throw new Error("task and model data types do not match");
+  } finally {
+    uploaded.dispose();
+  }
+}
+
+/** Token sent as `Authorization: Bearer <token>`, if any */
+function bearerToken(request: Request): string | undefined {
+  // the scheme is case-insensitive (RFC 9110)
+  return /^Bearer +(\S+)$/i.exec(request.get("Authorization") ?? "")?.[1];
+}
+
 export class TaskRouter {
   readonly #expressRouter: express.Router;
   readonly #taskSet: TaskSet;
@@ -44,10 +76,11 @@ export class TaskRouter {
     this.#modelSet = modelSet;
     this.#expressRouter = express.Router();
 
-    // Return available tasks upon GET requests
+    // Return public tasks upon GET requests, private ones are only given by ID
     this.#expressRouter.get("/", (_, res) => {
       res.status(200).send(
         this.#taskSet.tasks
+          .filter((_, id) => this.#taskSet.canAccess(id))
           .valueSeq()
           .map(([t, _]) => serializeTaskToJSON(t))
           .toArray(),
@@ -59,6 +92,20 @@ export class TaskRouter {
       res
         .status(200)
         .send(Task.schema.toJSONSchema({ unrepresentable: "any" }));
+    });
+
+    // Return a single task, which is how clients get a private one
+    this.#expressRouter.get("/:id", (req, res) => {
+      const id = req.params.id;
+      const taskAndModel = this.#taskSet.tasks.get(id);
+      if (
+        taskAndModel === undefined ||
+        !this.#taskSet.canAccess(id, bearerToken(req))
+      ) {
+        res.status(404).end();
+        return;
+      }
+      res.status(200).send(serializeTaskToJSON(taskAndModel[0]));
     });
 
     this.#expressRouter.use(express.json());
@@ -74,7 +121,13 @@ export class TaskRouter {
               z.string(),
               z.array(z.number()).transform((bytes) => Uint8Array.from(bytes)),
             ]),
-            task: z.any().transform(deserializeTaskFromJSON),
+            // the server generates the ID
+            task: z
+              .record(z.string(), z.json())
+              .transform((definition) =>
+                deserializeTaskFromJSON({ ...definition, id: randomUUID() }),
+              ),
+            private: z.boolean().default(false),
           })
           .safeParseAsync(req.body);
 
@@ -83,32 +136,41 @@ export class TaskRouter {
           res.status(400).end();
           return;
         }
-        const { model, task } = parsed.data;
+        const { model, task, private: isPrivate } = parsed.data;
 
-        // reject a duplicate before registering an uploaded model, as models
-        // cannot be removed from the set once added
-        if (this.#taskSet.tasks.has(task.id)) {
-          res.status(409).end();
-          return;
-        }
+        // the server only keeps the hash, so this is the token's only copy
+        const token = isPrivate ? generateToken() : undefined;
+        const policy: AccessPolicy =
+          token === undefined
+            ? { visibility: "public" }
+            : { visibility: "private", tokenHash: hashToken(token) };
 
         try {
-          const modelID =
-            typeof model === "string"
+          if (typeof model !== "string") await checkUploadedModel(task, model);
+          // GET /models lists the ModelSet's models to anyone and any new task
+          // can reuse them, so a private task's model is kept with it only
+          const taskModel =
+            typeof model === "string" || isPrivate
               ? model
               : await this.registerUploadedModel(task, model);
 
-          this.#taskSet.addTask(task, modelID);
+          this.#taskSet.addTask(task, taskModel, policy);
         } catch (e) {
           debug("add task failed with: %o", e);
           res.status(statusForAddTaskError(e)).end();
           return;
         }
+
+        if (token === undefined) res.status(200).json({ id: task.id });
+        // prevent caching the token
+        else
+          res
+            .set("Cache-Control", "no-store")
+            .status(200)
+            .json({ id: task.id, token });
       } catch (_) {
         res.status(400).end();
-        return;
       }
-      res.status(200).end("Successful task upload");
     });
 
     this.#taskSet.on("newTask", ([task]) => {
@@ -123,11 +185,10 @@ export class TaskRouter {
   }
 
   /**
-   * Register a model uploaded along with a task, returning its new ID.
+   * Register a public task's uploaded model, returning its new ID.
    *
    * An upload is anonymous bytes, so we derive its card from the task it came
-   * with. Its data type is read from the model itself rather than taken from
-   * the request, so it cannot disagree with what the model actually is.
+   * with.
    *
    * The model is stored still encoded, as that is what gets sent to clients.
    */
@@ -135,21 +196,10 @@ export class TaskRouter {
     task: Task<DataType, Network>,
     encoded: Encoded,
   ): Promise<ModelCardInfo.ID> {
-    let uploaded;
-    try {
-      uploaded = await modelDecode(encoded);
-    } catch (e) {
-      debug("posted model isn't a valid encoded model: %o", e);
-      throw new Error("uploaded model is invalid");
-    }
-
-    if (uploaded.datatype !== task.dataType)
-      throw new Error("task and model data types do not match");
-
     const info: ModelCardInfo<DataType> = {
       id: `${task.id}-model`,
       name: task.displayInformation.title,
-      dataType: uploaded.datatype,
+      dataType: task.dataType,
     };
 
     await this.#modelSet.addModel([info, encoded]);
@@ -161,8 +211,8 @@ export class TaskRouter {
    * Request handler called when a client sends a GET request asking for the
    * TFJS model files of a given task. The files consist of the model's
    * architecture file model.json and its layer weights file weights.bin.
-   * It requires no prior connection to the server and is thus publicly available
-   * data.
+   * It requires no prior connection to the server: public tasks' models are
+   * available to anyone, private ones only with the task's token.
    * @param request received from client
    * @param response sent to client
    */
@@ -178,8 +228,11 @@ export class TaskRouter {
       response.status(404).end();
       return;
     }
-    const taskAndModel = this.#taskSet.tasks.find(([t, _]) => t.id === id);
-    if (taskAndModel === undefined) {
+    const taskAndModel = this.#taskSet.tasks.get(id);
+    if (
+      taskAndModel === undefined ||
+      !this.#taskSet.canAccess(id, bearerToken(request))
+    ) {
       response.status(404).end();
       return;
     }

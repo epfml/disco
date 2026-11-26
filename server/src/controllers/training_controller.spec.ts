@@ -40,7 +40,7 @@ async function makeController(): Promise<DecentralizedController<"image">> {
       maxModelSyncTime: 30_000,
     },
   };
-  return new DecentralizedController(task);
+  return new DecentralizedController(task, () => true);
 }
 
 /** Connects a client and returns the id the server gave it */

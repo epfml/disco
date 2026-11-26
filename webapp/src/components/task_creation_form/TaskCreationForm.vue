@@ -24,7 +24,31 @@
       </div>
     </IconCard>
 
+    <IconCard v-if="privateLink !== undefined">
+      <template #title
+        ><span>Share your private <DISCOllaborative /></span
+      ></template>
+
+      <div>
+        Only the people you give this link to can find and join your
+        <DISCOllaborative />. Keep it somewhere safe: it is only shown now and
+        can't be recovered.
+      </div>
+      <div class="flex flex-row flex-wrap elems-gap items-center">
+        <input
+          id="private-link"
+          :value="privateLink.href"
+          readonly
+          aria-label="Link to share"
+          class="grow p-2 bg-gray-100 dark:bg-slate-700 border rounded-md border-gray-200 dark:border-slate-400 text-gray-700 dark:text-gray-200"
+          @focus="($event.target as HTMLInputElement).select()"
+        />
+        <CustomButton @click="copyPrivateLink"> copy </CustomButton>
+      </div>
+    </IconCard>
+
     <Form
+      v-show="privateLink === undefined"
       ref="form"
       :validation-schema="schema"
       class="flex flex-col cards-gap"
@@ -36,15 +60,6 @@
       >
         <IconCard>
           <template #title> General </template>
-
-          <FormLabel label="Unique identifier" type="required">
-            <FormField
-              name="id"
-              placeholder="my-task-identifier"
-              as="input"
-              size="20"
-            />
-          </FormLabel>
 
           <FormLabel label="Data type" type="required">
             <FormField
@@ -714,7 +729,13 @@
       <IconCard>
         <template #title>Joining this task</template>
 
-        <div>
+        <FormLabel v-model="isPrivate" label="Private" type="checkbox" />
+
+        <div v-if="isPrivate">
+          After submitting the form, you will get a link to share. Only the
+          people you give it to will be able to find and join the task.
+        </div>
+        <div v-else>
           After submitting the form, others will be able to join the task from
           the
           <RouterLink to="/list" class="underline text-blue-400 cursor-pointer">
@@ -757,6 +778,8 @@ import {
 
 import { useToaster } from "@/composables/toaster";
 import { CONFIG } from "@/config";
+import { privateTaskLink } from "@/private_link";
+import { scrollToTop } from "@/utils";
 import IconCard from "@/components/containers/IconCard.vue";
 import CustomButton from "@/components/simple/CustomButton.vue";
 import DISCOllaborative from "@/components/simple/DISCOllaborative.vue";
@@ -770,7 +793,11 @@ import FileSelection from "../dataset_input/FileSelection.vue";
 const debug = createDebug("webapp:TaskForm");
 const router = useRouter();
 const toaster = useToaster();
-const { tasks } = storeToRefs(useTasksStore());
+const { tasks, tokens } = storeToRefs(useTasksStore());
+
+const isPrivate = ref(false);
+/** Link to share the created private task, the only copy of its token */
+const privateLink = ref<URL>();
 
 const dataType = ref<DataType>("image");
 const scheme = ref<Network>("federated");
@@ -1067,7 +1094,7 @@ async function onSubmit(form: unknown): Promise<void> {
   const { model: rawModel, ...rawTask }: Partial<Record<string, unknown>> =
     form;
 
-  const task = await Task.schema.parseAsync(rawTask);
+  const task = await Task.definitionSchema.parseAsync(rawTask);
 
   if (typeof rawModel !== "object" || rawModel === null)
     throw new Error("zod validated model info isn't one");
@@ -1139,13 +1166,20 @@ async function onSubmit(form: unknown): Promise<void> {
     return;
   }
 
+  let created: Task<DataType, Network>;
+  let token: string | undefined;
   try {
-    await pushTask(CONFIG.serverUrl, task, model);
+    if (isPrivate.value)
+      ({ task: created, token } = await pushTask(
+        CONFIG.serverUrl,
+        task,
+        model,
+        { private: true },
+      ));
+    else created = await pushTask(CONFIG.serverUrl, task, model);
   } catch (e) {
     debug("while pushing task to server: %o", e);
-    if (e instanceof Error && e.message.endsWith("HTTP status 409"))
-      toaster.error("This identifier is already taken");
-    else toaster.error("An error occured server-side");
+    toaster.error("An error occured server-side");
     return;
   } finally {
     // the server keeps its own copy
@@ -1154,9 +1188,28 @@ async function onSubmit(form: unknown): Promise<void> {
 
   if (typeof tasks.value === "string")
     debug("tasks store not available, skipping adding task to it");
-  else tasks.value = tasks.value.set(task.id, task);
+  else tasks.value = tasks.value.set(created.id, created);
 
-  await router.push("/list");
+  if (token === undefined) {
+    await router.push("/list");
+    return;
+  }
+  // so that the creator can join without the link
+  tokens.value = tokens.value.set(created.id, token);
+  privateLink.value = privateTaskLink(created.id, token);
+  scrollToTop();
+}
+
+async function copyPrivateLink(): Promise<void> {
+  if (privateLink.value === undefined) return;
+  try {
+    await navigator.clipboard.writeText(privateLink.value.href);
+    toaster.success("Link copied");
+  } catch (e) {
+    // such as when the page isn't served over HTTPS
+    debug("while copying the private link: %o", e);
+    toaster.error("Unable to copy, select the link and copy it yourself");
+  }
 }
 
 function onInvalidSubmit({

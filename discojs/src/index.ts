@@ -76,6 +76,7 @@ export {
   FEDERATED_AGGREGATION_STRATEGIES,
   DECENTRALIZED_AGGREGATION_STRATEGIES,
   pushTask,
+  fetchTask,
   fetchTasks,
 } from "./task/index.js";
 export type {

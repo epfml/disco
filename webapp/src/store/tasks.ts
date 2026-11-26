@@ -1,11 +1,10 @@
 import createDebug from "debug";
-import type { Map } from "immutable";
-import { Set } from "immutable";
+import { Map, Set } from "immutable";
 import { defineStore } from "pinia";
 import { shallowRef } from "vue";
 
 import type { DataType, Network, Task } from "@epfml/discojs";
-import { fetchTasks } from "@epfml/discojs";
+import { fetchTask, fetchTasks } from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster";
 import { CONFIG } from "@/config";
@@ -23,7 +22,13 @@ export const useTasksStore = defineStore("tasks", () => {
     "loading" | "failed" | Map<Task.ID, Task<DataType, Network>>
   >("loading");
 
-  fetchTasks(CONFIG.serverUrl)
+  /**
+   * Tokens of the private tasks opened or created here.
+   * Kept in memory only, so that they don't outlive the page.
+   */
+  const tokens = shallowRef(Map<Task.ID, string>());
+
+  const publicTasksFetched = fetchTasks(CONFIG.serverUrl)
     .then((fetched) => {
       tasks.value = fetched.filter((t) => !TASKS_TO_FILTER_OUT.contains(t.id));
     })
@@ -38,5 +43,20 @@ export const useTasksStore = defineStore("tasks", () => {
       }
     });
 
-  return { tasks };
+  /**
+   * Add a private task and its token, fetching the task with it.
+   * The public tasks are fetched first, so that they don't replace it.
+   *
+   * @throws if the server doesn't give the task, such as for a wrong token
+   */
+  async function addPrivateTask(id: Task.ID, token: string): Promise<void> {
+    await publicTasksFetched;
+    if (typeof tasks.value === "string") return; // server unreachable
+
+    const task = await fetchTask(CONFIG.serverUrl, id, token);
+    tokens.value = tokens.value.set(id, token);
+    tasks.value = tasks.value.set(id, task);
+  }
+
+  return { tasks, tokens, addPrivateTask };
 });

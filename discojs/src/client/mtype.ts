@@ -80,7 +80,19 @@ export function hasMessageType(
 
 export interface ClientConnected {
   type: MType.ClientConnected;
+  /**
+   * Token of a private task. It is sent in the message rather than in the
+   * WebSocket URL, which ends up in proxy and access logs.
+   */
+  token?: string;
 }
+
+/**
+ * Close code of a WebSocket whose ClientConnected has no valid token
+ * 4xxx is the WebSocket range for application usage
+ * Convention is to reuse HTTP codes like 403 Forbidden
+ * */
+export const INVALID_TOKEN_CLOSE_CODE = 4403;
 
 export interface EnoughParticipants {
   type: MType.EnoughParticipants;

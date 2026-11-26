@@ -56,9 +56,10 @@ export class FederatedController<D extends DataType> extends TrainingController<
 
   constructor(
     task: Task<D, "federated">,
+    canJoin: (token: string | undefined) => boolean,
     private readonly initialWeights: Encoded,
   ) {
-    super(task);
+    super(task, canJoin);
     this.#latestGlobalWeights = this.initialWeights;
   }
 
@@ -151,6 +152,13 @@ export class FederatedController<D extends DataType> extends TrainingController<
           this.crashClient(ws, clientId, "Invalid federated message");
           return;
         }
+
+        // check the token before the switch below adds the client to the session
+        if (
+          msg.type === MessageTypes.ClientConnected &&
+          !this.authorize(ws, clientId, msg.token)
+        )
+          return;
 
         // If the client has not yet established a connection
         // and the message is not a ClientConnected message,
@@ -309,6 +317,13 @@ export class FederatedController<D extends DataType> extends TrainingController<
 
     // Setup callback for client leaving the session
     ws.on("close", () => {
+      // a client that never joined, such as one without a valid token,
+      // only has its id to free: the participants never heard of it
+      if (!this.connections.has(clientId)) {
+        this.disconnectClient(clientId);
+        return;
+      }
+
       // Remove the participant when the websocket is closed
       this.disconnectClient(clientId);
 

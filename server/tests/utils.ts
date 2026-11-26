@@ -1,6 +1,9 @@
 import path from "node:path";
 import { List, Repeat } from "immutable";
+import { defaultModels } from "@epfml/discojs";
 import { loadCSV, loadImagesInDir, loadText } from "@epfml/discojs-node";
+
+import { ModelSet } from "../src/model_set.js";
 
 const DATASET_DIR = path.join(__dirname, "..", "..", "datasets");
 export const datasets = {
@@ -56,4 +59,15 @@ export class Queue<T> {
       await new Promise((resolve) => setTimeout(resolve, 10));
     }
   }
+}
+
+/** ModelSet holding the titanic model, encoded as dummy bytes */
+export async function titanicModelSet(): Promise<ModelSet> {
+  const modelSet = new ModelSet();
+  // the server never decodes a model it is given, so a real one isn't needed
+  await modelSet.addModel([
+    defaultModels.TitanicClassifier.card,
+    Uint8Array.of(1, 2, 3),
+  ]);
+  return modelSet;
 }

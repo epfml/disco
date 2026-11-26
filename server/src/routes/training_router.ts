@@ -34,7 +34,9 @@ export class TrainingRouter<N extends Exclude<Network, "local">> {
       if (task.trainingInformation.scheme !== network) return;
       const t = task as Task<DataType, N>;
 
-      await this.onNewTask(t, encodedModel);
+      await this.onNewTask(t, encodedModel, (token) =>
+        taskSet.canAccess(t.id, token),
+      );
     });
   }
 
@@ -48,6 +50,7 @@ export class TrainingRouter<N extends Exclude<Network, "local">> {
   private async onNewTask<D extends DataType>(
     task: Task<D, N>,
     encodedModel: Encoded,
+    canJoin: (token: string | undefined) => boolean,
   ): Promise<void> {
     // The controller handles the actual logic of collaborative training
     // in its `handle` method. Each task has a dedicated controller which
@@ -69,12 +72,12 @@ export class TrainingRouter<N extends Exclude<Network, "local">> {
       } finally {
         model[Symbol.dispose]();
       }
-      taskController = new FederatedController(t, encodedWeights);
+      taskController = new FederatedController(t, canJoin, encodedWeights);
     } else {
       const t = task as Task<D, "decentralized">;
 
       // In decentralized learning, the server (i.e. controller) never handles model weights
-      taskController = new DecentralizedController(t);
+      taskController = new DecentralizedController(t, canJoin);
     }
 
     this.#expressRouter.ws(`/${task.id}`, (ws) => taskController.handle(ws));

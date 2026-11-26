@@ -48,6 +48,12 @@ The [task creation form](https://discolab.ai/#/create) lets users create a custo
 2.  Fill in all the relevant information for the task
 3.  Upload model files: 1) a TF.js architecture file in JSON format (cf. the _Uploading ML models_ section) as well as a weight file (`.bin` format), which is necessary in this case. This is the initial weights provided to new users joining your task (pre-trained or random initialization).
 
+### Private tasks
+
+Ticking **Private** at the bottom of the form creates a task that isn't listed. Once it is created, the form shows a link of the form `https://<webapp>/<taskID>#token=…` to give to the participants: only people with the link can see the task, download its model and join its training. The token is in the URL fragment, which browsers never send to any server, so it stays out of server and proxy logs. The server only keeps a hash of the token, so the link is shown only once and can't be recovered.
+
+Opening the link fetches the task with its token (`GET /tasks/:id`, see the [server API](../server/README.md)). The webapp keeps the token in memory while the page is open, to download the model and join the training.
+
 ## 3. Implementing custom tasks
 
 Programming skills are necessary to add a custom task not supported by the task creation UI.

@@ -57,7 +57,14 @@ export abstract class TrainingController<
    */
   static readonly MAX_CLIENT_CONNECTION_RETRY = 5;
 
-  constructor(protected readonly task: Task<D, N>) {}
+  /**
+   * @param task the task whose training this controller runs
+   * @param canJoin whether a client sending this token, if any, may join
+   */
+  constructor(
+    protected readonly task: Task<D, N>,
+    private readonly canJoin: (token: string | undefined) => boolean,
+  ) {}
 
   abstract handle(ws: WebSocket): void;
 
@@ -220,6 +227,24 @@ export abstract class TrainingController<
     }
     this.clientCounters = this.clientCounters.set(id, currentCount + 1);
     return true;
+  }
+
+  /**
+   * Closes the socket of a client whose ClientConnected has no valid token.
+   * It is checked before the client joins, so that it never counts as a
+   * participant nor hears about the others.
+   * @returns whether the client may join
+   */
+  protected authorize(
+    ws: WebSocket,
+    clientId: NodeID,
+    token: string | undefined,
+  ): boolean {
+    if (this.canJoin(token)) return true;
+
+    debug("client [%s] has no valid token", clientId.slice(0, 4));
+    ws.close(mtype.INVALID_TOKEN_CLOSE_CODE, "Invalid token");
+    return false;
   }
 
   protected newClientId(): NodeID {

@@ -12,4 +12,4 @@ export type {
   AggregationStrategy,
 } from "./training_information.js";
 
-export { pushTask, fetchTasks } from "./task_handler.js";
+export { pushTask, fetchTask, fetchTasks } from "./task_handler.js";

@@ -7,6 +7,7 @@ import {
   deserializeTaskFromJSON,
   modelEncode,
   getAggregator,
+  getClient,
   split,
 } from "@epfml/discojs";
 import type { DataType, Network, Task } from "@epfml/discojs";
@@ -55,18 +56,22 @@ async function train(
     if (!webglReady) await tf.setBackend("cpu");
     await tf.ready();
     const url = new URL(message.serverUrl);
+    const aggregator = getAggregator(task, { scheme: message.scheme });
     let client;
+    // built here rather than by Disco to give it the token of a private task
     if (message.scheme === "decentralized") {
       if (message.peerPort === undefined)
         throw new Error("missing peer transport");
       client = new DecentralizedClient(
         url,
         task as Task<DataType, "decentralized">,
-        getAggregator(task),
+        aggregator,
+        message.token,
         workerPeerFactory(message.peerPort),
       );
-    }
-    disco = new Disco(task, client ?? url, { scheme: message.scheme });
+    } else
+      client = getClient(message.scheme, url, task, aggregator, message.token);
+    disco = new Disco(task, client, { scheme: message.scheme });
     activeDisco = disco;
     if (stopRequested) disco.requestStop();
     disco.on("status", (status) => send({ type: "status", status }));

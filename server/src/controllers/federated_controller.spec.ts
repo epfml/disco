@@ -21,10 +21,12 @@ import MessageTypes = mtype.MType;
 /**
  * Creates a new federated controller instance for testing purposes.
  * @param minNbOfParticipants The minimum number of participants required for training.
+ * @param canJoin Whether a client sending this token may join, anyone by default.
  * @returns A promise resolving to the created federated controller instance.
  */
 async function makeController(
   minNbOfParticipants: number = 2,
+  canJoin: (token: string | undefined) => boolean = () => true,
 ): Promise<FederatedController<"image">> {
   const baseTask = await defaultTasks.tinderDog.getTask();
   const task: Task<"image", "federated"> = {
@@ -41,7 +43,11 @@ async function makeController(
 
   // Dummy initial weights
   const initialWeights = WeightsContainer.of([1, 2], [3]);
-  return new FederatedController(task, await weightsEncode(initialWeights));
+  return new FederatedController(
+    task,
+    canJoin,
+    await weightsEncode(initialWeights),
+  );
 }
 
 /**
@@ -52,11 +58,14 @@ async function makeController(
 function connect(
   controller: FederatedController<"image">,
   ws: FederatedFakeWebSocket,
+  token?: string,
 ): void {
   controller.handle(ws);
 
   ws.emitMessage({
     type: MessageTypes.ClientConnected,
+    // left out rather than undefined, which msgpack would send as null
+    ...(token === undefined ? {} : { token }),
   });
 }
 
@@ -170,6 +179,63 @@ async function checkReceiveServerPayload(
   expect(receivedPayload.round).toBe(expected.round);
   expect(receivedPayload.nbOfParticipants).toBe(expected.nbOfParticipants);
 }
+
+describe("Joining a private task", () => {
+  const token = "the-task-token";
+  const canJoin = (t: string | undefined) => t === token;
+
+  it("closes the socket of a client without the task's token", async () => {
+    const controller = await makeController(2, canJoin);
+
+    for (const sent of [undefined, "another-token"]) {
+      const ws = makeFederatedFakeWebSocket();
+      connect(controller, ws, sent);
+
+      expect(ws.closeCode).toBe(mtype.INVALID_TOKEN_CLOSE_CODE);
+      expect(ws.sentMessages).toEqual([]);
+    }
+  });
+
+  it("lets a client with the task's token join", async () => {
+    const controller = await makeController(2, canJoin);
+    const ws = makeFederatedFakeWebSocket();
+
+    connect(controller, ws, token);
+
+    expect(ws.closeCode).toBeUndefined();
+    await checkFederatedNodeInfo(ws, {
+      round: 0,
+      nbOfParticipants: 1,
+      waitForMoreParticipants: true,
+      payload: null,
+    });
+  });
+
+  it("doesn't count a rejected client as a participant", async () => {
+    const controller = await makeController(2, canJoin);
+    const [member, intruder, joiner] = [
+      makeFederatedFakeWebSocket(),
+      makeFederatedFakeWebSocket(),
+      makeFederatedFakeWebSocket(),
+    ];
+    connect(controller, member, token);
+    const seenByMember = member.sentMessages.length;
+
+    const closed = new Promise((resolve) => intruder.once("close", resolve));
+    connect(controller, intruder);
+    await closed;
+    // neither its attempt nor its leaving reached the participants
+    expect(member.sentMessages).toHaveLength(seenByMember);
+
+    connect(controller, joiner, token);
+    await checkFederatedNodeInfo(joiner, {
+      round: 0,
+      nbOfParticipants: 2,
+      waitForMoreParticipants: false,
+      payload: null,
+    });
+  });
+});
 
 /**
  * Tests the join behavior of the federated controller.

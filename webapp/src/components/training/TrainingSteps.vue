@@ -30,6 +30,7 @@
       v-show="trainingStore.step === 3"
       :task
       :dataset-source="datasetSource"
+      :token="tokens.get(task.id)"
       @model="onModel"
     />
 
@@ -64,7 +65,7 @@ import { useTasksStore, useTrainingStore } from "@/store";
 const router = useRouter();
 const route = useRoute();
 const trainingStore = useTrainingStore();
-const { tasks } = storeToRefs(useTasksStore());
+const { tasks, tokens } = storeToRefs(useTasksStore());
 
 // task ID given by the route
 const props = defineProps<{

@@ -1,12 +1,15 @@
 import type * as http from "node:http";
 
-import { afterEach, describe, expect, it } from "vitest";
+import * as msgpack from "@msgpack/msgpack";
+import { afterEach, assert, describe, expect, it, vi } from "vitest";
+import { WebSocket } from "ws";
 import { z } from "zod";
 
 import type {
   DataType,
   ModelCard,
   Network,
+  Task,
   TaskProvider,
 } from "@epfml/discojs";
 import {
@@ -14,10 +17,12 @@ import {
   defaultModels,
   defaultTasks,
   fetchModels,
+  fetchTask,
   fetchTasks,
   pushTask,
   modelDecode,
   modelEncode,
+  mtype,
   serializeTaskToJSON,
   TFJS,
 } from "@epfml/discojs";
@@ -58,6 +63,11 @@ const modelInfoSchema = z.strictObject({
   dataType: z.enum(dataTypeValues),
   contextLength: z.number().optional(),
 });
+
+/** ID that the server gave to the task created by a successful POST */
+async function createdID(res: Response): Promise<string> {
+  return z.object({ id: z.string() }).parse(await res.json()).id;
+}
 
 /** POST a task to a running server, returning the raw response */
 async function postTask(url: URL, body: unknown): Promise<Response> {
@@ -261,12 +271,10 @@ describe("GET /tasks/:id/model.json", { timeout: 20_000 }, () => {
 });
 
 describe("POST /tasks", { timeout: 20_000 }, () => {
-  /** a task that isn't registered yet, reusing titanic's definition */
-  async function newTask() {
-    return {
-      ...(await defaultTasks.titanic.getTask()),
-      id: "titanic-copy",
-    };
+  /** titanic's definition, for a task that isn't registered yet */
+  async function newTask(): Promise<Task.Definition<"tabular", "federated">> {
+    const { id: _, ...definition } = await defaultTasks.titanic.getTask();
+    return definition;
   }
 
   it("registers a task referencing an available model", async () => {
@@ -274,30 +282,41 @@ describe("POST /tasks", { timeout: 20_000 }, () => {
       [defaultModels.TitanicClassifier],
       [defaultTasks.titanic],
     );
-    const task = await newTask();
 
     const res = await postTask(url, {
-      task: serializeTaskToJSON(task),
+      task: serializeTaskToJSON(await newTask()),
       model: defaultModels.TitanicClassifier.card.id,
     });
 
     expect(res.status).toBe(200);
-    const tasks = await fetchTasks(url);
-    expect(tasks.keySeq().toArray()).toContain(task.id);
+    const id = await createdID(res);
+    expect((await fetchTasks(url)).keySeq().toArray()).toContain(id);
   });
 
-  it("answers 409 when the task already exists", async () => {
+  it("gives each task a random ID, ignoring the one sent", async () => {
     const url = await startServer(
       [defaultModels.TitanicClassifier],
       [defaultTasks.titanic],
     );
-
-    const res = await postTask(url, {
+    // titanic's own ID, which is already taken
+    const body = {
       task: serializeTaskToJSON(await defaultTasks.titanic.getTask()),
       model: defaultModels.TitanicClassifier.card.id,
-    });
+    };
 
-    expect(res.status).toBe(409);
+    const ids = await Promise.all(
+      [1, 2].map(async () => {
+        const res = await postTask(url, body);
+        expect(res.status).toBe(200);
+        return await createdID(res);
+      }),
+    );
+
+    for (const id of ids)
+      expect(id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+      );
+    expect(ids[0]).not.toBe(ids[1]);
   });
 
   it("registers a task with an uploaded model", async () => {
@@ -316,18 +335,56 @@ describe("POST /tasks", { timeout: 20_000 }, () => {
     });
 
     expect(res.status).toBe(200);
-    expect((await fetchTasks(url)).keySeq().toArray()).toContain(task.id);
+    const id = await createdID(res);
+    expect((await fetchTasks(url)).keySeq().toArray()).toContain(id);
 
     // the upload is registered as a model of its own, named after the task
-    const uploaded = (await fetchModels(url)).get(`${task.id}-model`);
+    const uploaded = (await fetchModels(url)).get(`${id}-model`);
     expect(uploaded).toEqual({
-      id: `${task.id}-model`,
+      id: `${id}-model`,
       name: task.displayInformation.title,
       dataType: "tabular",
     });
 
-    const served = await fetch(new URL(`tasks/${task.id}/model.json`, url));
+    const served = await fetch(new URL(`tasks/${id}/model.json`, url));
     expect(served.status).toBe(200);
+  });
+
+  it("keeps a private task's uploaded model to the task", async () => {
+    const url = await startServer(
+      [defaultModels.TitanicClassifier],
+      [defaultTasks.titanic],
+    );
+    const encoded = await modelEncode(
+      await defaultModels.TitanicClassifier.getModel(),
+    );
+
+    const res = await postTask(url, {
+      task: serializeTaskToJSON(await newTask()),
+      model: [...encoded],
+      private: true,
+    });
+    expect(res.status).toBe(200);
+    const { id, token } = z
+      .object({ id: z.string(), token: z.string() })
+      .parse(await res.json());
+
+    // the listing would give away the task's ID and title
+    expect((await fetchModels(url)).keySeq().toArray()).toEqual([
+      defaultModels.TitanicClassifier.card.id,
+    ]);
+    // a public task reusing it would serve its weights to anyone
+    const reuse = await postTask(url, {
+      task: serializeTaskToJSON(await newTask()),
+      model: `${id}-model`,
+    });
+    expect(reuse.status).toBe(409);
+
+    const served = await fetch(new URL(`tasks/${id}/model.json`, url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(served.status).toBe(200);
+    expect(new Uint8Array(await served.arrayBuffer())).toEqual(encoded);
   });
 
   it("answers 400 when the model is missing or undecodable", async () => {
@@ -401,7 +458,7 @@ describe("POST /tasks", { timeout: 20_000 }, () => {
     );
 
     const res = await postTask(url, {
-      task: { id: "malformed" },
+      task: { dataType: "malformed" },
       model: defaultModels.TitanicClassifier.card.id,
     });
 
@@ -413,15 +470,15 @@ describe("POST /tasks", { timeout: 20_000 }, () => {
       [defaultModels.TitanicClassifier],
       [defaultTasks.titanic],
     );
-    const task = await newTask();
 
     const posted = await postTask(url, {
-      task: serializeTaskToJSON(task),
+      task: serializeTaskToJSON(await newTask()),
       model: defaultModels.TitanicClassifier.card.id,
     });
     expect(posted.status).toBe(200);
+    const id = await createdID(posted);
 
-    const res = await fetch(new URL(`tasks/${task.id}/model.json`, url));
+    const res = await fetch(new URL(`tasks/${id}/model.json`, url));
     expect(res.status).toBe(200);
   });
 
@@ -432,11 +489,32 @@ describe("POST /tasks", { timeout: 20_000 }, () => {
     );
     const task = await newTask();
 
-    await expect(
-      pushTask(url, task, await defaultModels.TitanicClassifier.getModel()),
-    ).resolves.toBeUndefined();
+    const created = await pushTask(
+      url,
+      task,
+      await defaultModels.TitanicClassifier.getModel(),
+    );
 
-    expect((await fetchTasks(url)).keySeq().toArray()).toContain(task.id);
+    expect(created).toEqual({ ...task, id: created.id });
+    expect((await fetchTasks(url)).keySeq().toArray()).toContain(created.id);
+  });
+
+  it("gives the discojs client the token of a private task", async () => {
+    const url = await startServer(
+      [defaultModels.TitanicClassifier],
+      [defaultTasks.titanic],
+    );
+
+    const { task, token } = await pushTask(
+      url,
+      await newTask(),
+      defaultModels.TitanicClassifier.card.id,
+      { private: true },
+    );
+
+    expect((await fetchTask(url, task.id, token)).id).toBe(task.id);
+    await expect(fetchTask(url, task.id)).rejects.toThrow("HTTP status 404");
+    expect((await fetchTasks(url)).has(task.id)).toBe(false);
   });
 
   it("accepts a model ID from the discojs client", async () => {
@@ -444,16 +522,95 @@ describe("POST /tasks", { timeout: 20_000 }, () => {
       [defaultModels.TitanicClassifier],
       [defaultTasks.titanic],
     );
-    const task = await newTask();
 
-    await expect(
-      pushTask(url, task, defaultModels.TitanicClassifier.card.id),
-    ).resolves.toBeUndefined();
+    const created = await pushTask(
+      url,
+      await newTask(),
+      defaultModels.TitanicClassifier.card.id,
+    );
 
-    expect((await fetchTasks(url)).keySeq().toArray()).toContain(task.id);
+    expect((await fetchTasks(url)).keySeq().toArray()).toContain(created.id);
     // referencing an existing model adds no new one
     expect((await fetchModels(url)).keySeq().toArray()).toEqual([
       defaultModels.TitanicClassifier.card.id,
     ]);
+  });
+});
+
+describe("WebSocket /federated/:id", { timeout: 20_000 }, () => {
+  /** Join a task, resolving with how the server answered */
+  async function join(
+    url: URL,
+    id: string,
+    token?: string,
+  ): Promise<{ answer: mtype.MType } | { closeCode: number }> {
+    const wsURL = new URL(`federated/${id}`, url);
+    wsURL.protocol = "ws:";
+    const ws = new WebSocket(wsURL);
+
+    try {
+      return await new Promise((resolve, reject) => {
+        ws.once("error", reject);
+        ws.once("open", () => {
+          const msg: mtype.ClientConnected = {
+            type: mtype.MType.ClientConnected,
+            // left out rather than undefined, which msgpack would send as null
+            ...(token === undefined ? {} : { token }),
+          };
+          ws.send(msgpack.encode(msg));
+        });
+        ws.once("message", (data: Buffer) =>
+          resolve({
+            answer: (msgpack.decode(data) as { type: mtype.MType }).type,
+          }),
+        );
+        ws.once("close", (closeCode) => resolve({ closeCode }));
+      });
+    } finally {
+      ws.terminate();
+    }
+  }
+
+  it("lets only the holders of a private task's token join it", async () => {
+    const url = await startServer(
+      [defaultModels.TitanicClassifier],
+      [defaultTasks.titanic],
+    );
+    const res = await postTask(url, {
+      task: serializeTaskToJSON(await defaultTasks.titanic.getTask()),
+      model: defaultModels.TitanicClassifier.card.id,
+      private: true,
+    });
+    assert(res.ok);
+    const { id, token } = (await res.json()) as { id: string; token: string };
+
+    // the route only exists once the task's model is decoded
+    await vi.waitFor(async () =>
+      expect(await join(url, id, token)).toEqual({
+        answer: mtype.MType.NewFederatedNodeInfo,
+      }),
+    );
+
+    // not without a token
+    expect(await join(url, id)).toEqual({
+      closeCode: mtype.INVALID_TOKEN_CLOSE_CODE,
+    });
+    // nor with a token that isn't the task's
+    expect(await join(url, id, "another-token")).toEqual({
+      closeCode: mtype.INVALID_TOKEN_CLOSE_CODE,
+    });
+  });
+
+  it("lets anyone join a public task", async () => {
+    const url = await startServer(
+      [defaultModels.TitanicClassifier],
+      [defaultTasks.titanic],
+    );
+
+    await vi.waitFor(async () =>
+      expect(await join(url, "titanic")).toEqual({
+        answer: mtype.MType.NewFederatedNodeInfo,
+      }),
+    );
   });
 });

@@ -18,6 +18,8 @@ export type FakeWebSocket<
   sentMessages: Sent[];
   /** Number of times the server forcefully closed the connection */
   nbOfTerminations: number;
+  /** Code the server gracefully closed the connection with, if it did */
+  closeCode: number | undefined;
   emitMessage: (message: Received) => void;
   emitClose: () => void;
 };
@@ -44,6 +46,14 @@ function makeFakeWebSocket<
   ws.nbOfTerminations = 0;
   ws.terminate = () => {
     if (ws.nbOfTerminations++ === 0) process.nextTick(() => ws.emitClose());
+  };
+
+  // asynchronously emits "close" once the closing handshake is done
+  ws.closeCode = undefined;
+  ws.close = (code?: number) => {
+    if (ws.closeCode !== undefined) return;
+    ws.closeCode = code;
+    process.nextTick(() => ws.emitClose());
   };
 
   ws.emitMessage = (message: Received) => {

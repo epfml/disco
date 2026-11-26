@@ -10,7 +10,7 @@ import type { Task } from "#task/index";
 import type { PeerFactory } from "#client/decentralized/peer";
 import { Client } from "#client/client";
 import type { NodeID } from "#client/types";
-import { MType, type ClientConnected } from "#client/mtype";
+import { MType } from "#client/mtype";
 import { timeout, shortenId } from "#client/utils";
 import {
   WebSocketServer,
@@ -41,9 +41,11 @@ export class DecentralizedClient extends Client<"decentralized"> {
     url: URL,
     task: Task<DataType, "decentralized">,
     aggregator: Aggregator,
+    /** Token of a private task, to download its model and join its training */
+    token?: string,
     private readonly createPeer?: PeerFactory,
   ) {
-    super(url, task, aggregator);
+    super(url, task, aggregator, token);
   }
 
   /**
@@ -179,9 +181,7 @@ export class DecentralizedClient extends Client<"decentralized"> {
     let receivedEnoughParticipants = false;
     this.setupServerCallbacks(() => (receivedEnoughParticipants = true));
 
-    const msg: ClientConnected = {
-      type: MType.ClientConnected,
-    };
+    const msg = this.clientConnectedMessage();
     const { id, waitForMoreParticipants, nbOfParticipants, joinedMidTraining } =
       await sendAndWaitWithRetry(
         this.server,

@@ -7,11 +7,13 @@ import type { WeightsContainer } from "#weights/index";
 import type { Aggregator } from "#aggregator/index";
 import type { RoundStatus } from "#training/types";
 import { EventEmitter } from "#utils/event_emitter";
+import { assertCanSendToken } from "#utils/token_transport";
 
 import { modelDecode } from "#serialization/index";
 
 import type { EventConnection } from "#client/event_connection";
 import type { NodeID } from "#client/types";
+import type { ClientConnected } from "#client/mtype";
 import { MType } from "#client/mtype";
 import { abortable, shortenId } from "#client/utils";
 import { ClientCrashError, ClientDisconnectedError } from "#root/errors";
@@ -81,8 +83,12 @@ export abstract class Client<N extends Network> extends EventEmitter<{
     public readonly url: URL, // The network server's URL to connect to
     public readonly task: Task<DataType, N>, // The client's corresponding task
     public readonly aggregator: Aggregator,
+    /** Token of a private task, to download its model and join its training */
+    protected readonly token?: string,
   ) {
     super();
+    // fail before any connection
+    if (token !== undefined) assertCanSendToken(url);
   }
 
   /**
@@ -285,11 +291,26 @@ export abstract class Client<N extends Network> extends EventEmitter<{
     }
     url.pathname += `tasks/${this.task.id}/model.json`;
 
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers:
+        this.token === undefined
+          ? {}
+          : { Authorization: `Bearer ${this.token}` },
+    });
     if (!response.ok) throw new Error(`fetch: HTTP status ${response.status}`);
 
     const encoded = new Uint8Array(await response.arrayBuffer());
     return await modelDecode(encoded);
+  }
+
+  /** The message asking the server to join the task */
+  protected clientConnectedMessage(): ClientConnected {
+    return {
+      type: MType.ClientConnected,
+      // left out rather than undefined, which msgpack would send as null and
+      // the server would reject
+      ...(this.token === undefined ? {} : { token: this.token }),
+    };
   }
 
   // DecentralizedClient override the method to clean up round state

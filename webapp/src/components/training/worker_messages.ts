@@ -15,6 +15,8 @@ export type ToWorker =
       peerPort?: MessagePort;
       datasetSource: DatasetSource;
       scheme: "local" | "federated" | "decentralized";
+      /** Token of a private task, to download its model and join its training */
+      token?: string;
     }
   | { type: "stop" };
 
