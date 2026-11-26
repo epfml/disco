@@ -10,11 +10,18 @@ export default defineConfig({
     },
   },
   test: {
-    setupFiles: "./testSetupImportTFJSNode.ts",
+    setupFiles: [
+      "./testSetupImportTFJSNode.ts",
+      "./discojs/testSetupTransformersCache.ts",
+    ],
     projects: [
       {
         extends: true,
-        test: { name: "discojs", include: ["discojs/**/*.spec.ts"] },
+        test: {
+          name: "discojs",
+          include: ["discojs/**/*.spec.ts"],
+          globalSetup: "./discojs/testSetupTransformersCache.ts",
+        },
       },
       {
         extends: true,

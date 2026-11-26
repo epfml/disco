@@ -23,6 +23,17 @@ const MAX_CHUNK_SIZE = 65_536;
 const HIGH_WATER_MARK = 1024 * 1024;
 const LOW_WATER_MARK = HIGH_WATER_MARK / 2;
 
+const DEFAULT_RTC_CONFIGURATION: RTCConfiguration = {
+  iceServers: [
+    {
+      urls: [
+        "stun:stun.l.google.com:19302",
+        "stun:global.stun.twilio.com:3478",
+      ],
+    },
+  ],
+};
+
 export type SignalData =
   | RTCSessionDescriptionInit
   | { type: "candidate"; candidate: RTCIceCandidateInit };
@@ -85,22 +96,19 @@ export class Peer extends EventEmitter<PeerEvents> implements PeerTransport {
     }
   >();
 
+  /**
+   * @param id Remote peer identifier.
+   * @param isInitiator Whether this peer creates the data channel and offer.
+   * @param rtcConfig Optional WebRTC configuration; defaults to public STUN servers.
+   */
   constructor(
     public readonly id: NodeID,
     isInitiator: boolean = false,
+    rtcConfig: RTCConfiguration = DEFAULT_RTC_CONFIGURATION,
   ) {
     super();
 
-    this.pc = new wrtc.RTCPeerConnection({
-      iceServers: [
-        {
-          urls: [
-            "stun:stun.l.google.com:19302",
-            "stun:global.stun.twilio.com:3478",
-          ],
-        },
-      ],
-    });
+    this.pc = new wrtc.RTCPeerConnection(rtcConfig);
 
     this.pc.onicecandidate = (event) => {
       if (event.candidate) {
