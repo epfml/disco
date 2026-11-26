@@ -2,14 +2,37 @@ import { List, Range, Set } from "immutable";
 import { assert, afterEach, beforeEach, describe, it } from "vitest";
 import { Peer } from "#client/decentralized/peer";
 
-describe("peer", () => {
+// Exceeds Peer.drain()'s 10s MAX_DRAIN_TIME so slow CI runners do not time out first.
+describe("peer", { timeout: 20_000 }, () => {
   let peer1: Peer;
   let peer2: Peer;
+  let peerFailure: Promise<never>;
+  let tearingDown = false;
+
+  function raceWithPeerFailure<T>(promise: Promise<T>): Promise<T> {
+    return Promise.race([promise, peerFailure]);
+  }
 
   beforeEach(async () => {
-    peer1 = new Peer("1");
-    peer2 = new Peer("2", true);
+    tearingDown = false;
+    peer1 = new Peer("1", false, { iceServers: [] });
+    peer2 = new Peer("2", true, { iceServers: [] });
     const peers = Set.of(peer1, peer2);
+
+    peerFailure = new Promise<never>((_, reject) => {
+      for (const peer of peers) {
+        peer.on("error", (err) => {
+          reject(new Error(`Peer ${peer.id} error: ${err.message}`));
+        });
+        peer.on("close", () => {
+          if (!tearingDown) {
+            reject(new Error(`Peer ${peer.id} closed unexpectedly`));
+          }
+        });
+      }
+    });
+    // Prevent unhandled rejection when a test completes without peer failures.
+    void peerFailure.catch(() => {});
 
     peer1.on("signal", (signal) => {
       peer2.signal(signal);
@@ -18,18 +41,21 @@ describe("peer", () => {
       peer1.signal(signal);
     });
 
-    await Promise.all(
-      peers
-        .map(async (peer) => {
-          await new Promise<void>((resolve) => {
-            peer.on("connect", resolve);
-          });
-        })
-        .toArray(),
+    await raceWithPeerFailure(
+      Promise.all(
+        peers
+          .map(async (peer) => {
+            await new Promise<void>((resolve) => {
+              peer.on("connect", resolve);
+            });
+          })
+          .toArray(),
+      ),
     );
   });
 
   afterEach(async () => {
+    tearingDown = true;
     await Promise.all([peer1.destroy(), peer2.destroy()]);
   });
 
@@ -37,11 +63,13 @@ describe("peer", () => {
     const message = "small message";
 
     peer1.send(Buffer.from(message));
-    const received = await new Promise((resolve) => {
-      peer2.on("data", (msg) => {
-        resolve(msg.toString());
-      });
-    });
+    const received = await raceWithPeerFailure(
+      new Promise((resolve) => {
+        peer2.on("data", (msg) => {
+          resolve(msg.toString());
+        });
+      }),
+    );
 
     assert.strictEqual(received, message);
   });
@@ -51,15 +79,17 @@ describe("peer", () => {
 
     for (const m of messages) peer1.send(Buffer.from(m));
 
-    const receiveds: List<string> = await new Promise((resolve) => {
-      let buffer = List<string>();
-      peer2.on("data", (data) => {
-        buffer = buffer.push(data.toString());
-        if (buffer.size === messages.size) {
-          resolve(buffer);
-        }
-      });
-    });
+    const receiveds: List<string> = await raceWithPeerFailure(
+      new Promise((resolve) => {
+        let buffer = List<string>();
+        peer2.on("data", (data) => {
+          buffer = buffer.push(data.toString());
+          if (buffer.size === messages.size) {
+            resolve(buffer);
+          }
+        });
+      }),
+    );
 
     assert.deepStrictEqual(receiveds.toArray(), messages.toArray());
   });
@@ -74,7 +104,7 @@ describe("peer", () => {
     });
 
     peer1.send(message);
-    await peer1.drain();
+    await raceWithPeerFailure(peer1.drain());
 
     assert.isTrue(received);
   });
@@ -93,8 +123,8 @@ describe("peer", () => {
     });
 
     peer1.send(message);
-    await peer1.drain();
-    const received = await receivedPromise;
+    await raceWithPeerFailure(peer1.drain());
+    const received = await raceWithPeerFailure(receivedPromise);
 
     assert.strictEqual(received.length, message.length);
     assert.strictEqual(Buffer.compare(received, message), 0);
@@ -116,8 +146,8 @@ describe("peer", () => {
     });
 
     peer1.send(message);
-    await peer1.drain();
-    const received = await receivedPromise;
+    await raceWithPeerFailure(peer1.drain());
+    const received = await raceWithPeerFailure(receivedPromise);
 
     assert.strictEqual(received.length, message.length);
     assert.strictEqual(Buffer.compare(received, message), 0);

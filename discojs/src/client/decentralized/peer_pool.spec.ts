@@ -6,6 +6,7 @@ import { MType } from "#client/mtype";
 import type { NodeID } from "#client/types";
 
 import type * as messages from "#client/decentralized/messages";
+import { Peer } from "#client/decentralized/peer";
 import { PeerPool } from "#client/decentralized/peer_pool";
 
 describe("peer pool", { timeout: 10_000 }, () => {
@@ -17,7 +18,14 @@ describe("peer pool", { timeout: 10_000 }, () => {
     pools = Map(
       Range(1, count + 1)
         .map(String)
-        .map((id) => [id, new PeerPool(id)]),
+        .map((id) => [
+          id,
+          new PeerPool(
+            id,
+            (peerId, isInitiator) =>
+              new Peer(peerId, isInitiator, { iceServers: [] }),
+          ),
+        ]),
     );
   });
 

@@ -69,6 +69,15 @@ describe("peer transport", () => {
     });
   });
 
+  it("forwards a custom RTCConfiguration to RTCPeerConnection", async () => {
+    const customConfig: RTCConfiguration = { iceServers: [] };
+    const customPeer = new Peer("2", true, customConfig);
+
+    expect(createPeerConnection).toHaveBeenLastCalledWith(customConfig);
+
+    await customPeer.destroy();
+  });
+
   it.each([16_384, 1024 * 1024 * 1024, Infinity])(
     "fragments and reassembles a payload with a transport limit of %s",
     (limit) => {

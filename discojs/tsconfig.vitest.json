@@ -4,5 +4,9 @@
     "types": ["node"],
     "noEmit": true
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "testSetupTransformersCache.ts",
+    "testSetupTransformersCache.spec.ts"
+  ]
 }
